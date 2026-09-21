@@ -30,7 +30,7 @@ func NewCmdRepo(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "repo <command>",
 		Short: "管理仓库",
-		Long:  `使用 GitHub 仓库。`,
+		Long:  `使用 GitHub 仓库工作`,
 		Example: heredoc.Doc(`
 			$ gh repo create
 			$ gh repo clone cli/cli

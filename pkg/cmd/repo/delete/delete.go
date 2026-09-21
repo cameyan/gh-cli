@@ -42,14 +42,14 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 		Long: heredoc.Docf(`
 			删除一个 GitHub 仓库。
 
-			不带参数时, 删除当前仓库; 否则, 删除指定的仓库。
+			不带参数时，删除当前仓库。否则，删除指定的仓库。
 			
-			出于安全考虑, 当未提供仓库参数时, %[1]s--yes%[1]s 旗标将被忽略,
-			并且系统会提示您进行确认。若要以非交互方式删除当前仓库,
-			请显式指定仓库名称(例如: %[1]sgh repo delete owner/repo --yes%[1]s)。
+			出于安全考虑，当未提供仓库参数时，%[1]s--yes%[1]s 旗标将被忽略，并且系统会提示您进行确认。
 
-			删除操作需要已授权 %[1]sdelete_repo%[1]s 权限范围(scope)。
-			若要授权, 请运行 %[1]sgh auth refresh -s delete_repo%[1]s
+			若要以非交互方式删除当前仓库，请显式指定仓库名称(例如: %[1]sgh repo delete owner/repo --yes%[1]s)。
+
+			删除操作需要已授权 %[1]sdelete_repo%[1]s 权限范围。
+			若要授权，请运行 %[1]sgh auth refresh -s delete_repo%[1]s
 		`, "`"),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -62,12 +62,12 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 				if !opts.IO.CanPrompt() {
 					return cmdutil.FlagErrorf("无法以非交互方式删除当前仓库。请指定仓库名称或以交互方式运行")
 				}
-				_, _ = fmt.Fprintln(opts.IO.ErrOut, "警告: 由于未指定仓库, `--yes` 已被忽略")
+				_, _ = fmt.Fprintln(opts.IO.ErrOut, "警告: 由于未指定仓库，`--yes` 已被忽略")
 				opts.Confirmed = false
 			}
 
 			if !opts.IO.CanPrompt() && !opts.Confirmed {
-				return cmdutil.FlagErrorf("非交互模式下运行时, 需要 --yes")
+				return cmdutil.FlagErrorf("非交互模式下运行时，需要 --yes")
 			}
 
 			if runF != nil {

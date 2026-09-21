@@ -80,28 +80,27 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "create [<name>]",
-		Short: "Create a new repository",
+		Short: "创建一个新仓库",
 		Long: heredoc.Docf(`
 			创建一个新的 GitHub 仓库。
 
-			若要以交互方式创建仓库, 使用不带参数的 %[1]sgh repo create%[1]s。
+			若要以交互方式创建仓库，使用不带参数的 %[1]sgh repo create%[1]s。
 
-			若要以非交互方式创建远程仓库, 请提供仓库名称, 以及 %[1]s--public%[1]s、%[1]s--private%[1]s 或 %[1]s--internal%[1]s 之一。
+			若要以非交互方式创建远程仓库，请提供仓库名称，以及 %[1]s--public%[1]s、%[1]s--private%[1]s 或 %[1]s--internal%[1]s 之一。
 			传入 %[1]s--clone%[1]s 可将新仓库克隆到本地。
 
-			若 %[1]sOWNER/REPO%[1]s 名称参数中的 %[1]sOWNER/%[1]s 部分被省略,
-			则默认为当前认证用户的名称。
+			若 %[1]sOWNER/REPO%[1]s 名称参数中的 %[1]sOWNER/%[1]s 部分被省略，则默认为当前认证用户的名称。
 
-			若要从现有的本地仓库创建远程仓库, 请通过 %[1]s--source%[1]s 指定源目录。
-			默认情况下, 远程仓库名称将与源目录名称相同。
+			若要从现有的本地仓库创建远程仓库，请通过 %[1]s--source%[1]s 指定源目录。
+			默认情况下，远程仓库名称将与源目录名称相同。
 
-			传入 %[1]s--push%[1]s 可将本地提交推送到新仓库。若仓库是裸仓库(bare), 则会镜像所有引用(refs)。
+			传入 %[1]s--push%[1]s 可将本地提交推送到新仓库。若仓库是裸仓库(bare)，则会镜像所有引用(refs)。
 
-			可与 %[1]s--gitignore%[1]s 搭配使用的语言或平台 .gitignore 模板, 请见 <https://github.com/github/gitignore>。
+			可与 %[1]s--gitignore%[1]s 搭配使用的语言或平台 .gitignore 模板，请见 <https://github.com/github/gitignore>。
 
-			可与 %[1]s--license%[1]s 搭配使用的许可证关键字, 请运行 %[1]sgh repo license list%[1]s 或访问 <https://choosealicense.com>。
+			可与 %[1]s--license%[1]s 搭配使用的许可证关键字，请运行 %[1]sgh repo license list%[1]s 或访问 <https://choosealicense.com>。
 
-			仓库将使用已配置的仓库默认分支创建, 参见 <https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-user-account-settings/managing-the-default-branch-name-for-your-repositories>.
+			仓库将使用已配置的仓库默认分支创建，参见 <https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-user-account-settings/managing-the-default-branch-name-for-your-repositories>。
 		`, "`"),
 		Example: heredoc.Doc(`
 			# 以交互方式创建仓库
@@ -131,10 +130,10 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 			} else {
 				// exactly one visibility flag required
 				if !opts.Public && !opts.Private && !opts.Internal {
-					return cmdutil.FlagErrorf("非交互模式下运行时, 需要 `--public`、`--private` 或 `--internal` 之一")
+					return cmdutil.FlagErrorf("非交互模式下运行时，需要 `--public`、`--private` 或 `--internal` 之一")
 				}
 				err := cmdutil.MutuallyExclusive(
-					"`--public`、`--private` 或 `--internal` 中只能提供一个",
+					"`--public`, `--private` 或 `--internal` 中只能提供一个",
 					opts.Public, opts.Private, opts.Internal)
 				if err != nil {
 					return err
@@ -206,19 +205,19 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 	cmd.Flags().StringVarP(&opts.Remote, "remote", "r", "", "为新仓库指定远程名称")
 	cmd.Flags().BoolVar(&opts.Push, "push", false, "将本地提交推送到新仓库")
 	cmd.Flags().BoolVarP(&opts.Clone, "clone", "c", false, "将新仓库克隆到当前目录")
-	cmd.Flags().BoolVar(&opts.DisableIssues, "disable-issues", false, "在新仓库中禁用议题(issues)")
-	cmd.Flags().BoolVar(&opts.DisableWiki, "disable-wiki", false, "在新仓库中禁用维基(wiki)")
+	cmd.Flags().BoolVar(&opts.DisableIssues, "disable-issues", false, "在新仓库中禁用 issue")
+	cmd.Flags().BoolVar(&opts.DisableWiki, "disable-wiki", false, "在新仓库中禁用 wiki")
 	cmd.Flags().BoolVar(&opts.IncludeAllBranches, "include-all-branches", false, "包含模板仓库中的所有分支")
 	cmd.Flags().BoolVar(&opts.AddReadme, "add-readme", false, "为新仓库添加 README 文件")
 
 	// deprecated flags
 	cmd.Flags().BoolP("confirm", "y", false, "跳过确认提示")
-	cmd.Flags().BoolVar(&enableIssues, "enable-issues", true, "在新仓库中启用议题(issues)")
-	cmd.Flags().BoolVar(&enableWiki, "enable-wiki", true, "在新仓库中启用维基(wiki)")
+	cmd.Flags().BoolVar(&enableIssues, "enable-issues", true, "在新仓库中启用 issues")
+	cmd.Flags().BoolVar(&enableWiki, "enable-wiki", true, "在新仓库中启用 wiki")
 
 	_ = cmd.Flags().MarkDeprecated("confirm", "传入任意参数以跳过确认提示")
 	_ = cmd.Flags().MarkDeprecated("enable-issues", "使用 `--disable-issues` 禁用议题")
-	_ = cmd.Flags().MarkDeprecated("enable-wiki", "使用 `--disable-wiki` 禁用维基")
+	_ = cmd.Flags().MarkDeprecated("enable-wiki", "使用 `--disable-wiki` 禁用 wiki")
 
 	_ = cmd.RegisterFlagCompletionFunc("gitignore", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		httpClient, err := opts.HttpClient()
@@ -330,7 +329,7 @@ func createFromScratch(opts *CreateOptions) error {
 			targetRepo = opts.Name[0:idx+1] + shared.NormalizeRepoName(opts.Name[idx+1:])
 		}
 		confirmed, err := opts.Prompter.Confirm(
-			fmt.Sprintf(`将在 %s 上以 %s 可见性创建 "%s"。是否继续?`, host, strings.ToLower(opts.Visibility), targetRepo),
+			fmt.Sprintf(`将在 %s 上以 %s 可见性创建 "%s"，是否继续?`, host, strings.ToLower(opts.Visibility), targetRepo),
 			true)
 		if err != nil {
 			return err
@@ -343,7 +342,7 @@ func createFromScratch(opts *CreateOptions) error {
 		var err error
 		repoToCreate, err = ghrepo.FromFullName(opts.Name)
 		if err != nil {
-			return fmt.Errorf("argument error: %w", err)
+			return fmt.Errorf("参数错误: %w", err)
 		}
 	} else {
 		repoToCreate = ghrepo.NewWithHost("", opts.Name, host)
@@ -379,7 +378,7 @@ func createFromScratch(opts *CreateOptions) error {
 		}
 		templateRepo, err = ghrepo.FromFullName(templateRepoName)
 		if err != nil {
-			return fmt.Errorf("argument error: %w", err)
+			return fmt.Errorf("参数错误: %w", err)
 		}
 
 		repo, err := api.GitHubRepo(apiClient, templateRepo)
@@ -463,7 +462,7 @@ func createFromTemplate(opts *CreateOptions) error {
 	}
 	repoToCreate, err := ghrepo.FromFullName(opts.Name)
 	if err != nil {
-		return fmt.Errorf("argument error: %w", err)
+		return fmt.Errorf("参数错误: %w", err)
 	}
 
 	templateRepo, err := interactiveRepoTemplate(httpClient, host, repoToCreate.RepoOwner(), opts.Prompter)
@@ -492,7 +491,7 @@ func createFromTemplate(opts *CreateOptions) error {
 		targetRepo = opts.Name[0:idx+1] + shared.NormalizeRepoName(opts.Name[idx+1:])
 	}
 	confirmed, err := opts.Prompter.Confirm(
-		fmt.Sprintf(`将在 %s 上以 %s 可见性创建 "%s"。是否继续?`, host, strings.ToLower(opts.Visibility), targetRepo),
+		fmt.Sprintf(`将在 %s 上以 %s 可见性创建 "%s"，是否继续?`, host, strings.ToLower(opts.Visibility), targetRepo),
 		true)
 	if err != nil {
 		return err
@@ -576,9 +575,9 @@ func createFromLocal(opts *CreateOptions) error {
 	}
 	if repoType == unknown {
 		if repoPath == "." {
-			return fmt.Errorf("当前目录不是 git 仓库, 请运行 `git init` 进行初始化")
+			return fmt.Errorf("当前目录不是 git 仓库，请运行 `git init` 进行初始化")
 		}
-		return fmt.Errorf("%s 不是 git 仓库, 请运行 `git -C \"%s\" init` 进行初始化", absPath, repoPath)
+		return fmt.Errorf("%s 不是 git 仓库，请运行 `git -C \"%s\" init` 进行初始化", absPath, repoPath)
 	}
 
 	committed, err := hasCommits(opts.GitClient)
@@ -588,7 +587,7 @@ func createFromLocal(opts *CreateOptions) error {
 	if opts.Push {
 		// 若无提交却尝试推送, 则立即失败
 		if !committed {
-			return fmt.Errorf("已启用 `--push`, 但在 %s 中未找到任何提交", absPath)
+			return fmt.Errorf("已启用 `--push`，但在 %s 中未找到任何提交", absPath)
 		}
 	}
 
@@ -608,7 +607,7 @@ func createFromLocal(opts *CreateOptions) error {
 		var err error
 		repoToCreate, err = ghrepo.FromFullName(opts.Name)
 		if err != nil {
-			return fmt.Errorf("argument error: %w", err)
+			return fmt.Errorf("参数错误: %w", err)
 		}
 	} else {
 		repoToCreate = ghrepo.NewWithHost("", opts.Name, host)
@@ -973,7 +972,7 @@ func splitNameAndOwner(name string) (string, string, error) {
 	}
 	repo, err := ghrepo.FromFullName(name)
 	if err != nil {
-		return "", "", fmt.Errorf("argument error: %w", err)
+		return "", "", fmt.Errorf("参数错误: %w", err)
 	}
 	return repo.RepoName(), repo.RepoOwner(), nil
 }

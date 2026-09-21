@@ -45,23 +45,19 @@ func NewCmdClone(f *cmdutil.Factory, runF func(*CloneOptions) error) *cobra.Comm
 		Args:  cmdutil.MinimumArgs(1, "无法克隆: 需要提供仓库参数"),
 		Short: "在本地克隆仓库",
 		Long: heredoc.Docf(`
-			在本地克隆 GitHub 仓库。可在 %[1]s--%[1]s 之后列出
-			额外的 %[1]sgit clone%[1]s 旗标。
+			在本地克隆 GitHub 仓库。
 
-			若 %[1]sOWNER/REPO%[1]s 仓库参数中的 %[1]sOWNER/%[1]s 部分被省略,
-			则默认为当前认证用户的名称。
+			可在 %[1]s--%[1]s 之后列出额外的 %[1]sgit clone%[1]s 旗标。
 
-			当仓库参数中未提供协议方案(scheme)时, 将从您的配置中选择 %[1]sgit_protocol%[1]s,
-			可通过 %[1]sgh config get git_protocol%[1]s 查看。若提供了协议
-			方案, 则将使用指定的协议克隆仓库。
+			若 %[1]sOWNER/REPO%[1]s 仓库参数中的 %[1]sOWNER/%[1]s 部分被省略，则默认为当前认证用户的名称。
 
-			若该仓库是一个派生(fork), 其父仓库将被添加为一个额外的
-			名为 %[1]supstream%[1]s 的 git 远程。远程名称可通过 %[1]s--upstream-remote-name%[1]s 配置。
-			%[1]s--upstream-remote-name%[1]s 选项支持 %[1]s@owner%[1]s 值, 它将以父仓库的所有者命名
-			该远程。
+			当仓库参数中未提供协议方案(scheme)时, 将从您的配置中选择 %[1]sgit_protocol%[1]s，可通过 %[1]sgh config get git_protocol%[1]s 查看。
+			若提供了协议方案，则将使用指定的协议克隆仓库。
 
-			若该仓库是一个派生(fork), 其父仓库将被设为默认远程仓库。
-			若要跳过此行为, 请使用 %[1]s--no-upstream%[1]s。
+			若该仓库是一个派生(fork)仓库，其父仓库将被添加为一个额外的名为 %[1]supstream%[1]s 的 git 远程。远程名称可通过 %[1]s--upstream-remote-name%[1]s 配置。
+			%[1]s--upstream-remote-name%[1]s 选项支持 %[1]s@owner%[1]s 值，它将以父仓库的所有者命名该远程。
+
+			若该仓库是一个派生(fork)仓库，其父仓库将被设为默认远程仓库。若要跳过此行为，请使用 %[1]s--no-upstream%[1]s。
 		`, "`"),
 		Example: heredoc.Doc(`
 			# 从指定的组织克隆仓库
@@ -70,7 +66,7 @@ func NewCmdClone(f *cmdutil.Factory, runF func(*CloneOptions) error) *cobra.Comm
 			# 从您自己的账号克隆仓库
 			$ gh repo clone myrepo
 
-			# 克隆仓库, 并覆盖 git 协议配置
+			# 克隆仓库，并覆盖 git 协议配置
 			$ gh repo clone https://github.com/cli/cli
 			$ gh repo clone git@github.com:cli/cli.git
 
@@ -80,7 +76,7 @@ func NewCmdClone(f *cmdutil.Factory, runF func(*CloneOptions) error) *cobra.Comm
 			# 使用额外的 git clone 旗标克隆仓库
 			$ gh repo clone cli/cli -- --depth=1
 
-			# 克隆派生(fork)仓库, 且不添加 upstream 远程
+			# 克隆派生(fork)仓库，且不添加 upstream 远程
 			$ gh repo clone myfork --no-upstream
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -95,14 +91,14 @@ func NewCmdClone(f *cmdutil.Factory, runF func(*CloneOptions) error) *cobra.Comm
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.UpstreamName, "upstream-remote-name", "u", "upstream", "克隆派生(fork)仓库时的上游(upstream)远程名称")
-	cmd.Flags().BoolVar(&opts.NoUpstream, "no-upstream", false, "克隆派生(fork)仓库时不添加上游(upstream)远程")
+	cmd.Flags().StringVarP(&opts.UpstreamName, "upstream-remote-name", "u", "upstream", "克隆派生(fork)仓库时的上游远程名称")
+	cmd.Flags().BoolVar(&opts.NoUpstream, "no-upstream", false, "克隆派生(fork)仓库时不添加上游远程")
 	cmd.MarkFlagsMutuallyExclusive("upstream-remote-name", "no-upstream")
 	cmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
 		if err == pflag.ErrHelp {
 			return err
 		}
-		return cmdutil.FlagErrorf("%w\n请使用 '--' 分隔 git clone 旗标。", err)
+		return cmdutil.FlagErrorf("%w\n请使用 '--' 分隔 git clone 旗标", err)
 	})
 
 	return cmd
@@ -182,7 +178,7 @@ func cloneRun(opts *CloneOptions) error {
 	// 若仓库启用了维基(wiki)且 wantsWiki 为 true, 则创建一个新的克隆 URL
 	if wantsWiki {
 		if !canonicalRepo.HasWikiEnabled {
-			return fmt.Errorf("仓库 '%s' 没有维基(wiki)", ghrepo.FullName(canonicalRepo))
+			return fmt.Errorf("仓库 '%s' 没有 wiki", ghrepo.FullName(canonicalRepo))
 		}
 		canonicalCloneURL = strings.TrimSuffix(canonicalCloneURL, ".git") + ".wiki.git"
 	}
@@ -234,7 +230,7 @@ func cloneRun(opts *CloneOptions) error {
 			connectedToTerminal := opts.IO.IsStdoutTTY()
 			if connectedToTerminal {
 				cs := opts.IO.ColorScheme()
-				fmt.Fprintf(opts.IO.ErrOut, "%s 仓库 %s 已被设为默认仓库。要了解默认仓库的更多信息, 请运行: gh repo set-default --help\n", cs.WarningIcon(), cs.Bold(ghrepo.FullName(canonicalRepo.Parent)))
+				fmt.Fprintf(opts.IO.ErrOut, "%s 仓库 %s 已被设为默认仓库。要了解默认仓库的更多信息，请运行: gh repo set-default --help\n", cs.WarningIcon(), cs.Bold(ghrepo.FullName(canonicalRepo.Parent)))
 			}
 		}
 	}

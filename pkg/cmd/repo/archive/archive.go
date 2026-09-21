@@ -40,7 +40,7 @@ func NewCmdArchive(f *cmdutil.Factory, runF func(*ArchiveOptions) error) *cobra.
 		Short: "归档仓库",
 		Long: heredoc.Doc(`归档一个 GitHub 仓库。
 
-不带参数时, 归档当前仓库。`),
+不带参数时，归档当前仓库。`),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
@@ -48,7 +48,7 @@ func NewCmdArchive(f *cmdutil.Factory, runF func(*ArchiveOptions) error) *cobra.
 			}
 
 			if !opts.Confirmed && !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("非交互模式下运行时, 需要 --yes")
+				return cmdutil.FlagErrorf("非交互模式下运行时，需要 --yes")
 			}
 
 			if runF != nil {

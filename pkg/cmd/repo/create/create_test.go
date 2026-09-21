@@ -56,14 +56,14 @@ func TestNewCmdCreate(t *testing.T) {
 			tty:      true,
 			cli:      "NEWREPO",
 			wantsErr: true,
-			errMsg:   "非交互模式下运行时, 需要 `--public`、`--private` 或 `--internal` 之一",
+			errMsg:   "非交互模式下运行时，需要 `--public`, `--private` 或 `--internal` 之一",
 		},
 		{
 			name:     "multiple visibility",
 			tty:      true,
 			cli:      "NEWREPO --public --private",
 			wantsErr: true,
-			errMsg:   "`--public`、`--private` 或 `--internal` 中只能提供一个",
+			errMsg:   "`--public`, `--private` 或 `--internal` 中只能提供一个",
 		},
 		{
 			name: "new remote from local",
@@ -98,13 +98,13 @@ func TestNewCmdCreate(t *testing.T) {
 				Push:   true,
 			},
 			wantsErr: true,
-			errMsg:   "非交互模式下运行时, 需要 `--public`、`--private` 或 `--internal` 之一",
+			errMsg:   "非交互模式下运行时，需要 `--public`, `--private` 或 `--internal` 之一",
 		},
 		{
 			name:     "source with template",
 			cli:      "--source=/path/to/repo --private --template mytemplate",
 			wantsErr: true,
-			errMsg:   "`--source` 选项不支持与 `--clone`、`--template`、`--license` 或 `--gitignore` 搭配使用",
+			errMsg:   "`--source` 选项不支持与 `--clone`、`--template`, `--license` 或 `--gitignore` 搭配使用",
 		},
 		{
 			name:     "include all branches without template",
@@ -126,13 +126,13 @@ func TestNewCmdCreate(t *testing.T) {
 			name:     "template with .gitignore",
 			cli:      "template-repo --template mytemplate --gitignore ../.gitignore --public",
 			wantsErr: true,
-			errMsg:   "提供了模板时, 不会添加 .gitignore 和许可证模板",
+			errMsg:   "提供了模板时，不会添加 .gitignore 和许可证模板",
 		},
 		{
 			name:     "template with license",
 			cli:      "template-repo --template mytemplate --license ../.license --public",
 			wantsErr: true,
-			errMsg:   "提供了模板时, 不会添加 .gitignore 和许可证模板",
+			errMsg:   "提供了模板时，不会添加 .gitignore 和许可证模板",
 		},
 	}
 
