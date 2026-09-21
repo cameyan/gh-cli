@@ -1,65 +1,65 @@
-# Installation from source
+# 从源码安装
 
-1. Verify that you have Go 1.26+ installed
+1. 确认已安装 Go 1.26+
 
    ```sh
    $ go version
    ```
 
-   If `go` is not installed, follow instructions on [the Go website](https://golang.org/doc/install).
+   如果未安装 `go`，请按照 [Go 官网](https://golang.org/doc/install)上的说明进行安装。
 
-2. Clone this repository
+2. 克隆本仓库
 
    ```sh
    $ git clone https://github.com/cli/cli.git gh-cli
    $ cd gh-cli
    ```
 
-3. Build and install
+3. 构建并安装
 
-   **Unix-like systems**
+   **Unix 类系统**
 
    ```sh
-   # installs to '/usr/local' by default; sudo may be required, or sudo -E for configured go environments
+   # 默认安装到 '/usr/local'; 可能需要 sudo, 配置了 go 环境时可用 sudo -E
    $ make install
 
-   # or, install to a different location
+   # 或者, 安装到其他位置
    $ make install prefix=/path/to/gh
    ```
 
    **Windows**
 
    ```pwsh
-   # build the `bin\gh.exe` binary
+   # 构建 `bin\gh.exe` 二进制文件
    > go run script\build.go
    ```
 
-   There is no install step available on Windows.
+   Windows 上没有可用的安装步骤。
 
-4. Run `gh version` to check if it worked.
+4. 运行 `gh version` 检查是否安装成功。
 
    **Windows**
 
-   Run `bin\gh version` to check if it worked.
+   运行 `bin\gh version` 检查是否安装成功。
 
-## Cross-compiling binaries for different platforms
+## 为不同平台交叉编译二进制文件
 
-You can use any platform with Go installed to build a binary that is intended for another platform
-or CPU architecture. This is achieved by setting environment variables such as GOOS and GOARCH.
+您可以在任何安装了 Go 的平台上构建面向其他平台或 CPU 架构的二进制文件。
+这是通过设置 GOOS 和 GOARCH 等环境变量来实现的。
 
-For example, to compile the `gh` binary for the 32-bit Raspberry Pi OS:
+例如, 为 32 位 Raspberry Pi OS 编译 `gh` 二进制文件:
 
 ```sh
-# on a Unix-like system:
+# 在 Unix 类系统上:
 $ GOOS=linux GOARCH=arm GOARM=7 CGO_ENABLED=0 make clean bin/gh
 ```
 
 ```pwsh
-# on Windows, pass environment variables as arguments to the build script:
+# 在 Windows 上, 将环境变量作为参数传给构建脚本:
 > go run script\build.go clean bin\gh GOOS=linux GOARCH=arm GOARM=7 CGO_ENABLED=0
 ```
 
-Run `go tool dist list` to list all supported values of GOOS/GOARCH.
+运行 `go tool dist list` 可列出 GOOS/GOARCH 的所有支持值。
 
-Tip: to reduce the size of the resulting binary, you can use `GO_LDFLAGS="-s -w"`. This omits
-symbol tables used for debugging. See the list of [supported linker flags](https://golang.org/cmd/link/).
+提示: 要减小生成的二进制文件的大小, 可以使用 `GO_LDFLAGS="-s -w"`。这会省略用于
+调试的符号表。请参阅 [受支持的链接器标志](https://golang.org/cmd/link/)列表。
