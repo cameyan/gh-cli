@@ -41,7 +41,7 @@ func TestNewCmdEdit(t *testing.T) {
 				Repository: ghrepo.NewWithHost("OWNER", "REPO", "github.com"),
 				Edits:      EditRepositoryInput{},
 			},
-			wantErr: "use of --visibility flag requires --accept-visibility-change-consequences flag",
+			wantErr: "使用 --visibility 旗标时需要 --accept-visibility-change-consequences 旗标",
 		},
 		{
 			name: "allow public visibility change with accepting consequences",
@@ -60,7 +60,7 @@ func TestNewCmdEdit(t *testing.T) {
 				Repository: ghrepo.NewWithHost("OWNER", "REPO", "github.com"),
 				Edits:      EditRepositoryInput{},
 			},
-			wantErr: "use of --visibility flag requires --accept-visibility-change-consequences flag",
+			wantErr: "使用 --visibility 旗标时需要 --accept-visibility-change-consequences 旗标",
 		},
 		{
 			name: "allow private visibility change with accepting consequences",
@@ -79,7 +79,7 @@ func TestNewCmdEdit(t *testing.T) {
 				Repository: ghrepo.NewWithHost("OWNER", "REPO", "github.com"),
 				Edits:      EditRepositoryInput{},
 			},
-			wantErr: "use of --visibility flag requires --accept-visibility-change-consequences flag",
+			wantErr: "使用 --visibility 旗标时需要 --accept-visibility-change-consequences 旗标",
 		},
 		{
 			name: "allow internal visibility change with accepting consequences",
@@ -107,17 +107,17 @@ func TestNewCmdEdit(t *testing.T) {
 		{
 			name:    "squash merge commit message without enable-squash-merge",
 			args:    "--squash-merge-commit-message default",
-			wantErr: "--squash-merge-commit-message requires --enable-squash-merge",
+			wantErr: "--squash-merge-commit-message 需要 --enable-squash-merge",
 		},
 		{
 			name:    "squash merge commit message with invalid value",
 			args:    "--enable-squash-merge --squash-merge-commit-message blah",
-			wantErr: `invalid value for --squash-merge-commit-message: "blah". Valid values are: default, pr-title, pr-title-commits, pr-title-description`,
+			wantErr: `--squash-merge-commit-message 的值无效: "blah"。有效值为: default, pr-title, pr-title-commits, pr-title-description`,
 		},
 		{
 			name:    "squash merge commit message with enable-squash-merge=false",
 			args:    "--enable-squash-merge=false --squash-merge-commit-message default",
-			wantErr: "--squash-merge-commit-message cannot be used when --enable-squash-merge=false",
+			wantErr: "--enable-squash-merge=false 时不能使用 --squash-merge-commit-message",
 		},
 	}
 
@@ -306,7 +306,7 @@ func Test_editRun(t *testing.T) {
 					httpmock.GraphQL(`query RepositoryInfo\b`),
 					httpmock.StringResponse(`{"data": { "repository": { "viewerCanAdminister": false } } }`))
 			},
-			wantsErr: "you do not have sufficient permissions to edit repository security and analysis features",
+			wantsErr: "您没有足够的权限编辑仓库的安全与分析功能",
 		},
 	}
 
@@ -339,16 +339,16 @@ func Test_editRun(t *testing.T) {
 
 func Test_editRun_interactive(t *testing.T) {
 	editList := []string{
-		"Default Branch Name",
-		"Description",
-		"Home Page URL",
-		"Issues",
-		"Merge Options",
-		"Projects",
-		"Template Repository",
-		"Topics",
-		"Visibility",
-		"Wikis"}
+		"默认分支名称",
+		"描述",
+		"主页 URL",
+		"议题",
+		"合并选项",
+		"项目",
+		"模板仓库",
+		"主题",
+		"可见性",
+		"维基"}
 
 	tests := []struct {
 		name        string
@@ -366,11 +366,11 @@ func Test_editRun_interactive(t *testing.T) {
 			},
 			promptStubs: func(pm *prompter.MockPrompter) {
 				el := append(editList, optionAllowForking)
-				pm.RegisterMultiSelect("What do you want to edit?", nil, el,
+				pm.RegisterMultiSelect("您想编辑什么?", nil, el,
 					func(_ string, _, opts []string) ([]int, error) {
 						return []int{10}, nil
 					})
-				pm.RegisterConfirm("Allow forking (of an organization repository)?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否允许派生(fork)(组织仓库)?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
 			},
@@ -412,15 +412,15 @@ func Test_editRun_interactive(t *testing.T) {
 				InteractiveMode: true,
 			},
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterMultiSelect("What do you want to edit?", nil, editList,
+				pm.RegisterMultiSelect("您想编辑什么?", nil, editList,
 					func(_ string, _, opts []string) ([]int, error) {
 						return []int{8}, nil
 					})
-				pm.RegisterSelect("Visibility", []string{"public", "private", "internal"},
+				pm.RegisterSelect("可见性", []string{"public", "private", "internal"},
 					func(_, _ string, opts []string) (int, error) {
 						return prompter.IndexFor(opts, "private")
 					})
-				pm.RegisterConfirm("Do you want to change visibility to private?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否要将可见性更改为 private?", func(_ string, _ bool) (bool, error) {
 					return false, nil
 				})
 			},
@@ -451,7 +451,7 @@ func Test_editRun_interactive(t *testing.T) {
 					}`))
 				reg.Exclude(t, httpmock.REST("PATCH", "repos/OWNER/REPO"))
 			},
-			wantsStderr: "Changing the repository visibility to private will cause permanent loss of 10 stars and 0 watchers.",
+			wantsStderr: "将仓库可见性更改为 private 将导致永久失去 10 stars 和 0 watchers。",
 		},
 		{
 			name: "changing visibility with confirmation",
@@ -460,15 +460,15 @@ func Test_editRun_interactive(t *testing.T) {
 				InteractiveMode: true,
 			},
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterMultiSelect("What do you want to edit?", nil, editList,
+				pm.RegisterMultiSelect("您想编辑什么?", nil, editList,
 					func(_ string, _, opts []string) ([]int, error) {
 						return []int{8}, nil
 					})
-				pm.RegisterSelect("Visibility", []string{"public", "private", "internal"},
+				pm.RegisterSelect("可见性", []string{"public", "private", "internal"},
 					func(_, _ string, opts []string) (int, error) {
 						return prompter.IndexFor(opts, "private")
 					})
-				pm.RegisterConfirm("Do you want to change visibility to private?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否要将可见性更改为 private?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
 			},
@@ -506,7 +506,7 @@ func Test_editRun_interactive(t *testing.T) {
 						assert.Equal(t, "private", payload["visibility"])
 					}))
 			},
-			wantsStderr: "Changing the repository visibility to private will cause permanent loss of 10 stars and 15 watchers",
+			wantsStderr: "将仓库可见性更改为 private 将导致永久失去 10 stars 和 15 watchers",
 		},
 		{
 			name: "the rest",
@@ -515,26 +515,26 @@ func Test_editRun_interactive(t *testing.T) {
 				InteractiveMode: true,
 			},
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterMultiSelect("What do you want to edit?", nil, editList,
+				pm.RegisterMultiSelect("您想编辑什么?", nil, editList,
 					func(_ string, _, opts []string) ([]int, error) {
 						return []int{0, 2, 3, 5, 6, 9}, nil
 					})
-				pm.RegisterInput("Default branch name", func(_, _ string) (string, error) {
+				pm.RegisterInput("默认分支名称", func(_, _ string) (string, error) {
 					return "trunk", nil
 				})
-				pm.RegisterInput("Repository home page URL", func(_, _ string) (string, error) {
+				pm.RegisterInput("仓库主页 URL", func(_, _ string) (string, error) {
 					return "https://zombo.com", nil
 				})
-				pm.RegisterConfirm("Enable Issues?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否启用议题(issues)?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
-				pm.RegisterConfirm("Enable Projects?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否启用项目(projects)?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
-				pm.RegisterConfirm("Convert into a template repository?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否转换为模板仓库?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
-				pm.RegisterConfirm("Enable Wikis?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否启用维基(wiki)?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
 			},
@@ -582,11 +582,11 @@ func Test_editRun_interactive(t *testing.T) {
 				InteractiveMode: true,
 			},
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterMultiSelect("What do you want to edit?", nil, editList,
+				pm.RegisterMultiSelect("您想编辑什么?", nil, editList,
 					func(_ string, _, opts []string) ([]int, error) {
 						return []int{1}, nil
 					})
-				pm.RegisterInput("Description of the repository",
+				pm.RegisterInput("仓库描述",
 					func(_, _ string) (string, error) {
 						return "awesome repo description", nil
 					})
@@ -628,19 +628,19 @@ func Test_editRun_interactive(t *testing.T) {
 				InteractiveMode: true,
 			},
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterMultiSelect("What do you want to edit?", nil, editList,
+				pm.RegisterMultiSelect("您想编辑什么?", nil, editList,
 					func(_ string, _, opts []string) ([]int, error) {
 						return []int{1, 7}, nil
 					})
-				pm.RegisterInput("Description of the repository",
+				pm.RegisterInput("仓库描述",
 					func(_, _ string) (string, error) {
 						return "awesome repo description", nil
 					})
-				pm.RegisterInput("Add topics?(csv format)",
+				pm.RegisterInput("添加主题?(csv 格式)",
 					func(_, _ string) (string, error) {
 						return "a, b,c,d ", nil
 					})
-				pm.RegisterMultiSelect("Remove Topics", nil, []string{"x"},
+				pm.RegisterMultiSelect("移除主题", nil, []string{"x"},
 					func(_ string, _, opts []string) ([]int, error) {
 						return []int{0}, nil
 					})
@@ -687,19 +687,19 @@ func Test_editRun_interactive(t *testing.T) {
 				InteractiveMode: true,
 			},
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterMultiSelect("What do you want to edit?", nil, editList,
+				pm.RegisterMultiSelect("您想编辑什么?", nil, editList,
 					func(_ string, _, opts []string) ([]int, error) {
 						return []int{4}, nil
 					})
-				pm.RegisterMultiSelect("Allowed merge strategies", nil,
+				pm.RegisterMultiSelect("允许的合并策略", nil,
 					[]string{allowMergeCommits, allowSquashMerge, allowRebaseMerge},
 					func(_ string, _, opts []string) ([]int, error) {
 						return []int{0, 2}, nil
 					})
-				pm.RegisterConfirm("Enable Auto Merge?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否启用自动合并?", func(_ string, _ bool) (bool, error) {
 					return false, nil
 				})
-				pm.RegisterConfirm("Automatically delete head branches after merging?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("合并后是否自动删除源分支?", func(_ string, _ bool) (bool, error) {
 					return false, nil
 				})
 			},
@@ -746,24 +746,24 @@ func Test_editRun_interactive(t *testing.T) {
 				InteractiveMode: true,
 			},
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterMultiSelect("What do you want to edit?", nil, editList,
+				pm.RegisterMultiSelect("您想编辑什么?", nil, editList,
 					func(_ string, _, opts []string) ([]int, error) {
 						return []int{4}, nil
 					})
-				pm.RegisterMultiSelect("Allowed merge strategies", nil,
+				pm.RegisterMultiSelect("允许的合并策略", nil,
 					[]string{allowMergeCommits, allowSquashMerge, allowRebaseMerge},
 					func(_ string, _, opts []string) ([]int, error) {
 						return []int{1}, nil
 					})
-				pm.RegisterSelect("Default squash merge commit message",
+				pm.RegisterSelect("默认的压缩合并提交信息",
 					[]string{"default", "pr-title", "pr-title-commits", "pr-title-description"},
 					func(_, _ string, opts []string) (int, error) {
 						return prompter.IndexFor(opts, "pr-title-description")
 					})
-				pm.RegisterConfirm("Enable Auto Merge?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否启用自动合并?", func(_ string, _ bool) (bool, error) {
 					return false, nil
 				})
-				pm.RegisterConfirm("Automatically delete head branches after merging?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("合并后是否自动删除源分支?", func(_ string, _ bool) (bool, error) {
 					return false, nil
 				})
 			},

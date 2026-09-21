@@ -41,16 +41,16 @@ func NewCmdCredits(f *cmdutil.Factory, runF func(*CreditsOptions) error) *cobra.
 
 	cmd := &cobra.Command{
 		Use:   "credits",
-		Short: "View credits for this tool",
-		Long:  `View animated credits for gh, the tool you are currently using :)`,
+		Short: "查看本工具的制作人员名单",
+		Long:  `查看 gh(您当前正在使用的工具)的动画制作人员名单 :)`,
 		Example: heredoc.Doc(`
-			# See a credits animation for this project
+			# 查看本项目的制作人员名单动画
 			$ gh credits
 
-			# Display a non-animated thank you
+			# 以非动画方式显示感谢信息
 			$ gh credits -s
 
-			# Just print the contributors, one per line
+			# 仅输出贡献者, 每行一个
 			$ gh credits | cat
 		`),
 		Args: cobra.ExactArgs(0),
@@ -64,7 +64,7 @@ func NewCmdCredits(f *cmdutil.Factory, runF func(*CreditsOptions) error) *cobra.
 		Hidden: true,
 	}
 
-	cmd.Flags().BoolVarP(&opts.Static, "static", "s", false, "Print a static version of the credits")
+	cmd.Flags().BoolVarP(&opts.Static, "static", "s", false, "以静态方式输出制作人员名单")
 
 	return cmd
 }
@@ -78,18 +78,18 @@ func NewCmdRepoCredits(f *cmdutil.Factory, runF func(*CreditsOptions) error) *co
 
 	cmd := &cobra.Command{
 		Use:   "credits [<repository>]",
-		Short: "View credits for a repository",
+		Short: "查看仓库的制作人员名单",
 		Example: heredoc.Doc(`
-			# View credits for the current repository
+			# 查看当前仓库的制作人员名单
 			$ gh repo credits
 
-			# View credits for a specific repository
+			# 查看指定仓库的制作人员名单
 			$ gh repo credits cool/repo
 
-			# Print a non-animated thank you
+			# 以非动画方式输出感谢信息
 			$ gh repo credits -s
 
-			# Pipe to just print the contributors, one per line
+			# 通过管道仅输出贡献者, 每行一个
 			$ gh repo credits | cat
 		`),
 		Args: cobra.MaximumNArgs(1),
@@ -107,7 +107,7 @@ func NewCmdRepoCredits(f *cmdutil.Factory, runF func(*CreditsOptions) error) *co
 		Hidden: true,
 	}
 
-	cmd.Flags().BoolVarP(&opts.Static, "static", "s", false, "Print a static version of the credits")
+	cmd.Flags().BoolVarP(&opts.Static, "static", "s", false, "以静态方式输出制作人员名单")
 
 	return cmd
 }
@@ -161,7 +161,7 @@ func creditsRun(opts *CreditsOptions) error {
 	cs := opts.IO.ColorScheme()
 
 	if isTTY && static {
-		fmt.Fprintln(out, "THANK YOU CONTRIBUTORS!!! <3")
+		fmt.Fprintln(out, "感谢所有贡献者!!! <3")
 		fmt.Fprintln(out, "")
 	}
 

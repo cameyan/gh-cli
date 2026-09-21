@@ -32,29 +32,29 @@ type iprompter interface {
 }
 
 const (
-	allowMergeCommits = "Allow Merge Commits"
-	allowSquashMerge  = "Allow Squash Merging"
-	allowRebaseMerge  = "Allow Rebase Merging"
+	allowMergeCommits = "允许合并提交"
+	allowSquashMerge  = "允许压缩合并"
+	allowRebaseMerge  = "允许变基合并"
 
 	squashMsgDefault            = "default"
 	squashMsgPRTitle            = "pr-title"
 	squashMsgPRTitleCommits     = "pr-title-commits"
 	squashMsgPRTitleDescription = "pr-title-description"
 
-	optionAllowForking      = "Allow Forking"
-	optionDefaultBranchName = "Default Branch Name"
-	optionDescription       = "Description"
-	optionHomePageURL       = "Home Page URL"
-	optionIssues            = "Issues"
-	optionMergeOptions      = "Merge Options"
-	optionProjects          = "Projects"
-	optionTemplateRepo      = "Template Repository"
-	optionTopics            = "Topics"
-	optionVisibility        = "Visibility"
-	optionWikis             = "Wikis"
+	optionAllowForking      = "允许派生(fork)"
+	optionDefaultBranchName = "默认分支名称"
+	optionDescription       = "描述"
+	optionHomePageURL       = "主页 URL"
+	optionIssues            = "议题"
+	optionMergeOptions      = "合并选项"
+	optionProjects          = "项目"
+	optionTemplateRepo      = "模板仓库"
+	optionTopics            = "主题"
+	optionVisibility        = "可见性"
+	optionWikis             = "维基"
 
-	// TODO: GitHub Enterprise Server does not support has_discussions yet
-	// optionDiscussions = "Discussions"
+	// TODO: GitHub Enterprise Server 尚不支持 has_discussions
+	// optionDiscussions = "讨论"
 )
 
 type EditOptions struct {
@@ -68,8 +68,7 @@ type EditOptions struct {
 	InteractiveMode                    bool
 	Detector                           fd.Detector
 	Prompter                           iprompter
-	// Cache of current repo topics to avoid retrieving them
-	// in multiple flows.
+	// 当前仓库主题的缓存, 以避免在多个流程中重复获取。
 	topicsCache []string
 }
 
@@ -108,44 +107,44 @@ func NewCmdEdit(f *cmdutil.Factory, runF func(options *EditOptions) error) *cobr
 
 	cmd := &cobra.Command{
 		Use:   "edit [<repository>]",
-		Short: "Edit repository settings",
+		Short: "编辑仓库设置",
 		Annotations: map[string]string{
 			"help:arguments": heredoc.Doc(`
-				A repository can be supplied as an argument in any of the following formats:
+				可以通过以下任意格式在参数中提供仓库:
 				- "OWNER/REPO"
-				- by URL, e.g. "https://github.com/OWNER/REPO"
+				- 通过 URL, 例如 "https://github.com/OWNER/REPO"
 			`),
 		},
 		Long: heredoc.Docf(`
-			Edit repository settings.
+			编辑仓库设置。
 
-			To toggle a setting off, use the %[1]s--<flag>=false%[1]s syntax.
+			若要关闭某个设置, 请使用 %[1]s--<旗标>=false%[1]s 语法。
 
-			Changing repository visibility can have unexpected consequences including but not limited to:
+			更改仓库可见性可能带来意想不到的后果, 包括但不限于:
 
-			- Losing stars and watchers, affecting repository ranking
-			- Detaching public forks from the network
-			- Disabling push rulesets
-			- Allowing access to GitHub Actions history and logs
+			- 失去 Star 与关注者, 影响仓库排名
+			- 将公开的派生(fork)从网络中分离
+			- 禁用推送规则集(rulesets)
+			- 允许访问 GitHub Actions 历史记录与日志
 
-			When the %[1]s--visibility%[1]s flag is used, %[1]s--accept-visibility-change-consequences%[1]s flag is required.
+			使用 %[1]s--visibility%[1]s 旗标时, 必须同时使用 %[1]s--accept-visibility-change-consequences%[1]s 旗标。
 
-			For information on all the potential consequences, see <https://gh.io/setting-repository-visibility>.
+			有关所有潜在后果的信息, 请参见 <https://gh.io/setting-repository-visibility>。
 
-			When the %[1]s--enable-squash-merge%[1]s flag is used, %[1]s--squash-merge-commit-message%[1]s
-			can be used to change the default squash merge commit message behavior:
+			使用 %[1]s--enable-squash-merge%[1]s 旗标时, 可使用 %[1]s--squash-merge-commit-message%[1]s
+			来更改默认的压缩合并(squash merge)提交信息行为:
 
-			- %[1]s%[2]s%[1]s: uses commit title and message for 1 commit, or pull request title and list of commits for 2 or more
-			- %[1]s%[3]s%[1]s: uses pull request title
-			- %[1]s%[4]s%[1]s: uses pull request title and list of commits
-			- %[1]s%[5]s%[1]s: uses pull request title and description
+			- %[1]s%[2]s%[1]s: 单个提交时使用提交标题与信息, 两个及以上提交时使用拉取请求标题与提交列表
+			- %[1]s%[3]s%[1]s: 使用拉取请求标题
+			- %[1]s%[4]s%[1]s: 使用拉取请求标题与提交列表
+			- %[1]s%[5]s%[1]s: 使用拉取请求标题与描述
 		`, "`", squashMsgDefault, squashMsgPRTitle, squashMsgPRTitleCommits, squashMsgPRTitleDescription),
 		Args: cobra.MaximumNArgs(1),
 		Example: heredoc.Doc(`
-			# Enable issues and wiki
+			# 启用议题(issues)与维基(wiki)
 			$ gh repo edit --enable-issues --enable-wiki
 
-			# Disable projects
+			# 禁用项目(projects)
 			$ gh repo edit --enable-projects=false
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -174,19 +173,19 @@ func NewCmdEdit(f *cmdutil.Factory, runF func(options *EditOptions) error) *cobr
 			}
 
 			if opts.InteractiveMode && !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("specify properties to edit when not running interactively")
+				return cmdutil.FlagErrorf("非交互模式下运行时, 请指定要编辑的属性")
 			}
 
 			if opts.Edits.Visibility != nil && !opts.AcceptVisibilityChangeConsequences {
-				return cmdutil.FlagErrorf("use of --visibility flag requires --accept-visibility-change-consequences flag")
+				return cmdutil.FlagErrorf("使用 --visibility 旗标时需要 --accept-visibility-change-consequences 旗标")
 			}
 
 			if opts.Edits.squashMergeCommitMsg != nil {
 				if opts.Edits.EnableSquashMerge == nil {
-					return cmdutil.FlagErrorf("--squash-merge-commit-message requires --enable-squash-merge")
+					return cmdutil.FlagErrorf("--squash-merge-commit-message 需要 --enable-squash-merge")
 				}
 				if !*opts.Edits.EnableSquashMerge {
-					return cmdutil.FlagErrorf("--squash-merge-commit-message cannot be used when --enable-squash-merge=false")
+					return cmdutil.FlagErrorf("--enable-squash-merge=false 时不能使用 --squash-merge-commit-message")
 				}
 				if err := validateSquashMergeCommitMsg(*opts.Edits.squashMergeCommitMsg); err != nil {
 					return err
@@ -205,29 +204,29 @@ func NewCmdEdit(f *cmdutil.Factory, runF func(options *EditOptions) error) *cobr
 		},
 	}
 
-	cmdutil.NilStringFlag(cmd, &opts.Edits.Description, "description", "d", "Description of the repository")
-	cmdutil.NilStringFlag(cmd, &opts.Edits.Homepage, "homepage", "h", "Repository home page `URL`")
-	cmdutil.NilStringFlag(cmd, &opts.Edits.DefaultBranch, "default-branch", "", "Set the default branch `name` for the repository")
-	cmdutil.NilStringFlag(cmd, &opts.Edits.Visibility, "visibility", "", "Change the visibility of the repository to {public,private,internal}")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.IsTemplate, "template", "", "Make the repository available as a template repository")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableIssues, "enable-issues", "", "Enable issues in the repository")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableProjects, "enable-projects", "", "Enable projects in the repository")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableWiki, "enable-wiki", "", "Enable wiki in the repository")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableDiscussions, "enable-discussions", "", "Enable discussions in the repository")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableMergeCommit, "enable-merge-commit", "", "Enable merging pull requests via merge commit")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableSquashMerge, "enable-squash-merge", "", "Enable merging pull requests via squashed commit")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableRebaseMerge, "enable-rebase-merge", "", "Enable merging pull requests via rebase")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableAutoMerge, "enable-auto-merge", "", "Enable auto-merge functionality")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.enableAdvancedSecurity, "enable-advanced-security", "", "Enable advanced security in the repository")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.enableSecretScanning, "enable-secret-scanning", "", "Enable secret scanning in the repository")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.enableSecretScanningPushProtection, "enable-secret-scanning-push-protection", "", "Enable secret scanning push protection in the repository. Secret scanning must be enabled first")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.DeleteBranchOnMerge, "delete-branch-on-merge", "", "Delete head branch when pull requests are merged")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.AllowForking, "allow-forking", "", "Allow forking of an organization repository")
-	cmdutil.NilBoolFlag(cmd, &opts.Edits.AllowUpdateBranch, "allow-update-branch", "", "Allow a pull request head branch that is behind its base branch to be updated")
-	cmdutil.NilStringFlag(cmd, &opts.Edits.squashMergeCommitMsg, "squash-merge-commit-message", "", "The default value for a squash merge commit message: {default|pr-title|pr-title-commits|pr-title-description}")
-	cmd.Flags().StringSliceVar(&opts.AddTopics, "add-topic", nil, "Add repository topic")
-	cmd.Flags().StringSliceVar(&opts.RemoveTopics, "remove-topic", nil, "Remove repository topic")
-	cmd.Flags().BoolVar(&opts.AcceptVisibilityChangeConsequences, "accept-visibility-change-consequences", false, "Accept the consequences of changing the repository visibility")
+	cmdutil.NilStringFlag(cmd, &opts.Edits.Description, "description", "d", "仓库描述")
+	cmdutil.NilStringFlag(cmd, &opts.Edits.Homepage, "homepage", "h", "仓库主页 `URL`")
+	cmdutil.NilStringFlag(cmd, &opts.Edits.DefaultBranch, "default-branch", "", "设置仓库的默认分支 `name`")
+	cmdutil.NilStringFlag(cmd, &opts.Edits.Visibility, "visibility", "", "将仓库可见性更改为 {public,private,internal}")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.IsTemplate, "template", "", "将仓库作为模板仓库提供")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableIssues, "enable-issues", "", "在仓库中启用议题(issues)")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableProjects, "enable-projects", "", "在仓库中启用项目(projects)")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableWiki, "enable-wiki", "", "在仓库中启用维基(wiki)")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableDiscussions, "enable-discussions", "", "在仓库中启用讨论(discussions)")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableMergeCommit, "enable-merge-commit", "", "启用通过合并提交(merge commit)合并拉取请求")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableSquashMerge, "enable-squash-merge", "", "启用通过压缩提交(squashed commit)合并拉取请求")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableRebaseMerge, "enable-rebase-merge", "", "启用通过变基(rebase)合并拉取请求")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.EnableAutoMerge, "enable-auto-merge", "", "启用自动合并功能")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.enableAdvancedSecurity, "enable-advanced-security", "", "在仓库中启用高级安全功能")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.enableSecretScanning, "enable-secret-scanning", "", "在仓库中启用密钥扫描")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.enableSecretScanningPushProtection, "enable-secret-scanning-push-protection", "", "在仓库中启用密钥扫描推送保护。必须先启用密钥扫描")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.DeleteBranchOnMerge, "delete-branch-on-merge", "", "拉取请求合并后删除源分支(head branch)")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.AllowForking, "allow-forking", "", "允许派生(fork)组织仓库")
+	cmdutil.NilBoolFlag(cmd, &opts.Edits.AllowUpdateBranch, "allow-update-branch", "", "允许更新落后于其基础分支的拉取请求源分支")
+	cmdutil.NilStringFlag(cmd, &opts.Edits.squashMergeCommitMsg, "squash-merge-commit-message", "", "压缩合并提交信息的默认值: {default|pr-title|pr-title-commits|pr-title-description}")
+	cmd.Flags().StringSliceVar(&opts.AddTopics, "add-topic", nil, "添加仓库主题(topic)")
+	cmd.Flags().StringSliceVar(&opts.RemoveTopics, "remove-topic", nil, "移除仓库主题(topic)")
+	cmd.Flags().BoolVar(&opts.AcceptVisibilityChangeConsequences, "accept-visibility-change-consequences", false, "接受更改仓库可见性所带来的后果")
 
 	return cmd
 }
@@ -294,7 +293,7 @@ func editRun(ctx context.Context, opts *EditOptions) error {
 			return err
 		}
 		if !repo.ViewerCanAdminister {
-			return fmt.Errorf("you do not have sufficient permissions to edit repository security and analysis features")
+			return fmt.Errorf("您没有足够的权限编辑仓库的安全与分析功能")
 		}
 	}
 
@@ -352,7 +351,7 @@ func editRun(ctx context.Context, opts *EditOptions) error {
 	if opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
 		fmt.Fprintf(opts.IO.Out,
-			"%s Edited repository %s\n",
+			"%s 已编辑仓库 %s\n",
 			cs.SuccessIcon(),
 			ghrepo.FullName(repo))
 	}
@@ -379,7 +378,7 @@ func interactiveChoice(p iprompter, r *api.Repository) ([]string, error) {
 		options = append(options, optionAllowForking)
 	}
 	var answers []string
-	selected, err := p.MultiSelect("What do you want to edit?", nil, options)
+	selected, err := p.MultiSelect("您想编辑什么?", nil, options)
 	if err != nil {
 		return nil, err
 	}
@@ -402,19 +401,19 @@ func interactiveRepoEdit(opts *EditOptions, r *api.Repository) error {
 	for _, c := range choices {
 		switch c {
 		case optionDescription:
-			answer, err := p.Input("Description of the repository", r.Description)
+			answer, err := p.Input("仓库描述", r.Description)
 			if err != nil {
 				return err
 			}
 			opts.Edits.Description = &answer
 		case optionHomePageURL:
-			a, err := p.Input("Repository home page URL", r.HomepageURL)
+			a, err := p.Input("仓库主页 URL", r.HomepageURL)
 			if err != nil {
 				return err
 			}
 			opts.Edits.Homepage = &a
 		case optionTopics:
-			addTopics, err := p.Input("Add topics?(csv format)", "")
+			addTopics, err := p.Input("添加主题?(csv 格式)", "")
 			if err != nil {
 				return err
 			}
@@ -423,7 +422,7 @@ func interactiveRepoEdit(opts *EditOptions, r *api.Repository) error {
 			}
 
 			if len(opts.topicsCache) > 0 {
-				selected, err := p.MultiSelect("Remove Topics", nil, opts.topicsCache)
+				selected, err := p.MultiSelect("移除主题", nil, opts.topicsCache)
 				if err != nil {
 					return err
 				}
@@ -432,45 +431,45 @@ func interactiveRepoEdit(opts *EditOptions, r *api.Repository) error {
 				}
 			}
 		case optionDefaultBranchName:
-			name, err := p.Input("Default branch name", r.DefaultBranchRef.Name)
+			name, err := p.Input("默认分支名称", r.DefaultBranchRef.Name)
 			if err != nil {
 				return err
 			}
 			opts.Edits.DefaultBranch = &name
 		case optionWikis:
-			c, err := p.Confirm("Enable Wikis?", r.HasWikiEnabled)
+			c, err := p.Confirm("是否启用维基(wiki)?", r.HasWikiEnabled)
 			if err != nil {
 				return err
 			}
 			opts.Edits.EnableWiki = &c
 		case optionIssues:
-			a, err := p.Confirm("Enable Issues?", r.HasIssuesEnabled)
+			a, err := p.Confirm("是否启用议题(issues)?", r.HasIssuesEnabled)
 			if err != nil {
 				return err
 			}
 			opts.Edits.EnableIssues = &a
 		case optionProjects:
-			a, err := p.Confirm("Enable Projects?", r.HasProjectsEnabled)
+			a, err := p.Confirm("是否启用项目(projects)?", r.HasProjectsEnabled)
 			if err != nil {
 				return err
 			}
 			opts.Edits.EnableProjects = &a
 		case optionVisibility:
 			cs := opts.IO.ColorScheme()
-			fmt.Fprintf(opts.IO.ErrOut, "%s Danger zone: changing repository visibility can have unexpected consequences; consult https://gh.io/setting-repository-visibility before continuing.\n", cs.WarningIcon())
+			fmt.Fprintf(opts.IO.ErrOut, "%s 危险区域: 更改仓库可见性可能带来意想不到的后果; 请在继续之前查阅 https://gh.io/setting-repository-visibility。\n", cs.WarningIcon())
 
 			visibilityOptions := []string{"public", "private", "internal"}
-			selected, err := p.Select("Visibility", strings.ToLower(r.Visibility), visibilityOptions)
+			selected, err := p.Select("可见性", strings.ToLower(r.Visibility), visibilityOptions)
 			if err != nil {
 				return err
 			}
 			selectedVisibility := visibilityOptions[selected]
 
 			if selectedVisibility != r.Visibility && (r.StargazerCount > 0 || r.Watchers.TotalCount > 0) {
-				fmt.Fprintf(opts.IO.ErrOut, "%s Changing the repository visibility to %s will cause permanent loss of %s and %s.\n", cs.WarningIcon(), selectedVisibility, text.Pluralize(r.StargazerCount, "star"), text.Pluralize(r.Watchers.TotalCount, "watcher"))
+				fmt.Fprintf(opts.IO.ErrOut, "%s 将仓库可见性更改为 %s 将导致永久失去 %s 和 %s。\n", cs.WarningIcon(), selectedVisibility, text.Pluralize(r.StargazerCount, "star"), text.Pluralize(r.Watchers.TotalCount, "watcher"))
 			}
 
-			confirmed, err := p.Confirm(fmt.Sprintf("Do you want to change visibility to %s?", selectedVisibility), false)
+			confirmed, err := p.Confirm(fmt.Sprintf("是否要将可见性更改为 %s?", selectedVisibility), false)
 			if err != nil {
 				return err
 			}
@@ -491,7 +490,7 @@ func interactiveRepoEdit(opts *EditOptions, r *api.Repository) error {
 			}
 			mergeOpts := []string{allowMergeCommits, allowSquashMerge, allowRebaseMerge}
 			selected, err := p.MultiSelect(
-				"Allowed merge strategies",
+				"允许的合并策略",
 				defaultMergeOptions,
 				mergeOpts)
 			if err != nil {
@@ -507,13 +506,13 @@ func interactiveRepoEdit(opts *EditOptions, r *api.Repository) error {
 			enableRebaseMerge := isIncluded(allowRebaseMerge, selectedMergeOptions)
 			opts.Edits.EnableRebaseMerge = &enableRebaseMerge
 			if !enableMergeCommit && !enableSquashMerge && !enableRebaseMerge {
-				return fmt.Errorf("you need to allow at least one merge strategy")
+				return fmt.Errorf("您需要至少允许一种合并策略")
 			}
 
 			if enableSquashMerge {
 				squashMsgOptions := validSquashMsgValues
 				idx, err := p.Select(
-					"Default squash merge commit message",
+					"默认的压缩合并提交信息",
 					squashMsgDefault,
 					squashMsgOptions)
 				if err != nil {
@@ -525,7 +524,7 @@ func interactiveRepoEdit(opts *EditOptions, r *api.Repository) error {
 			}
 
 			opts.Edits.EnableAutoMerge = &r.AutoMergeAllowed
-			c, err := p.Confirm("Enable Auto Merge?", r.AutoMergeAllowed)
+			c, err := p.Confirm("是否启用自动合并?", r.AutoMergeAllowed)
 			if err != nil {
 				return err
 			}
@@ -533,20 +532,20 @@ func interactiveRepoEdit(opts *EditOptions, r *api.Repository) error {
 
 			opts.Edits.DeleteBranchOnMerge = &r.DeleteBranchOnMerge
 			c, err = p.Confirm(
-				"Automatically delete head branches after merging?", r.DeleteBranchOnMerge)
+				"合并后是否自动删除源分支?", r.DeleteBranchOnMerge)
 			if err != nil {
 				return err
 			}
 			opts.Edits.DeleteBranchOnMerge = &c
 		case optionTemplateRepo:
-			c, err := p.Confirm("Convert into a template repository?", r.IsTemplate)
+			c, err := p.Confirm("是否转换为模板仓库?", r.IsTemplate)
 			if err != nil {
 				return err
 			}
 			opts.Edits.IsTemplate = &c
 		case optionAllowForking:
 			c, err := p.Confirm(
-				"Allow forking (of an organization repository)?",
+				"是否允许派生(fork)(组织仓库)?",
 				r.ForkingAllowed)
 			if err != nil {
 				return err
@@ -571,10 +570,10 @@ func getTopics(ctx context.Context, httpClient *http.Client, repo ghrepo.Interfa
 		return nil, err
 	}
 
-	// "mercy-preview" is still needed for some GitHub Enterprise versions
+	// 某些 GitHub Enterprise 版本仍需要 "mercy-preview"
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 API 客户端机械化推广的一部分。
+	// 作为后续工作, 考虑是否可以在此调用点注入 API 客户端, 而不是在此构造
 	res, err := api.NewClientFromHTTP(httpClient).RequestWithContext(ctx, repo.RepoHost(), http.MethodGet, path.String(), nil,
 		api.WithHeader("Accept", "application/vnd.github.mercy-preview+json"))
 	if err != nil {
@@ -611,10 +610,10 @@ func setTopics(ctx context.Context, httpClient *http.Client, repo ghrepo.Interfa
 		return err
 	}
 
-	// "mercy-preview" is still needed for some GitHub Enterprise versions
+	// 某些 GitHub Enterprise 版本仍需要 "mercy-preview"
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 API 客户端机械化推广的一部分。
+	// 作为后续工作, 考虑是否可以在此调用点注入 API 客户端, 而不是在此构造
 	res, err := api.NewClientFromHTTP(httpClient).RequestWithContext(ctx, repo.RepoHost(), http.MethodPut, path.String(), body,
 		api.WithHeader("Content-Type", "application/json"),
 		api.WithHeader("Accept", "application/vnd.github.mercy-preview+json"))
@@ -667,8 +666,8 @@ type SecurityAndAnalysisStatus struct {
 	Status *string `json:"status,omitempty"`
 }
 
-// Transform security and analysis parameters to properly serialize EditRepositoryInput
-// See API Docs: https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#update-a-repository
+// 转换安全与分析参数, 以正确序列化 EditRepositoryInput
+// 参见 API 文档: https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#update-a-repository
 func transformSecurityAndAnalysisOpts(opts *EditOptions) *SecurityAndAnalysisInput {
 	securityOptions := &SecurityAndAnalysisInput{}
 	if opts.Edits.enableAdvancedSecurity != nil {
@@ -695,11 +694,11 @@ func validateSquashMergeCommitMsg(value string) error {
 	if slices.Contains(validSquashMsgValues, value) {
 		return nil
 	}
-	return cmdutil.FlagErrorf("invalid value for --squash-merge-commit-message: %q. Valid values are: %s", value, strings.Join(validSquashMsgValues, ", "))
+	return cmdutil.FlagErrorf("--squash-merge-commit-message 的值无效: %q。有效值为: %s", value, strings.Join(validSquashMsgValues, ", "))
 }
 
-// transformSquashMergeOpts maps the user-facing squash merge commit message option
-// to the two API fields: squash_merge_commit_title and squash_merge_commit_message.
+// transformSquashMergeOpts 将面向用户的压缩合并提交信息选项
+// 映射到两个 API 字段: squash_merge_commit_title 和 squash_merge_commit_message。
 func transformSquashMergeOpts(edits *EditRepositoryInput) {
 	if edits.squashMergeCommitMsg == nil {
 		return
