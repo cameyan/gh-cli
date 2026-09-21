@@ -42,45 +42,45 @@ func NewCmdClone(f *cmdutil.Factory, runF func(*CloneOptions) error) *cobra.Comm
 		DisableFlagsInUseLine: true,
 
 		Use:   "clone <repository> [<directory>] [-- <gitflags>...]",
-		Args:  cmdutil.MinimumArgs(1, "cannot clone: repository argument required"),
-		Short: "Clone a repository locally",
+		Args:  cmdutil.MinimumArgs(1, "无法克隆: 需要提供仓库参数"),
+		Short: "在本地克隆仓库",
 		Long: heredoc.Docf(`
-			Clone a GitHub repository locally. Pass additional %[1]sgit clone%[1]s flags by listing
-			them after %[1]s--%[1]s.
+			在本地克隆 GitHub 仓库。可在 %[1]s--%[1]s 之后列出
+			额外的 %[1]sgit clone%[1]s 旗标。
 
-			If the %[1]sOWNER/%[1]s portion of the %[1]sOWNER/REPO%[1]s repository argument is omitted, it
-			defaults to the name of the authenticating user.
+			若 %[1]sOWNER/REPO%[1]s 仓库参数中的 %[1]sOWNER/%[1]s 部分被省略,
+			则默认为当前认证用户的名称。
 
-			When a protocol scheme is not provided in the repository argument, the %[1]sgit_protocol%[1]s will be
-			chosen from your configuration, which can be checked via %[1]sgh config get git_protocol%[1]s. If the protocol
-			scheme is provided, the repository will be cloned using the specified protocol.
+			当仓库参数中未提供协议方案(scheme)时, 将从您的配置中选择 %[1]sgit_protocol%[1]s,
+			可通过 %[1]sgh config get git_protocol%[1]s 查看。若提供了协议
+			方案, 则将使用指定的协议克隆仓库。
 
-			If the repository is a fork, its parent repository will be added as an additional
-			git remote called %[1]supstream%[1]s. The remote name can be configured using %[1]s--upstream-remote-name%[1]s.
-			The %[1]s--upstream-remote-name%[1]s option supports an %[1]s@owner%[1]s value which will name
-			the remote after the owner of the parent repository.
+			若该仓库是一个派生(fork), 其父仓库将被添加为一个额外的
+			名为 %[1]supstream%[1]s 的 git 远程。远程名称可通过 %[1]s--upstream-remote-name%[1]s 配置。
+			%[1]s--upstream-remote-name%[1]s 选项支持 %[1]s@owner%[1]s 值, 它将以父仓库的所有者命名
+			该远程。
 
-			If the repository is a fork, its parent repository will be set as the default remote repository.
-			To skip this behavior, use %[1]s--no-upstream%[1]s.
+			若该仓库是一个派生(fork), 其父仓库将被设为默认远程仓库。
+			若要跳过此行为, 请使用 %[1]s--no-upstream%[1]s。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Clone a repository from a specific org
+			# 从指定的组织克隆仓库
 			$ gh repo clone cli/cli
 
-			# Clone a repository from your own account
+			# 从您自己的账号克隆仓库
 			$ gh repo clone myrepo
 
-			# Clone a repo, overriding git protocol configuration
+			# 克隆仓库, 并覆盖 git 协议配置
 			$ gh repo clone https://github.com/cli/cli
 			$ gh repo clone git@github.com:cli/cli.git
 
-			# Clone a repository to a custom directory
+			# 将仓库克隆到自定义目录
 			$ gh repo clone cli/cli workspace/cli
 
-			# Clone a repository with additional git clone flags
+			# 使用额外的 git clone 旗标克隆仓库
 			$ gh repo clone cli/cli -- --depth=1
 
-			# Clone a fork without adding an upstream remote
+			# 克隆派生(fork)仓库, 且不添加 upstream 远程
 			$ gh repo clone myfork --no-upstream
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -95,14 +95,14 @@ func NewCmdClone(f *cmdutil.Factory, runF func(*CloneOptions) error) *cobra.Comm
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.UpstreamName, "upstream-remote-name", "u", "upstream", "Upstream remote name when cloning a fork")
-	cmd.Flags().BoolVar(&opts.NoUpstream, "no-upstream", false, "Do not add an upstream remote when cloning a fork")
+	cmd.Flags().StringVarP(&opts.UpstreamName, "upstream-remote-name", "u", "upstream", "克隆派生(fork)仓库时的上游(upstream)远程名称")
+	cmd.Flags().BoolVar(&opts.NoUpstream, "no-upstream", false, "克隆派生(fork)仓库时不添加上游(upstream)远程")
 	cmd.MarkFlagsMutuallyExclusive("upstream-remote-name", "no-upstream")
 	cmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
 		if err == pflag.ErrHelp {
 			return err
 		}
-		return cmdutil.FlagErrorf("%w\nSeparate git clone flags with '--'.", err)
+		return cmdutil.FlagErrorf("%w\n请使用 '--' 分隔 git clone 旗标。", err)
 	})
 
 	return cmd
@@ -169,8 +169,7 @@ func cloneRun(opts *CloneOptions) error {
 		repo = ghrepo.NewWithHost(repo.RepoOwner(), repoName, repo.RepoHost())
 	}
 
-	// Load the repo from the API to get the username/repo name in its
-	// canonical capitalization
+	// 从 API 加载仓库, 以获取规范大小写形式的用户名/仓库名称
 	canonicalRepo, err := api.GitHubRepo(apiClient, repo)
 	if err != nil {
 		return err
@@ -180,10 +179,10 @@ func cloneRun(opts *CloneOptions) error {
 		return err
 	}
 
-	// If repo HasWikiEnabled and wantsWiki is true then create a new clone URL
+	// 若仓库启用了维基(wiki)且 wantsWiki 为 true, 则创建一个新的克隆 URL
 	if wantsWiki {
 		if !canonicalRepo.HasWikiEnabled {
-			return fmt.Errorf("The '%s' repository does not have a wiki", ghrepo.FullName(canonicalRepo))
+			return fmt.Errorf("仓库 '%s' 没有维基(wiki)", ghrepo.FullName(canonicalRepo))
 		}
 		canonicalCloneURL = strings.TrimSuffix(canonicalCloneURL, ".git") + ".wiki.git"
 	}
@@ -195,7 +194,7 @@ func cloneRun(opts *CloneOptions) error {
 		return err
 	}
 
-	// If the repo is a fork, add the parent as an upstream remote and set the parent as the default repo.
+	// 若该仓库是一个派生(fork), 则将父仓库添加为 upstream 远程, 并将其设为默认仓库。
 	if canonicalRepo.Parent != nil {
 		gc := gitClient.Copy()
 		gc.RepoDir = cloneDir
@@ -235,7 +234,7 @@ func cloneRun(opts *CloneOptions) error {
 			connectedToTerminal := opts.IO.IsStdoutTTY()
 			if connectedToTerminal {
 				cs := opts.IO.ColorScheme()
-				fmt.Fprintf(opts.IO.ErrOut, "%s Repository %s set as the default repository. To learn more about the default repository, run: gh repo set-default --help\n", cs.WarningIcon(), cs.Bold(ghrepo.FullName(canonicalRepo.Parent)))
+				fmt.Fprintf(opts.IO.ErrOut, "%s 仓库 %s 已被设为默认仓库。要了解默认仓库的更多信息, 请运行: gh repo set-default --help\n", cs.WarningIcon(), cs.Bold(ghrepo.FullName(canonicalRepo.Parent)))
 			}
 		}
 	}
@@ -247,21 +246,20 @@ func remoteURL(repo *api.Repository, protocol string) (string, error) {
 		return ghrepo.FormatRemoteURL(repo, protocol), nil
 	}
 	if repo.SSHURL == "" {
-		return "", fmt.Errorf("invalid API response: repository %s is missing sshUrl", ghrepo.FullName(repo))
+		return "", fmt.Errorf("无效的 API 响应: 仓库 %s 缺少 sshUrl", ghrepo.FullName(repo))
 	}
 	return repo.SSHURL, nil
 }
 
-// simplifyURL strips given URL of extra parts like extra path segments (i.e.,
-// anything beyond `/owner/repo`), query strings, or fragments. This function
-// never returns an error.
+// simplifyURL 去除给定 URL 中多余的部分, 例如多余的路径段(即
+// `/owner/repo` 之外的任何内容), 查询字符串或片段。此函数
+// 从不返回错误。
 //
-// The rationale behind this function is to let users clone a repo with any
-// URL related to the repo; like:
-//   - (Tree)              github.com/owner/repo/blob/main/foo/bar
-//   - (Deep-link to line) github.com/owner/repo/blob/main/foo/bar#L168
-//   - (Issue/PR comment)  github.com/owner/repo/pull/999#issue-9999999999
-//   - (Commit history)    github.com/owner/repo/commits/main/?author=foo
+// 此函数的设计初衷是让用户可以使用与仓库相关的任意 URL 来克隆仓库, 例如:
+//   - (目录树)              github.com/owner/repo/blob/main/foo/bar
+//   - (行级深链接)          github.com/owner/repo/blob/main/foo/bar#L168
+//   - (议题/PR 评论)        github.com/owner/repo/pull/999#issue-9999999999
+//   - (提交历史)            github.com/owner/repo/commits/main/?author=foo
 func simplifyURL(u *url.URL) *url.URL {
 	result := &url.URL{
 		Scheme: u.Scheme,

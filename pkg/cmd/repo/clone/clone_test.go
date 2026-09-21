@@ -28,7 +28,7 @@ func TestNewCmdClone(t *testing.T) {
 		{
 			name:    "no arguments",
 			args:    "",
-			wantErr: "cannot clone: repository argument required",
+			wantErr: "无法克隆: 需要提供仓库参数",
 		},
 		{
 			name: "repo argument",
@@ -71,7 +71,7 @@ func TestNewCmdClone(t *testing.T) {
 		{
 			name:    "unknown argument",
 			args:    "OWNER/REPO --depth 1",
-			wantErr: "unknown flag: --depth\nSeparate git clone flags with '--'.",
+			wantErr: "unknown flag: --depth\n请使用 '--' 分隔 git clone 旗标。",
 		},
 	}
 	for _, tt := range testCases {
@@ -292,7 +292,7 @@ func Test_RepoClone_missingSSHURL(t *testing.T) {
 	cfg.Set("", "git_protocol", "ssh")
 
 	_, err := runCloneCommandWithConfig(&http.Client{Transport: reg}, cfg, "OWNER/REPO")
-	require.EqualError(t, err, "invalid API response: repository OWNER/REPO is missing sshUrl")
+	require.EqualError(t, err, "无效的 API 响应: 仓库 OWNER/REPO 缺少 sshUrl")
 }
 
 func Test_RepoClone_hasParent(t *testing.T) {
