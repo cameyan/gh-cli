@@ -130,7 +130,7 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 			} else {
 				// exactly one visibility flag required
 				if !opts.Public && !opts.Private && !opts.Internal {
-					return cmdutil.FlagErrorf("非交互模式下运行时，需要 `--public`、`--private` 或 `--internal` 之一")
+					return cmdutil.FlagErrorf("非交互模式下运行时，需要 `--public`, `--private` 或 `--internal` 之一")
 				}
 				err := cmdutil.MutuallyExclusive(
 					"`--public`, `--private` 或 `--internal` 中只能提供一个",
@@ -160,11 +160,11 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 				}
 
 			} else if opts.Clone || opts.GitIgnoreTemplate != "" || opts.LicenseTemplate != "" || opts.Template != "" {
-				return cmdutil.FlagErrorf("`--source` 选项不支持与 `--clone`、`--template`、`--license` 或 `--gitignore` 搭配使用")
+				return cmdutil.FlagErrorf("`--source` 选项不支持与 `--clone`、`--template`, `--license` 或 `--gitignore` 搭配使用")
 			}
 
 			if opts.Template != "" && (opts.GitIgnoreTemplate != "" || opts.LicenseTemplate != "") {
-				return cmdutil.FlagErrorf("提供了模板时, 不会添加 .gitignore 和许可证模板")
+				return cmdutil.FlagErrorf("提供了模板时，不会添加 .gitignore 和许可证模板")
 			}
 
 			if opts.Template != "" && opts.AddReadme {

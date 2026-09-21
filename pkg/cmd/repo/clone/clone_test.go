@@ -71,7 +71,7 @@ func TestNewCmdClone(t *testing.T) {
 		{
 			name:    "unknown argument",
 			args:    "OWNER/REPO --depth 1",
-			wantErr: "unknown flag: --depth\n请使用 '--' 分隔 git clone 旗标。",
+			wantErr: "unknown flag: --depth\n请使用 '--' 分隔 git clone 旗标",
 		},
 	}
 	for _, tt := range testCases {

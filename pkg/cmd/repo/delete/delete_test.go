@@ -41,7 +41,7 @@ func TestNewCmdDelete(t *testing.T) {
 			input:      "OWNER/REPO",
 			output:     DeleteOptions{RepoArg: "OWNER/REPO"},
 			wantErr:    true,
-			wantErrMsg: "非交互模式下运行时, 需要 --yes",
+			wantErrMsg: "非交互模式下运行时，需要 --yes",
 		},
 		{
 			name:   "base repo resolution",
@@ -55,7 +55,7 @@ func TestNewCmdDelete(t *testing.T) {
 			input:      "--yes",
 			output:     DeleteOptions{Confirmed: false}, // --yes should be ignored
 			wantErr:    false,
-			wantStderr: "警告: 由于未指定仓库, `--yes` 已被忽略\n",
+			wantStderr: "警告: 由于未指定仓库，`--yes` 已被忽略\n",
 		},
 		{
 			name:       "yes flag error when no argument notty",
@@ -74,7 +74,7 @@ func TestNewCmdDelete(t *testing.T) {
 			tty:        true,
 			input:      "--confirm",
 			output:     DeleteOptions{Confirmed: false}, // --confirm should also be ignored
-			wantStderr: "警告: 由于未指定仓库, `--yes` 已被忽略\n",
+			wantStderr: "警告: 由于未指定仓库，`--yes` 已被忽略\n",
 			// Note: This does not confuse the user, as deprecation warnings are shown: "Flag --confirm has been deprecated, use `--yes` instead"
 		},
 	}

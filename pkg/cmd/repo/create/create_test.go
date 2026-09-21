@@ -258,7 +258,7 @@ func Test_createRun(t *testing.T) {
 						return true, nil
 					case "您想添加许可证吗?":
 						return true, nil
-					case `将在 github.com 上以 private 可见性创建 "REPO"。是否继续?`:
+					case `将在 github.com 上以 private 可见性创建 "REPO"，是否继续?`:
 						return defaultValue, nil
 					case "是否在本地克隆新仓库?":
 						return defaultValue, nil
@@ -324,7 +324,7 @@ func Test_createRun(t *testing.T) {
 						return false, nil
 					case "您想添加许可证吗?":
 						return false, nil
-					case `将在 github.com 上以 private 可见性创建 "org1/REPO"。是否继续?`:
+					case `将在 github.com 上以 private 可见性创建 "org1/REPO"，是否继续?`:
 						return true, nil
 					case "是否在本地克隆新仓库?":
 						return false, nil
@@ -392,7 +392,7 @@ func Test_createRun(t *testing.T) {
 						return false, nil
 					case "您想添加许可证吗?":
 						return false, nil
-					case `将在 github.com 上以 private 可见性创建 "REPO"。是否继续?`:
+					case `将在 github.com 上以 private 可见性创建 "REPO"，是否继续?`:
 						return false, nil
 					default:
 						return false, fmt.Errorf("unexpected confirm prompt: %s", message)
@@ -633,7 +633,7 @@ func Test_createRun(t *testing.T) {
 			promptStubs: func(p *prompter.PrompterMock) {
 				p.ConfirmFunc = func(message string, defaultValue bool) (bool, error) {
 					switch message {
-					case `将在 github.com 上以 private 可见性创建 "OWNER/REPO"。是否继续?`:
+					case `将在 github.com 上以 private 可见性创建 "OWNER/REPO"，是否继续?`:
 						return defaultValue, nil
 					case "是否在本地克隆新仓库?":
 						return defaultValue, nil
@@ -859,7 +859,7 @@ func Test_createRun(t *testing.T) {
 				cs.Register(`git -C . rev-parse --git-dir`, 128, "")
 			},
 			wantErr: true,
-			errMsg:  "当前目录不是 git 仓库, 请运行 `git init` 进行初始化",
+			errMsg:  "当前目录不是 git 仓库，请运行 `git init` 进行初始化",
 		},
 		{
 			name: "noninteractive create from cwd that isn't a git repo",
@@ -874,7 +874,7 @@ func Test_createRun(t *testing.T) {
 				cs.Register(`git -C some-dir rev-parse --git-dir`, 128, "")
 			},
 			wantErr: true,
-			errMsg:  "some-dir 不是 git 仓库, 请运行 `git -C \"some-dir\" init` 进行初始化",
+			errMsg:  "some-dir 不是 git 仓库，请运行 `git -C \"some-dir\" init` 进行初始化",
 		},
 		{
 			name: "noninteractive clone from scratch",
@@ -1023,7 +1023,7 @@ func Test_createRun(t *testing.T) {
 						return false, nil
 					case "您想添加许可证吗?":
 						return false, nil
-					case `将在 example.com 上以 private 可见性创建 "REPO"。是否继续?`:
+					case `将在 example.com 上以 private 可见性创建 "REPO"，是否继续?`:
 						return defaultValue, nil
 					case "是否在本地克隆新仓库?":
 						return false, nil
