@@ -82,38 +82,38 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 		Use:   "create [<name>]",
 		Short: "Create a new repository",
 		Long: heredoc.Docf(`
-			Create a new GitHub repository.
+			创建一个新的 GitHub 仓库。
 
-			To create a repository interactively, use %[1]sgh repo create%[1]s with no arguments.
+			若要以交互方式创建仓库, 使用不带参数的 %[1]sgh repo create%[1]s。
 
-			To create a remote repository non-interactively, supply the repository name and one of %[1]s--public%[1]s, %[1]s--private%[1]s, or %[1]s--internal%[1]s.
-			Pass %[1]s--clone%[1]s to clone the new repository locally.
+			若要以非交互方式创建远程仓库, 请提供仓库名称, 以及 %[1]s--public%[1]s、%[1]s--private%[1]s 或 %[1]s--internal%[1]s 之一。
+			传入 %[1]s--clone%[1]s 可将新仓库克隆到本地。
 
-			If the %[1]sOWNER/%[1]s portion of the %[1]sOWNER/REPO%[1]s name argument is omitted, it
-			defaults to the name of the authenticating user.
+			若 %[1]sOWNER/REPO%[1]s 名称参数中的 %[1]sOWNER/%[1]s 部分被省略,
+			则默认为当前认证用户的名称。
 
-			To create a remote repository from an existing local repository, specify the source directory with %[1]s--source%[1]s.
-			By default, the remote repository name will be the name of the source directory.
+			若要从现有的本地仓库创建远程仓库, 请通过 %[1]s--source%[1]s 指定源目录。
+			默认情况下, 远程仓库名称将与源目录名称相同。
 
-			Pass %[1]s--push%[1]s to push any local commits to the new repository. If the repo is bare, this will mirror all refs.
+			传入 %[1]s--push%[1]s 可将本地提交推送到新仓库。若仓库是裸仓库(bare), 则会镜像所有引用(refs)。
 
-			For language or platform .gitignore templates to use with %[1]s--gitignore%[1]s, <https://github.com/github/gitignore>.
+			可与 %[1]s--gitignore%[1]s 搭配使用的语言或平台 .gitignore 模板, 请见 <https://github.com/github/gitignore>。
 
-			For license keywords to use with %[1]s--license%[1]s, run %[1]sgh repo license list%[1]s or visit <https://choosealicense.com>.
+			可与 %[1]s--license%[1]s 搭配使用的许可证关键字, 请运行 %[1]sgh repo license list%[1]s 或访问 <https://choosealicense.com>。
 
-			The repo is created with the configured repository default branch, see <https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-user-account-settings/managing-the-default-branch-name-for-your-repositories>.
+			仓库将使用已配置的仓库默认分支创建, 参见 <https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-user-account-settings/managing-the-default-branch-name-for-your-repositories>.
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Create a repository interactively
+			# 以交互方式创建仓库
 			$ gh repo create
 
-			# Create a new remote repository and clone it locally
+			# 创建一个新的远程仓库并克隆到本地
 			$ gh repo create my-project --public --clone
 
-			# Create a new remote repository in a different organization
+			# 在其他组织中创建一个新的远程仓库
 			$ gh repo create my-org/my-project --public
 
-			# Create a remote repository from the current directory
+			# 从当前目录创建远程仓库
 			$ gh repo create my-project --private --source=. --remote=upstream
 		`),
 		Args:    cobra.MaximumNArgs(1),
@@ -125,16 +125,16 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 
 			if len(args) == 0 && cmd.Flags().NFlag() == 0 {
 				if !opts.IO.CanPrompt() {
-					return cmdutil.FlagErrorf("at least one argument required in non-interactive mode")
+					return cmdutil.FlagErrorf("非交互模式下至少需要一个参数")
 				}
 				opts.Interactive = true
 			} else {
 				// exactly one visibility flag required
 				if !opts.Public && !opts.Private && !opts.Internal {
-					return cmdutil.FlagErrorf("`--public`, `--private`, or `--internal` required when not running interactively")
+					return cmdutil.FlagErrorf("非交互模式下运行时, 需要 `--public`、`--private` 或 `--internal` 之一")
 				}
 				err := cmdutil.MutuallyExclusive(
-					"expected exactly one of `--public`, `--private`, or `--internal`",
+					"`--public`、`--private` 或 `--internal` 中只能提供一个",
 					opts.Public, opts.Private, opts.Internal)
 				if err != nil {
 					return err
@@ -151,25 +151,25 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 
 			if opts.Source == "" {
 				if opts.Remote != "" {
-					return cmdutil.FlagErrorf("the `--remote` option can only be used with `--source`")
+					return cmdutil.FlagErrorf("`--remote` 选项只能与 `--source` 搭配使用")
 				}
 				if opts.Push {
-					return cmdutil.FlagErrorf("the `--push` option can only be used with `--source`")
+					return cmdutil.FlagErrorf("`--push` 选项只能与 `--source` 搭配使用")
 				}
 				if opts.Name == "" && !opts.Interactive {
-					return cmdutil.FlagErrorf("name argument required to create new remote repository")
+					return cmdutil.FlagErrorf("创建新的远程仓库需要提供名称参数")
 				}
 
 			} else if opts.Clone || opts.GitIgnoreTemplate != "" || opts.LicenseTemplate != "" || opts.Template != "" {
-				return cmdutil.FlagErrorf("the `--source` option is not supported with `--clone`, `--template`, `--license`, or `--gitignore`")
+				return cmdutil.FlagErrorf("`--source` 选项不支持与 `--clone`、`--template`、`--license` 或 `--gitignore` 搭配使用")
 			}
 
 			if opts.Template != "" && (opts.GitIgnoreTemplate != "" || opts.LicenseTemplate != "") {
-				return cmdutil.FlagErrorf(".gitignore and license templates are not added when template is provided")
+				return cmdutil.FlagErrorf("提供了模板时, 不会添加 .gitignore 和许可证模板")
 			}
 
 			if opts.Template != "" && opts.AddReadme {
-				return cmdutil.FlagErrorf("the `--add-readme` option is not supported with `--template`")
+				return cmdutil.FlagErrorf("`--add-readme` 选项不支持与 `--template` 搭配使用")
 			}
 
 			if cmd.Flags().Changed("enable-issues") {
@@ -179,11 +179,11 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 				opts.DisableWiki = !enableWiki
 			}
 			if opts.Template != "" && opts.Team != "" {
-				return cmdutil.FlagErrorf("the `--template` option is not supported with `--team`")
+				return cmdutil.FlagErrorf("`--template` 选项不支持与 `--team` 搭配使用")
 			}
 
 			if opts.Template == "" && opts.IncludeAllBranches {
-				return cmdutil.FlagErrorf("the `--include-all-branches` option is only supported when using `--template`")
+				return cmdutil.FlagErrorf("`--include-all-branches` 选项仅在使用 `--template` 时受支持")
 			}
 
 			if runF != nil {
@@ -193,32 +193,32 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Description, "description", "d", "", "Description of the repository")
-	cmd.Flags().StringVarP(&opts.Homepage, "homepage", "h", "", "Repository home page `URL`")
-	cmd.Flags().StringVarP(&opts.Team, "team", "t", "", "The `name` of the organization team to be granted access")
-	cmd.Flags().StringVarP(&opts.Template, "template", "p", "", "Make the new repository based on a template `repository`")
-	cmd.Flags().BoolVar(&opts.Public, "public", false, "Make the new repository public")
-	cmd.Flags().BoolVar(&opts.Private, "private", false, "Make the new repository private")
-	cmd.Flags().BoolVar(&opts.Internal, "internal", false, "Make the new repository internal")
-	cmd.Flags().StringVarP(&opts.GitIgnoreTemplate, "gitignore", "g", "", "Specify a gitignore template for the repository")
-	cmd.Flags().StringVarP(&opts.LicenseTemplate, "license", "l", "", "Specify an Open Source License for the repository")
-	cmd.Flags().StringVarP(&opts.Source, "source", "s", "", "Specify path to local repository to use as source")
-	cmd.Flags().StringVarP(&opts.Remote, "remote", "r", "", "Specify remote name for the new repository")
-	cmd.Flags().BoolVar(&opts.Push, "push", false, "Push local commits to the new repository")
-	cmd.Flags().BoolVarP(&opts.Clone, "clone", "c", false, "Clone the new repository to the current directory")
-	cmd.Flags().BoolVar(&opts.DisableIssues, "disable-issues", false, "Disable issues in the new repository")
-	cmd.Flags().BoolVar(&opts.DisableWiki, "disable-wiki", false, "Disable wiki in the new repository")
-	cmd.Flags().BoolVar(&opts.IncludeAllBranches, "include-all-branches", false, "Include all branches from template repository")
-	cmd.Flags().BoolVar(&opts.AddReadme, "add-readme", false, "Add a README file to the new repository")
+	cmd.Flags().StringVarP(&opts.Description, "description", "d", "", "仓库描述")
+	cmd.Flags().StringVarP(&opts.Homepage, "homepage", "h", "", "仓库主页 `URL`")
+	cmd.Flags().StringVarP(&opts.Team, "team", "t", "", "授予访问权限的组织团队 `name`")
+	cmd.Flags().StringVarP(&opts.Template, "template", "p", "", "基于模板 `repository` 创建新仓库")
+	cmd.Flags().BoolVar(&opts.Public, "public", false, "将新仓库设为公开")
+	cmd.Flags().BoolVar(&opts.Private, "private", false, "将新仓库设为私有")
+	cmd.Flags().BoolVar(&opts.Internal, "internal", false, "将新仓库设为内部")
+	cmd.Flags().StringVarP(&opts.GitIgnoreTemplate, "gitignore", "g", "", "为仓库指定 gitignore 模板")
+	cmd.Flags().StringVarP(&opts.LicenseTemplate, "license", "l", "", "为仓库指定开源许可证")
+	cmd.Flags().StringVarP(&opts.Source, "source", "s", "", "指定用作源的本地仓库路径")
+	cmd.Flags().StringVarP(&opts.Remote, "remote", "r", "", "为新仓库指定远程名称")
+	cmd.Flags().BoolVar(&opts.Push, "push", false, "将本地提交推送到新仓库")
+	cmd.Flags().BoolVarP(&opts.Clone, "clone", "c", false, "将新仓库克隆到当前目录")
+	cmd.Flags().BoolVar(&opts.DisableIssues, "disable-issues", false, "在新仓库中禁用议题(issues)")
+	cmd.Flags().BoolVar(&opts.DisableWiki, "disable-wiki", false, "在新仓库中禁用维基(wiki)")
+	cmd.Flags().BoolVar(&opts.IncludeAllBranches, "include-all-branches", false, "包含模板仓库中的所有分支")
+	cmd.Flags().BoolVar(&opts.AddReadme, "add-readme", false, "为新仓库添加 README 文件")
 
 	// deprecated flags
-	cmd.Flags().BoolP("confirm", "y", false, "Skip the confirmation prompt")
-	cmd.Flags().BoolVar(&enableIssues, "enable-issues", true, "Enable issues in the new repository")
-	cmd.Flags().BoolVar(&enableWiki, "enable-wiki", true, "Enable wiki in the new repository")
+	cmd.Flags().BoolP("confirm", "y", false, "跳过确认提示")
+	cmd.Flags().BoolVar(&enableIssues, "enable-issues", true, "在新仓库中启用议题(issues)")
+	cmd.Flags().BoolVar(&enableWiki, "enable-wiki", true, "在新仓库中启用维基(wiki)")
 
-	_ = cmd.Flags().MarkDeprecated("confirm", "Pass any argument to skip confirmation prompt")
-	_ = cmd.Flags().MarkDeprecated("enable-issues", "Disable issues with `--disable-issues`")
-	_ = cmd.Flags().MarkDeprecated("enable-wiki", "Disable wiki with `--disable-wiki`")
+	_ = cmd.Flags().MarkDeprecated("confirm", "传入任意参数以跳过确认提示")
+	_ = cmd.Flags().MarkDeprecated("enable-issues", "使用 `--disable-issues` 禁用议题")
+	_ = cmd.Flags().MarkDeprecated("enable-wiki", "使用 `--disable-wiki` 禁用维基")
 
 	_ = cmd.RegisterFlagCompletionFunc("gitignore", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		httpClient, err := opts.HttpClient()
@@ -268,10 +268,10 @@ func createRun(opts *CreateOptions) error {
 			return err
 		}
 		host, _ := cfg.Authentication().DefaultHost()
-		answer, err := opts.Prompter.Select("What would you like to do?", "", []string{
-			fmt.Sprintf("Create a new repository on %s from scratch", host),
-			fmt.Sprintf("Create a new repository on %s from a template repository", host),
-			fmt.Sprintf("Push an existing local repository to %s", host),
+		answer, err := opts.Prompter.Select("您想做什么?", "", []string{
+			fmt.Sprintf("在 %s 上从零开始创建新仓库", host),
+			fmt.Sprintf("在 %s 上从模板仓库创建新仓库", host),
+			fmt.Sprintf("将现有的本地仓库推送到 %s", host),
 		})
 		if err != nil {
 			return err
@@ -292,7 +292,7 @@ func createRun(opts *CreateOptions) error {
 	return createFromLocal(opts)
 }
 
-// create new repo on remote host
+// 在远程主机上创建新仓库
 func createFromScratch(opts *CreateOptions) error {
 	httpClient, err := opts.HttpClient()
 	if err != nil {
@@ -312,7 +312,7 @@ func createFromScratch(opts *CreateOptions) error {
 		if err != nil {
 			return err
 		}
-		opts.AddReadme, err = opts.Prompter.Confirm("Would you like to add a README file?", false)
+		opts.AddReadme, err = opts.Prompter.Confirm("您想添加 README 文件吗?", false)
 		if err != nil {
 			return err
 		}
@@ -330,7 +330,7 @@ func createFromScratch(opts *CreateOptions) error {
 			targetRepo = opts.Name[0:idx+1] + shared.NormalizeRepoName(opts.Name[idx+1:])
 		}
 		confirmed, err := opts.Prompter.Confirm(
-			fmt.Sprintf(`This will create "%s" as a %s repository on %s. Continue?`, targetRepo, strings.ToLower(opts.Visibility), host),
+			fmt.Sprintf(`将在 %s 上以 %s 可见性创建 "%s"。是否继续?`, host, strings.ToLower(opts.Visibility), targetRepo),
 			true)
 		if err != nil {
 			return err
@@ -400,10 +400,10 @@ func createFromScratch(opts *CreateOptions) error {
 	isTTY := opts.IO.IsStdoutTTY()
 	if isTTY {
 		fmt.Fprintf(opts.IO.Out,
-			"%s Created repository %s on %s\n  %s\n",
+			"%s 已在 %s 上创建仓库 %s\n  %s\n",
 			cs.SuccessIconWithColor(cs.Green),
-			ghrepo.FullName(repo),
 			host,
+			ghrepo.FullName(repo),
 			repo.URL)
 	} else {
 		fmt.Fprintln(opts.IO.Out, repo.URL)
@@ -411,7 +411,7 @@ func createFromScratch(opts *CreateOptions) error {
 
 	if opts.Interactive {
 		var err error
-		opts.Clone, err = opts.Prompter.Confirm("Clone the new repository locally?", true)
+		opts.Clone, err = opts.Prompter.Confirm("是否在本地克隆新仓库?", true)
 		if err != nil {
 			return err
 		}
@@ -422,7 +422,7 @@ func createFromScratch(opts *CreateOptions) error {
 		remoteURL := ghrepo.FormatRemoteURL(repo, protocol)
 
 		if !opts.AddReadme && opts.LicenseTemplate == "" && opts.GitIgnoreTemplate == "" && opts.Template == "" {
-			// cloning empty repository or template
+			// 克隆空仓库或模板
 			if err := localInit(opts.GitClient, remoteURL, repo.RepoName()); err != nil {
 				return err
 			}
@@ -435,7 +435,7 @@ func createFromScratch(opts *CreateOptions) error {
 	return nil
 }
 
-// create new repo on remote host from template repo
+// 基于模板仓库在远程主机上创建新仓库
 func createFromTemplate(opts *CreateOptions) error {
 	httpClient, err := opts.HttpClient()
 	if err != nil {
@@ -492,7 +492,7 @@ func createFromTemplate(opts *CreateOptions) error {
 		targetRepo = opts.Name[0:idx+1] + shared.NormalizeRepoName(opts.Name[idx+1:])
 	}
 	confirmed, err := opts.Prompter.Confirm(
-		fmt.Sprintf(`This will create "%s" as a %s repository on %s. Continue?`, targetRepo, strings.ToLower(opts.Visibility), host),
+		fmt.Sprintf(`将在 %s 上以 %s 可见性创建 "%s"。是否继续?`, host, strings.ToLower(opts.Visibility), targetRepo),
 		true)
 	if err != nil {
 		return err
@@ -507,13 +507,13 @@ func createFromTemplate(opts *CreateOptions) error {
 
 	cs := opts.IO.ColorScheme()
 	fmt.Fprintf(opts.IO.Out,
-		"%s Created repository %s on %s\n  %s\n",
+		"%s 已在 %s 上创建仓库 %s\n  %s\n",
 		cs.SuccessIconWithColor(cs.Green),
-		ghrepo.FullName(repo),
 		host,
+		ghrepo.FullName(repo),
 		repo.URL)
 
-	opts.Clone, err = opts.Prompter.Confirm("Clone the new repository locally?", true)
+	opts.Clone, err = opts.Prompter.Confirm("是否在本地克隆新仓库?", true)
 	if err != nil {
 		return err
 	}
@@ -530,7 +530,7 @@ func createFromTemplate(opts *CreateOptions) error {
 	return nil
 }
 
-// create repo on remote host from existing local repo
+// 基于现有的本地仓库在远程主机上创建仓库
 func createFromLocal(opts *CreateOptions) error {
 	httpClient, err := opts.HttpClient()
 	if err != nil {
@@ -549,7 +549,7 @@ func createFromLocal(opts *CreateOptions) error {
 
 	if opts.Interactive {
 		var err error
-		opts.Source, err = opts.Prompter.Input("Path to local repository", ".")
+		opts.Source, err = opts.Prompter.Input("本地仓库路径", ".")
 		if err != nil {
 			return err
 		}
@@ -576,9 +576,9 @@ func createFromLocal(opts *CreateOptions) error {
 	}
 	if repoType == unknown {
 		if repoPath == "." {
-			return fmt.Errorf("current directory is not a git repository. Run `git init` to initialize it")
+			return fmt.Errorf("当前目录不是 git 仓库, 请运行 `git init` 进行初始化")
 		}
-		return fmt.Errorf("%s is not a git repository. Run `git -C \"%s\" init` to initialize it", absPath, repoPath)
+		return fmt.Errorf("%s 不是 git 仓库, 请运行 `git -C \"%s\" init` 进行初始化", absPath, repoPath)
 	}
 
 	committed, err := hasCommits(opts.GitClient)
@@ -586,9 +586,9 @@ func createFromLocal(opts *CreateOptions) error {
 		return err
 	}
 	if opts.Push {
-		// fail immediately if trying to push with no commits
+		// 若无提交却尝试推送, 则立即失败
 		if !committed {
-			return fmt.Errorf("`--push` enabled but no commits found in %s", absPath)
+			return fmt.Errorf("已启用 `--push`, 但在 %s 中未找到任何提交", absPath)
 		}
 	}
 
@@ -601,7 +601,7 @@ func createFromLocal(opts *CreateOptions) error {
 
 	var repoToCreate ghrepo.Interface
 
-	// repo name will be currdir name or specified
+	// 仓库名称将取当前目录名或指定名称
 	if opts.Name == "" {
 		repoToCreate = ghrepo.NewWithHost("", filepath.Base(absPath), host)
 	} else if strings.Contains(opts.Name, "/") {
@@ -634,10 +634,10 @@ func createFromLocal(opts *CreateOptions) error {
 
 	if isTTY {
 		fmt.Fprintf(stdout,
-			"%s Created repository %s on %s\n  %s\n",
+			"%s 已在 %s 上创建仓库 %s\n  %s\n",
 			cs.SuccessIconWithColor(cs.Green),
-			ghrepo.FullName(repo),
 			host,
+			ghrepo.FullName(repo),
 			repo.URL)
 	} else {
 		fmt.Fprintln(stdout, repo.URL)
@@ -647,7 +647,7 @@ func createFromLocal(opts *CreateOptions) error {
 	remoteURL := ghrepo.FormatRemoteURL(repo, protocol)
 
 	if opts.Interactive {
-		addRemote, err := opts.Prompter.Confirm("Add a remote?", true)
+		addRemote, err := opts.Prompter.Confirm("是否添加远程?", true)
 		if err != nil {
 			return err
 		}
@@ -655,7 +655,7 @@ func createFromLocal(opts *CreateOptions) error {
 			return nil
 		}
 
-		baseRemote, err = opts.Prompter.Input("What should the new remote be called?", "origin")
+		baseRemote, err = opts.Prompter.Input("新的远程应叫什么名字?", "origin")
 		if err != nil {
 			return err
 		}
@@ -665,11 +665,11 @@ func createFromLocal(opts *CreateOptions) error {
 		return err
 	}
 
-	// don't prompt for push if there are no commits
+	// 若没有任何提交, 则不提示推送
 	if opts.Interactive && committed {
-		msg := fmt.Sprintf("Would you like to push commits from the current branch to %q?", baseRemote)
+		msg := fmt.Sprintf("是否将当前分支的提交推送到 %q?", baseRemote)
 		if repoType == bare {
-			msg = fmt.Sprintf("Would you like to mirror all refs to %q?", baseRemote)
+			msg = fmt.Sprintf("是否将所有引用镜像到 %q?", baseRemote)
 		}
 
 		var err error
@@ -686,7 +686,7 @@ func createFromLocal(opts *CreateOptions) error {
 		}
 
 		if isTTY {
-			fmt.Fprintf(stdout, "%s Pushed commits to %s\n", cs.SuccessIcon(), remoteURL)
+			fmt.Fprintf(stdout, "%s 已将提交推送到 %s\n", cs.SuccessIcon(), remoteURL)
 		}
 	}
 
@@ -700,7 +700,7 @@ func createFromLocal(opts *CreateOptions) error {
 		}
 
 		if isTTY {
-			fmt.Fprintf(stdout, "%s Mirrored all refs to %s\n", cs.SuccessIcon(), remoteURL)
+			fmt.Fprintf(stdout, "%s 已将所有引用镜像到 %s\n", cs.SuccessIcon(), remoteURL)
 		}
 	}
 
@@ -708,7 +708,7 @@ func createFromLocal(opts *CreateOptions) error {
 }
 
 func cloneWithRetry(opts *CreateOptions, remoteURL, branch string) error {
-	// Allow injecting alternative BackOff in tests.
+	// 允许在测试中注入替代的 BackOff。
 	if opts.BackOff == nil {
 		opts.BackOff = backoff.NewConstantBackOff(3 * time.Second)
 	}
@@ -742,15 +742,15 @@ func sourceInit(gitClient *git.Client, io *iostreams.IOStreams, remoteURL, baseR
 	}
 	_, err = remoteAdd.Output()
 	if err != nil {
-		return fmt.Errorf("%s Unable to add remote %q", cs.FailureIcon(), baseRemote)
+		return fmt.Errorf("%s 无法添加远程 %q", cs.FailureIcon(), baseRemote)
 	}
 	if io.IsStdoutTTY() {
-		fmt.Fprintf(io.Out, "%s Added remote %s\n", cs.SuccessIcon(), remoteURL)
+		fmt.Fprintf(io.Out, "%s 已添加远程 %s\n", cs.SuccessIcon(), remoteURL)
 	}
 	return nil
 }
 
-// check if local repository has committed changes
+// 检查本地仓库是否已有提交
 func hasCommits(gitClient *git.Client) (bool, error) {
 	hasCommitsCmd, err := gitClient.Command(context.Background(), "rev-parse", "HEAD")
 	if err != nil {
@@ -800,7 +800,7 @@ func localRepoType(gitClient *git.Client) (repoType, error) {
 	}
 }
 
-// clone the checkout branch to specified path
+// 将检出的分支克隆到指定路径
 func localInit(gitClient *git.Client, remoteURL, path string) error {
 	ctx := context.Background()
 	gitInit, err := gitClient.Command(ctx, "init", path)
@@ -834,7 +834,7 @@ func interactiveRepoTemplate(client *http.Client, hostname, owner string, prompt
 		return nil, err
 	}
 	if len(templateRepos) == 0 {
-		return nil, fmt.Errorf("%s has no template repositories", owner)
+		return nil, fmt.Errorf("%s 没有模板仓库", owner)
 	}
 
 	var templates []string
@@ -842,7 +842,7 @@ func interactiveRepoTemplate(client *http.Client, hostname, owner string, prompt
 		templates = append(templates, repo.Name)
 	}
 
-	selected, err := prompter.Select("Choose a template repository", "", templates)
+	selected, err := prompter.Select("选择一个模板仓库", "", templates)
 	if err != nil {
 		return nil, err
 	}
@@ -850,7 +850,7 @@ func interactiveRepoTemplate(client *http.Client, hostname, owner string, prompt
 }
 
 func interactiveGitIgnore(client *http.Client, hostname string, prompter iprompter) (string, error) {
-	confirmed, err := prompter.Confirm("Would you like to add a .gitignore?", false)
+	confirmed, err := prompter.Confirm("您想添加 .gitignore 吗?", false)
 	if err != nil {
 		return "", err
 	} else if !confirmed {
@@ -861,7 +861,7 @@ func interactiveGitIgnore(client *http.Client, hostname string, prompter iprompt
 	if err != nil {
 		return "", err
 	}
-	selected, err := prompter.Select("Choose a .gitignore template", "", templates)
+	selected, err := prompter.Select("选择一个 .gitignore 模板", "", templates)
 	if err != nil {
 		return "", err
 	}
@@ -869,7 +869,7 @@ func interactiveGitIgnore(client *http.Client, hostname string, prompter iprompt
 }
 
 func interactiveLicense(client *http.Client, hostname string, prompter iprompter) (string, error) {
-	confirmed, err := prompter.Confirm("Would you like to add a license?", false)
+	confirmed, err := prompter.Confirm("您想添加许可证吗?", false)
 	if err != nil {
 		return "", err
 	} else if !confirmed {
@@ -884,14 +884,14 @@ func interactiveLicense(client *http.Client, hostname string, prompter iprompter
 	for _, license := range licenses {
 		licenseNames = append(licenseNames, license.Name)
 	}
-	selected, err := prompter.Select("Choose a license", "", licenseNames)
+	selected, err := prompter.Select("选择一个许可证", "", licenseNames)
 	if err != nil {
 		return "", err
 	}
 	return licenses[selected].Key, nil
 }
 
-// name, description, and visibility
+// 名称, 描述和可见性
 func interactiveRepoInfo(client *http.Client, hostname string, prompter iprompter, defaultName string) (string, string, string, error) {
 	name, owner, err := interactiveRepoNameAndOwner(client, hostname, prompter, defaultName)
 	if err != nil {
@@ -901,13 +901,13 @@ func interactiveRepoInfo(client *http.Client, hostname string, prompter iprompte
 		name = fmt.Sprintf("%s/%s", owner, name)
 	}
 
-	description, err := prompter.Input("Description", "")
+	description, err := prompter.Input("描述", "")
 	if err != nil {
 		return "", "", "", err
 	}
 
 	visibilityOptions := getRepoVisibilityOptions(owner)
-	selected, err := prompter.Select("Visibility", "Public", visibilityOptions)
+	selected, err := prompter.Select("可见性", "Public", visibilityOptions)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -917,7 +917,7 @@ func interactiveRepoInfo(client *http.Client, hostname string, prompter iprompte
 
 func getRepoVisibilityOptions(owner string) []string {
 	visibilityOptions := []string{"Public", "Private"}
-	// orgs can also create internal repos
+	// 组织还可以创建内部仓库
 	if owner != "" {
 		visibilityOptions = append(visibilityOptions, "Internal")
 	}
@@ -925,12 +925,12 @@ func getRepoVisibilityOptions(owner string) []string {
 }
 
 func interactiveRepoNameAndOwner(client *http.Client, hostname string, prompter iprompter, defaultName string) (string, string, error) {
-	name, err := prompter.Input("Repository name", defaultName)
+	name, err := prompter.Input("仓库名称", defaultName)
 	if err != nil {
 		return "", "", err
 	}
 	if strings.TrimSpace(name) == "" {
-		return "", "", errors.New("repository name cannot be blank")
+		return "", "", errors.New("仓库名称不能为空")
 	}
 
 	name, owner, err := splitNameAndOwner(name)
@@ -938,7 +938,7 @@ func interactiveRepoNameAndOwner(client *http.Client, hostname string, prompter 
 		return "", "", err
 	}
 	if owner != "" {
-		// User supplied an explicit owner prefix.
+		// 用户显式提供了所有者前缀。
 		return name, owner, nil
 	}
 
@@ -947,21 +947,21 @@ func interactiveRepoNameAndOwner(client *http.Client, hostname string, prompter 
 		return "", "", err
 	}
 	if len(orgs) == 0 {
-		// User doesn't belong to any orgs.
-		// Leave the owner blank to indicate a personal repo.
+		// 用户不属于任何组织。
+		// 将所有者留空以表示个人仓库。
 		return name, "", nil
 	}
 
 	owners := append(orgs, username)
 	sort.Strings(owners)
-	selected, err := prompter.Select("Repository owner", username, owners)
+	selected, err := prompter.Select("仓库所有者", username, owners)
 	if err != nil {
 		return "", "", err
 	}
 
 	owner = owners[selected]
 	if owner == username {
-		// Leave the owner blank to indicate a personal repo.
+		// 将所有者留空以表示个人仓库。
 		return name, "", nil
 	}
 	return name, owner, nil
