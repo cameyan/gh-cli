@@ -37,10 +37,10 @@ func NewCmdArchive(f *cmdutil.Factory, runF func(*ArchiveOptions) error) *cobra.
 
 	cmd := &cobra.Command{
 		Use:   "archive [<repository>]",
-		Short: "Archive a repository",
-		Long: heredoc.Doc(`Archive a GitHub repository.
+		Short: "归档仓库",
+		Long: heredoc.Doc(`归档一个 GitHub 仓库。
 
-With no argument, archives the current repository.`),
+不带参数时, 归档当前仓库。`),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
@@ -48,7 +48,7 @@ With no argument, archives the current repository.`),
 			}
 
 			if !opts.Confirmed && !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("--yes required when not running interactively")
+				return cmdutil.FlagErrorf("非交互模式下运行时, 需要 --yes")
 			}
 
 			if runF != nil {
@@ -59,9 +59,9 @@ With no argument, archives the current repository.`),
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.Confirmed, "confirm", false, "Skip the confirmation prompt")
-	_ = cmd.Flags().MarkDeprecated("confirm", "use `--yes` instead")
-	cmd.Flags().BoolVarP(&opts.Confirmed, "yes", "y", false, "Skip the confirmation prompt")
+	cmd.Flags().BoolVar(&opts.Confirmed, "confirm", false, "跳过确认提示")
+	_ = cmd.Flags().MarkDeprecated("confirm", "请改用 `--yes`")
+	cmd.Flags().BoolVarP(&opts.Confirmed, "yes", "y", false, "跳过确认提示")
 	return cmd
 }
 
@@ -111,14 +111,14 @@ func archiveRun(opts *ArchiveOptions) error {
 
 	fullName := ghrepo.FullName(toArchive)
 	if repo.IsArchived {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Repository %s is already archived\n", cs.WarningIcon(), fullName)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 仓库 %s 已处于归档状态\n", cs.WarningIcon(), fullName)
 		return nil
 	}
 
 	if !opts.Confirmed {
-		confirmed, err := opts.Prompter.Confirm(fmt.Sprintf("Archive %s?", fullName), false)
+		confirmed, err := opts.Prompter.Confirm(fmt.Sprintf("是否归档 %s?", fullName), false)
 		if err != nil {
-			return fmt.Errorf("failed to prompt: %w", err)
+			return fmt.Errorf("提示失败: %w", err)
 		}
 		if !confirmed {
 			return cmdutil.CancelError
@@ -132,7 +132,7 @@ func archiveRun(opts *ArchiveOptions) error {
 
 	if opts.IO.IsStdoutTTY() {
 		fmt.Fprintf(opts.IO.Out,
-			"%s Archived repository %s\n",
+			"%s 已归档仓库 %s\n",
 			cs.SuccessIcon(),
 			fullName)
 	}
