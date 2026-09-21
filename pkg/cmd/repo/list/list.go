@@ -55,28 +55,28 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 	cmd := &cobra.Command{
 		Use:   "list [<owner>]",
 		Args:  cobra.MaximumNArgs(1),
-		Short: "List repositories owned by user or organization",
+		Short: "列出用户或组织拥有的仓库",
 		Long: heredoc.Docf(`
-			List repositories owned by a user or organization.
+			列出某个用户或组织拥有的仓库。
 
-			Note that the list will only include repositories owned by the provided argument,
-			and the %[1]s--fork%[1]s or %[1]s--source%[1]s flags will not traverse ownership boundaries. For example,
-			when listing the forks in an organization, the output would not include those owned by individual users.
+			请注意, 列表将仅包含由所提供参数拥有的仓库,
+			且 %[1]s--fork%[1]s 或 %[1]s--source%[1]s 旗标不会跨越所有权边界。例如,
+			在列出组织中的派生仓库时, 输出将不包含个人用户拥有的仓库。
 		`, "`"),
 		Aliases: []string{"ls"},
 		RunE: func(c *cobra.Command, args []string) error {
 			if opts.Limit < 1 {
-				return cmdutil.FlagErrorf("invalid limit: %v", opts.Limit)
+				return cmdutil.FlagErrorf("无效的 limit: %v", opts.Limit)
 			}
 
-			if err := cmdutil.MutuallyExclusive("specify only one of `--public`, `--private`, or `--visibility`", flagPublic, flagPrivate, opts.Visibility != ""); err != nil {
+			if err := cmdutil.MutuallyExclusive("`--public`、`--private` 或 `--visibility` 中只能指定一个", flagPublic, flagPrivate, opts.Visibility != ""); err != nil {
 				return err
 			}
 			if opts.Source && opts.Fork {
-				return cmdutil.FlagErrorf("specify only one of `--source` or `--fork`")
+				return cmdutil.FlagErrorf("`--source` 或 `--fork` 中只能指定一个")
 			}
 			if opts.Archived && opts.NonArchived {
-				return cmdutil.FlagErrorf("specify only one of `--archived` or `--no-archived`")
+				return cmdutil.FlagErrorf("`--archived` 或 `--no-archived` 中只能指定一个")
 			}
 
 			if flagPrivate {
@@ -96,20 +96,20 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", 30, "Maximum number of repositories to list")
-	cmd.Flags().BoolVar(&opts.Source, "source", false, "Show only non-forks")
-	cmd.Flags().BoolVar(&opts.Fork, "fork", false, "Show only forks")
-	cmd.Flags().StringVarP(&opts.Language, "language", "l", "", "Filter by primary coding language")
-	cmd.Flags().StringSliceVarP(&opts.Topic, "topic", "", nil, "Filter by topic")
-	cmdutil.StringEnumFlag(cmd, &opts.Visibility, "visibility", "", "", []string{"public", "private", "internal"}, "Filter by repository visibility")
-	cmd.Flags().BoolVar(&opts.Archived, "archived", false, "Show only archived repositories")
-	cmd.Flags().BoolVar(&opts.NonArchived, "no-archived", false, "Omit archived repositories")
+	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", 30, "要列出的仓库数量上限")
+	cmd.Flags().BoolVar(&opts.Source, "source", false, "仅显示非派生仓库")
+	cmd.Flags().BoolVar(&opts.Fork, "fork", false, "仅显示派生仓库")
+	cmd.Flags().StringVarP(&opts.Language, "language", "l", "", "按主要编码语言过滤")
+	cmd.Flags().StringSliceVarP(&opts.Topic, "topic", "", nil, "按主题(topic)过滤")
+	cmdutil.StringEnumFlag(cmd, &opts.Visibility, "visibility", "", "", []string{"public", "private", "internal"}, "按仓库可见性过滤")
+	cmd.Flags().BoolVar(&opts.Archived, "archived", false, "仅显示已归档的仓库")
+	cmd.Flags().BoolVar(&opts.NonArchived, "no-archived", false, "省略已归档的仓库")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, api.RepositoryFields)
 
-	cmd.Flags().BoolVar(&flagPrivate, "private", false, "Show only private repositories")
-	cmd.Flags().BoolVar(&flagPublic, "public", false, "Show only public repositories")
-	_ = cmd.Flags().MarkDeprecated("public", "use `--visibility=public` instead")
-	_ = cmd.Flags().MarkDeprecated("private", "use `--visibility=private` instead")
+	cmd.Flags().BoolVar(&flagPrivate, "private", false, "仅显示私有仓库")
+	cmd.Flags().BoolVar(&flagPublic, "public", false, "仅显示公开仓库")
+	_ = cmd.Flags().MarkDeprecated("public", "请改用 `--visibility=public`")
+	_ = cmd.Flags().MarkDeprecated("private", "请改用 `--visibility=private`")
 
 	return cmd
 }
@@ -164,11 +164,11 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if opts.Owner != "" && listResult.Owner == "" && !listResult.FromSearch {
-		return fmt.Errorf("the owner handle %q was not recognized as either a GitHub user or an organization", opts.Owner)
+		return fmt.Errorf("所有者句柄 %q 未被识别为 GitHub 用户或组织", opts.Owner)
 	}
 
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "error starting pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器出错: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -177,7 +177,7 @@ func listRun(opts *ListOptions) error {
 	}
 
 	cs := opts.IO.ColorScheme()
-	tp := tableprinter.New(opts.IO, tableprinter.WithHeader("NAME", "DESCRIPTION", "INFO", "UPDATED"))
+	tp := tableprinter.New(opts.IO, tableprinter.WithHeader("名称", "描述", "信息", "更新时间"))
 
 	totalMatchCount := len(listResult.Repositories)
 	for _, repo := range listResult.Repositories {
@@ -201,7 +201,7 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if listResult.FromSearch && opts.Limit > 1000 {
-		fmt.Fprintln(opts.IO.ErrOut, "warning: this query uses the Search API which is capped at 1000 results maximum")
+		fmt.Fprintln(opts.IO.ErrOut, "警告: 此查询使用 Search API, 该 API 最多返回 1000 条结果")
 	}
 	if opts.IO.IsStdoutTTY() {
 		hasFilters := filter.Visibility != "" || filter.Fork || filter.Source || filter.Language != "" || len(filter.Topic) > 0
@@ -219,18 +219,18 @@ func listRun(opts *ListOptions) error {
 func listHeader(owner string, matchCount, totalMatchCount int, hasFilters bool) string {
 	if totalMatchCount == 0 {
 		if hasFilters {
-			return "No results match your search"
+			return "没有符合搜索条件的结果"
 		} else if owner != "" {
-			return "There are no repositories in @" + owner
+			return "@" + owner + " 中没有任何仓库"
 		}
-		return "No results"
+		return "没有结果"
 	}
 
 	var matchStr string
 	if hasFilters {
-		matchStr = " that match your search"
+		matchStr = " 条符合您的搜索"
 	}
-	return fmt.Sprintf("Showing %d of %d repositories in @%s%s", matchCount, totalMatchCount, owner, matchStr)
+	return fmt.Sprintf("显示 @%s 中 %d 个仓库(共 %d 个)%s", owner, matchCount, totalMatchCount, matchStr)
 }
 
 func repoInfo(r api.Repository) string {

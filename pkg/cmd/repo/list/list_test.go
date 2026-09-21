@@ -290,12 +290,12 @@ func TestNewCmdList(t *testing.T) {
 		{
 			name:     "no forks with sources",
 			cli:      "--fork --source",
-			wantsErr: "specify only one of `--source` or `--fork`",
+			wantsErr: "`--source` 或 `--fork` 中只能指定一个",
 		},
 		{
 			name:     "conflicting archived",
 			cli:      "--archived --no-archived",
-			wantsErr: "specify only one of `--archived` or `--no-archived`",
+			wantsErr: "`--archived` 或 `--no-archived` 中只能指定一个",
 		},
 		{
 			name:     "too many arguments",
@@ -305,7 +305,7 @@ func TestNewCmdList(t *testing.T) {
 		{
 			name:     "invalid limit",
 			cli:      "-L 0",
-			wantsErr: "invalid limit: 0",
+			wantsErr: "无效的 limit: 0",
 		},
 	}
 
@@ -457,9 +457,9 @@ func TestRepoList_tty(t *testing.T) {
 
 	assert.Equal(t, heredoc.Doc(`
 
-		Showing 3 of 3 repositories in @octocat
+		显示 @octocat 中 3 个仓库(共 3 个)
 
-		NAME                 DESCRIPTION          INFO          UPDATED
+		名称                 描述                 信息          更新时间
 		octocat/hello-world  My first repository  public        about 8 hours ago
 		octocat/cli          GitHub CLI           public, fork  about 8 hours ago
 		octocat/testing                           private       about 7 days ago
@@ -484,7 +484,7 @@ func TestRepoList_filtering(t *testing.T) {
 	}
 
 	assert.Equal(t, "", output.Stderr())
-	assert.Equal(t, "\nNo results match your search\n\n", output.String())
+	assert.Equal(t, "\n没有符合搜索条件的结果\n\n", output.String())
 }
 
 func TestRepoList_noVisibilityField(t *testing.T) {
@@ -560,7 +560,7 @@ func TestRepoList_invalidOwner(t *testing.T) {
 	}
 
 	err := listRun(&opts)
-	assert.EqualError(t, err, `the owner handle "nonexist" was not recognized as either a GitHub user or an organization`)
+	assert.EqualError(t, err, `所有者句柄 "nonexist" 未被识别为 GitHub 用户或组织`)
 	assert.Equal(t, "", stderr.String())
 	assert.Equal(t, "", stdout.String())
 }
