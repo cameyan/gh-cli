@@ -36,7 +36,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:     "list",
-		Short:   "List deploy keys in a GitHub repository",
+		Short:   "列出 GitHub 仓库中的部署密钥(deploy key)",
 		Aliases: []string{"ls"},
 		Args:    cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -69,14 +69,14 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if len(deployKeys) == 0 {
-		return cmdutil.NewNoResultsError(fmt.Sprintf("no deploy keys found in %s", ghrepo.FullName(repo)))
+		return cmdutil.NewNoResultsError(fmt.Sprintf("%s 中未找到部署密钥", ghrepo.FullName(repo)))
 	}
 
 	if opts.Exporter != nil {
 		return opts.Exporter.Write(opts.IO, deployKeys)
 	}
 
-	t := tableprinter.New(opts.IO, tableprinter.WithHeader("ID", "TITLE", "TYPE", "KEY", "CREATED AT"))
+	t := tableprinter.New(opts.IO, tableprinter.WithHeader("ID", "标题", "类型", "密钥", "创建时间"))
 	cs := opts.IO.ColorScheme()
 	now := time.Now()
 
@@ -84,9 +84,9 @@ func listRun(opts *ListOptions) error {
 		sshID := strconv.FormatInt(deployKey.ID, 10)
 		t.AddField(sshID)
 		t.AddField(deployKey.Title)
-		sshType := "read-only"
+		sshType := "只读"
 		if !deployKey.ReadOnly {
-			sshType = "read-write"
+			sshType = "读写"
 		}
 		t.AddField(sshType)
 		t.AddField(deployKey.Key, tableprinter.WithTruncate(truncateMiddle))
