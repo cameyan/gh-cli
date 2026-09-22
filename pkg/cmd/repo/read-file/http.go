@@ -13,7 +13,7 @@ import (
 	"github.com/cli/cli/v2/internal/safeurl"
 )
 
-// repoFile is the resolved file content and metadata for a single path.
+// repoFile 是单个路径解析后的文件内容与元数据。
 type repoFile struct {
 	Name        string
 	Path        string
@@ -28,7 +28,7 @@ type repoFile struct {
 	Content     []byte
 }
 
-// ExportData implements the cmdutil exportable interface for --json output.
+// ExportData 为 --json 输出实现 cmdutil 可导出接口。
 func (f *repoFile) ExportData(fields []string) map[string]any {
 	data := map[string]any{}
 	for _, field := range fields {
@@ -60,7 +60,7 @@ func (f *repoFile) ExportData(fields []string) map[string]any {
 	return data
 }
 
-// contentsResponse models the REST Contents API response for a single path.
+// contentsResponse 建模单个路径的 REST Contents API 响应。
 type contentsResponse struct {
 	Type            string `json:"type"`
 	Encoding        string `json:"encoding"`
@@ -77,22 +77,21 @@ type contentsResponse struct {
 	SubmoduleGitURL string `json:"submodule_git_url"`
 }
 
-// fetchContent retrieves the raw Contents API response for a single path.
+// fetchContent 获取单个路径的原始 Contents API 响应。
 //
-// It requests the unified object media type so directories, files, symlinks, and
-// submodules all come back as a single JSON object distinguished by the type field.
+// 它请求统一对象媒体类型，这样目录、文件、符号链接和子模块
+// 都会以单个 JSON 对象返回，并通过 type 字段加以区分。
 func fetchContent(httpClient *http.Client, repo ghrepo.Interface, filePath, ref string) (*contentsResponse, error) {
 	apiPath, err := contentsAPIPath(repo, filePath, ref)
 	if err != nil {
 		return nil, err
 	}
 
-	// We use the "application/vnd.github.object+json" media type to request a unified object
-	// representation from the Contents API. Without this, the API returns a JSON array for
-	// directories and a JSON object for files.
+	// 我们使用 "application/vnd.github.object+json" 媒体类型向 Contents API 请求统一对象表示。
+	// 若不这样做，API 对目录返回 JSON 数组，对文件返回 JSON 对象。
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 作为后续工作，考虑是否可以将 api client 注入到此调用处，而不是在此构造
 	resp, err := api.NewClientFromHTTP(httpClient).Request(repo.RepoHost(), http.MethodGet, apiPath.String(), nil,
 		api.WithHeader("Accept", "application/vnd.github.object+json"))
 	if err != nil {
@@ -112,12 +111,11 @@ func fetchContent(httpClient *http.Client, repo ghrepo.Interface, filePath, ref 
 	return &content, nil
 }
 
-// fetchFile retrieves a single path's metadata and inline content via the REST Contents API.
+// fetchFile 通过 REST Contents API 获取单个路径的元数据和内联内容。
 //
-// It returns a typed error when the path is a directory, symlink, or submodule. Content is
-// populated only when the API returns it inline; larger files come back with empty content, and
-// it is up to the caller to fetch the raw bytes via fetchRawFile when the content is actually
-// needed.
+// 当路径是目录、符号链接或子模块时，返回对应的类型化错误。仅当 API 内联返回内容时
+// 才会填充 Content；较大的文件返回空内容，实际需要内容时由调用方通过 fetchRawFile
+// 获取原始字节。
 func fetchFile(httpClient *http.Client, repo ghrepo.Interface, filePath, ref string) (*repoFile, error) {
 	content, err := fetchContent(httpClient, repo, filePath, ref)
 	if err != nil {
@@ -125,18 +123,18 @@ func fetchFile(httpClient *http.Client, repo ghrepo.Interface, filePath, ref str
 	}
 
 	if content.Type != "file" {
-		// The path resolved to something other than a regular file. Use content.Path
-		// (the API-sanitized path) rather than the user input in these messages, so a
-		// crafted path cannot smuggle terminal escape sequences into our output.
+		// 该路径解析为普通文件以外的东西。在这些消息中使用 content.Path
+		// (API 清理过的路径)而不是用户输入，这样构造的路径就无法将终端
+		// 转义序列走私到我们的输出中。
 		switch content.Type {
 		case "dir":
-			return nil, fmt.Errorf("path %q is a directory; use `gh repo read-dir` instead", content.Path)
+			return nil, fmt.Errorf("路径 %q 是目录；请改用 `gh repo read-dir`", content.Path)
 		case "symlink":
-			return nil, fmt.Errorf("path %q is a symlink to %q which does not exist", content.Path, content.Target)
+			return nil, fmt.Errorf("路径 %q 是指向 %q 的符号链接，而该目标不存在", content.Path, content.Target)
 		case "submodule":
-			return nil, fmt.Errorf("path %q is a submodule (%s at %s)", content.Path, content.SubmoduleGitURL, content.SHA)
+			return nil, fmt.Errorf("路径 %q 是子模块(submodule)(%s 位于 %s)", content.Path, content.SubmoduleGitURL, content.SHA)
 		default:
-			return nil, fmt.Errorf("path %q is not a regular file (type: %s)", content.Path, content.Type)
+			return nil, fmt.Errorf("路径 %q 不是普通文件(类型: %s)", content.Path, content.Type)
 		}
 	}
 
@@ -156,7 +154,7 @@ func fetchFile(httpClient *http.Client, repo ghrepo.Interface, filePath, ref str
 	if content.Encoding == "base64" && content.Content != "" {
 		decoded, err := base64.StdEncoding.DecodeString(content.Content)
 		if err != nil {
-			return nil, fmt.Errorf("failed to decode base64 file content: %w", err)
+			return nil, fmt.Errorf("解码 base64 文件内容失败: %w", err)
 		}
 		file.Content = decoded
 	}
@@ -164,8 +162,7 @@ func fetchFile(httpClient *http.Client, repo ghrepo.Interface, filePath, ref str
 	return file, nil
 }
 
-// fetchRawFile retrieves the raw bytes of a file, used for files larger than the
-// 1 MB inline content limit of the Contents API.
+// fetchRawFile 获取文件的原始字节，用于超过 Contents API 1 MB 内联内容限制的文件。
 func fetchRawFile(httpClient *http.Client, repo ghrepo.Interface, filePath, ref string) ([]byte, error) {
 	apiPath, err := contentsAPIPath(repo, filePath, ref)
 	if err != nil {
@@ -173,8 +170,8 @@ func fetchRawFile(httpClient *http.Client, repo ghrepo.Interface, filePath, ref 
 	}
 
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 作为后续工作，考虑是否可以将 api client 注入到此调用处，而不是在此构造
 	resp, err := api.NewClientFromHTTP(httpClient).Request(repo.RepoHost(), http.MethodGet, apiPath.String(), nil,
 		api.WithHeader("Accept", "application/vnd.github.raw"))
 	if err != nil {
@@ -185,11 +182,10 @@ func fetchRawFile(httpClient *http.Client, repo ghrepo.Interface, filePath, ref 
 	return io.ReadAll(resp.Body)
 }
 
-// contentsAPIPath builds the Contents API path for a path and optional ref, relative to the
-// host's REST endpoint.
+// contentsAPIPath 构建相对于主机 REST 端点的 Contents API 路径，用于路径和可选的 ref。
 func contentsAPIPath(repo ghrepo.Interface, filePath, ref string) (safeurl.SafeURL, error) {
-	// The Contents API accepts a fully percent-encoded path, including path separators
-	// encoded as %2F, so spaces and other special characters are handled transparently.
+	// Contents API 接受完全百分号编码的路径，包括编码为 %2F 的路径分隔符，
+	// 因此空格和其他特殊字符会被透明地处理。
 	u, err := safeurl.JoinPath("repos", repo.RepoOwner(), repo.RepoName(), "contents", strings.TrimPrefix(filePath, "/"))
 	if err != nil {
 		return nil, err
