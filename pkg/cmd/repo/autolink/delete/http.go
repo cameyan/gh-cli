@@ -21,13 +21,13 @@ func (a *AutolinkDeleter) Delete(repo ghrepo.Interface, id string) error {
 	}
 
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 作为后续工作，考虑是否可以将 api client 注入到此调用处，而不是在此构造
 	err = api.NewClientFromHTTP(a.HTTPClient).REST(repo.RepoHost(), http.MethodDelete, path.String(), nil, nil)
 	if err != nil {
 		var httpErr api.HTTPError
 		if errors.As(err, &httpErr) && httpErr.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("error deleting autolink: HTTP 404: Perhaps you are missing admin rights to the repository? (%s)", httpErr.RequestURL)
+			return fmt.Errorf("删除自动链接时出错: HTTP 404: 可能缺少仓库的管理员(admin)权限？(%s)", httpErr.RequestURL)
 		}
 		return err
 	}
