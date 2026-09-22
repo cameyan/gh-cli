@@ -8,17 +8,17 @@ import (
 	"github.com/cli/cli/v2/git"
 )
 
-// An Updater is used to update the git credentials for a given hostname.
+// Updater 用于更新给定主机名的 git 凭据。
 type Updater struct {
 	GitClient *git.Client
 }
 
-// Update updates the git credentials for a given hostname, first by rejecting any existing credentials and then
-// approving the new credentials.
+// Update 更新给定主机名的 git 凭据，首先拒绝任何现有凭据，
+// 然后批准新凭据。
 func (u *Updater) Update(hostname, username, password string) error {
 	ctx := context.TODO()
 
-	// clear previous cached credentials
+	// 清除之前缓存的凭据
 	rejectCmd, err := u.GitClient.Command(ctx, "credential", "reject")
 	if err != nil {
 		return err

@@ -11,14 +11,14 @@ import (
 	"github.com/google/shlex"
 )
 
-// A HelperConfig is used to configure and inspect the state of git credential helpers.
+// HelperConfig 用于配置和检查 git 凭据助手(credential helper)的状态。
 type HelperConfig struct {
 	SelfExecutablePath string
 	GitClient          *git.Client
 }
 
-// ConfigureOurs sets up the git credential helper chain to use the GitHub CLI credential helper for git repositories
-// including gists.
+// ConfigureOurs 设置 git 凭据助手链，将 GitHub CLI 凭据助手用于 git 仓库
+// (包括 gists)。
 func (hc *HelperConfig) ConfigureOurs(hostname string) error {
 	ctx := context.TODO()
 
@@ -37,7 +37,7 @@ func (hc *HelperConfig) ConfigureOurs(hostname string) error {
 		if configErr != nil {
 			break
 		}
-		// first use a blank value to indicate to git we want to sever the chain of credential helpers
+		// 首先使用空值告知 git，我们要切断凭据助手链
 		preConfigureCmd, err := hc.GitClient.Command(ctx, "config", "--global", "--replace-all", credHelperKey, "")
 		if err != nil {
 			configErr = err
@@ -48,7 +48,7 @@ func (hc *HelperConfig) ConfigureOurs(hostname string) error {
 			break
 		}
 
-		// second configure the actual helper for this host
+		// 其次为该主机配置实际的助手
 		configureCmd, err := hc.GitClient.Command(ctx,
 			"config", "--global", "--add",
 			credHelperKey,
@@ -64,17 +64,17 @@ func (hc *HelperConfig) ConfigureOurs(hostname string) error {
 	return configErr
 }
 
-// A Helper represents a git credential helper configuration.
+// Helper 表示一个 git 凭据助手配置。
 type Helper struct {
 	Cmd string
 }
 
-// IsConfigured returns true if the helper has a non-empty command, i.e. the git config had an entry
+// IsConfigured 在助手的命令非空时返回 true，即 git config 中有条目
 func (h Helper) IsConfigured() bool {
 	return h.Cmd != ""
 }
 
-// IsOurs returns true if the helper command is the GitHub CLI credential helper
+// IsOurs 在助手命令是 GitHub CLI 凭据助手时返回 true
 func (h Helper) IsOurs() bool {
 	if !strings.HasPrefix(h.Cmd, "!") {
 		return false
@@ -88,14 +88,14 @@ func (h Helper) IsOurs() bool {
 	return strings.TrimSuffix(filepath.Base(args[0]), ".exe") == "gh"
 }
 
-// ConfiguredHelper returns the configured git credential helper for a given hostname.
+// ConfiguredHelper 返回给定主机名已配置的 git 凭据助手。
 func (hc *HelperConfig) ConfiguredHelper(hostname string) (Helper, error) {
 	ctx := context.TODO()
 
 	hostHelperCmd, err := hc.GitClient.Config(ctx, keyFor(hostname))
 	if hostHelperCmd != "" {
-		// TODO: This is a direct refactoring removing named and naked returns
-		// but we should probably look closer at the error handling here
+		// TODO: 这是一次直接重构，移除了具名返回和裸返回，
+		// 但我们或许应该更仔细地审视这里的错误处理
 		return Helper{
 			Cmd: hostHelperCmd,
 		}, err

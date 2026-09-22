@@ -40,7 +40,7 @@ func NewCmdCredential(f *cmdutil.Factory, runF func(*CredentialOptions) error) *
 	cmd := &cobra.Command{
 		Use:    "git-credential",
 		Args:   cobra.ExactArgs(1),
-		Short:  "Implements git credential helper protocol",
+		Short:  "实现 git 凭据助手(credential helper)协议",
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Operation = args[0]
@@ -57,17 +57,17 @@ func NewCmdCredential(f *cmdutil.Factory, runF func(*CredentialOptions) error) *
 
 func helperRun(opts *CredentialOptions) error {
 	if opts.Operation == "store" {
-		// We pretend to implement the "store" operation, but do nothing since we already have a cached token.
+		// 我们假装实现 "store" 操作，但不做任何事，因为我们已经缓存了令牌。
 		return nil
 	}
 
 	if opts.Operation == "erase" {
-		// We pretend to implement the "erase" operation, but do nothing since we don't want git to cause user to be logged out.
+		// 我们假装实现 "erase" 操作，但不做任何事，因为我们不希望 git 导致用户被登出。
 		return nil
 	}
 
 	if opts.Operation != "get" {
-		return fmt.Errorf("gh auth git-credential: %q operation not supported", opts.Operation)
+		return fmt.Errorf("gh auth git-credential: 不支持 %q 操作", opts.Operation)
 	}
 
 	wants := map[string]string{}
