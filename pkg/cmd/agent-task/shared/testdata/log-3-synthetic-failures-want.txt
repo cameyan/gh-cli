@@ -1,4 +1,4 @@
-View repo/README.md
+查看 repo/README.md
 
 old line                                                                    
   new line                                                                    
@@ -8,15 +8,15 @@ old line
 
 Interim reasoning that should show as raw markdown.
 
-Thought
+思考
 
 A valid thought to render.
 
-Progress update: Valid commit msg
-Create: repo/new.txt
+进度更新: Valid commit msg
+创建: repo/new.txt
 hello world
 
-Edit: repo/file.diff
+编辑: repo/file.diff
 @@ -1,2 +1,2 @@                                                           
     -old line                                                                 
     +new line                                                                 
@@ -24,14 +24,14 @@ Edit: repo/file.diff
 
 Call to mystery_tool
 
-Output:
+输出:
 
 {                                                                         
       "foo": 1                                                                
     }
 
 
-Input:
+输入:
 
 {                                                                         
       "bar": 2                                                                

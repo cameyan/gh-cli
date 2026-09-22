@@ -68,7 +68,7 @@ func TestNewCmdList(t *testing.T) {
 			name:    "session ID required if non-tty",
 			tty:     false,
 			args:    "some-arg",
-			wantErr: "session ID is required when not running interactively",
+			wantErr: "非交互模式下必须提供 session ID",
 		},
 		{
 			name:         "repo override",
@@ -102,7 +102,7 @@ func TestNewCmdList(t *testing.T) {
 			name:    "--follow requires --log",
 			tty:     true,
 			args:    "some-arg --follow",
-			wantErr: "--log is required when providing --follow",
+			wantErr: "提供 --follow 时必须同时提供 --log",
 		},
 		{
 			name: "web mode",
@@ -186,7 +186,7 @@ func Test_viewRun(t *testing.T) {
 					return nil, capi.ErrSessionNotFound
 				}
 			},
-			wantStderr: "session not found\n",
+			wantStderr: "未找到会话\n",
 			wantErr:    cmdutil.SilentError,
 		},
 		{
@@ -235,16 +235,16 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantOut: heredoc.Doc(`
-				Ready for review • session one
-				Started on behalf of octocat about 6 hours ago
-				Used 1.5 premium request(s) • Duration 5m0s
+				可评审 • session one
+				代表 octocat 发起于 about 6 hours ago
+				已使用 1.5 个 premium request • 耗时 5m0s
 
 				OWNER/REPO#101 • fix something
 
-				For detailed session logs, try:
+				查看详细的会话日志，请尝试:
 				gh agent-task view 'some-session-id' --log
 
-				View this session on GitHub:
+				在 GitHub 上查看此会话:
 				https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id
 			`),
 		},
@@ -278,16 +278,16 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantOut: heredoc.Doc(`
-				Ready for review • session one
-				Started about 6 hours ago
-				Used 1.5 premium request(s) • Duration 5m0s
+				可评审 • session one
+				发起于 about 6 hours ago
+				已使用 1.5 个 premium request • 耗时 5m0s
 
 				OWNER/REPO#101 • fix something
 
-				For detailed session logs, try:
+				查看详细的会话日志，请尝试:
 				gh agent-task view 'some-session-id' --log
 
-				View this session on GitHub:
+				在 GitHub 上查看此会话:
 				https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id
 			`),
 		},
@@ -316,11 +316,11 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantOut: heredoc.Doc(`
-				Ready for review • session one
-				Started on behalf of octocat about 6 hours ago
-				Used 1.5 premium request(s) • Duration 5m0s
+				可评审 • session one
+				代表 octocat 发起于 about 6 hours ago
+				已使用 1.5 个 premium request • 耗时 5m0s
 
-				For detailed session logs, try:
+				查看详细的会话日志，请尝试:
 				gh agent-task view 'some-session-id' --log
 			`),
 		},
@@ -346,11 +346,11 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantOut: heredoc.Doc(`
-				Ready for review • session one
-				Started about 6 hours ago
-				Used 1.5 premium request(s) • Duration 5m0s
+				可评审 • session one
+				发起于 about 6 hours ago
+				已使用 1.5 个 premium request • 耗时 5m0s
 
-				For detailed session logs, try:
+				查看详细的会话日志，请尝试:
 				gh agent-task view 'some-session-id' --log
 			`),
 		},
@@ -386,16 +386,16 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantOut: heredoc.Doc(`
-				Ready for review • session one
-				Started on behalf of octocat about 6 hours ago
-				Used 0 premium request(s) • Duration 5m0s
+				可评审 • session one
+				代表 octocat 发起于 about 6 hours ago
+				已使用 0 个 premium request • 耗时 5m0s
 
 				OWNER/REPO#101 • fix something
 
-				For detailed session logs, try:
+				查看详细的会话日志，请尝试:
 				gh agent-task view 'some-session-id' --log
 
-				View this session on GitHub:
+				在 GitHub 上查看此会话:
 				https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id
 			`),
 		},
@@ -430,16 +430,16 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantOut: heredoc.Doc(`
-				In progress • session one
-				Started on behalf of octocat about 6 hours ago
-				Used 1.5 premium request(s)
+				进行中 • session one
+				代表 octocat 发起于 about 6 hours ago
+				已使用 1.5 个 premium request
 
 				OWNER/REPO#101 • fix something
 
-				For detailed session logs, try:
+				查看详细的会话日志，请尝试:
 				gh agent-task view 'some-session-id' --log
 
-				View this session on GitHub:
+				在 GitHub 上查看此会话:
 				https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id
 			`),
 		},
@@ -477,18 +477,18 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantOut: heredoc.Doc(`
-				Failed • session one
-				Started on behalf of octocat about 6 hours ago
-				Used 1.5 premium request(s)
+				失败 • session one
+				代表 octocat 发起于 about 6 hours ago
+				已使用 1.5 个 premium request
 
 				OWNER/REPO#101 • fix something
 
 				X blah blah
 
-				For detailed session logs, try:
+				查看详细的会话日志，请尝试:
 				gh agent-task view 'some-session-id' --log
 
-				View this session on GitHub:
+				在 GitHub 上查看此会话:
 				https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id
 			`),
 		},
@@ -527,19 +527,19 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantOut: heredoc.Doc(`
-				Failed • session one
-				Started on behalf of octocat about 6 hours ago
-				Used 1.5 premium request(s)
+				失败 • session one
+				代表 octocat 发起于 about 6 hours ago
+				已使用 1.5 个 premium request
 
 				OWNER/REPO#101 • fix something
 
 				X blah blah
 				https://github.com/OWNER/REPO/actions/runs/9999
 
-				For detailed session logs, try:
+				查看详细的会话日志，请尝试:
 				gh agent-task view 'some-session-id' --log
 
-				View this session on GitHub:
+				在 GitHub 上查看此会话:
 				https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id
 			`),
 		},
@@ -556,7 +556,7 @@ func Test_viewRun(t *testing.T) {
 					return nil, capi.ErrSessionNotFound
 				}
 			},
-			wantStderr: "session not found\n",
+			wantStderr: "未找到会话\n",
 			wantErr:    cmdutil.SilentError,
 		},
 		{
@@ -582,7 +582,7 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantBrowserURL: "https://github.com/copilot/agents",
-			wantStderr:     "Opening https://github.com/copilot/agents in your browser.\n",
+			wantStderr:     "正在在浏览器中打开 https://github.com/copilot/agents。\n",
 		},
 		{
 			name: "with session id, with pr data, web mode (tty)",
@@ -615,7 +615,7 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantBrowserURL: "https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id",
-			wantStderr:     "Opening https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id in your browser.\n",
+			wantStderr:     "正在在浏览器中打开 https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id。\n",
 		},
 		{
 			name: "with pr number, api error (tty)",
@@ -636,7 +636,7 @@ func Test_viewRun(t *testing.T) {
 					return nil, errors.New("some error")
 				}
 			},
-			wantErr: errors.New("failed to list sessions for pull request: some error"),
+			wantErr: errors.New("列出 pull request 的会话失败: some error"),
 		},
 		{
 			name: "with pr reference, unsupported hostname (tty)",
@@ -647,7 +647,7 @@ func Test_viewRun(t *testing.T) {
 					return ghrepo.NewWithHost("OWNER", "REPO", "foo.com"), nil
 				},
 			},
-			wantErr: errors.New("agent tasks are not supported on this host: foo.com"),
+			wantErr: errors.New("此主机不支持 agent tasks: foo.com"),
 		},
 		{
 			name: "with pr reference, api error when fetching pr database ID (tty)",
@@ -663,7 +663,7 @@ func Test_viewRun(t *testing.T) {
 					return 0, "", errors.New("some error")
 				}
 			},
-			wantErr: errors.New("failed to fetch pull request: some error"),
+			wantErr: errors.New("获取 pull request 失败: some error"),
 		},
 		{
 			name: "with pr reference, api error when fetching session (tty)",
@@ -682,7 +682,7 @@ func Test_viewRun(t *testing.T) {
 					return nil, errors.New("some error")
 				}
 			},
-			wantErr: errors.New("failed to list sessions for pull request: some error"),
+			wantErr: errors.New("列出 pull request 的会话失败: some error"),
 		},
 		{
 			name: "with pr number, success, single session (tty)",
@@ -738,16 +738,16 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantOut: heredoc.Doc(`
-				Ready for review • session one
-				Started on behalf of octocat about 6 hours ago
-				Used 1.5 premium request(s) • Duration 5m0s
+				可评审 • session one
+				代表 octocat 发起于 about 6 hours ago
+				已使用 1.5 个 premium request • 耗时 5m0s
 
 				OWNER/REPO#101 • fix something
 
-				For detailed session logs, try:
+				查看详细的会话日志，请尝试:
 				gh agent-task view 'some-session-id' --log
 
-				View this session on GitHub:
+				在 GitHub 上查看此会话:
 				https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id
 			`),
 		},
@@ -814,27 +814,27 @@ func Test_viewRun(t *testing.T) {
 			},
 			promptStubs: func(t *testing.T, pm *prompter.MockPrompter) {
 				pm.RegisterSelect(
-					"Select a session",
+					"选择一个会话",
 					[]string{
-						"✓ session one • updated about 5 hours ago",
-						"✓ session two • updated about 5 hours ago",
+						"✓ session one • 更新于 about 5 hours ago",
+						"✓ session two • 更新于 about 5 hours ago",
 					},
 					func(_, _ string, opts []string) (int, error) {
-						return prompter.IndexFor(opts, "✓ session one • updated about 5 hours ago")
+						return prompter.IndexFor(opts, "✓ session one • 更新于 about 5 hours ago")
 					},
 				)
 			},
 			wantOut: heredoc.Doc(`
-				Ready for review • session one
-				Started on behalf of octocat about 6 hours ago
-				Used 1.5 premium request(s) • Duration 5m0s
+				可评审 • session one
+				代表 octocat 发起于 about 6 hours ago
+				已使用 1.5 个 premium request • 耗时 5m0s
 
 				OWNER/REPO#101 • fix something
 
-				For detailed session logs, try:
+				查看详细的会话日志，请尝试:
 				gh agent-task view 'some-session-id' --log
 
-				View this session on GitHub:
+				在 GitHub 上查看此会话:
 				https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id
 			`),
 		},
@@ -903,27 +903,27 @@ func Test_viewRun(t *testing.T) {
 			},
 			promptStubs: func(t *testing.T, pm *prompter.MockPrompter) {
 				pm.RegisterSelect(
-					"Select a session",
+					"选择一个会话",
 					[]string{
-						"✓ session one • updated about 5 hours ago",
-						"✓ session two • updated about 5 hours ago",
+						"✓ session one • 更新于 about 5 hours ago",
+						"✓ session two • 更新于 about 5 hours ago",
 					},
 					func(_, _ string, opts []string) (int, error) {
-						return prompter.IndexFor(opts, "✓ session one • updated about 5 hours ago")
+						return prompter.IndexFor(opts, "✓ session one • 更新于 about 5 hours ago")
 					},
 				)
 			},
 			wantOut: heredoc.Doc(`
-				Ready for review • session one
-				Started on behalf of octocat about 6 hours ago
-				Used 1.5 premium request(s) • Duration 5m0s
+				可评审 • session one
+				代表 octocat 发起于 about 6 hours ago
+				已使用 1.5 个 premium request • 耗时 5m0s
 
 				OWNER/REPO#101 • fix something
 
-				For detailed session logs, try:
+				查看详细的会话日志，请尝试:
 				gh agent-task view 'some-session-id' --log
 
-				View this session on GitHub:
+				在 GitHub 上查看此会话:
 				https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id
 			`),
 		},
@@ -947,7 +947,7 @@ func Test_viewRun(t *testing.T) {
 					return nil, errors.New("some error")
 				}
 			},
-			wantErr: errors.New("failed to list sessions for pull request: some error"),
+			wantErr: errors.New("列出 pull request 的会话失败: some error"),
 		},
 		{
 			name: "with pr number, single session, web mode (tty)",
@@ -991,7 +991,7 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantBrowserURL: "https://github.com/OWNER/REPO/pull/101/agent-sessions",
-			wantStderr:     "Opening https://github.com/OWNER/REPO/pull/101/agent-sessions in your browser.\n",
+			wantStderr:     "正在在浏览器中打开 https://github.com/OWNER/REPO/pull/101/agent-sessions。\n",
 		},
 		{
 			name: "with pr number, multiple sessions, web mode (tty)",
@@ -1052,7 +1052,7 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantBrowserURL: "https://github.com/OWNER/REPO/pull/101/agent-sessions",
-			wantStderr:     "Opening https://github.com/OWNER/REPO/pull/101/agent-sessions in your browser.\n",
+			wantStderr:     "正在在浏览器中打开 https://github.com/OWNER/REPO/pull/101/agent-sessions。\n",
 		},
 		{
 			name: "with pr reference, multiple sessions, web mode (tty)",
@@ -1115,7 +1115,7 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantBrowserURL: "https://github.com/OWNER/REPO/pull/101/agent-sessions",
-			wantStderr:     "Opening https://github.com/OWNER/REPO/pull/101/agent-sessions in your browser.\n",
+			wantStderr:     "正在在浏览器中打开 https://github.com/OWNER/REPO/pull/101/agent-sessions。\n",
 		},
 		{
 			name: "with log (tty)",

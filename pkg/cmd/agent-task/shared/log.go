@@ -26,8 +26,8 @@ func NewLogRenderer() LogRenderer {
 	return &logRenderer{}
 }
 
-// Follow continuously fetches logs using the provided fetcher function and
-// renders them to the provided writer. It stops when Render indicates to stop.
+// Follow 使用提供的 fetcher 函数持续获取日志，
+// 并将其渲染到指定的 writer。当 Render 指示停止时结束。
 func (r *logRenderer) Follow(fetcher func() ([]byte, error), w io.Writer, io *iostreams.IOStreams) error {
 	var last string
 	for {
@@ -53,8 +53,8 @@ func (r *logRenderer) Follow(fetcher func() ([]byte, error), w io.Writer, io *io
 	}
 }
 
-// Render processes the given logs and writes the rendered output to w.
-// Errors are returned when an unexpected log entry is encountered.
+// Render 处理给定的日志并将渲染后的输出写入 w。
+// 当遇到意外的日志条目时返回错误。
 func (r *logRenderer) Render(logs []byte, w io.Writer, io *iostreams.IOStreams) (bool, error) {
 	lines := slices.DeleteFunc(strings.Split(string(logs), "\n"), func(line string) bool {
 		return line == ""
@@ -63,15 +63,13 @@ func (r *logRenderer) Render(logs []byte, w io.Writer, io *iostreams.IOStreams) 
 	for _, line := range lines {
 		raw, found := strings.CutPrefix(line, "data: ")
 		if !found {
-			return false, errors.New("unexpected log format")
+			return false, errors.New("意外的日志格式")
 		}
 
-		// The only log entry type we're interested in is a chat completion chunk,
-		// which can be verified by a successful unmarshal into the corresponding
-		// type AND the Object field being equal to "chat.completion.chunk". The
-		// latter is to avoid accepting an empty JSON object (i.e. "{}"). Also,
-		// if the entry is not what we expect, we should just skip and avoid
-		// returning an error.
+		// 我们唯一关心的日志条目类型是 chat completion chunk，
+		// 可以通过成功反序列化为对应类型，且 Object 字段等于 "chat.completion.chunk"
+		// 来验证。后者是为了避免接受空的 JSON 对象（即 "{}"）。此外，
+		// 如果条目不是我们期望的内容，应直接跳过，避免返回错误。
 		var entry chatCompletionChunkEntry
 		err := json.Unmarshal([]byte(raw), &entry)
 		if err != nil || entry.Object != "chat.completion.chunk" {
@@ -79,7 +77,7 @@ func (r *logRenderer) Render(logs []byte, w io.Writer, io *iostreams.IOStreams) 
 		}
 
 		if stop, err := renderLogEntry(entry, w, io); err != nil {
-			return false, fmt.Errorf("failed to process log entry: %w", err)
+			return false, fmt.Errorf("处理日志条目失败: %w", err)
 		} else if stop {
 			return true, nil
 		}
@@ -98,21 +96,21 @@ func renderLogEntry(entry chatCompletionChunkEntry, w io.Writer, io *iostreams.I
 
 		if len(choice.Delta.ToolCalls) == 0 {
 			if !choice.Delta.Content.Empty() && choice.Delta.Role == "assistant" {
-				// Copilot message and we should display.
+				// Copilot 消息，应当显示。
 				renderRawMarkdown(choice.Delta.Content.String(), w, io)
 			}
 			continue
 		}
 
-		// Since we don't want to clear-and-reprint live progress of events, we
-		// need to only process entries that correspond to a finished tool call.
-		// Such entries have a non-empty Content field.
+		// 由于我们不希望清除并重新打印事件的实时进度，
+		// 只需处理对应已完成的 tool call 的条目。
+		// 这类条目具有非空的 Content 字段。
 		if choice.Delta.Content.Empty() {
 			continue
 		}
 
 		if !choice.Delta.ReasoningText.Empty() {
-			// Note that this should be formatted as a normal "thought" message,
+			// 注意：这里应格式化为普通的 "thought" 消息，
 			// without the heading.
 			renderRawMarkdown(choice.Delta.ReasoningText.String(), w, io)
 		}
@@ -134,23 +132,23 @@ func renderLogEntry(entry chatCompletionChunkEntry, w io.Writer, io *iostreams.I
 			case "view":
 				args := viewToolArgs{}
 				if err := json.Unmarshal([]byte(tc.Function.Arguments), &args); err != nil {
-					fmt.Fprintf(io.ErrOut, "\nfailed to parse 'view' tool call arguments: %v\n", err)
+					fmt.Fprintf(io.ErrOut, "\n解析 'view' tool call 参数失败: %v\n", err)
 					continue
 				}
-				renderToolCallTitle(w, cs, fmt.Sprintf("View %s", cs.Bold(relativeFilePath(args.Path))), "")
+				renderToolCallTitle(w, cs, fmt.Sprintf("查看 %s", cs.Bold(relativeFilePath(args.Path))), "")
 
 				content := stripDiffFormat(choice.Delta.Content.String())
 
 				if err := renderFileContentAsMarkdown(args.Path, content, w, io); err != nil {
-					fmt.Fprintf(io.ErrOut, "\nfailed to render viewed file content: %v\n\n", err)
-					fmt.Fprintln(io.ErrOut, content) // raw fallback
+					fmt.Fprintf(io.ErrOut, "\n渲染已查看文件的内容失败: %v\n\n", err)
+					fmt.Fprintln(io.ErrOut, content) // 原始内容兜底
 				}
 			case "bash":
 				if v := unmarshal[bashToolArgs](args); v != nil {
 					if v.Description != "" {
 						renderToolCallTitle(w, cs, "Bash", v.Description)
 					} else {
-						renderToolCallTitle(w, cs, "Run Bash command", "")
+						renderToolCallTitle(w, cs, "运行 Bash 命令", "")
 					}
 
 					contentWithCommand := choice.Delta.Content.String()
@@ -158,95 +156,95 @@ func renderLogEntry(entry chatCompletionChunkEntry, w io.Writer, io *iostreams.I
 						contentWithCommand = fmt.Sprintf("$ %s\n%s", v.Command, choice.Delta.Content.String())
 					}
 					if err := renderFileContentAsMarkdown("commands.sh", contentWithCommand, w, io); err != nil {
-						fmt.Fprintf(io.ErrOut, "\nfailed to render bash command output: %v\n\n", err)
+						fmt.Fprintf(io.ErrOut, "\n渲染 Bash 命令输出失败: %v\n\n", err)
 						fmt.Fprintln(io.ErrOut, contentWithCommand)
 					}
 				}
-			// TODO: consider including more details for these bash-related tool calls.
+			// TODO: 考虑为这些与 Bash 相关的 tool call 包含更多细节。
 			case "write_bash":
 				if v := unmarshal[writeBashToolArgs](args); v != nil {
-					renderToolCallTitle(w, cs, "Send input to Bash session", "")
+					renderToolCallTitle(w, cs, "向 Bash 会话发送输入", "")
 					continue
 				}
 			case "read_bash":
 				if v := unmarshal[readBashToolArgs](args); v != nil {
-					renderToolCallTitle(w, cs, "Read logs from Bash session", "")
+					renderToolCallTitle(w, cs, "读取 Bash 会话的日志", "")
 					continue
 				}
 			case "stop_bash":
 				if v := unmarshal[stopBashToolArgs](args); v != nil {
-					renderToolCallTitle(w, cs, "Stop Bash session", "")
+					renderToolCallTitle(w, cs, "停止 Bash 会话", "")
 					continue
 				}
 			case "async_bash":
 				if v := unmarshal[asyncBashToolArgs](args); v != nil {
-					renderToolCallTitle(w, cs, "Start or send input to long-running Bash session", "")
+					renderToolCallTitle(w, cs, "启动长时间运行的 Bash 会话或向其发送输入", "")
 					continue
 				}
 			case "read_async_bash":
 				if v := unmarshal[readAsyncBashToolArgs](args); v != nil {
-					renderToolCallTitle(w, cs, "View logs from long-running Bash session", "")
+					renderToolCallTitle(w, cs, "查看长时间运行的 Bash 会话的日志", "")
 					continue
 				}
 			case "stop_async_bash":
 				if v := unmarshal[stopAsyncBashToolArgs](args); v != nil {
-					renderToolCallTitle(w, cs, "Stop long-running Bash session", "")
+					renderToolCallTitle(w, cs, "停止长时间运行的 Bash 会话", "")
 					continue
 				}
 			case "think":
 				args := thinkToolArgs{}
 				if err := json.Unmarshal([]byte(tc.Function.Arguments), &args); err != nil {
-					fmt.Fprintf(io.ErrOut, "\nfailed to parse 'think' tool call arguments: %v\n", err)
+					fmt.Fprintf(io.ErrOut, "\n解析 'think' tool call 参数失败: %v\n", err)
 					continue
 				}
 
-				// NOTE: omit the delta.content since it's the same as thought
-				renderToolCallTitle(w, cs, "Thought", "")
+				// 注意：省略 delta.content，因为它与 thought 相同
+				renderToolCallTitle(w, cs, "思考", "")
 				if err := renderRawMarkdown(args.Thought, w, io); err != nil {
-					fmt.Fprintf(io.ErrOut, "\nfailed to render thought: %v\n", err)
+					fmt.Fprintf(io.ErrOut, "\n渲染 thought 失败: %v\n", err)
 				}
 			case "report_progress":
 				args := reportProgressToolArgs{}
 				if err := json.Unmarshal([]byte(tc.Function.Arguments), &args); err != nil {
-					fmt.Fprintf(io.ErrOut, "\nfailed to parse 'report_progress' tool call arguments: %v\n", err)
+					fmt.Fprintf(io.ErrOut, "\n解析 'report_progress' tool call 参数失败: %v\n", err)
 					continue
 				}
 
-				renderToolCallTitle(w, cs, "Progress update", cs.Bold(args.CommitMessage))
+				renderToolCallTitle(w, cs, "进度更新", cs.Bold(args.CommitMessage))
 				if args.PrDescription != "" {
 					if err := renderRawMarkdown(args.PrDescription, w, io); err != nil {
-						fmt.Fprintf(io.ErrOut, "\nfailed to render PR description: %v\n", err)
+						fmt.Fprintf(io.ErrOut, "\n渲染 PR 描述失败: %v\n", err)
 					}
 				}
 
-				// TODO: KW I wasn't able to get this case to populate ever.
+				// TODO: KW 我始终未能让这个分支被触发。
 				if !choice.Delta.Content.Empty() {
-					// Try to treat this as JSON
+					// 尝试将其视为 JSON
 					if err := renderContentAsJSONMarkdown("", choice.Delta.Content.String(), w, io); err != nil {
-						fmt.Fprintf(io.ErrOut, "\nfailed to render progress update content: %v\n", err)
+						fmt.Fprintf(io.ErrOut, "\n渲染进度更新内容失败: %v\n", err)
 					}
 				}
 
 			case "create":
 				args := createToolArgs{}
 				if err := json.Unmarshal([]byte(tc.Function.Arguments), &args); err != nil {
-					fmt.Fprintf(io.ErrOut, "\nfailed to parse 'create' tool call arguments: %v\n", err)
+					fmt.Fprintf(io.ErrOut, "\n解析 'create' tool call 参数失败: %v\n", err)
 					continue
 				}
-				renderToolCallTitle(w, cs, "Create", cs.Bold(relativeFilePath(args.Path)))
+				renderToolCallTitle(w, cs, "创建", cs.Bold(relativeFilePath(args.Path)))
 
 				if err := renderFileContentAsMarkdown(args.Path, args.FileText, w, io); err != nil {
-					fmt.Fprintf(io.ErrOut, "\nfailed to render created file content: %v\n\n", err)
+					fmt.Fprintf(io.ErrOut, "\n渲染已创建文件的内容失败: %v\n\n", err)
 					fmt.Fprintln(io.ErrOut, args.FileText)
 				}
 			case "str_replace":
 				args := strReplaceToolArgs{}
 				if err := json.Unmarshal([]byte(tc.Function.Arguments), &args); err != nil {
-					fmt.Fprintf(io.ErrOut, "\nfailed to parse 'str_replace' tool call arguments: %v\n", err)
+					fmt.Fprintf(io.ErrOut, "\n解析 'str_replace' tool call 参数失败: %v\n", err)
 					continue
 				}
 
-				renderToolCallTitle(w, cs, "Edit", cs.Bold(relativeFilePath(args.Path)))
+				renderToolCallTitle(w, cs, "编辑", cs.Bold(relativeFilePath(args.Path)))
 				if err := renderFileContentAsMarkdown("output.diff", choice.Delta.Content.String(), w, io); err != nil {
 					fmt.Fprintf(io.ErrOut, "\nfailed to render str_replace diff: %v\n\n", err)
 					fmt.Fprintln(io.ErrOut, choice.Delta.Content.String())
@@ -256,48 +254,47 @@ func renderLogEntry(entry chatCompletionChunkEntry, w io.Writer, io *iostreams.I
 				// NOTE: omit the delta.content since we don't know how large could that be
 				renderGenericToolCall(w, cs, name)
 
-				// If it's JSON, treat it as such, otherwise we skip whatever the content is.
-				_ = renderContentAsJSONMarkdown("Output:", choice.Delta.Content.String(), w, io)
+				// 如果是 JSON，则按 JSON 处理，否则跳过内容。
+				_ = renderContentAsJSONMarkdown("输出:", choice.Delta.Content.String(), w, io)
 
 				// The entirety of the args can be treated as "input" to the tool call.
 				// We try to render it as JSON, but if that fails, just skip it.
-				_ = renderContentAsJSONMarkdown("Input:", args, w, io)
+				_ = renderContentAsJSONMarkdown("输入:", args, w, io)
 			}
 		}
 	}
 	return stop, nil
 }
 
-// renderContentAsJSONMarkdown tries to unmarshal the given content as JSON,
-// wrap that content in a markdown JSON code block, and render it as markdown.
-// If label is non-empty, it is rendered as leading text before and outside of
-// the JSON block.
+// renderContentAsJSONMarkdown 尝试将给定内容反序列化为 JSON，
+// 将其包装在 markdown JSON 代码块中，并渲染为 markdown。
+// 如果 label 非空，则将其渲染为 JSON 块之前（块外）的前导文本。
 func renderContentAsJSONMarkdown(label, content string, w io.Writer, io *iostreams.IOStreams) error {
 	var contentAsJSON any
 	if err := json.Unmarshal([]byte(content), &contentAsJSON); err == nil {
 		marshaled, err := json.MarshalIndent(contentAsJSON, "", "  ")
 		if err != nil {
-			return fmt.Errorf("failed to marshal JSON: %w", err)
+			return fmt.Errorf("序列化 JSON 失败: %w", err)
 		}
 
 		if label != "" {
 			if err := renderRawMarkdown(label, w, io); err != nil {
-				return fmt.Errorf("failed to render label: %w", err)
+				return fmt.Errorf("渲染标签失败: %w", err)
 			}
 		}
 
 		if err := renderFileContentAsMarkdown("output.json", string(marshaled), w, io); err != nil {
-			return fmt.Errorf("failed to render JSON: %w", err)
+			return fmt.Errorf("渲染 JSON 失败: %w", err)
 		}
 	}
 	return nil
 }
 
-// renderRawMarkdown renders the given raw markdown string to the given writer.
-// Use for complete markdown content from tool calls that need no conversion.
+// renderRawMarkdown 将给定的原始 markdown 字符串渲染到指定的 writer。
+// 用于无需转换的完整 markdown 内容的 tool call。
 func renderRawMarkdown(md string, w io.Writer, io *iostreams.IOStreams) error {
-	// Glamour doesn't add leading newlines when content is a complete
-	// markdown document. So, we must add the leading newline.
+	// 当内容是完整的 markdown 文档时，Glamour 不会添加前导换行。
+	// 因此我们必须自行添加前导换行。
 	formatFunc := func(s string) string {
 		return fmt.Sprintf("\n%s\n\n", s)
 	}
@@ -305,9 +302,9 @@ func renderRawMarkdown(md string, w io.Writer, io *iostreams.IOStreams) error {
 	return renderMarkdownWithFormat(md, w, io, formatFunc)
 }
 
-// renderMarkdownWithFormat renders the given markdown string to the given writer.
-// If a formatFunc is provided, the md string is ran through it before
-// rendering. This can be used to add newlines before and after the content.
+// renderMarkdownWithFormat 将给定的 markdown 字符串渲染到指定的 writer。
+// 如果提供了 formatFunc，则 md 字符串会在渲染前经过它处理。
+// 这可用于在内容前后添加换行。
 func renderMarkdownWithFormat(md string, w io.Writer, io *iostreams.IOStreams, formatFunc func(string) string) error {
 	rendered, err := markdown.Render(md,
 		markdown.WithTheme(io.TerminalTheme()),
@@ -315,7 +312,7 @@ func renderMarkdownWithFormat(md string, w io.Writer, io *iostreams.IOStreams, f
 	)
 
 	if err != nil {
-		return fmt.Errorf("failed to render markdown: %w", err)
+		return fmt.Errorf("渲染 markdown 失败: %w", err)
 	}
 
 	rendered = strings.TrimSpace(rendered)
@@ -328,12 +325,12 @@ func renderMarkdownWithFormat(md string, w io.Writer, io *iostreams.IOStreams, f
 	return nil
 }
 
-// stripDiffFormat implements a primitive conversion from a diff string to a
-// plain text representation by removing diff-specific formatting.
+// stripDiffFormat 通过移除 diff 特有的格式，
+// 实现从 diff 字符串到纯文本表示的简单转换。
 func stripDiffFormat(diff string) string {
 	lines := strings.Split(diff, "\n")
 
-	// Find where the hunk header ends.
+	// 查找 hunk 头的结束位置。
 	hunkEndIndex := -1
 	for i, line := range lines {
 		if strings.HasPrefix(line, "@@") {
@@ -342,15 +339,15 @@ func stripDiffFormat(diff string) string {
 		}
 	}
 
-	// This isn't a diff.
+	// 这不是 diff。
 	if hunkEndIndex == -1 {
 		return diff
 	}
 
-	// Removing hunk header.
+	// 移除 hunk 头。
 	lines = lines[hunkEndIndex+1:]
 
-	// Strip the leading + and - from lines, if they exist.
+	// 如果行首存在 + 和 -，则将其移除。
 	var stripped []string
 	for _, line := range lines {
 		if strings.HasPrefix(line, "+") || strings.HasPrefix(line, "-") {
@@ -362,8 +359,8 @@ func stripDiffFormat(diff string) string {
 	return strings.Join(stripped, "\n")
 }
 
-// renderFileContentAsMarkdown renders the given content as markdown
-// based on the file extension of the path.
+// renderFileContentAsMarkdown 根据路径的文件扩展名，
+// 将给定内容渲染为 markdown。
 func renderFileContentAsMarkdown(path, content string, w io.Writer, io *iostreams.IOStreams) error {
 	lang := filepath.Ext(filepath.ToSlash(path))
 
@@ -372,8 +369,8 @@ func renderFileContentAsMarkdown(path, content string, w io.Writer, io *iostream
 	}
 
 	md := fmt.Sprintf("```%s\n%s\n```", lang, content)
-	// Glamour adds leading newlines when content is only a code block,
-	// so we only want to add a trailing newline.
+	// 当内容只是代码块时，Glamour 会添加前导换行，
+	// 因此我们只需添加末尾换行。
 	formatFunc := func(s string) string {
 		return fmt.Sprintf("%s\n\n", s)
 	}
@@ -381,20 +378,20 @@ func renderFileContentAsMarkdown(path, content string, w io.Writer, io *iostream
 	return renderMarkdownWithFormat(md, w, io, formatFunc)
 }
 
-// relativeFilePath converts an absolute file path to a relative one.
-// We expect paths to be of the form: /home/runner/work/<repo-owner>/<repo-name>/path/to/file
-// The expected output of that example is: path/to/file
+// relativeFilePath 将绝对文件路径转换为相对路径。
+// 我们期望路径的形如: /home/runner/work/<repo-owner>/<repo-name>/path/to/file
+// 上述示例的期望输出为: path/to/file
 func relativeFilePath(absPath string) string {
 	relPath := strings.TrimPrefix(absPath, "/home/runner/work/")
 
 	parts := strings.Split(relPath, "/")
 
-	// The last two parts of the path are the
-	// repo name and the repo owner.
-	// If that's all we have (or less),
-	// we return a friendly name "repository".
+	// 路径的最后两部分是
+	// 仓库名和仓库所有者。
+	// 如果我们只有这些（或更少），
+	// 则返回友好名称 "repository"。
 	if len(parts) > 2 {
-		// Drop the repo owner and name, returning the remaining path.
+		// 移除仓库所有者和名称，返回剩余路径。
 		return strings.Join(parts[2:], "/")
 	}
 	return "repository"
