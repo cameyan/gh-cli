@@ -18,7 +18,7 @@ func newLogsCmd(app *App) *cobra.Command {
 
 	logsCmd := &cobra.Command{
 		Use:   "logs",
-		Short: "Access codespace logs",
+		Short: "访问 codespace 日志",
 		Args:  noArgsConstraint,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.Logs(cmd.Context(), selector, follow)
@@ -27,13 +27,14 @@ func newLogsCmd(app *App) *cobra.Command {
 
 	selector = AddCodespaceSelector(logsCmd, app.apiClient)
 
-	logsCmd.Flags().BoolVarP(&follow, "follow", "f", false, "Tail and follow the logs")
+	logsCmd.Flags().BoolVarP(&follow, "follow", "f", false, "跟踪并持续输出日志")
 
 	return logsCmd
 }
 
 func (a *App) Logs(ctx context.Context, selector *CodespaceSelector, follow bool) (err error) {
 	// Ensure all child tasks (port forwarding, remote exec) terminate before return.
+	// 确保所有子任务 (端口转发、远程执行) 在返回前结束。
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -44,16 +45,17 @@ func (a *App) Logs(ctx context.Context, selector *CodespaceSelector, follow bool
 
 	codespaceConnection, err := codespaces.GetCodespaceConnection(ctx, a, a.apiClient, codespace)
 	if err != nil {
-		return fmt.Errorf("error connecting to codespace: %w", err)
+		return fmt.Errorf("连接 codespace 时出错: %w", err)
 	}
 
 	fwd, err := portforwarder.NewPortForwarder(ctx, codespaceConnection)
 	if err != nil {
-		return fmt.Errorf("failed to create port forwarder: %w", err)
+		return fmt.Errorf("创建端口转发器失败: %w", err)
 	}
 	defer safeClose(fwd, &err)
 
 	// Ensure local port is listening before client (getPostCreateOutput) connects.
+	// 在客户端 (getPostCreateOutput) 连接之前，确保本地端口已开始监听。
 	listen, localPort, err := codespaces.ListenTCP(0, false)
 	if err != nil {
 		return err
@@ -61,7 +63,7 @@ func (a *App) Logs(ctx context.Context, selector *CodespaceSelector, follow bool
 	defer listen.Close()
 
 	remoteSSHServerPort, sshUser := 0, ""
-	err = a.RunWithProgress("Fetching SSH Details", func() (err error) {
+	err = a.RunWithProgress("正在获取 SSH 详情", func() (err error) {
 		invoker, err := rpc.CreateInvoker(ctx, fwd)
 		if err != nil {
 			return
@@ -72,7 +74,7 @@ func (a *App) Logs(ctx context.Context, selector *CodespaceSelector, follow bool
 		return
 	})
 	if err != nil {
-		return fmt.Errorf("error getting ssh server details: %w", err)
+		return fmt.Errorf("获取 SSH 服务器详情时出错: %w", err)
 	}
 
 	cmdType := "cat"
@@ -93,6 +95,10 @@ func (a *App) Logs(ctx context.Context, selector *CodespaceSelector, follow bool
 	// *os.File also forces the remote output through this process so the sanitizer
 	// runs). When piped, pass the bytes through unchanged: there is no live
 	// terminal to manipulate, and a follow stream cannot be buffered to fail closed.
+	// 日志文件属于外部内容。在终端上，通过 ContentOut 输出以中和转义序列
+	// (赋一个非 *os.File 的写入器也会强制远程输出经过本进程，从而执行净化器)。
+	// 通过管道时按原样传递字节: 没有可被操纵的实时终端，
+	// 且 follow 流无法缓冲后整体判定失败。
 	if !a.io.IsStdoutTTY() {
 		a.io.SetContentSanitization(false)
 	}
@@ -114,12 +120,13 @@ func (a *App) Logs(ctx context.Context, selector *CodespaceSelector, follow bool
 
 	select {
 	case err := <-tunnelClosed:
-		return fmt.Errorf("connection closed: %w", err)
+		return fmt.Errorf("连接已关闭: %w", err)
 	case err := <-cmdDone:
 		if err != nil {
-			return fmt.Errorf("error retrieving logs: %w", err)
+			return fmt.Errorf("获取日志时出错: %w", err)
 		}
 
 		return nil // success
+		// 成功
 	}
 }
