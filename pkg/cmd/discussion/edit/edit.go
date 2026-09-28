@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// EditOptions holds the configuration for the discussion edit command.
+// EditOptions 保存 discussion edit 命令的配置。
 type EditOptions struct {
 	IO       *iostreams.IOStreams
 	BaseRepo func() (ghrepo.Interface, error)
@@ -36,7 +36,7 @@ type EditOptions struct {
 	RemoveLabels     []string
 }
 
-// NewCmdEdit returns a cobra command for editing a GitHub Discussion.
+// NewCmdEdit 返回用于编辑 GitHub 讨论的 cobra 命令。
 func NewCmdEdit(f *cmdutil.Factory, runF func(*EditOptions) error) *cobra.Command {
 	opts := &EditOptions{
 		IO:       f.IOStreams,
@@ -46,24 +46,24 @@ func NewCmdEdit(f *cmdutil.Factory, runF func(*EditOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "edit {<number> | <discussion-url>} [flags]",
-		Short: "Edit a discussion (preview)",
+		Short: "编辑讨论(预览版)",
 		Long: heredoc.Doc(`
-			Edit a GitHub Discussion.
+			编辑 GitHub 讨论。
 
-			Without flags, the command runs interactively when connected to a terminal.
-			Use flags to update specific fields non-interactively.
+			不带任何标志且连接到终端时，命令将以交互方式运行。
+			使用标志可以非交互方式更新特定字段。
 		`),
 		Example: heredoc.Doc(`
-			# Edit interactively
+			# 交互式编辑
 			$ gh discussion edit 123
 
-			# Update title, body, and category
+			# 更新标题、内容和分类
 			$ gh discussion edit 123 --title "Updated title" --body "Updated body" --category "Ideas"
 
-			# Update body from a file
+			# 从文件更新内容
 			$ gh discussion edit 123 --body-file body.md
 
-			# Add and remove labels
+			# 添加和移除标签
 			$ gh discussion edit 123 --add-label "bug,help wanted" --remove-label "stale"
 		`),
 		Args: cobra.ExactArgs(1),
@@ -95,7 +95,7 @@ func NewCmdEdit(f *cmdutil.Factory, runF func(*EditOptions) error) *cobra.Comman
 
 			noFlagsSet := !opts.TitleProvided && !opts.BodyProvided && !opts.CategoryProvided && !opts.LabelsProvided
 			if noFlagsSet && !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("specify at least one flag to update the discussion non-interactively")
+				return cmdutil.FlagErrorf("非交互式更新讨论时至少需要指定一个标志")
 			}
 
 			opts.Interactive = noFlagsSet
@@ -109,12 +109,12 @@ func NewCmdEdit(f *cmdutil.Factory, runF func(*EditOptions) error) *cobra.Comman
 
 	cmdutil.EnableRepoOverride(cmd, f)
 
-	cmd.Flags().StringVarP(&opts.Title, "title", "t", "", "New title for the discussion")
-	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "New body for the discussion")
-	cmd.Flags().StringVarP(&opts.BodyFile, "body-file", "F", "", "Read body text from file (use \"-\" to read from standard input)")
-	cmd.Flags().StringVarP(&opts.Category, "category", "c", "", "New category name or slug for the discussion")
-	cmd.Flags().StringSliceVar(&opts.AddLabels, "add-label", nil, "Add labels by `name`")
-	cmd.Flags().StringSliceVar(&opts.RemoveLabels, "remove-label", nil, "Remove labels by `name`")
+	cmd.Flags().StringVarP(&opts.Title, "title", "t", "", "讨论的新标题")
+	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "讨论的新内容")
+	cmd.Flags().StringVarP(&opts.BodyFile, "body-file", "F", "", "从文件读取讨论内容(使用 \"-\" 表示从标准输入读取)")
+	cmd.Flags().StringVarP(&opts.Category, "category", "c", "", "讨论的新分类名称或 slug")
+	cmd.Flags().StringSliceVar(&opts.AddLabels, "add-label", nil, "按 `name` 添加标签")
+	cmd.Flags().StringSliceVar(&opts.RemoveLabels, "remove-label", nil, "按 `name` 移除标签")
 
 	return cmd
 }
@@ -186,7 +186,7 @@ func editRun(opts *EditOptions) error {
 			allLabels, err := c.ListLabels(repo)
 			opts.IO.StopProgressIndicator()
 			if err != nil {
-				return fmt.Errorf("fetching labels: %w", err)
+				return fmt.Errorf("获取标签失败: %w", err)
 			}
 			if len(opts.AddLabels) > 0 {
 				input.AddLabelIDs, err = shared.ResolveLabels(allLabels, opts.AddLabels)
@@ -219,11 +219,11 @@ func editRun(opts *EditOptions) error {
 	return nil
 }
 
-// promptEdit runs the interactive flow, populating input with user choices. It returns a boolean indicating whether any
-// changes were made, and an error if the process failed.
+// promptEdit 运行交互式流程，将用户选择填充到 input 中。返回一个布尔值表示是否
+// 进行了任何修改，若流程失败则返回错误。
 func promptEdit(opts *EditOptions, discussion *client.Discussion, c client.DiscussionClient, repo ghrepo.Interface, input *client.UpdateDiscussionInput) (bool, error) {
 	choices := []string{"Title", "Body", "Category"}
-	selected, err := opts.Prompter.MultiSelect("What would you like to edit?", nil, choices)
+	selected, err := opts.Prompter.MultiSelect("想要编辑哪些内容?", nil, choices)
 	if err != nil {
 		return false, err
 	}
@@ -234,17 +234,17 @@ func promptEdit(opts *EditOptions, discussion *client.Discussion, c client.Discu
 	for _, idx := range selected {
 		switch choices[idx] {
 		case "Title":
-			title, err := opts.Prompter.Input("Title", discussion.Title)
+			title, err := opts.Prompter.Input("标题", discussion.Title)
 			if err != nil {
 				return false, err
 			}
 			if strings.TrimSpace(title) == "" {
-				return false, fmt.Errorf("title cannot be blank")
+				return false, fmt.Errorf("标题不能为空")
 			}
 			input.Title = &title
 
 		case "Body":
-			body, err := opts.Prompter.MarkdownEditor("Body", discussion.Body, false)
+			body, err := opts.Prompter.MarkdownEditor("内容", discussion.Body, false)
 			if err != nil {
 				return false, err
 			}
@@ -262,7 +262,7 @@ func promptEdit(opts *EditOptions, discussion *client.Discussion, c client.Discu
 				names[i] = cat.Name
 			}
 			currentName := discussion.Category.Name
-			idx, err := opts.Prompter.Select("Category", currentName, names)
+			idx, err := opts.Prompter.Select("分类", currentName, names)
 			if err != nil {
 				return false, err
 			}

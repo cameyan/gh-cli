@@ -102,50 +102,50 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view {<number> | <discussion-url> | <comment-id> | <comment-url>} [flags]",
-		Short: "View a discussion (preview)",
+		Short: "查看讨论(预览版)",
 		Long: heredoc.Docf(`
-			Display the title, body, and other information about a discussion.
+			显示讨论的标题、内容及其他信息。
 
-			To see the comments on a discussion, pass %[1]s--comments%[1]s. A few latest replies
-			of each comment will also be retrieved regardless of the selected ordering.
+			若要查看讨论的评论，请传入 %[1]s--comments%[1]s。无论所选排序如何，
+			都会一并获取每条评论的最近几条回复。
 
-			To see the full reply thread of a single comment, pass a comment node ID or
-			comment URL as the argument instead of a discussion
-			(e.g., %[1]shttps://github.com/OWNER/REPO/discussions/123#discussioncomment-456%[1]s).
+			若要查看单条评论的完整回复串，请传入评论节点 ID 或评论 URL 作为参数，
+			而非讨论编号
+			(例如 %[1]shttps://github.com/OWNER/REPO/discussions/123#discussioncomment-456%[1]s)。
 
-			Pagination and ordering can be controlled via %[1]s--order%[1]s, %[1]s--limit%[1]s, and %[1]s--after%[1]s flags.
+			分页和排序可通过 %[1]s--order%[1]s、%[1]s--limit%[1]s 和 %[1]s--after%[1]s 标志控制。
 
-			Use %[1]s--web%[1]s to open the discussion or comment in a web browser instead.
+			使用 %[1]s--web%[1]s 可改为在网页浏览器中打开该讨论或评论。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# View a discussion by number
+			# 按编号查看讨论
 			$ gh discussion view 123
 
-			# View a discussion by URL
+			# 按 URL 查看讨论
 			$ gh discussion view https://github.com/OWNER/REPO/discussions/123
 
-			# View with comments
+			# 查看评论
 			$ gh discussion view 123 --comments
 
-			# View with oldest comments first
+			# 按最早优先查看评论
 			$ gh discussion view 123 --comments --order oldest
 
-			# Limit to 10 comments
+			# 限制为 10 条评论
 			$ gh discussion view 123 --comments --limit 10
 
-			# Fetch the next page of comments
+			# 获取下一页评论
 			$ gh discussion view 123 --comments --after CURSOR
 
-			# View the reply thread of a comment by node ID
+			# 按节点 ID 查看评论的回复串
 			$ gh discussion view DC_abc123
 
-			# View the reply thread of a comment by URL
+			# 按 URL 查看评论的回复串
 			$ gh discussion view 'https://github.com/OWNER/REPO/discussions/123#discussioncomment-456'
 
-			# Paginate through replies
+			# 分页浏览回复
 			$ gh discussion view DC_abc123 --limit 10 --after CURSOR
 
-			# Open in browser
+			# 在浏览器中打开
 			$ gh discussion view 123 --web
 		`),
 		Args: cobra.ExactArgs(1),
@@ -180,21 +180,21 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 			repliesMode := opts.CommentNodeID != "" || opts.CommentDatabaseID != 0
 
 			if repliesMode && opts.Comments {
-				return cmdutil.FlagErrorf("--comments is not supported with a comment argument")
+				return cmdutil.FlagErrorf("使用评论参数时不支持 --comments")
 			}
 
 			paginatedMode := repliesMode || needsComments(opts)
 			if cmd.Flags().Changed("order") && !paginatedMode {
-				return cmdutil.FlagErrorf("--order requires --comments or a comment argument")
+				return cmdutil.FlagErrorf("--order 需要 --comments 或评论参数")
 			}
 			if cmd.Flags().Changed("limit") && !paginatedMode {
-				return cmdutil.FlagErrorf("--limit requires --comments or a comment argument")
+				return cmdutil.FlagErrorf("--limit 需要 --comments 或评论参数")
 			}
 			if cmd.Flags().Changed("after") && !paginatedMode {
-				return cmdutil.FlagErrorf("--after requires --comments or a comment argument")
+				return cmdutil.FlagErrorf("--after 需要 --comments 或评论参数")
 			}
 			if opts.Limit < 1 {
-				return cmdutil.FlagErrorf("invalid limit: %d", opts.Limit)
+				return cmdutil.FlagErrorf("无效的 limit: %d", opts.Limit)
 			}
 
 			opts.Client = shared.DiscussionClientFunc(f)
@@ -208,11 +208,11 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmdutil.EnableRepoOverride(cmd, f)
 
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "Open a discussion in the browser")
-	cmd.Flags().BoolVarP(&opts.Comments, "comments", "c", false, "View discussion comments")
-	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", 30, "Maximum number of comments or replies to fetch")
-	cmd.Flags().StringVar(&opts.After, "after", "", "Cursor for the next page")
-	cmdutil.StringEnumFlag(cmd, &opts.Order, "order", "", orderNewest, []string{orderOldest, orderNewest}, "Order of comments or replies")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在浏览器中打开讨论")
+	cmd.Flags().BoolVarP(&opts.Comments, "comments", "c", false, "查看讨论的评论")
+	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", 30, "最多获取的评论或回复数量")
+	cmd.Flags().StringVar(&opts.After, "after", "", "下一页的游标")
+	cmdutil.StringEnumFlag(cmd, &opts.Order, "order", "", orderNewest, []string{orderOldest, orderNewest}, "评论或回复的排序方式")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, discussionFields)
 
 	return cmd
@@ -228,8 +228,8 @@ func resolveCommentNodeID(c client.DiscussionClient, repo ghrepo.Interface, opts
 	return c.ResolveCommentNodeID(repo, opts.CommentDatabaseID)
 }
 
-// needsComments returns true when the command should fetch full comment data,
-// either because --comments was set or because --json requested the comments field.
+// needsComments 返回是否需要获取完整评论数据，
+// 即设置了 --comments，或 --json 请求了 comments 字段。
 func needsComments(opts *ViewOptions) bool {
 	return opts.Comments || (opts.Exporter != nil && slices.Contains(opts.Exporter.Fields(), "comments"))
 }
@@ -251,7 +251,7 @@ func viewRun(opts *ViewOptions) error {
 		if !repliesMode {
 			openURL := ghrepo.GenerateRepoURL(repo, "discussions/%d", opts.DiscussionNumber)
 			if opts.IO.IsStderrTTY() {
-				fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(openURL))
+				fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
 			}
 			return opts.Browser.Browse(openURL)
 		}
@@ -268,7 +268,7 @@ func viewRun(opts *ViewOptions) error {
 			return err
 		}
 		if opts.IO.IsStderrTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(comment.URL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(comment.URL))
 		}
 		return opts.Browser.Browse(comment.URL)
 	}
@@ -294,7 +294,7 @@ func viewRun(opts *ViewOptions) error {
 		}
 
 		if err := opts.IO.StartPager(); err != nil {
-			fmt.Fprintf(opts.IO.ErrOut, "error starting pager: %v\n", err)
+			fmt.Fprintf(opts.IO.ErrOut, "启动分页器出错: %v\n", err)
 		}
 		defer opts.IO.StopPager()
 
@@ -323,7 +323,7 @@ func viewRun(opts *ViewOptions) error {
 	}
 
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "error starting pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器出错: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -357,9 +357,9 @@ func printHumanView(opts *ViewOptions, d *client.Discussion) error {
 		stateColor = cs.Muted
 	}
 
-	verb := "Started by"
+	verb := "发起者:"
 	if d.Category.IsAnswerable {
-		verb = "Asked by"
+		verb = "提问者:"
 	}
 
 	fmt.Fprintf(out, "%s • %s • %s %s • %s • %s\n",
@@ -372,13 +372,13 @@ func printHumanView(opts *ViewOptions, d *client.Discussion) error {
 	)
 
 	if labels := labelList(d.Labels, cs); labels != "" {
-		fmt.Fprint(out, cs.Bold("Labels: "))
+		fmt.Fprint(out, cs.Bold("标签: "))
 		fmt.Fprintln(out, labels)
 	}
 
 	var md string
 	if d.Body == "" {
-		md = fmt.Sprintf("\n  %s\n\n", cs.Muted("No description provided"))
+		md = fmt.Sprintf("\n  %s\n\n", cs.Muted("未提供描述"))
 	} else {
 		var err error
 		md, err = markdown.Render(d.Body,
@@ -397,17 +397,13 @@ func printHumanView(opts *ViewOptions, d *client.Discussion) error {
 
 	// Comments section
 	if opts.Comments && d.Comments.TotalCount > 0 {
-		fmt.Fprintln(out, cs.Bold("Comments"))
+		fmt.Fprintln(out, cs.Bold("评论"))
 		fmt.Fprintln(out)
 
 		if d.Comments.Direction == client.DiscussionCommentListDirectionBackward {
 			if shown := len(d.Comments.Comments); shown < d.Comments.TotalCount {
 				remaining := d.Comments.TotalCount - shown
-				pluralized := "comment"
-				if remaining > 1 {
-					pluralized = "comments"
-				}
-				fmt.Fprintf(out, "%s\n\n", cs.Muted(fmt.Sprintf("———————— Not showing older %d %s ————————", remaining, pluralized)))
+				fmt.Fprintf(out, "%s\n\n", cs.Muted(fmt.Sprintf("———————— 未显示较早的 %d 条评论 ————————", remaining)))
 			}
 		}
 
@@ -436,21 +432,17 @@ func printHumanView(opts *ViewOptions, d *client.Discussion) error {
 		if d.Comments.Direction == client.DiscussionCommentListDirectionForward {
 			if shown := len(d.Comments.Comments); shown < d.Comments.TotalCount {
 				remaining := d.Comments.TotalCount - shown
-				pluralized := "comment"
-				if remaining > 1 {
-					pluralized = "comments"
-				}
-				fmt.Fprintf(out, "%s\n\n", cs.Muted(fmt.Sprintf("———————— Not showing newer %d %s ————————", remaining, pluralized)))
+				fmt.Fprintf(out, "%s\n\n", cs.Muted(fmt.Sprintf("———————— 未显示较新的 %d 条评论 ————————", remaining)))
 			}
 		}
 
 		if d.Comments.NextCursor != "" {
-			fmt.Fprintf(out, cs.Muted("To see more comments, pass: --after %s\n"), d.Comments.NextCursor)
+			fmt.Fprintf(out, cs.Muted("查看更多评论，请传入: --after %s\n"), d.Comments.NextCursor)
 			fmt.Fprintln(out)
 		}
 	}
 
-	fmt.Fprintf(out, cs.Muted("View this discussion on GitHub: %s\n"), d.URL)
+	fmt.Fprintf(out, cs.Muted("在 GitHub 上查看此讨论: %s\n"), d.URL)
 
 	return nil
 }
@@ -474,9 +466,8 @@ func printRawView(out io.Writer, d *client.Discussion) error {
 	return nil
 }
 
-// printRawComments writes the comments as a sequence of metadata blocks,
-// without any discussion-level fields or nested replies. Comments are
-// printed in chronological order regardless of how they were fetched.
+// printRawComments 将评论按元数据块序列写入，不包含讨论层字段和嵌套回复。
+// 无论获取方式如何，评论都按时间先后顺序打印。
 func printRawComments(out io.Writer, list client.DiscussionCommentList) error {
 	comments := slices.Clone(list.Comments)
 	if list.Direction == client.DiscussionCommentListDirectionBackward {
@@ -494,9 +485,9 @@ func printHumanComment(opts *ViewOptions, out io.Writer, c client.DiscussionComm
 	cs := opts.IO.ColorScheme()
 	now := opts.Now()
 
-	action := "commented"
+	action := "发表了评论"
 	if isReply {
-		action = "replied"
+		action = "回复了"
 	}
 
 	header := fmt.Sprintf("%s%s %s • %s",
@@ -506,14 +497,14 @@ func printHumanComment(opts *ViewOptions, out io.Writer, c client.DiscussionComm
 		text.FuzzyAgoAbbr(now, c.CreatedAt),
 	)
 	if c.IsAnswer {
-		header += fmt.Sprintf(" • %s %s", cs.SuccessIcon(), cs.Green("Answer"))
+		header += fmt.Sprintf(" • %s %s", cs.SuccessIcon(), cs.Green("已解答"))
 	}
 	if isNewest {
-		kind := "comment"
+		kind := "评论"
 		if isReply {
-			kind = "reply"
+			kind = "回复"
 		}
-		header += fmt.Sprintf(" • %s", fmt.Sprintf(cs.CyanBold("Newest %s"), kind))
+		header += fmt.Sprintf(" • %s", fmt.Sprintf(cs.CyanBold("最新的%s"), kind))
 	}
 	fmt.Fprintln(out, header)
 
@@ -548,11 +539,7 @@ func printHumanComment(opts *ViewOptions, out io.Writer, c client.DiscussionComm
 	if c.Replies.Direction == client.DiscussionCommentListDirectionBackward {
 		if shown := len(c.Replies.Comments); shown < c.Replies.TotalCount {
 			remaining := c.Replies.TotalCount - shown
-			pluralized := "reply"
-			if remaining > 1 {
-				pluralized = "replies"
-			}
-			fmt.Fprintf(out, "%s%s\n\n", indent, cs.Muted(fmt.Sprintf("———————— Not showing older %d %s ————————", remaining, pluralized)))
+			fmt.Fprintf(out, "%s%s\n\n", indent, cs.Muted(fmt.Sprintf("———————— 未显示较早的 %d 条回复 ————————", remaining)))
 		}
 	}
 
@@ -581,11 +568,7 @@ func printHumanComment(opts *ViewOptions, out io.Writer, c client.DiscussionComm
 	if c.Replies.Direction == client.DiscussionCommentListDirectionForward {
 		if shown := len(c.Replies.Comments); shown < c.Replies.TotalCount {
 			remaining := c.Replies.TotalCount - shown
-			pluralized := "reply"
-			if remaining > 1 {
-				pluralized = "replies"
-			}
-			fmt.Fprintf(out, "%s%s\n\n", indent, cs.Muted(fmt.Sprintf("———————— Not showing newer %d %s ————————", remaining, pluralized)))
+			fmt.Fprintf(out, "%s%s\n\n", indent, cs.Muted(fmt.Sprintf("———————— 未显示较新的 %d 条回复 ————————", remaining)))
 		}
 	}
 
@@ -634,16 +617,15 @@ func printHumanCommentAndReplies(opts *ViewOptions, c *client.DiscussionComment)
 	}
 
 	if c.Replies.NextCursor != "" {
-		fmt.Fprintf(out, cs.Muted("To see more replies, pass: --after %s\n"), c.Replies.NextCursor)
+		fmt.Fprintf(out, cs.Muted("查看更多回复，请传入: --after %s\n"), c.Replies.NextCursor)
 		fmt.Fprintln(out)
 	}
 
 	return nil
 }
 
-// printRawReplies writes the replies of a comment as a sequence of metadata
-// blocks, without any fields of the parent comment. Replies are printed in
-// chronological order regardless of how they were fetched.
+// printRawReplies 将评论的回复按元数据块序列写入，不包含父评论的任何字段。
+// 无论获取方式如何，回复都按时间先后顺序打印。
 func printRawReplies(out io.Writer, c *client.DiscussionComment) error {
 	replies := slices.Clone(c.Replies.Comments)
 	if c.Replies.Direction == client.DiscussionCommentListDirectionBackward {
