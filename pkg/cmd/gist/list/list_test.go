@@ -213,11 +213,11 @@ func Test_listRun(t *testing.T) {
 				)
 			},
 			wantOut: heredoc.Doc(`
-				ID          DESCRIPTION                  FILES     VISIBILITY  UPDATED
-				1234567890  cool.txt                     1 file    public      about 6 hours ago
-				4567890123                               1 file    public      about 6 hours ago
-				2345678901  tea leaves thwart those ...  2 files   secret      about 6 hours ago
-				3456789012  short desc                   11 files  secret      about 6 hours ago
+				ID          描述                             文件      可见性  更新时间
+				1234567890  cool.txt                         1 file    public  about 6 hours ago
+				4567890123                                   1 file    public  about 6 hours ago
+				2345678901  tea leaves thwart those who ...  2 files   secret  about 6 hours ago
+				3456789012  short desc                       11 files  secret  about 6 hours ago
 			`),
 		},
 		{
@@ -248,9 +248,9 @@ func Test_listRun(t *testing.T) {
 				)
 			},
 			wantOut: heredoc.Doc(`
-				ID          DESCRIPTION  FILES   VISIBILITY  UPDATED
-				1234567890  cool.txt     1 file  public      about 6 hours ago
-				4567890123               1 file  public      about 6 hours ago
+				ID          描述      文件    可见性  更新时间
+				1234567890  cool.txt  1 file  public  about 6 hours ago
+				4567890123            1 file  public  about 6 hours ago
 			`),
 		},
 		{
@@ -296,9 +296,9 @@ func Test_listRun(t *testing.T) {
 				)
 			},
 			wantOut: heredoc.Doc(`
-				ID          DESCRIPTION                  FILES     VISIBILITY  UPDATED
-				2345678901  tea leaves thwart those ...  2 files   secret      about 6 hours ago
-				3456789012  short desc                   11 files  secret      about 6 hours ago
+				ID          描述                             文件      可见性  更新时间
+				2345678901  tea leaves thwart those who ...  2 files   secret  about 6 hours ago
+				3456789012  short desc                       11 files  secret  about 6 hours ago
 			`),
 		},
 		{
@@ -322,8 +322,8 @@ func Test_listRun(t *testing.T) {
 				)
 			},
 			wantOut: heredoc.Doc(`
-				ID          DESCRIPTION  FILES   VISIBILITY  UPDATED
-				1234567890  cool.txt     1 file  public      about 6 hours ago
+				ID          描述      文件    可见性  更新时间
+				1234567890  cool.txt  1 file  public  about 6 hours ago
 			`),
 		},
 		{
@@ -486,9 +486,9 @@ func Test_listRun(t *testing.T) {
 				)
 			},
 			wantOut: heredoc.Docf(`
-				%[1]s[0;4;39mID  %[1]s[0m  %[1]s[0;4;39mDESCRIPTION                  %[1]s[0m  %[1]s[0;4;39mFILES  %[1]s[0m  %[1]s[0;4;39mVISIBILITY%[1]s[0m  %[1]s[0;4;39mUPDATED          %[1]s[0m
-				1234  %[1]s[0;30;43mocto%[1]s[0m%[1]s[0;1;39m match in the description%[1]s[0m  1 file   %[1]s[0;32mpublic    %[1]s[0m  %[1]s[38;5;242mabout 6 hours ago%[1]s[0m
-				2345  %[1]s[0;1;39mmatch in the file name       %[1]s[0m  %[1]s[0;30;43m2 files%[1]s[0m  %[1]s[0;31msecret    %[1]s[0m  %[1]s[38;5;242mabout 6 hours ago%[1]s[0m
+				%[1]s[0;4;39mID  %[1]s[0m  %[1]s[0;4;39m描述                         %[1]s[0m  %[1]s[0;4;39m文件   %[1]s[0m  %[1]s[0;4;39m可见性%[1]s[0m  %[1]s[0;4;39m更新时间         %[1]s[0m
+				1234  %[1]s[0;30;43mocto%[1]s[0m%[1]s[0;1;39m match in the description%[1]s[0m  1 file   %[1]s[0;32mpublic%[1]s[0m  %[1]s[38;5;242mabout 6 hours ago%[1]s[0m
+				2345  %[1]s[0;1;39mmatch in the file name       %[1]s[0m  %[1]s[0;30;43m2 files%[1]s[0m  %[1]s[0;31msecret%[1]s[0m  %[1]s[38;5;242mabout 6 hours ago%[1]s[0m
 			`, "\x1b"),
 		},
 		{
