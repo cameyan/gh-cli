@@ -53,7 +53,7 @@ type CreateOptions struct {
 	Template  string
 
 	IssueType   string
-	issueTypeID string // resolved during interactive flow to avoid double API call
+	issueTypeID string // 在交互式流程中解析，以避免重复的 API 调用
 	Parent      string
 	BlockedBy   []string
 	Blocking    []string
@@ -78,30 +78,30 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create a new issue",
+		Short: "创建新议题",
 		Long: heredoc.Docf(`
-			Create an issue on GitHub.
+			在 GitHub 上创建议题。
 
-			Use %[1]s--attach%[1]s to upload an image or video. The attachment is appended to the
-			body. If the body references an attached file, such as %[1]s![alt](./login.png)%[1]s, that
-			reference is rewritten to point at the uploaded asset instead.
-			You can attach up to 50 files per command.
+			使用 %[1]s--attach%[1]s 上传图片或视频。附件会被追加到
+			正文。如果正文引用了某个已附加文件，例如 %[1]s![alt](./login.png)%[1]s，该
+			引用会被重写为指向已上传的资源。
+			每条命令最多可附加 50 个文件。
 
-			Alt text for an image follows the path after %[1]s#%[1]s, as in
-			%[1]s--attach './login.png#The login error state'%[1]s. Without it the filename is used.
-			A reference already in the body keeps the alt text written there. Video renders
-			as a player and has no alt text, so it cannot be given any.
+			图片的替代文本会跟在 %[1]s#%[1]s 之后的路径中，如
+			%[1]s--attach './login.png#The login error state'%[1]s。若不提供，则使用文件名。
+			正文中已有的引用会保留写在其处的替代文本。视频会渲染
+			为播放器且没有替代文本，因此无法为其指定。
 
-			If some attachments upload and others fail, the issue is still created with the
-			ones that succeeded. The command then exits with a non-zero status, but the new
-			issue's URL is still printed to stdout.
+			如果部分附件上传成功、部分失败，仍会用成功的附件创建
+			议题。命令随后会以非零状态退出，但新议题的 URL 仍会
+			打印到标准输出。
 
-			Adding an issue to projects requires authorization with the %[1]sproject%[1]s scope.
-			To authorize, run %[1]sgh auth refresh -s project%[1]s.
+			将议题添加到项目需要具备 %[1]sproject%[1]s 范围的授权。
+			如需授权，请运行 %[1]sgh auth refresh -s project%[1]s。
 
-			The %[1]s--assignee%[1]s flag supports the following special values:
-			- %[1]s@me%[1]s: assign yourself
-			- %[1]s@copilot%[1]s: assign Copilot (not supported on GitHub Enterprise Server)
+			%[1]s--assignee%[1]s 旗标支持以下特殊值:
+			- %[1]s@me%[1]s: 将自己指派为负责人
+			- %[1]s@copilot%[1]s: 指派 Copilot(在 GitHub Enterprise Server 上不受支持)
 		`, "`"),
 		Example: heredoc.Doc(`
 			$ gh issue create --title "I found a bug" --body "Nothing works"
@@ -122,7 +122,7 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 		Args:    cmdutil.NoArgsQuoteReminder,
 		Aliases: []string{"new"},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// support `-R, --repo` override
+			// 支持 `-R, --repo` 覆盖
 			opts.BaseRepo = f.BaseRepo
 			opts.HasRepoOverride = cmd.Flags().Changed("repo")
 
@@ -144,21 +144,21 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 			}
 
 			if !opts.IO.CanPrompt() && opts.RecoverFile != "" {
-				return cmdutil.FlagErrorf("`--recover` only supported when running interactively")
+				return cmdutil.FlagErrorf("`--recover` 仅在交互式运行时受支持")
 			}
 
 			if opts.Template != "" && bodyProvided {
-				return errors.New("`--template` is not supported when using `--body` or `--body-file`")
+				return errors.New("使用 `--body` 或 `--body-file` 时不支持 `--template`")
 			}
 
 			opts.Interactive = !opts.EditorMode && !(titleProvided && bodyProvided)
 
 			if opts.Interactive && !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("must provide `--title` and `--body` when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时必须提供 `--title` 和 `--body`")
 			}
 
 			if err := cmdutil.MutuallyExclusive(
-				"`--attach` is not supported when using `--web`",
+				"使用 `--web` 时不支持 `--attach`",
 				opts.AttachFlag.Changed(),
 				opts.WebMode,
 			); err != nil {
@@ -178,21 +178,21 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Title, "title", "t", "", "Supply a title. Will prompt for one otherwise.")
-	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "Supply a body. Will prompt for one otherwise.")
-	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "Read body text from `file` (use \"-\" to read from standard input)")
-	cmd.Flags().BoolVarP(&opts.EditorMode, "editor", "e", false, "Skip prompts and open the text editor to write the title and body in. The first line is the title and the remaining text is the body.")
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "Open the browser to create an issue")
-	cmd.Flags().StringSliceVarP(&opts.Assignees, "assignee", "a", nil, "Assign people by their `login`. Use \"@me\" to self-assign.")
-	cmd.Flags().StringSliceVarP(&opts.Labels, "label", "l", nil, "Add labels by `name`")
-	cmd.Flags().StringSliceVarP(&opts.Projects, "project", "p", nil, "Add the issue to projects by `title`")
-	cmd.Flags().StringVarP(&opts.Milestone, "milestone", "m", "", "Add the issue to a milestone by `name`")
-	cmd.Flags().StringVar(&opts.RecoverFile, "recover", "", "Recover input from a failed run of create")
-	cmd.Flags().StringVarP(&opts.Template, "template", "T", "", "Template `name` to use as starting body text")
-	cmd.Flags().StringVar(&opts.IssueType, "type", "", "Set the issue type by `name`")
-	cmd.Flags().StringVar(&opts.Parent, "parent", "", "Add the new issue as a sub-issue of the specified parent `number` or URL")
-	cmd.Flags().StringSliceVar(&opts.BlockedBy, "blocked-by", nil, "Mark the new issue as blocked by these issue `numbers` or URLs")
-	cmd.Flags().StringSliceVar(&opts.Blocking, "blocking", nil, "Mark the new issue as blocking these issue `numbers` or URLs")
+	cmd.Flags().StringVarP(&opts.Title, "title", "t", "", "提供标题。否则会提示输入一个。")
+	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "提供正文。否则会提示输入一个。")
+	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "从 `file` 读取正文文本(使用 \"-\" 从标准输入读取)")
+	cmd.Flags().BoolVarP(&opts.EditorMode, "editor", "e", false, "跳过提示并打开文本编辑器编写标题和正文。第一行是标题，其余文本是正文。")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "打开浏览器创建议题")
+	cmd.Flags().StringSliceVarP(&opts.Assignees, "assignee", "a", nil, "按 `login` 指派负责人。使用 \"@me\" 指派自己。")
+	cmd.Flags().StringSliceVarP(&opts.Labels, "label", "l", nil, "按 `name` 添加标签")
+	cmd.Flags().StringSliceVarP(&opts.Projects, "project", "p", nil, "按 `title` 将议题添加到项目")
+	cmd.Flags().StringVarP(&opts.Milestone, "milestone", "m", "", "按 `name` 将议题添加到里程碑")
+	cmd.Flags().StringVar(&opts.RecoverFile, "recover", "", "从创建命令的失败运行中恢复输入")
+	cmd.Flags().StringVarP(&opts.Template, "template", "T", "", "用作起始正文的模板 `name`")
+	cmd.Flags().StringVar(&opts.IssueType, "type", "", "按 `name` 设置议题类型")
+	cmd.Flags().StringVar(&opts.Parent, "parent", "", "将新议题添加为指定父议题 `number` 或 URL 的子议题")
+	cmd.Flags().StringSliceVar(&opts.BlockedBy, "blocked-by", nil, "将新议题标记为被这些议题 `numbers` 或 URL 阻塞")
+	cmd.Flags().StringSliceVar(&opts.Blocking, "blocking", nil, "将新议题标记为阻塞这些议题 `numbers` 或 URL")
 	opts.AttachFlag = attachments.AddFlag(cmd)
 
 	return cmd
@@ -211,7 +211,7 @@ func createRun(opts *CreateOptions) (err error) {
 	}
 
 	// TODO projectsV1Deprecation
-	// Remove this section as we should no longer need to detect
+	// 删除此部分，因为我们不再需要检测
 	if opts.Detector == nil {
 		cachedClient := api.NewCachedHTTPClient(httpClient, time.Hour*24)
 		opts.Detector = fd.NewDetector(cachedClient, baseRepo.RepoHost())
@@ -230,8 +230,8 @@ func createRun(opts *CreateOptions) (err error) {
 		milestones = []string{opts.Milestone}
 	}
 
-	// Replace special values in assignees
-	// For web mode, @copilot should be replaced by name; otherwise, login.
+	// 替换负责人中的特殊值
+	// 对于 web 模式，@copilot 应替换为 name；否则替换为 login。
 	assigneeReplacer := prShared.NewSpecialAssigneeReplacer(apiClient, baseRepo.RepoHost(), issueFeatures.ApiActorsSupported, !opts.WebMode)
 	assignees, err := assigneeReplacer.ReplaceSlice(opts.Assignees)
 	if err != nil {
@@ -254,7 +254,7 @@ func createRun(opts *CreateOptions) (err error) {
 	if opts.RecoverFile != "" {
 		err = prShared.FillFromJSON(opts.IO, opts.RecoverFile, &tb)
 		if err != nil {
-			err = fmt.Errorf("failed to recover input: %w", err)
+			err = fmt.Errorf("恢复输入失败: %w", err)
 			return
 		}
 	}
@@ -269,7 +269,7 @@ func createRun(opts *CreateOptions) (err error) {
 				return
 			}
 			if !prShared.ValidURL(openURL) {
-				err = fmt.Errorf("cannot open in browser: maximum URL length exceeded")
+				err = fmt.Errorf("无法在浏览器中打开: 超出最大 URL 长度")
 				return
 			}
 		} else if ok, _ := tpl.HasTemplates(); ok {
@@ -278,13 +278,13 @@ func createRun(opts *CreateOptions) (err error) {
 			openURL = ghrepo.GenerateRepoURL(baseRepo, "issues/new")
 		}
 		if isTerminal {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(openURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
 		}
 		return opts.Browser.Browse(openURL)
 	}
 
 	if isTerminal {
-		fmt.Fprintf(opts.IO.ErrOut, "\nCreating issue in %s\n\n", ghrepo.FullName(baseRepo))
+		fmt.Fprintf(opts.IO.ErrOut, "\n正在 %s 中创建议题\n\n", ghrepo.FullName(baseRepo))
 	}
 
 	repo, err := api.IssueRepoInfo(apiClient, baseRepo)
@@ -292,11 +292,11 @@ func createRun(opts *CreateOptions) (err error) {
 		return
 	}
 	if !repo.HasIssuesEnabled {
-		err = fmt.Errorf("the '%s' repository has disabled issues", ghrepo.FullName(baseRepo))
+		err = fmt.Errorf("仓库 '%s' 已禁用议题", ghrepo.FullName(baseRepo))
 		return
 	}
 
-	// Built before the first survey, so a run that cannot upload stops early.
+	// 在第一次调查之前构建，以便无法上传的运行尽早停止。
 	var uploader *attachments.Uploader
 	if len(opts.Assets) > 0 {
 		var cfg gh.Config
@@ -359,7 +359,7 @@ func createRun(opts *CreateOptions) (err error) {
 			}
 		}
 
-		// Interactive issue type selection
+		// 交互式议题类型选择
 		if opts.IssueType == "" {
 			issueTypes, typesErr := api.RepoIssueTypes(apiClient, baseRepo)
 			if typesErr == nil && len(issueTypes) > 0 {
@@ -368,7 +368,7 @@ func createRun(opts *CreateOptions) (err error) {
 					typeNames[i] = t.Name
 				}
 				var selected int
-				selected, err = opts.Prompter.Select("Issue type", "", typeNames)
+				selected, err = opts.Prompter.Select("议题类型", "", typeNames)
 				if err != nil {
 					return
 				}
@@ -382,11 +382,11 @@ func createRun(opts *CreateOptions) (err error) {
 			return
 		}
 
-		// Preview opens the browser, which cannot carry an upload.
+		// 预览会打开浏览器，而浏览器无法携带上传内容。
 		allowPreview := !tb.HasMetadata() && prShared.ValidURL(openURL) && len(opts.Assets) == 0
 		action, err = prShared.ConfirmIssueSubmission(opts.Prompter, allowPreview, repo.ViewerCanTriage())
 		if err != nil {
-			err = fmt.Errorf("unable to confirm: %w", err)
+			err = fmt.Errorf("无法确认: %w", err)
 			return
 		}
 
@@ -413,7 +413,7 @@ func createRun(opts *CreateOptions) (err error) {
 		}
 
 		if action == prShared.CancelAction {
-			fmt.Fprintln(opts.IO.ErrOut, "Discarding.")
+			fmt.Fprintln(opts.IO.ErrOut, "已丢弃。")
 			err = cmdutil.CancelError
 			return
 		}
@@ -438,14 +438,14 @@ func createRun(opts *CreateOptions) (err error) {
 			}
 		}
 		if tb.Title == "" {
-			err = fmt.Errorf("title can't be blank")
+			err = fmt.Errorf("标题不能为空")
 			return
 		}
 	}
 
 	if action == prShared.PreviewAction {
 		if isTerminal {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(openURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
 		}
 		return opts.Browser.Browse(openURL)
 	} else if action == prShared.SubmitAction {
@@ -462,9 +462,9 @@ func createRun(opts *CreateOptions) (err error) {
 			return
 		}
 
-		// With nothing uploaded the body would promise an attachment that does
-		// not exist, so no issue is created. Once anything has uploaded the
-		// issue is created and the failures are reported.
+		// 在未上传任何内容时，正文会承诺一个并不存在的附件，
+		// 因此不会创建议题。一旦有任何内容上传成功，就会创建
+		// 议题并报告失败。
 		if uploader != nil {
 			body, uploadResult, uploadErr := uploader.UploadAndAttach(context.Background(), tb.Body, opts.Assets)
 			opts.AttachEvent.RecordOperations(uploadResult)
@@ -495,7 +495,7 @@ func createRun(opts *CreateOptions) (err error) {
 
 		fmt.Fprintln(opts.IO.Out, newIssue.URL)
 	} else {
-		panic("Unreachable state")
+		panic("不可达状态")
 	}
 
 	return
@@ -506,9 +506,9 @@ func generatePreviewURL(apiClient *api.Client, baseRepo ghrepo.Interface, tb prS
 	return prShared.WithPrAndIssueQueryParams(apiClient, baseRepo, openURL, tb, projectsV1Support)
 }
 
-// deferredUpdateIssueOptions resolves the user-supplied --type / --parent /
-// --blocked-by / --blocking flags into the IDs that DeferredUpdateIssue
-// expects.
+// deferredUpdateIssueOptions 将用户提供的 --type / --parent /
+// --blocked-by / --blocking 旗标解析为 DeferredUpdateIssue
+// 所需的 ID。
 func deferredUpdateIssueOptions(client *api.Client, baseRepo ghrepo.Interface, issue *api.Issue, opts *CreateOptions) (api.DeferredUpdateIssueOptions, error) {
 	updateOpts := api.DeferredUpdateIssueOptions{
 		IssueID:  issue.ID,
@@ -530,7 +530,7 @@ func deferredUpdateIssueOptions(client *api.Client, baseRepo ghrepo.Interface, i
 	if opts.Parent != "" {
 		parentID, err := issueShared.ResolveIssueRef(client, baseRepo, opts.Parent)
 		if err != nil {
-			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("resolving --parent reference %q: %w", opts.Parent, err)
+			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("解析 --parent 引用 %q 失败: %w", opts.Parent, err)
 		}
 		updateOpts.ParentID = parentID
 	}
@@ -538,7 +538,7 @@ func deferredUpdateIssueOptions(client *api.Client, baseRepo ghrepo.Interface, i
 	for _, ref := range opts.BlockedBy {
 		id, err := issueShared.ResolveIssueRef(client, baseRepo, ref)
 		if err != nil {
-			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("resolving --blocked-by reference %q: %w", ref, err)
+			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("解析 --blocked-by 引用 %q 失败: %w", ref, err)
 		}
 		updateOpts.AddBlockedByIDs = append(updateOpts.AddBlockedByIDs, id)
 	}
@@ -546,7 +546,7 @@ func deferredUpdateIssueOptions(client *api.Client, baseRepo ghrepo.Interface, i
 	for _, ref := range opts.Blocking {
 		id, err := issueShared.ResolveIssueRef(client, baseRepo, ref)
 		if err != nil {
-			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("resolving --blocking reference %q: %w", ref, err)
+			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("解析 --blocking 引用 %q 失败: %w", ref, err)
 		}
 		updateOpts.AddBlockingIDs = append(updateOpts.AddBlockingIDs, id)
 	}

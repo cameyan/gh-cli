@@ -87,7 +87,7 @@ func TestIssueReopen(t *testing.T) {
 		t.Fatalf("error running command `issue reopen`: %v", err)
 	}
 
-	r := regexp.MustCompile(`Reopened issue OWNER/REPO#2 \(The title of the issue\)`)
+	r := regexp.MustCompile(`已重新打开议题 OWNER/REPO#2 \(The title of the issue\)`)
 
 	if !r.MatchString(output.Stderr()) {
 		t.Fatalf("output did not match regexp /%s/\n> output\n%q\n", r, output.Stderr())
@@ -112,7 +112,7 @@ func TestIssueReopen_alreadyOpen(t *testing.T) {
 		t.Fatalf("error running command `issue reopen`: %v", err)
 	}
 
-	r := regexp.MustCompile(`Issue OWNER/REPO#2 \(The title of the issue\) is already open`)
+	r := regexp.MustCompile(`议题 OWNER/REPO#2 \(The title of the issue\) 已打开`)
 
 	if !r.MatchString(output.Stderr()) {
 		t.Fatalf("output did not match regexp /%s/\n> output\n%q\n", r, output.Stderr())
@@ -147,7 +147,7 @@ func TestIssueReopen_issuesDisabled(t *testing.T) {
 	)
 
 	_, err := runCommand(http, true, "2")
-	if err == nil || err.Error() != "the 'OWNER/REPO' repository has disabled issues" {
+	if err == nil || err.Error() != "'OWNER/REPO' 仓库已禁用议题" {
 		t.Fatalf("got error: %v", err)
 	}
 }
@@ -188,7 +188,7 @@ func TestIssueReopen_withComment(t *testing.T) {
 		t.Fatalf("error running command `issue reopen`: %v", err)
 	}
 
-	r := regexp.MustCompile(`Reopened issue OWNER/REPO#2 \(The title of the issue\)`)
+	r := regexp.MustCompile(`已重新打开议题 OWNER/REPO#2 \(The title of the issue\)`)
 
 	if !r.MatchString(output.Stderr()) {
 		t.Fatalf("output did not match regexp /%s/\n> output\n%q\n", r, output.Stderr())

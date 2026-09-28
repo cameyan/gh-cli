@@ -64,7 +64,7 @@ func TestNewCmdClose(t *testing.T) {
 			name:    "duplicate of with invalid reason",
 			input:   "123 --reason completed --duplicate-of 456",
 			wantErr: true,
-			errMsg:  "`--duplicate-of` can only be used with `--reason duplicate`",
+			errMsg:  "`--duplicate-of` 只能与 `--reason duplicate` 一起使用",
 		},
 	}
 	for _, tt := range tests {
@@ -141,7 +141,7 @@ func TestCloseRun(t *testing.T) {
 						}),
 				)
 			},
-			wantStderr: "✓ Closed issue OWNER/REPO#13 (The title of the issue)\n",
+			wantStderr: "✓ 已关闭议题 OWNER/REPO#13 (The title of the issue)\n",
 		},
 		{
 			name: "close issue with comment",
@@ -177,7 +177,7 @@ func TestCloseRun(t *testing.T) {
 						}),
 				)
 			},
-			wantStderr: "✓ Closed issue OWNER/REPO#13 (The title of the issue)\n",
+			wantStderr: "✓ 已关闭议题 OWNER/REPO#13 (The title of the issue)\n",
 		},
 		{
 			name: "close issue with reason",
@@ -204,7 +204,7 @@ func TestCloseRun(t *testing.T) {
 						}),
 				)
 			},
-			wantStderr: "✓ Closed issue OWNER/REPO#13 (The title of the issue)\n",
+			wantStderr: "✓ 已关闭议题 OWNER/REPO#13 (The title of the issue)\n",
 		},
 		{
 			name: "close issue with duplicate reason",
@@ -231,7 +231,7 @@ func TestCloseRun(t *testing.T) {
 						}),
 				)
 			},
-			wantStderr: "✓ Closed issue OWNER/REPO#13 (The title of the issue)\n",
+			wantStderr: "✓ 已关闭议题 OWNER/REPO#13 (The title of the issue)\n",
 		},
 		{
 			name: "close issue as duplicate of another issue",
@@ -267,7 +267,7 @@ func TestCloseRun(t *testing.T) {
 						}),
 				)
 			},
-			wantStderr: "✓ Closed issue OWNER/REPO#13 (The title of the issue)\n",
+			wantStderr: "✓ 已关闭议题 OWNER/REPO#13 (The title of the issue)\n",
 		},
 		{
 			name: "duplicate of cannot point to same issue",
@@ -286,7 +286,7 @@ func TestCloseRun(t *testing.T) {
 				)
 			},
 			wantErr: true,
-			errMsg:  "`--duplicate-of` cannot reference the current issue",
+			errMsg:  "`--duplicate-of` 不能引用当前议题",
 		},
 		{
 			name: "duplicate of must reference an issue",
@@ -313,7 +313,7 @@ func TestCloseRun(t *testing.T) {
 				)
 			},
 			wantErr: true,
-			errMsg:  "`--duplicate-of` must reference an issue",
+			errMsg:  "`--duplicate-of` 必须引用一个议题",
 		},
 		{
 			name: "duplicate of with invalid format",
@@ -332,7 +332,7 @@ func TestCloseRun(t *testing.T) {
 				)
 			},
 			wantErr: true,
-			errMsg:  "invalid value for `--duplicate-of`: invalid issue format: \"not-an-issue\"",
+			errMsg:  "`--duplicate-of` 的值无效: 无效的议题格式: \"not-an-issue\"",
 		},
 		{
 			name: "issue already closed",
@@ -349,7 +349,7 @@ func TestCloseRun(t *testing.T) {
             } } }`),
 				)
 			},
-			wantStderr: "! Issue OWNER/REPO#13 (The title of the issue) is already closed\n",
+			wantStderr: "! 议题 OWNER/REPO#13 (The title of the issue) 已关闭\n",
 		},
 		{
 			name: "issues disabled",
@@ -367,7 +367,7 @@ func TestCloseRun(t *testing.T) {
 				)
 			},
 			wantErr: true,
-			errMsg:  "the 'OWNER/REPO' repository has disabled issues",
+			errMsg:  "'OWNER/REPO' 仓库已禁用议题",
 		},
 	}
 	for _, tt := range tests {

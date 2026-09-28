@@ -156,10 +156,10 @@ func TestIssueList_tty(t *testing.T) {
 
 		Showing 3 of 3 open issues in OWNER/REPO
 
-		ID  TITLE        LABELS  UPDATED
-		#1  number won   label   about 1 day ago
-		#2  number too   label   about 1 month ago
-		#4  number fore  label   about 2 years ago
+		ID  标题         标签   更新时间
+		#1  number won   label  about 1 day ago
+		#2  number too   label  about 1 month ago
+		#4  number fore  label  about 2 years ago
 	`), output.String())
 	assert.Equal(t, ``, output.Stderr())
 }
@@ -215,7 +215,7 @@ func TestIssueList_withInvalidLimitFlag(t *testing.T) {
 
 	_, err := runCommand(http, true, "--limit=0")
 
-	if err == nil || err.Error() != "invalid limit: 0" {
+	if err == nil || err.Error() != "无效的 limit: 0" {
 		t.Errorf("error running command `issue list`: %v", err)
 	}
 }
@@ -233,7 +233,7 @@ func TestIssueList_disabledIssues(t *testing.T) {
 	)
 
 	_, err := runCommand(http, true, "")
-	if err == nil || err.Error() != "the 'OWNER/REPO' repository has disabled issues" {
+	if err == nil || err.Error() != "仓库 'OWNER/REPO' 已禁用议题" {
 		t.Errorf("error running command `issue list`: %v", err)
 	}
 }
@@ -296,7 +296,7 @@ func TestIssueList_web(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.Equal(t, "", stdout.String())
-			assert.Equal(t, "Opening https://github.com/OWNER/REPO/issues in your browser.\n", stderr.String())
+			assert.Equal(t, "正在浏览器中打开 https://github.com/OWNER/REPO/issues。\n", stderr.String())
 
 			// Since no repeated usage of special search qualifiers is possible
 			// with our current implementation, we can assert against the same

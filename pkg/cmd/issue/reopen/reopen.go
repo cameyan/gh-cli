@@ -34,7 +34,7 @@ func NewCmdReopen(f *cmdutil.Factory, runF func(*ReopenOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "reopen {<number> | <url>}",
-		Short: "Reopen issue",
+		Short: "重新打开议题",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			issueNumber, baseRepo, err := shared.ParseIssueFromArg(args[0])
@@ -42,13 +42,13 @@ func NewCmdReopen(f *cmdutil.Factory, runF func(*ReopenOptions) error) *cobra.Co
 				return err
 			}
 
-			// If the args provided the base repo then use that directly.
+			// 如果参数提供了基础仓库，则直接使用它。
 			if baseRepo, present := baseRepo.Value(); present {
 				opts.BaseRepo = func() (ghrepo.Interface, error) {
 					return baseRepo, nil
 				}
 			} else {
-				// support `-R, --repo` override
+				// 支持 `-R, --repo` 覆盖
 				opts.BaseRepo = f.BaseRepo
 			}
 
@@ -61,7 +61,7 @@ func NewCmdReopen(f *cmdutil.Factory, runF func(*ReopenOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Comment, "comment", "c", "", "Add a reopening comment")
+	cmd.Flags().StringVarP(&opts.Comment, "comment", "c", "", "添加一条重新打开评论")
 
 	return cmd
 }
@@ -85,7 +85,7 @@ func reopenRun(opts *ReopenOptions) error {
 	}
 
 	if issue.State == "OPEN" {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Issue %s#%d (%s) is already open\n", cs.Yellow("!"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 议题 %s#%d (%s) 已打开\n", cs.Yellow("!"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
 		return nil
 	}
 
@@ -110,7 +110,7 @@ func reopenRun(opts *ReopenOptions) error {
 		return err
 	}
 
-	fmt.Fprintf(opts.IO.ErrOut, "%s Reopened issue %s#%d (%s)\n", cs.SuccessIconWithColor(cs.Green), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
+	fmt.Fprintf(opts.IO.ErrOut, "%s 已重新打开议题 %s#%d (%s)\n", cs.SuccessIconWithColor(cs.Green), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
 
 	return nil
 }

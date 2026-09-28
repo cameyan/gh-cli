@@ -1,13 +1,11 @@
-// Package lock locks and unlocks conversations on both GitHub issues and pull
-// requests.
+// Package lock 用于锁定和解除锁定 GitHub 议题与拉取请求上的对话。
 //
-// Every pull request is an issue, but not every issue is a pull request.
-// Therefore, this package is used in `cmd/pr` as well.
+// 每个拉取请求都是一个议题，但并非每个议题都是拉取请求。
+// 因此，本包也用于 `cmd/pr`。
 //
-// A note on nomenclature for "comments", "conversations", and "discussions":
-// The GitHub documentation refers to a set of comments on an issue or pull
-// request as a conversation.  A GitHub discussion refers to the "message board"
-// for a project where announcements, questions, and answers can be posted.
+// 关于 "comments"(评论)、"conversations"(对话)与 "discussions"(讨论)命名的说明:
+// GitHub 文档将议题或拉取请求上的一组评论称为对话。GitHub 讨论则指项目的
+// "message board"(留言板)，可在其中发布公告、问题与回答。
 package lock
 
 import (
@@ -32,10 +30,9 @@ type iprompter interface {
 	Select(string, string, []string) (int, error)
 }
 
-// reasons contains all possible lock reasons allowed by GitHub.
+// reasons 包含 GitHub 允许的所有锁定原因。
 //
-// We don't directly construct a map so that we can maintain the reasons in
-// alphabetical order.
+// 我们不直接构造 map，以便按字母顺序维护这些原因。
 var reasons = []string{"off_topic", "resolved", "spam", "too_heated"}
 
 var reasonsString = strings.Join(reasons, ", ")
@@ -47,9 +44,8 @@ var reasonsApi = []githubv4.LockReason{
 	githubv4.LockReasonTooHeated,
 }
 
-// If no reason is given (an empty string), reasonsMap will return the nil
-// value, since it is not contained in the map.  This, in turn, sets lock_reason
-// to null in GraphQL.
+// 如果未提供原因(空字符串)，reasonsMap 将返回 nil 值，因为它不包含在 map 中。
+// 这样会将 GraphQL 中的 lock_reason 设置为 null。
 var reasonsMap map[string]*githubv4.LockReason
 
 func init() {
@@ -60,16 +56,15 @@ func init() {
 }
 
 type command struct {
-	Name     string // actual command name
-	FullName string // complete name for the command
-	Typename string // return value from issue.Typename
+	Name     string // 实际命令名称
+	FullName string // 命令的完整名称
+	Typename string // issue.Typename 的返回值
 }
 
-// The `FullName` should be capitalized as if starting a sentence since it is
-// used in print and error statements.  It's easier to manually capitalize and
-// call `ToLower`, when needed, than the other way around.
-var aliasIssue = command{"issue", "Issue", api.TypeIssue}
-var aliasPr = command{"pr", "Pull request", api.TypePullRequest}
+// `FullName` 应像句子开头一样首字母大写，因为它用于打印和错误信息中。
+// 手动将其首字母大写，并在需要时调用 `ToLower`，比反过来更容易。
+var aliasIssue = command{"issue", "议题", api.TypeIssue}
+var aliasPr = command{"pr", "拉取请求", api.TypePullRequest}
 
 var alias map[string]*command = map[string]*command{
 	"issue":             &aliasIssue,
@@ -78,8 +73,7 @@ var alias map[string]*command = map[string]*command{
 	api.TypePullRequest: &aliasPr,
 }
 
-// Acceptable lock states for conversations.  These are used in print
-// statements, hence the use of strings instead of booleans.
+// 对话可接受的锁定状态。这些用于打印语句中，因此使用字符串而不是布尔值。
 const (
 	Lock   = "Lock"
 	Unlock = "Unlock"
@@ -114,13 +108,13 @@ func (opts *LockOptions) setCommonOptions(f *cmdutil.Factory, args []string) err
 		return err
 	}
 
-	// If the args provided the base repo then use that directly.
+	// 如果参数提供了基础仓库，则直接使用它。
 	if baseRepo, present := baseRepo.Value(); present {
 		opts.BaseRepo = func() (ghrepo.Interface, error) {
 			return baseRepo, nil
 		}
 	} else {
-		// support `-R, --repo` override
+		// 支持 `-R, --repo` 覆盖
 		opts.BaseRepo = f.BaseRepo
 	}
 
@@ -136,7 +130,7 @@ func NewCmdLock(f *cmdutil.Factory, parentName string, runF func(string, *LockOp
 	}
 
 	c := alias[opts.ParentCmd]
-	short := fmt.Sprintf("Lock %s conversation", strings.ToLower(c.FullName))
+	short := fmt.Sprintf("锁定 %s 对话", strings.ToLower(c.FullName))
 
 	cmd := &cobra.Command{
 		Use:   "lock {<number> | <url>}",
@@ -154,10 +148,10 @@ func NewCmdLock(f *cmdutil.Factory, parentName string, runF func(string, *LockOp
 					if opts.IO.IsStdoutTTY() {
 						cs := opts.IO.ColorScheme()
 
-						return cmdutil.FlagErrorf("%s Invalid reason: %v\n",
+						return cmdutil.FlagErrorf("%s 无效的原因: %v\n",
 							cs.FailureIconWithColor(cs.Red), opts.Reason)
 					} else {
-						return fmt.Errorf("invalid reason %s", opts.Reason)
+						return fmt.Errorf("无效的原因 %s", opts.Reason)
 					}
 				}
 			} else if opts.IO.CanPrompt() {
@@ -171,7 +165,7 @@ func NewCmdLock(f *cmdutil.Factory, parentName string, runF func(string, *LockOp
 		},
 	}
 
-	msg := fmt.Sprintf("Optional reason for locking conversation (%v).", reasonsString)
+	msg := fmt.Sprintf("锁定对话的可选原因 (%v)。", reasonsString)
 
 	cmd.Flags().StringVarP(&opts.Reason, "reason", "r", "", msg)
 	return cmd
@@ -181,7 +175,7 @@ func NewCmdUnlock(f *cmdutil.Factory, parentName string, runF func(string, *Lock
 	opts := &LockOptions{ParentCmd: parentName}
 
 	c := alias[opts.ParentCmd]
-	short := fmt.Sprintf("Unlock %s conversation", strings.ToLower(c.FullName))
+	short := fmt.Sprintf("解除锁定 %s 对话", strings.ToLower(c.FullName))
 
 	cmd := &cobra.Command{
 		Use:   "unlock {<number> | <url>}",
@@ -202,28 +196,31 @@ func NewCmdUnlock(f *cmdutil.Factory, parentName string, runF func(string, *Lock
 	return cmd
 }
 
-// reason creates a sentence fragment so that the lock reason can be used in a
-// sentence.
+// reason 创建一个句子片段，以便锁定原因可用于句子中。
 //
-// e.g. "resolved" -> " as RESOLVED"
+// 例如 "resolved" -> "(原因: RESOLVED)"
 func reason(reason string) string {
 	result := ""
 	if reason != "" {
-		result = fmt.Sprintf(" as %s", strings.ToUpper(reason))
+		result = fmt.Sprintf("(原因: %s)", strings.ToUpper(reason))
 	}
 	return result
 }
 
-// status creates a string showing the result of a successful lock/unlock that
-// is parameterized on a bunch of options.
+// status 创建一个字符串，显示成功锁定/解除锁定的结果，
+// 该结果由一系列选项参数化。
 //
-// Example output: "Locked as RESOLVED: Issue #31 (Title of issue)"
+// 示例输出: "已锁定(原因: RESOLVED): 议题 #31 (议题标题)"
 func status(state string, lockable *api.Issue, baseRepo ghrepo.Interface, opts *LockOptions) string {
-	return fmt.Sprintf("%sed%s: %s %s#%d (%s)",
-		state, reason(opts.Reason), alias[opts.ParentCmd].FullName, ghrepo.FullName(baseRepo), lockable.Number, lockable.Title)
+	action := "已锁定"
+	if state == Unlock {
+		action = "已解除锁定"
+	}
+	return fmt.Sprintf("%s%s: %s %s#%d (%s)",
+		action, reason(opts.Reason), alias[opts.ParentCmd].FullName, ghrepo.FullName(baseRepo), lockable.Number, lockable.Title)
 }
 
-// lockRun will lock or unlock a conversation.
+// lockRun 将锁定或解除锁定对话。
 func lockRun(state string, opts *LockOptions) error {
 	cs := opts.IO.ColorScheme()
 
@@ -247,7 +244,7 @@ func lockRun(state string, opts *LockOptions) error {
 		currentType := alias[parent.Typename]
 		correctType := alias[issuePr.Typename]
 
-		return fmt.Errorf("%s %s %s#%d not found, but found %s %s#%d.  Use `gh %s %s %d` instead",
+		return fmt.Errorf("%s %s %s#%d 未找到，但找到了 %s %s#%d。请改用 `gh %s %s %d`",
 			cs.FailureIconWithColor(cs.Red),
 			currentType.FullName, ghrepo.FullName(baseRepo), issuePr.Number,
 			strings.ToLower(correctType.FullName), ghrepo.FullName(baseRepo), issuePr.Number,
@@ -255,8 +252,8 @@ func lockRun(state string, opts *LockOptions) error {
 	}
 
 	if opts.Interactive {
-		options := []string{"None", "Off topic", "Resolved", "Spam", "Too heated"}
-		selected, err := opts.Prompter.Select("Lock reason?", "", options)
+		options := []string{"无", "离题", "已解决", "垃圾信息", "过于激烈"}
+		selected, err := opts.Prompter.Select("锁定原因?", "", options)
 		if err != nil {
 			return err
 		}
@@ -277,7 +274,7 @@ func lockRun(state string, opts *LockOptions) error {
 			relocked, err = relockLockable(httpClient, baseRepo, issuePr, opts)
 
 			if !relocked {
-				successMsg = fmt.Sprintf("%s %s#%d already locked%s.  Nothing changed.\n",
+				successMsg = fmt.Sprintf("%s %s#%d 已锁定%s。未做任何更改。\n",
 					parent.FullName, ghrepo.FullName(baseRepo), issuePr.Number, reason(issuePr.ActiveLockReason))
 			}
 		}
@@ -286,7 +283,7 @@ func lockRun(state string, opts *LockOptions) error {
 		if issuePr.Locked {
 			err = unlockLockable(httpClient, baseRepo, issuePr)
 		} else {
-			successMsg = fmt.Sprintf("%s %s#%d already unlocked.  Nothing changed.\n",
+			successMsg = fmt.Sprintf("%s %s#%d 已解除锁定。未做任何更改。\n",
 				parent.FullName, ghrepo.FullName(baseRepo), issuePr.Number)
 		}
 	default:
@@ -304,7 +301,7 @@ func lockRun(state string, opts *LockOptions) error {
 	return nil
 }
 
-// lockLockable will lock an issue or pull request
+// lockLockable 将锁定议题或拉取请求
 func lockLockable(httpClient *http.Client, repo ghrepo.Interface, lockable *api.Issue, opts *LockOptions) error {
 	var mutation struct {
 		LockLockable struct {
@@ -325,7 +322,7 @@ func lockLockable(httpClient *http.Client, repo ghrepo.Interface, lockable *api.
 	return gql.Mutate(repo.RepoHost(), "LockLockable", &mutation, variables)
 }
 
-// unlockLockable will unlock an issue or pull request
+// unlockLockable 将解除锁定议题或拉取请求
 func unlockLockable(httpClient *http.Client, repo ghrepo.Interface, lockable *api.Issue) error {
 
 	var mutation struct {
@@ -346,18 +343,17 @@ func unlockLockable(httpClient *http.Client, repo ghrepo.Interface, lockable *ap
 	return gql.Mutate(repo.RepoHost(), "UnlockLockable", &mutation, variables)
 }
 
-// relockLockable will unlock then lock an issue or pull request.  A common use
-// case would be to change the reason for locking.
+// relockLockable 先解除锁定再锁定议题或拉取请求。一个常见用例
+// 是更改锁定的原因。
 //
-// The current api doesn't allow you to send a single lock request to update a
-// lockable item that is already locked; it will just ignore that request.  You
-// need to first unlock then lock with a new reason.
+// 当前的 api 不允许通过单个锁定请求更新已锁定的项；
+// 它会直接忽略该请求。你需要先解除锁定，再以新的原因锁定。
 func relockLockable(httpClient *http.Client, repo ghrepo.Interface, lockable *api.Issue, opts *LockOptions) (bool, error) {
 	if !opts.IO.CanPrompt() {
-		return false, errors.New("already locked")
+		return false, errors.New("已锁定")
 	}
 
-	prompt := fmt.Sprintf("%s %s#%d already locked%s. Unlock and lock again%s?",
+	prompt := fmt.Sprintf("%s %s#%d 已锁定%s。是否解除锁定并重新锁定%s?",
 		alias[opts.ParentCmd].FullName, ghrepo.FullName(repo), lockable.Number, reason(lockable.ActiveLockReason), reason(opts.Reason))
 
 	relocked, err := opts.Prompter.Confirm(prompt, true)

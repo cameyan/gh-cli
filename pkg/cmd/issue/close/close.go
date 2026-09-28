@@ -34,18 +34,18 @@ func NewCmdClose(f *cmdutil.Factory, runF func(*CloseOptions) error) *cobra.Comm
 
 	cmd := &cobra.Command{
 		Use:   "close {<number> | <url>}",
-		Short: "Close issue",
+		Short: "关闭议题",
 		Example: heredoc.Doc(`
-			# Close issue
+			# 关闭议题
 			$ gh issue close 123
 
-			# Close issue and add a closing comment
+			# 关闭议题并添加一条关闭评论
 			$ gh issue close 123 --comment "Closing this issue"
 
-			# Close issue as a duplicate of issue #456
+			# 将议题关闭为议题 #456 的重复项
 			$ gh issue close 123 --duplicate-of 456
 
-			# Close issue as not planned
+			# 将议题关闭为未计划
 			$ gh issue close 123 --reason "not planned"
 		`),
 		Args: cobra.ExactArgs(1),
@@ -55,13 +55,13 @@ func NewCmdClose(f *cmdutil.Factory, runF func(*CloseOptions) error) *cobra.Comm
 				return err
 			}
 
-			// If the args provided the base repo then use that directly.
+			// 如果参数提供了基础仓库，则直接使用它。
 			if baseRepo, present := baseRepo.Value(); present {
 				opts.BaseRepo = func() (ghrepo.Interface, error) {
 					return baseRepo, nil
 				}
 			} else {
-				// support `-R, --repo` override
+				// 支持 `-R, --repo` 覆盖
 				opts.BaseRepo = f.BaseRepo
 			}
 
@@ -70,7 +70,7 @@ func NewCmdClose(f *cmdutil.Factory, runF func(*CloseOptions) error) *cobra.Comm
 				if opts.Reason == "" {
 					opts.Reason = "duplicate"
 				} else if opts.Reason != "duplicate" {
-					return cmdutil.FlagErrorf("`--duplicate-of` can only be used with `--reason duplicate`")
+					return cmdutil.FlagErrorf("`--duplicate-of` 只能与 `--reason duplicate` 一起使用")
 				}
 			}
 
@@ -81,9 +81,9 @@ func NewCmdClose(f *cmdutil.Factory, runF func(*CloseOptions) error) *cobra.Comm
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Comment, "comment", "c", "", "Leave a closing comment")
-	cmdutil.StringEnumFlag(cmd, &opts.Reason, "reason", "r", "", []string{"completed", "not planned", "duplicate"}, "Reason for closing")
-	cmd.Flags().StringVar(&opts.DuplicateOf, "duplicate-of", "", "Mark as duplicate of another issue by number or URL")
+	cmd.Flags().StringVarP(&opts.Comment, "comment", "c", "", "添加一条关闭评论")
+	cmdutil.StringEnumFlag(cmd, &opts.Reason, "reason", "r", "", []string{"completed", "not planned", "duplicate"}, "关闭原因")
+	cmd.Flags().StringVar(&opts.DuplicateOf, "duplicate-of", "", "通过编号或 URL 标记为另一议题的重复项")
 
 	return cmd
 }
@@ -95,7 +95,7 @@ func closeRun(opts *CloseOptions) error {
 		if closeReason == "" {
 			closeReason = "duplicate"
 		} else if closeReason != "duplicate" {
-			return cmdutil.FlagErrorf("`--duplicate-of` can only be used with `--reason duplicate`")
+			return cmdutil.FlagErrorf("`--duplicate-of` 只能与 `--reason duplicate` 一起使用")
 		}
 	}
 
@@ -115,32 +115,32 @@ func closeRun(opts *CloseOptions) error {
 	}
 
 	if issue.State == "CLOSED" {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Issue %s#%d (%s) is already closed\n", cs.Yellow("!"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 议题 %s#%d (%s) 已关闭\n", cs.Yellow("!"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
 		return nil
 	}
 
 	var duplicateIssueID string
 	if opts.DuplicateOf != "" {
 		if issue.IsPullRequest() {
-			return cmdutil.FlagErrorf("`--duplicate-of` is only supported for issues")
+			return cmdutil.FlagErrorf("`--duplicate-of` 仅支持议题")
 		}
 		duplicateIssueNumber, duplicateRepo, err := shared.ParseIssueFromArg(opts.DuplicateOf)
 		if err != nil {
-			return cmdutil.FlagErrorf("invalid value for `--duplicate-of`: %v", err)
+			return cmdutil.FlagErrorf("`--duplicate-of` 的值无效: %v", err)
 		}
 		duplicateIssueRepo := baseRepo
 		if parsedRepo, present := duplicateRepo.Value(); present {
 			duplicateIssueRepo = parsedRepo
 		}
 		if ghrepo.IsSame(baseRepo, duplicateIssueRepo) && issue.Number == duplicateIssueNumber {
-			return cmdutil.FlagErrorf("`--duplicate-of` cannot reference the current issue")
+			return cmdutil.FlagErrorf("`--duplicate-of` 不能引用当前议题")
 		}
 		duplicateIssue, err := shared.FindIssueOrPR(httpClient, duplicateIssueRepo, duplicateIssueNumber, []string{"id"})
 		if err != nil {
 			return err
 		}
 		if duplicateIssue.IsPullRequest() {
-			return cmdutil.FlagErrorf("`--duplicate-of` must reference an issue")
+			return cmdutil.FlagErrorf("`--duplicate-of` 必须引用一个议题")
 		}
 		duplicateIssueID = duplicateIssue.ID
 	}
@@ -166,7 +166,7 @@ func closeRun(opts *CloseOptions) error {
 		return err
 	}
 
-	fmt.Fprintf(opts.IO.ErrOut, "%s Closed issue %s#%d (%s)\n", cs.SuccessIconWithColor(cs.Red), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
+	fmt.Fprintf(opts.IO.ErrOut, "%s 已关闭议题 %s#%d (%s)\n", cs.SuccessIconWithColor(cs.Red), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
 
 	return nil
 }
@@ -178,7 +178,7 @@ func apiClose(httpClient *http.Client, repo ghrepo.Interface, issue *api.Issue, 
 
 	switch reason {
 	case "":
-		// If no reason is specified do not set it.
+		// 如果未指定原因，则不设置它。
 	case "not planned":
 		reason = "NOT_PLANNED"
 	case "duplicate":

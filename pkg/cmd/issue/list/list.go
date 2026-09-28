@@ -58,17 +58,17 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List issues in a repository",
+		Short: "列出仓库中的议题",
 		// TODO advancedIssueSearchCleanup
-		// Update the links and remove the mention at GHES 3.17 version.
+		// 更新链接，并在 GHES 3.17 版本中移除该提及。
 		Long: heredoc.Docf(`
-			List issues in a GitHub repository. By default, this only lists open issues.
+			列出 GitHub 仓库中的议题。默认情况下，仅列出打开状态的议题。
 
-			The search query syntax is documented here:
+			搜索查询语法记录于此:
 			<https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests>
 
-			On supported GitHub hosts, advanced issue search syntax can be used in the
-			%[1]s--search%[1]s query. For more information about advanced issue search, see:
+			在受支持的 GitHub 主机上，可以在 %[1]s--search%[1]s 查询中
+			使用高级议题搜索语法。有关高级议题搜索的更多信息，请参阅:
 			<https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/filtering-and-searching-issues-and-pull-requests#building-advanced-filters-for-issues>
 		`, "`"),
 		Example: heredoc.Doc(`
@@ -84,15 +84,15 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		Aliases: []string{"ls"},
 		Args:    cmdutil.NoArgsQuoteReminder,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// support `-R, --repo` override
+			// 支持 `-R, --repo` 覆盖
 			opts.BaseRepo = f.BaseRepo
 
 			if opts.LimitResults < 1 {
-				return cmdutil.FlagErrorf("invalid limit: %v", opts.LimitResults)
+				return cmdutil.FlagErrorf("无效的 limit: %v", opts.LimitResults)
 			}
 
 			if cmd.Flags().Changed("author") && cmd.Flags().Changed("app") {
-				return cmdutil.FlagErrorf("specify only `--author` or `--app`")
+				return cmdutil.FlagErrorf("`--author` 或 `--app` 中只能指定一个")
 			}
 
 			if cmd.Flags().Changed("app") {
@@ -106,17 +106,17 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "List issues in the web browser")
-	cmd.Flags().StringVarP(&opts.Assignee, "assignee", "a", "", "Filter by assignee")
-	cmd.Flags().StringSliceVarP(&opts.Labels, "label", "l", nil, "Filter by label")
-	cmdutil.StringEnumFlag(cmd, &opts.State, "state", "s", "open", []string{"open", "closed", "all"}, "Filter by state")
-	cmd.Flags().IntVarP(&opts.LimitResults, "limit", "L", 30, "Maximum number of issues to fetch")
-	cmd.Flags().StringVarP(&opts.Author, "author", "A", "", "Filter by author (use --app to filter by a GitHub App)")
-	cmd.Flags().StringVar(&appAuthor, "app", "", "Filter by GitHub App author")
-	cmd.Flags().StringVar(&opts.Mention, "mention", "", "Filter by mention")
-	cmd.Flags().StringVarP(&opts.Milestone, "milestone", "m", "", "Filter by milestone number or title")
-	cmd.Flags().StringVarP(&opts.Search, "search", "S", "", "Search issues with `query`")
-	cmd.Flags().StringVar(&opts.IssueType, "type", "", "Filter by issue type `name`")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在网页浏览器中列出议题")
+	cmd.Flags().StringVarP(&opts.Assignee, "assignee", "a", "", "按负责人过滤")
+	cmd.Flags().StringSliceVarP(&opts.Labels, "label", "l", nil, "按标签过滤")
+	cmdutil.StringEnumFlag(cmd, &opts.State, "state", "s", "open", []string{"open", "closed", "all"}, "按状态过滤")
+	cmd.Flags().IntVarP(&opts.LimitResults, "limit", "L", 30, "要获取的议题数量上限")
+	cmd.Flags().StringVarP(&opts.Author, "author", "A", "", "按作者过滤(使用 --app 按 GitHub App 过滤)")
+	cmd.Flags().StringVar(&appAuthor, "app", "", "按 GitHub App 作者过滤")
+	cmd.Flags().StringVar(&opts.Mention, "mention", "", "按提及过滤")
+	cmd.Flags().StringVarP(&opts.Milestone, "milestone", "m", "", "按里程碑编号或标题过滤")
+	cmd.Flags().StringVarP(&opts.Search, "search", "S", "", "使用 `query` 搜索议题")
+	cmd.Flags().StringVar(&opts.IssueType, "type", "", "按议题类型 `name` 过滤")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, api.IssueFields)
 
 	return cmd
@@ -170,10 +170,9 @@ func listRun(opts *ListOptions) error {
 
 	if opts.WebMode {
 		// TODO advancedIssueSearchCleanup
-		// We won't need feature detection when GHES 3.17 support ends, since
-		// the advanced issue search is the only available search backend for
-		// issues, and the GUI (i.e. Issues tab of repos) already supports the
-		// advanced syntax.
+		// 当 GHES 3.17 支持终止后，我们将不再需要功能检测，因为
+		// 高级议题搜索是议题唯一可用的搜索后端，并且 GUI
+		// (即仓库的 Issues 标签页) 已支持该高级语法。
 		searchFeatures, err := opts.Detector.SearchFeatures()
 		if err != nil {
 			return err
@@ -181,15 +180,15 @@ func listRun(opts *ListOptions) error {
 
 		issueListURL := ghrepo.GenerateRepoURL(baseRepo, "issues")
 
-		// Note that if the advanced issue search API is available, the syntax is
-		// also supported in the Issues tab.
+		// 请注意，如果高级议题搜索 API 可用，则 Issues 标签页也
+		// 支持该语法。
 		openURL, err := prShared.ListURLWithQuery(issueListURL, filterOptions, searchFeatures.AdvancedIssueSearchAPI)
 		if err != nil {
 			return err
 		}
 
 		if isTerminal {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(openURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
 		}
 		return opts.Browser.Browse(openURL)
 	}
@@ -209,7 +208,7 @@ func listRun(opts *ListOptions) error {
 	if err := opts.IO.StartPager(); err == nil {
 		defer opts.IO.StopPager()
 	} else {
-		fmt.Fprintf(opts.IO.ErrOut, "failed to start pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 
 	if opts.Exporter != nil {
@@ -217,7 +216,7 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if listResult.SearchCapped {
-		fmt.Fprintln(opts.IO.ErrOut, "warning: this query uses the Search API which is capped at 1000 results maximum")
+		fmt.Fprintln(opts.IO.ErrOut, "警告: 此查询使用 Search API，该 API 最多返回 1000 条结果")
 	}
 	if isTerminal {
 		title := prShared.ListHeader(ghrepo.FullName(baseRepo), "issue", len(listResult.Issues), listResult.TotalCount, !filterOptions.IsDefault())
@@ -280,7 +279,7 @@ func milestoneByNumber(client *http.Client, repo ghrepo.Interface, number int32)
 		return nil, err
 	}
 	if query.Repository.Milestone == nil {
-		return nil, fmt.Errorf("no milestone found with number '%d'", number)
+		return nil, fmt.Errorf("未找到编号为 '%d' 的里程碑", number)
 	}
 
 	return query.Repository.Milestone, nil

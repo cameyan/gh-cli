@@ -448,7 +448,7 @@ func TestNewCmdEdit(t *testing.T) {
 			name:           "attach flag with more than one issue",
 			input:          fmt.Sprintf("23 34 --attach '%s'", tmpImage),
 			wantsErr:       true,
-			wantsErrMsg:    "`--attach` cannot be used when editing multiple issues",
+			wantsErrMsg:    "编辑多个议题时无法使用 `--attach`",
 			wantEvents:     attachmentEvent,
 			wantSampleRate: ghtelemetry.SAMPLE_ALL,
 		},
@@ -456,7 +456,7 @@ func TestNewCmdEdit(t *testing.T) {
 			name:        "body flag conflict skips attachment telemetry",
 			input:       fmt.Sprintf("23 --body test --body-file '%s' --attach '%s'", tmpFile, tmpImage),
 			wantsErr:    true,
-			wantsErrMsg: "specify only one of `--body` or `--body-file`",
+			wantsErrMsg: "只能指定 `--body` 或 `--body-file` 中的一个",
 		},
 		{
 			name:              "attach flag naming a file that does not exist",
@@ -791,7 +791,7 @@ func Test_editRun(t *testing.T) {
 			stdout: heredoc.Doc(`
 				https://github.com/OWNER/REPO/issue/123
 			`),
-			stderr:  `failed to update https://github.com/OWNER/REPO/issue/456:.*test error`,
+			stderr:  `更新 https://github.com/OWNER/REPO/issue/456 失败:.*test error`,
 			wantErr: true,
 		},
 		{
@@ -1003,7 +1003,7 @@ func Test_editRun(t *testing.T) {
 				reg.Exclude(t, httpmock.GraphQL(`mutation UpdateIssueIssueType\b`))
 			},
 			wantErr:    true,
-			wantErrMsg: `type "NotAType" not found; available types: Bug`,
+			wantErrMsg: `类型 "NotAType" 未找到，可用类型: Bug`,
 		},
 		{
 			name: "remove type",
@@ -1703,9 +1703,9 @@ func Test_editRun(t *testing.T) {
 					httpmock.StatusStringResponse(500, `{}`),
 				)
 			},
-			stderr:          `failed to update https://github\.com/OWNER/REPO/issue/123`,
+			stderr:          `更新 https://github\.com/OWNER/REPO/issue/123 失败`,
 			wantErr:         true,
-			wantErrContains: []string{"./shot.png", "failed to update 1 issue"},
+			wantErrContains: []string{"./shot.png", "更新 1 个议题失败"},
 		},
 	}
 	for _, tt := range tests {
@@ -2116,7 +2116,7 @@ func Test_editRun_crossHostRelationshipRefs(t *testing.T) {
 
 			err := editRun(tt.input)
 			require.Error(t, err)
-			assert.Regexp(t, `belongs to a different host \(example\.com\) than the current repository \(github\.com\)`, stderr.String())
+			assert.Regexp(t, `的主机 \(example\.com\) 与当前仓库的主机 \(github\.com\) 不同`, stderr.String())
 		})
 	}
 }

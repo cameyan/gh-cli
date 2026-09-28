@@ -49,15 +49,15 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view {<number> | <url>}",
-		Short: "View an issue",
+		Short: "查看议题",
 		Long: heredoc.Docf(`
-			Display the title, body, and other information about an issue.
+			显示议题的标题、正文及其他信息。
 
-			With %[1]s--web%[1]s flag, open the issue in a web browser instead.
+			使用 %[1]s--web%[1]s 旗标时，改为在网页浏览器中打开该议题。
 		`, "`"),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := cmdutil.MutuallyExclusive("specify only one of --comments or --json",
+			if err := cmdutil.MutuallyExclusive("`--comments` 或 `--json` 中只能指定一个",
 				opts.Comments, opts.Exporter != nil); err != nil {
 				return err
 			}
@@ -67,13 +67,13 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 				return err
 			}
 
-			// If the args provided the base repo then use that directly.
+			// 如果参数提供了基础仓库，则直接使用它。
 			if baseRepo, present := baseRepo.Value(); present {
 				opts.BaseRepo = func() (ghrepo.Interface, error) {
 					return baseRepo, nil
 				}
 			} else {
-				// support `-R, --repo` override
+				// 支持 `-R, --repo` 覆盖
 				opts.BaseRepo = f.BaseRepo
 			}
 
@@ -86,8 +86,8 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "Open an issue in the browser")
-	cmd.Flags().BoolVarP(&opts.Comments, "comments", "c", false, "View issue comments")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在浏览器中打开议题")
+	cmd.Flags().BoolVarP(&opts.Comments, "comments", "c", false, "查看议题评论")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, api.IssueFields)
 
 	return cmd
@@ -123,7 +123,7 @@ func viewRun(opts *ViewOptions) error {
 		}
 
 		// TODO projectsV1Deprecation
-		// Remove this section as we should no longer add projectCards
+		// 移除本节，因为我们不应再添加 projectCards
 		if opts.Detector == nil {
 			cachedClient := api.NewCachedHTTPClient(httpClient, time.Hour*24)
 			opts.Detector = fd.NewDetector(cachedClient, baseRepo.RepoHost())
@@ -173,13 +173,13 @@ func viewRun(opts *ViewOptions) error {
 	if opts.WebMode {
 		openURL := issue.URL
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(openURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
 		}
 		return opts.Browser.Browse(openURL)
 	}
 
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "error starting pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -204,8 +204,8 @@ func printRawIssuePreview(out io.Writer, issue *api.Issue) error {
 	labels := issueLabelList(issue, nil)
 	projects := issueProjectList(*issue)
 
-	// Print empty strings for empty values so the number of metadata lines is consistent when
-	// processing many issues with head and grep.
+	// 为空值打印空字符串，使得在使用 head 和 grep
+	// 处理大量议题时元数据行数保持一致。
 	fmt.Fprintf(out, "title:\t%s\n", issue.Title)
 	fmt.Fprintf(out, "state:\t%s\n", issue.State)
 	fmt.Fprintf(out, "author:\t%s\n", issue.Author.DisplayName())
@@ -246,67 +246,67 @@ func printHumanIssuePreview(opts *ViewOptions, baseRepo ghrepo.Interface, issue 
 	out := opts.IO.Out
 	cs := opts.IO.ColorScheme()
 
-	// Header (Title and State)
+	// 头部 (标题和状态)
 	fmt.Fprintf(out, "%s %s#%d\n", cs.Bold(issue.Title), ghrepo.FullName(baseRepo), issue.Number)
 
-	// State line - include issue type prefix when present
+	// 状态行 - 存在议题类型前缀时包含它
 	stateLine := issueStateTitleWithColor(cs, issue)
 	if issue.IssueType != nil {
 		stateLine = cs.Muted(issue.IssueType.Name) + " · " + stateLine
 	}
 	fmt.Fprintf(out,
-		"%s • %s opened %s • %s\n",
+		"%s • %s 打开了 %s • %s\n",
 		stateLine,
 		issue.Author.DisplayName(),
 		text.FuzzyAgo(opts.Now(), issue.CreatedAt),
 		text.Pluralize(issue.Comments.TotalCount, "comment"),
 	)
 
-	// Reactions
+	// 反应
 	if reactions := prShared.ReactionGroupList(issue.ReactionGroups); reactions != "" {
 		fmt.Fprint(out, reactions)
 		fmt.Fprintln(out)
 	}
 
-	// Metadata
+	// 元数据
 	if assignees := issueAssigneeList(*issue); assignees != "" {
-		fmt.Fprint(out, cs.Bold("Assignees: "))
+		fmt.Fprint(out, cs.Bold("负责人: "))
 		fmt.Fprintln(out, assignees)
 	}
 	if labels := issueLabelList(issue, cs); labels != "" {
-		fmt.Fprint(out, cs.Bold("Labels: "))
+		fmt.Fprint(out, cs.Bold("标签: "))
 		fmt.Fprintln(out, labels)
 	}
 	if issue.IssueType != nil {
-		fmt.Fprint(out, cs.Bold("Type: "))
+		fmt.Fprint(out, cs.Bold("类型: "))
 		fmt.Fprintln(out, issue.IssueType.Name)
 	}
 	if issue.Parent != nil {
-		fmt.Fprint(out, cs.Bold("Parent: "))
+		fmt.Fprint(out, cs.Bold("父议题: "))
 		fmt.Fprintln(out, formatLinkedIssueRef(issue.Parent)+" "+issue.Parent.Title)
 	}
 	if blockedBy := formatLinkedIssueListWithTitle(issue.BlockedBy.Nodes); blockedBy != "" {
-		fmt.Fprint(out, cs.Bold("Blocked by: "))
+		fmt.Fprint(out, cs.Bold("被阻塞于: "))
 		fmt.Fprintln(out, blockedBy)
 	}
 	if blocking := formatLinkedIssueListWithTitle(issue.Blocking.Nodes); blocking != "" {
-		fmt.Fprint(out, cs.Bold("Blocking: "))
+		fmt.Fprint(out, cs.Bold("阻塞: "))
 		fmt.Fprintln(out, blocking)
 	}
 	if projects := issueProjectList(*issue); projects != "" {
-		fmt.Fprint(out, cs.Bold("Projects: "))
+		fmt.Fprint(out, cs.Bold("项目: "))
 		fmt.Fprintln(out, projects)
 	}
 	if issue.Milestone != nil {
-		fmt.Fprint(out, cs.Bold("Milestone: "))
+		fmt.Fprint(out, cs.Bold("里程碑: "))
 		fmt.Fprintln(out, issue.Milestone.Title)
 	}
 
-	// Body
+	// 正文
 	var md string
 	var err error
 	if issue.Body == "" {
-		md = fmt.Sprintf("\n  %s\n\n", cs.Muted("No description provided"))
+		md = fmt.Sprintf("\n  %s\n\n", cs.Muted("未提供描述"))
 	} else {
 		md, err = markdown.Render(issue.Body,
 			markdown.WithTheme(opts.IO.TerminalTheme()),
@@ -317,10 +317,10 @@ func printHumanIssuePreview(opts *ViewOptions, baseRepo ghrepo.Interface, issue 
 	}
 	fmt.Fprintf(out, "\n%s\n", md)
 
-	// Sub-issues section
+	// 子议题部分
 	if issue.SubIssuesSummary.Total > 0 {
 		fmt.Fprintf(out, "%s · %d/%d (%d%%)\n",
-			cs.Bold("Sub-issues"),
+			cs.Bold("子议题"),
 			issue.SubIssuesSummary.Completed,
 			issue.SubIssuesSummary.Total,
 			int(issue.SubIssuesSummary.PercentCompleted),
@@ -341,7 +341,7 @@ func printHumanIssuePreview(opts *ViewOptions, baseRepo ghrepo.Interface, issue 
 		fmt.Fprintln(out)
 	}
 
-	// Comments
+	// 评论
 	if issue.Comments.TotalCount > 0 {
 		preview := !opts.Comments
 		comments, err := prShared.CommentList(opts.IO, issue.Comments, api.PullRequestReviews{}, preview)
@@ -351,25 +351,25 @@ func printHumanIssuePreview(opts *ViewOptions, baseRepo ghrepo.Interface, issue 
 		fmt.Fprint(out, comments)
 	}
 
-	// Footer
-	fmt.Fprintf(out, cs.Muted("View this issue on GitHub: %s\n"), issue.URL)
+	// 页脚
+	fmt.Fprintf(out, cs.Muted("在 GitHub 上查看此议题: %s\n"), issue.URL)
 
 	return nil
 }
 
-// formatLinkedIssueRef formats an issue reference as owner/repo#N.
+// formatLinkedIssueRef 将议题引用格式化为 owner/repo#N。
 func formatLinkedIssueRef(issue *api.LinkedIssue) string {
 	return fmt.Sprintf("%s#%d", issue.Repository.NameWithOwner, issue.Number)
 }
 
-// formatLinkedIssueRefs formats a comma-separated list of linked issue
-// references without titles.
+// formatLinkedIssueRefs 格式化一个以逗号分隔的关联议题
+// 引用列表，不含标题。
 func formatLinkedIssueRefs(issues []api.LinkedIssue) string {
 	return joinLinkedIssues(issues, false)
 }
 
-// formatLinkedIssueListWithTitle formats a comma-separated list of linked
-// issue references with each title appended after the reference.
+// formatLinkedIssueListWithTitle 格式化一个以逗号分隔的关联
+// 议题引用列表，每个标题追加在引用之后。
 func formatLinkedIssueListWithTitle(issues []api.LinkedIssue) string {
 	return joinLinkedIssues(issues, true)
 }
@@ -427,16 +427,16 @@ func issueProjectList(issue api.Issue) string {
 	for _, project := range issue.ProjectItems.Nodes {
 		colName := project.Status.Name
 		if colName == "" {
-			colName = "No Status"
+			colName = "无状态"
 		}
 		projectNames = append(projectNames, fmt.Sprintf("%s (%s)", project.Project.Title, colName))
 	}
 
-	// TODO: Remove v1 classic project logic when completely deprecated
+	// TODO: 在完全弃用后移除 v1 经典项目逻辑
 	for _, project := range issue.ProjectCards.Nodes {
 		colName := project.Column.Name
 		if colName == "" {
-			colName = "Awaiting triage"
+			colName = "待分类"
 		}
 		projectNames = append(projectNames, fmt.Sprintf("%s (%s)", project.Project.Name, colName))
 	}
@@ -453,7 +453,7 @@ func issueLabelList(issue *api.Issue, cs *iostreams.ColorScheme) string {
 		return ""
 	}
 
-	// ignore case sort
+	// 忽略大小写排序
 	sort.SliceStable(issue.Labels.Nodes, func(i, j int) bool {
 		return strings.ToLower(issue.Labels.Nodes[i].Name) < strings.ToLower(issue.Labels.Nodes[j].Name)
 	})
