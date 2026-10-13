@@ -36,10 +36,10 @@ func NewCmdUnarchive(f *cmdutil.Factory, runF func(*UnarchiveOptions) error) *co
 
 	cmd := &cobra.Command{
 		Use:   "unarchive [<repository>]",
-		Short: "Unarchive a repository",
-		Long: heredoc.Doc(`Unarchive a GitHub repository.
+		Short: "取消归档仓库",
+		Long: heredoc.Doc(`取消归档(unarchive) GitHub 仓库。
 
-With no argument, unarchives the current repository.`),
+未提供参数时，取消归档当前仓库。`),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
@@ -47,7 +47,7 @@ With no argument, unarchives the current repository.`),
 			}
 
 			if !opts.Confirmed && !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("--yes required when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时必须提供 --yes 标志")
 			}
 
 			if runF != nil {
@@ -58,9 +58,9 @@ With no argument, unarchives the current repository.`),
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.Confirmed, "confirm", false, "Skip the confirmation prompt")
+	cmd.Flags().BoolVar(&opts.Confirmed, "confirm", false, "跳过确认提示")
 	_ = cmd.Flags().MarkDeprecated("confirm", "use `--yes` instead")
-	cmd.Flags().BoolVarP(&opts.Confirmed, "yes", "y", false, "Skip the confirmation prompt")
+	cmd.Flags().BoolVarP(&opts.Confirmed, "yes", "y", false, "跳过确认提示")
 	return cmd
 }
 
@@ -110,12 +110,12 @@ func unarchiveRun(opts *UnarchiveOptions) error {
 
 	fullName := ghrepo.FullName(toUnarchive)
 	if !repo.IsArchived {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Repository %s is not archived\n", cs.WarningIcon(), fullName)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 仓库 %s 未被归档\n", cs.WarningIcon(), fullName)
 		return nil
 	}
 
 	if !opts.Confirmed {
-		confirmed, err := opts.Prompter.Confirm(fmt.Sprintf("Unarchive %s?", fullName), false)
+		confirmed, err := opts.Prompter.Confirm(fmt.Sprintf("取消归档 %s？", fullName), false)
 		if err != nil {
 			return err
 		}
@@ -130,7 +130,7 @@ func unarchiveRun(opts *UnarchiveOptions) error {
 	}
 
 	if opts.IO.IsStdoutTTY() {
-		fmt.Fprintf(opts.IO.Out, "%s Unarchived repository %s\n", cs.SuccessIcon(), fullName)
+		fmt.Fprintf(opts.IO.Out, "%s 已取消归档仓库 %s\n", cs.SuccessIcon(), fullName)
 	}
 
 	return nil

@@ -10,8 +10,8 @@ import (
 func NewCmdOrg(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "org <command>",
-		Short: "Manage organizations",
-		Long:  "Work with GitHub organizations.",
+		Short: "管理组织",
+		Long:  "操作 GitHub 组织。",
 		Example: heredoc.Doc(`
 			$ gh org list
 		`),

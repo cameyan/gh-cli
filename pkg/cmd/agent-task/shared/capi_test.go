@@ -91,7 +91,7 @@ func TestCapiClientFuncResolvesURL(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, client)
 
-	// Verify the GraphQL resolution was called
+	// 验证 GraphQL 解析是否被调用
 	require.Len(t, reg.Requests, 1)
 }
 

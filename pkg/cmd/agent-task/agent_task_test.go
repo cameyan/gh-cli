@@ -11,22 +11,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// setupMockOAuthConfig configures a blank config with a default host and optional token behavior.
+// setupMockOAuthConfig 配置一个带有默认主机和可选 token 行为的空白配置。
 func setupMockOAuthConfig(t *testing.T, tokenSource string) gh.Config {
 	t.Helper()
 	c := config.NewMockConfig()
 	switch tokenSource {
 	case "oauth_token":
-		// valid OAuth device flow token stored in config
+		// 存储在配置中的有效 OAuth device flow token
 		c.Set("github.com", "oauth_token", "gho_OAUTH123")
 	case "keyring":
-		// valid OAuth device flow token stored in keyring
+		// 存储在 keyring 中的有效 OAuth device flow token
 		c.Set("github.com", "oauth_token", "gho_OAUTH123")
 	case "GH_TOKEN":
-		// classic style token stored in config (will fail prefix check)
+		// 存储在配置中的经典样式 token（将无法通过前缀检查）
 		c.Set("github.com", "oauth_token", "ghp_CLASSIC123")
 	case "GH_ENTERPRISE_TOKEN":
-		// enterprise style token stored in config (will fail prefix check)
+		// 存储在配置中的企业版样式 token（将无法通过前缀检查）
 		c.Set("something.ghes.com", "oauth_token", "ghe_ENTERPRISE123")
 	}
 	return c
@@ -57,7 +57,7 @@ func TestNewCmdAgentTask(t *testing.T) {
 			name:            "env var token is rejected",
 			tokenSource:     "GH_TOKEN",
 			wantErr:         true,
-			wantErrContains: "requires an OAuth token",
+			wantErrContains: "需要 OAuth token",
 		},
 		{
 			name:        "enterprise token alone is ignored and rejected",
@@ -87,7 +87,7 @@ func TestNewCmdAgentTask(t *testing.T) {
 				}, nil
 			},
 			wantErr:         true,
-			wantErrContains: "not supported on this host",
+			wantErrContains: "此主机不支持",
 		},
 		{
 			name: "empty host is rejected",
@@ -101,7 +101,7 @@ func TestNewCmdAgentTask(t *testing.T) {
 				}, nil
 			},
 			wantErr:         true,
-			wantErrContains: "no default host configured",
+			wantErrContains: "未配置默认主机",
 		},
 		{
 			name:        "no auth is rejected",

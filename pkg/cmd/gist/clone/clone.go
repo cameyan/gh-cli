@@ -39,16 +39,16 @@ func NewCmdClone(f *cmdutil.Factory, runF func(*CloneOptions) error) *cobra.Comm
 		DisableFlagsInUseLine: true,
 
 		Use:   "clone <gist> [<directory>] [-- <gitflags>...]",
-		Args:  cmdutil.MinimumArgs(1, "cannot clone: gist argument required"),
-		Short: "Clone a gist locally",
+		Args:  cmdutil.MinimumArgs(1, "无法克隆: 需要 gist 参数"),
+		Short: "在本地克隆 gist",
 		Long: heredoc.Docf(`
-			Clone a GitHub gist locally.
+			在本地克隆 GitHub gist。
 
-			A gist can be supplied as argument in either of the following formats:
-			- by ID, e.g. %[1]s5b0e0062eb8e9654adad7bb1d81cc75f%[1]s
-			- by URL, e.g. %[1]shttps://gist.github.com/OWNER/5b0e0062eb8e9654adad7bb1d81cc75f%[1]s
+			gist 可以通过以下任一格式作为参数提供:
+			- 通过 ID，例如 %[1]s5b0e0062eb8e9654adad7bb1d81cc75f%[1]s
+			- 通过 URL，例如 %[1]shttps://gist.github.com/OWNER/5b0e0062eb8e9654adad7bb1d81cc75f%[1]s
 
-			Pass additional %[1]sgit clone%[1]s flags by listing them after %[1]s--%[1]s.
+			在 %[1]s--%[1]s 之后列出额外的 %[1]sgit clone%[1]s 旗标即可传入这些旗标。
 		`, "`"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Gist = args[0]
@@ -66,7 +66,7 @@ func NewCmdClone(f *cmdutil.Factory, runF func(*CloneOptions) error) *cobra.Comm
 		if err == pflag.ErrHelp {
 			return err
 		}
-		return cmdutil.FlagErrorf("%w\nSeparate git clone flags with '--'.", err)
+		return cmdutil.FlagErrorf("%w\n使用 '--' 分隔 git clone 旗标。", err)
 	})
 
 	return cmd

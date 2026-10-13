@@ -41,7 +41,7 @@ func TestNewCmdCreate(t *testing.T) {
 			tty:      false,
 			cli:      "",
 			wantsErr: true,
-			errMsg:   "at least one argument required in non-interactive mode",
+			errMsg:   "非交互模式下至少需要一个参数",
 		},
 		{
 			name: "new repo from remote",
@@ -56,14 +56,14 @@ func TestNewCmdCreate(t *testing.T) {
 			tty:      true,
 			cli:      "NEWREPO",
 			wantsErr: true,
-			errMsg:   "`--public`, `--private`, or `--internal` required when not running interactively",
+			errMsg:   "非交互模式下运行时，需要 `--public`, `--private` 或 `--internal` 之一",
 		},
 		{
 			name:     "multiple visibility",
 			tty:      true,
 			cli:      "NEWREPO --public --private",
 			wantsErr: true,
-			errMsg:   "expected exactly one of `--public`, `--private`, or `--internal`",
+			errMsg:   "`--public`, `--private` 或 `--internal` 中只能提供一个",
 		},
 		{
 			name: "new remote from local",
@@ -98,19 +98,19 @@ func TestNewCmdCreate(t *testing.T) {
 				Push:   true,
 			},
 			wantsErr: true,
-			errMsg:   "`--public`, `--private`, or `--internal` required when not running interactively",
+			errMsg:   "非交互模式下运行时，需要 `--public`, `--private` 或 `--internal` 之一",
 		},
 		{
 			name:     "source with template",
 			cli:      "--source=/path/to/repo --private --template mytemplate",
 			wantsErr: true,
-			errMsg:   "the `--source` option is not supported with `--clone`, `--template`, `--license`, or `--gitignore`",
+			errMsg:   "`--source` 选项不支持与 `--clone`、`--template`, `--license` 或 `--gitignore` 搭配使用",
 		},
 		{
 			name:     "include all branches without template",
 			cli:      "--source=/path/to/repo --private --include-all-branches",
 			wantsErr: true,
-			errMsg:   "the `--include-all-branches` option is only supported when using `--template`",
+			errMsg:   "`--include-all-branches` 选项仅在使用 `--template` 时受支持",
 		},
 		{
 			name: "new remote from template with include all branches",
@@ -126,13 +126,13 @@ func TestNewCmdCreate(t *testing.T) {
 			name:     "template with .gitignore",
 			cli:      "template-repo --template mytemplate --gitignore ../.gitignore --public",
 			wantsErr: true,
-			errMsg:   ".gitignore and license templates are not added when template is provided",
+			errMsg:   "提供了模板时，不会添加 .gitignore 和许可证模板",
 		},
 		{
 			name:     "template with license",
 			cli:      "template-repo --template mytemplate --license ../.license --public",
 			wantsErr: true,
-			errMsg:   ".gitignore and license templates are not added when template is provided",
+			errMsg:   "提供了模板时，不会添加 .gitignore 和许可证模板",
 		},
 	}
 
@@ -204,22 +204,22 @@ func Test_createRun(t *testing.T) {
 			tty:  true,
 			promptStubs: func(p *prompter.PrompterMock) {
 				p.InputFunc = func(message, defaultValue string) (string, error) {
-					if message != "Repository name" || len(p.InputCalls()) != 1 {
+					if message != "仓库名称" || len(p.InputCalls()) != 1 {
 						return "", fmt.Errorf("unexpected input prompt: %s", message)
 					}
 					return "", nil
 				}
 				p.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "What would you like to do?":
-						return prompter.IndexFor(options, "Create a new repository on github.com from scratch")
+					case "您想做什么?":
+						return prompter.IndexFor(options, "在 github.com 上从零开始创建新仓库")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
 					}
 				}
 			},
 			wantErr: true,
-			errMsg:  "repository name cannot be blank",
+			errMsg:  "仓库名称不能为空",
 		},
 		{
 			name: "interactive create from scratch with whitespace-only name",
@@ -227,40 +227,40 @@ func Test_createRun(t *testing.T) {
 			tty:  true,
 			promptStubs: func(p *prompter.PrompterMock) {
 				p.InputFunc = func(message, defaultValue string) (string, error) {
-					if message != "Repository name" || len(p.InputCalls()) != 1 {
+					if message != "仓库名称" || len(p.InputCalls()) != 1 {
 						return "", fmt.Errorf("unexpected input prompt: %s", message)
 					}
 					return " \t ", nil
 				}
 				p.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "What would you like to do?":
-						return prompter.IndexFor(options, "Create a new repository on github.com from scratch")
+					case "您想做什么?":
+						return prompter.IndexFor(options, "在 github.com 上从零开始创建新仓库")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
 					}
 				}
 			},
 			wantErr: true,
-			errMsg:  "repository name cannot be blank",
+			errMsg:  "仓库名称不能为空",
 		},
 		{
 			name:       "interactive create from scratch with gitignore and license",
 			opts:       &CreateOptions{Interactive: true},
 			tty:        true,
-			wantStdout: "✓ Created repository OWNER/REPO on github.com\n  https://github.com/OWNER/REPO\n",
+			wantStdout: "✓ 已在 github.com 上创建仓库 OWNER/REPO\n  https://github.com/OWNER/REPO\n",
 			promptStubs: func(p *prompter.PrompterMock) {
 				p.ConfirmFunc = func(message string, defaultValue bool) (bool, error) {
 					switch message {
-					case "Would you like to add a README file?":
+					case "您想添加 README 文件吗?":
 						return false, nil
-					case "Would you like to add a .gitignore?":
+					case "您想添加 .gitignore 吗?":
 						return true, nil
-					case "Would you like to add a license?":
+					case "您想添加许可证吗?":
 						return true, nil
-					case `This will create "REPO" as a private repository on github.com. Continue?`:
+					case `将在 github.com 上以 private 可见性创建 "REPO"，是否继续?`:
 						return defaultValue, nil
-					case "Clone the new repository locally?":
+					case "是否在本地克隆新仓库?":
 						return defaultValue, nil
 					default:
 						return false, fmt.Errorf("unexpected confirm prompt: %s", message)
@@ -268,9 +268,9 @@ func Test_createRun(t *testing.T) {
 				}
 				p.InputFunc = func(message, defaultValue string) (string, error) {
 					switch message {
-					case "Repository name":
+					case "仓库名称":
 						return "REPO", nil
-					case "Description":
+					case "描述":
 						return "my new repo", nil
 					default:
 						return "", fmt.Errorf("unexpected input prompt: %s", message)
@@ -278,13 +278,13 @@ func Test_createRun(t *testing.T) {
 				}
 				p.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "What would you like to do?":
-						return prompter.IndexFor(options, "Create a new repository on github.com from scratch")
-					case "Visibility":
+					case "您想做什么?":
+						return prompter.IndexFor(options, "在 github.com 上从零开始创建新仓库")
+					case "可见性":
 						return prompter.IndexFor(options, "Private")
-					case "Choose a license":
+					case "选择一个许可证":
 						return prompter.IndexFor(options, "GNU Lesser General Public License v3.0")
-					case "Choose a .gitignore template":
+					case "选择一个 .gitignore 模板":
 						return prompter.IndexFor(options, "Go")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
@@ -314,19 +314,19 @@ func Test_createRun(t *testing.T) {
 			name:       "interactive create from scratch but with prompted owner",
 			opts:       &CreateOptions{Interactive: true},
 			tty:        true,
-			wantStdout: "✓ Created repository org1/REPO on github.com\n  https://github.com/org1/REPO\n",
+			wantStdout: "✓ 已在 github.com 上创建仓库 org1/REPO\n  https://github.com/org1/REPO\n",
 			promptStubs: func(p *prompter.PrompterMock) {
 				p.ConfirmFunc = func(message string, defaultValue bool) (bool, error) {
 					switch message {
-					case "Would you like to add a README file?":
+					case "您想添加 README 文件吗?":
 						return false, nil
-					case "Would you like to add a .gitignore?":
+					case "您想添加 .gitignore 吗?":
 						return false, nil
-					case "Would you like to add a license?":
+					case "您想添加许可证吗?":
 						return false, nil
-					case `This will create "org1/REPO" as a private repository on github.com. Continue?`:
+					case `将在 github.com 上以 private 可见性创建 "org1/REPO"，是否继续?`:
 						return true, nil
-					case "Clone the new repository locally?":
+					case "是否在本地克隆新仓库?":
 						return false, nil
 					default:
 						return false, fmt.Errorf("unexpected confirm prompt: %s", message)
@@ -334,9 +334,9 @@ func Test_createRun(t *testing.T) {
 				}
 				p.InputFunc = func(message, defaultValue string) (string, error) {
 					switch message {
-					case "Repository name":
+					case "仓库名称":
 						return "REPO", nil
-					case "Description":
+					case "描述":
 						return "my new repo", nil
 					default:
 						return "", fmt.Errorf("unexpected input prompt: %s", message)
@@ -344,11 +344,11 @@ func Test_createRun(t *testing.T) {
 				}
 				p.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "Repository owner":
+					case "仓库所有者":
 						return prompter.IndexFor(options, "org1")
-					case "What would you like to do?":
-						return prompter.IndexFor(options, "Create a new repository on github.com from scratch")
-					case "Visibility":
+					case "您想做什么?":
+						return prompter.IndexFor(options, "在 github.com 上从零开始创建新仓库")
+					case "可见性":
 						return prompter.IndexFor(options, "Private")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
@@ -386,13 +386,13 @@ func Test_createRun(t *testing.T) {
 			promptStubs: func(p *prompter.PrompterMock) {
 				p.ConfirmFunc = func(message string, defaultValue bool) (bool, error) {
 					switch message {
-					case "Would you like to add a README file?":
+					case "您想添加 README 文件吗?":
 						return false, nil
-					case "Would you like to add a .gitignore?":
+					case "您想添加 .gitignore 吗?":
 						return false, nil
-					case "Would you like to add a license?":
+					case "您想添加许可证吗?":
 						return false, nil
-					case `This will create "REPO" as a private repository on github.com. Continue?`:
+					case `将在 github.com 上以 private 可见性创建 "REPO"，是否继续?`:
 						return false, nil
 					default:
 						return false, fmt.Errorf("unexpected confirm prompt: %s", message)
@@ -400,9 +400,9 @@ func Test_createRun(t *testing.T) {
 				}
 				p.InputFunc = func(message, defaultValue string) (string, error) {
 					switch message {
-					case "Repository name":
+					case "仓库名称":
 						return "REPO", nil
-					case "Description":
+					case "描述":
 						return "my new repo", nil
 					default:
 						return "", fmt.Errorf("unexpected input prompt: %s", message)
@@ -410,9 +410,9 @@ func Test_createRun(t *testing.T) {
 				}
 				p.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "What would you like to do?":
-						return prompter.IndexFor(options, "Create a new repository on github.com from scratch")
-					case "Visibility":
+					case "您想做什么?":
+						return prompter.IndexFor(options, "在 github.com 上从零开始创建新仓库")
+					case "可见性":
 						return prompter.IndexFor(options, "Private")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
@@ -435,7 +435,7 @@ func Test_createRun(t *testing.T) {
 			promptStubs: func(p *prompter.PrompterMock) {
 				p.ConfirmFunc = func(message string, defaultValue bool) (bool, error) {
 					switch message {
-					case "Add a remote?":
+					case "是否添加远程?":
 						return false, nil
 					default:
 						return false, fmt.Errorf("unexpected confirm prompt: %s", message)
@@ -443,11 +443,11 @@ func Test_createRun(t *testing.T) {
 				}
 				p.InputFunc = func(message, defaultValue string) (string, error) {
 					switch message {
-					case "Path to local repository":
+					case "本地仓库路径":
 						return defaultValue, nil
-					case "Repository name":
+					case "仓库名称":
 						return "REPO", nil
-					case "Description":
+					case "描述":
 						return "my new repo", nil
 					default:
 						return "", fmt.Errorf("unexpected input prompt: %s", message)
@@ -455,9 +455,9 @@ func Test_createRun(t *testing.T) {
 				}
 				p.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "What would you like to do?":
-						return prompter.IndexFor(options, "Push an existing local repository to github.com")
-					case "Visibility":
+					case "您想做什么?":
+						return prompter.IndexFor(options, "将现有的本地仓库推送到 github.com")
+					case "可见性":
 						return prompter.IndexFor(options, "Private")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
@@ -488,7 +488,7 @@ func Test_createRun(t *testing.T) {
 				cs.Register(`git -C . rev-parse --git-dir`, 0, ".git")
 				cs.Register(`git -C . rev-parse HEAD`, 0, "commithash")
 			},
-			wantStdout: "✓ Created repository OWNER/REPO on github.com\n  https://github.com/OWNER/REPO\n",
+			wantStdout: "✓ 已在 github.com 上创建仓库 OWNER/REPO\n  https://github.com/OWNER/REPO\n",
 		},
 		{
 			name: "interactive with existing bare repository public and push",
@@ -497,9 +497,9 @@ func Test_createRun(t *testing.T) {
 			promptStubs: func(p *prompter.PrompterMock) {
 				p.ConfirmFunc = func(message string, defaultValue bool) (bool, error) {
 					switch message {
-					case "Add a remote?":
+					case "是否添加远程?":
 						return true, nil
-					case `Would you like to mirror all refs to "origin"?`:
+					case `是否将所有引用镜像到 "origin"?`:
 						return true, nil
 					default:
 						return false, fmt.Errorf("unexpected confirm prompt: %s", message)
@@ -507,13 +507,13 @@ func Test_createRun(t *testing.T) {
 				}
 				p.InputFunc = func(message, defaultValue string) (string, error) {
 					switch message {
-					case "Path to local repository":
+					case "本地仓库路径":
 						return defaultValue, nil
-					case "Repository name":
+					case "仓库名称":
 						return "REPO", nil
-					case "Description":
+					case "描述":
 						return "my new repo", nil
-					case "What should the new remote be called?":
+					case "新的远程应叫什么名字?":
 						return defaultValue, nil
 					default:
 						return "", fmt.Errorf("unexpected input prompt: %s", message)
@@ -521,9 +521,9 @@ func Test_createRun(t *testing.T) {
 				}
 				p.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "What would you like to do?":
-						return prompter.IndexFor(options, "Push an existing local repository to github.com")
-					case "Visibility":
+					case "您想做什么?":
+						return prompter.IndexFor(options, "将现有的本地仓库推送到 github.com")
+					case "可见性":
 						return prompter.IndexFor(options, "Private")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
@@ -556,7 +556,7 @@ func Test_createRun(t *testing.T) {
 				cs.Register(`git -C . remote add origin https://github.com/OWNER/REPO`, 0, "")
 				cs.Register(`git -C . push origin --mirror`, 0, "")
 			},
-			wantStdout: "✓ Created repository OWNER/REPO on github.com\n  https://github.com/OWNER/REPO\n✓ Added remote https://github.com/OWNER/REPO.git\n✓ Mirrored all refs to https://github.com/OWNER/REPO.git\n",
+			wantStdout: "✓ 已在 github.com 上创建仓库 OWNER/REPO\n  https://github.com/OWNER/REPO\n✓ 已添加远程 https://github.com/OWNER/REPO.git\n✓ 已将所有引用镜像到 https://github.com/OWNER/REPO.git\n",
 		},
 		{
 			name: "interactive with existing repository public add remote and push",
@@ -565,9 +565,9 @@ func Test_createRun(t *testing.T) {
 			promptStubs: func(p *prompter.PrompterMock) {
 				p.ConfirmFunc = func(message string, defaultValue bool) (bool, error) {
 					switch message {
-					case "Add a remote?":
+					case "是否添加远程?":
 						return true, nil
-					case `Would you like to push commits from the current branch to "origin"?`:
+					case `是否将当前分支的提交推送到 "origin"?`:
 						return true, nil
 					default:
 						return false, fmt.Errorf("unexpected confirm prompt: %s", message)
@@ -575,13 +575,13 @@ func Test_createRun(t *testing.T) {
 				}
 				p.InputFunc = func(message, defaultValue string) (string, error) {
 					switch message {
-					case "Path to local repository":
+					case "本地仓库路径":
 						return defaultValue, nil
-					case "Repository name":
+					case "仓库名称":
 						return "REPO", nil
-					case "Description":
+					case "描述":
 						return "my new repo", nil
-					case "What should the new remote be called?":
+					case "新的远程应叫什么名字?":
 						return defaultValue, nil
 					default:
 						return "", fmt.Errorf("unexpected input prompt: %s", message)
@@ -589,9 +589,9 @@ func Test_createRun(t *testing.T) {
 				}
 				p.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "What would you like to do?":
-						return prompter.IndexFor(options, "Push an existing local repository to github.com")
-					case "Visibility":
+					case "您想做什么?":
+						return prompter.IndexFor(options, "将现有的本地仓库推送到 github.com")
+					case "可见性":
 						return prompter.IndexFor(options, "Private")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
@@ -624,7 +624,7 @@ func Test_createRun(t *testing.T) {
 				cs.Register(`git -C . remote add origin https://github.com/OWNER/REPO`, 0, "")
 				cs.Register(`git -C . push --set-upstream origin HEAD`, 0, "")
 			},
-			wantStdout: "✓ Created repository OWNER/REPO on github.com\n  https://github.com/OWNER/REPO\n✓ Added remote https://github.com/OWNER/REPO.git\n✓ Pushed commits to https://github.com/OWNER/REPO.git\n",
+			wantStdout: "✓ 已在 github.com 上创建仓库 OWNER/REPO\n  https://github.com/OWNER/REPO\n✓ 已添加远程 https://github.com/OWNER/REPO.git\n✓ 已将提交推送到 https://github.com/OWNER/REPO.git\n",
 		},
 		{
 			name: "interactive create from a template repository",
@@ -633,9 +633,9 @@ func Test_createRun(t *testing.T) {
 			promptStubs: func(p *prompter.PrompterMock) {
 				p.ConfirmFunc = func(message string, defaultValue bool) (bool, error) {
 					switch message {
-					case `This will create "OWNER/REPO" as a private repository on github.com. Continue?`:
+					case `将在 github.com 上以 private 可见性创建 "OWNER/REPO"，是否继续?`:
 						return defaultValue, nil
-					case "Clone the new repository locally?":
+					case "是否在本地克隆新仓库?":
 						return defaultValue, nil
 					default:
 						return false, fmt.Errorf("unexpected confirm prompt: %s", message)
@@ -643,9 +643,9 @@ func Test_createRun(t *testing.T) {
 				}
 				p.InputFunc = func(message, defaultValue string) (string, error) {
 					switch message {
-					case "Repository name":
+					case "仓库名称":
 						return "REPO", nil
-					case "Description":
+					case "描述":
 						return "my new repo", nil
 					default:
 						return "", fmt.Errorf("unexpected input prompt: %s", message)
@@ -653,13 +653,13 @@ func Test_createRun(t *testing.T) {
 				}
 				p.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "Repository owner":
+					case "仓库所有者":
 						return prompter.IndexFor(options, "OWNER")
-					case "Choose a template repository":
+					case "选择一个模板仓库":
 						return prompter.IndexFor(options, "REPO")
-					case "What would you like to do?":
-						return prompter.IndexFor(options, "Create a new repository on github.com from a template repository")
-					case "Visibility":
+					case "您想做什么?":
+						return prompter.IndexFor(options, "在 github.com 上从模板仓库创建新仓库")
+					case "可见性":
 						return prompter.IndexFor(options, "Private")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
@@ -701,7 +701,7 @@ func Test_createRun(t *testing.T) {
 			execStubs: func(cs *run.CommandStubber) {
 				cs.Register(`git clone --branch main https://github.com/OWNER/REPO`, 0, "")
 			},
-			wantStdout: "✓ Created repository OWNER/REPO on github.com\n  https://github.com/OWNER/REPO\n",
+			wantStdout: "✓ 已在 github.com 上创建仓库 OWNER/REPO\n  https://github.com/OWNER/REPO\n",
 		},
 		{
 			name: "interactive create from template repo but there are no template repos",
@@ -716,9 +716,9 @@ func Test_createRun(t *testing.T) {
 				}
 				p.InputFunc = func(message, defaultValue string) (string, error) {
 					switch message {
-					case "Repository name":
+					case "仓库名称":
 						return "REPO", nil
-					case "Description":
+					case "描述":
 						return "my new repo", nil
 					default:
 						return "", fmt.Errorf("unexpected input prompt: %s", message)
@@ -726,9 +726,9 @@ func Test_createRun(t *testing.T) {
 				}
 				p.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "What would you like to do?":
-						return prompter.IndexFor(options, "Create a new repository on github.com from a template repository")
-					case "Visibility":
+					case "您想做什么?":
+						return prompter.IndexFor(options, "在 github.com 上从模板仓库创建新仓库")
+					case "可见性":
 						return prompter.IndexFor(options, "Private")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
@@ -749,7 +749,7 @@ func Test_createRun(t *testing.T) {
 			execStubs:  func(cs *run.CommandStubber) {},
 			wantStdout: "",
 			wantErr:    true,
-			errMsg:     "OWNER has no template repositories",
+			errMsg:     "OWNER 没有模板仓库",
 		},
 		{
 			name: "noninteractive create from scratch",
@@ -859,7 +859,7 @@ func Test_createRun(t *testing.T) {
 				cs.Register(`git -C . rev-parse --git-dir`, 128, "")
 			},
 			wantErr: true,
-			errMsg:  "current directory is not a git repository. Run `git init` to initialize it",
+			errMsg:  "当前目录不是 git 仓库，请运行 `git init` 进行初始化",
 		},
 		{
 			name: "noninteractive create from cwd that isn't a git repo",
@@ -874,7 +874,7 @@ func Test_createRun(t *testing.T) {
 				cs.Register(`git -C some-dir rev-parse --git-dir`, 128, "")
 			},
 			wantErr: true,
-			errMsg:  "some-dir is not a git repository. Run `git -C \"some-dir\" init` to initialize it",
+			errMsg:  "some-dir 不是 git 仓库，请运行 `git -C \"some-dir\" init` 进行初始化",
 		},
 		{
 			name: "noninteractive clone from scratch",
@@ -1017,15 +1017,15 @@ func Test_createRun(t *testing.T) {
 			promptStubs: func(p *prompter.PrompterMock) {
 				p.ConfirmFunc = func(message string, defaultValue bool) (bool, error) {
 					switch message {
-					case "Would you like to add a README file?":
+					case "您想添加 README 文件吗?":
 						return false, nil
-					case "Would you like to add a .gitignore?":
+					case "您想添加 .gitignore 吗?":
 						return false, nil
-					case "Would you like to add a license?":
+					case "您想添加许可证吗?":
 						return false, nil
-					case `This will create "REPO" as a private repository on example.com. Continue?`:
+					case `将在 example.com 上以 private 可见性创建 "REPO"，是否继续?`:
 						return defaultValue, nil
-					case "Clone the new repository locally?":
+					case "是否在本地克隆新仓库?":
 						return false, nil
 					default:
 						return false, fmt.Errorf("unexpected confirm prompt: %s", message)
@@ -1033,9 +1033,9 @@ func Test_createRun(t *testing.T) {
 				}
 				p.InputFunc = func(message, defaultValue string) (string, error) {
 					switch message {
-					case "Repository name":
+					case "仓库名称":
 						return "REPO", nil
-					case "Description":
+					case "描述":
 						return "my new repo", nil
 					default:
 						return "", fmt.Errorf("unexpected input prompt: %s", message)
@@ -1043,13 +1043,13 @@ func Test_createRun(t *testing.T) {
 				}
 				p.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "What would you like to do?":
-						return prompter.IndexFor(options, "Create a new repository on example.com from scratch")
-					case "Visibility":
+					case "您想做什么?":
+						return prompter.IndexFor(options, "在 example.com 上从零开始创建新仓库")
+					case "可见性":
 						return prompter.IndexFor(options, "Private")
-					case "Choose a license":
+					case "选择一个许可证":
 						return prompter.IndexFor(options, "GNU Lesser General Public License v3.0")
-					case "Choose a .gitignore template":
+					case "选择一个 .gitignore 模板":
 						return prompter.IndexFor(options, "Go")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
@@ -1077,7 +1077,7 @@ func Test_createRun(t *testing.T) {
 						}`),
 				)
 			},
-			wantStdout: "✓ Created repository OWNER/REPO on example.com\n  https://example.com/OWNER/REPO\n",
+			wantStdout: "✓ 已在 example.com 上创建仓库 OWNER/REPO\n  https://example.com/OWNER/REPO\n",
 		},
 	}
 	for _, tt := range tests {

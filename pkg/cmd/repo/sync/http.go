@@ -37,7 +37,7 @@ func latestCommit(client *api.Client, repo ghrepo.Interface, branch string) (com
 type upstreamMergeErr struct{ error }
 
 var missingWorkflowScopeRE = regexp.MustCompile("refusing to allow.*without `workflow(s)?` (scope|permission)")
-var missingWorkflowScopeErr = errors.New("Upstream commits contain workflow changes, which require the `workflow` scope or permission to merge. To request it, run: gh auth refresh -s workflow")
+var missingWorkflowScopeErr = errors.New("上游提交包含 workflow 变更，合并需要 `workflow` 作用域或权限。若要请求该权限，请运行: gh auth refresh -s workflow")
 
 func triggerUpstreamMerge(client *api.Client, repo ghrepo.Interface, branch string) (string, error) {
 	var payload bytes.Buffer

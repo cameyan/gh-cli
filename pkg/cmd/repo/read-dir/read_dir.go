@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// dirEntryFields are the JSON fields selectable via the --json flag.
+// dirEntryFields 是可通过 --json 标志选择的 JSON 字段。
 var dirEntryFields = []string{
 	"name",
 	"path",
@@ -29,7 +29,7 @@ var dirEntryFields = []string{
 	"submodule",
 }
 
-// ReadDirOptions holds the configuration for the read-dir command.
+// ReadDirOptions 保存 read-dir 命令的配置。
 type ReadDirOptions struct {
 	HttpClient func() (*http.Client, error)
 	IO         *iostreams.IOStreams
@@ -40,7 +40,7 @@ type ReadDirOptions struct {
 	Ref  string
 }
 
-// NewCmdReadDir creates the `gh repo read-dir` command.
+// NewCmdReadDir 创建 `gh repo read-dir` 命令。
 func NewCmdReadDir(f *cmdutil.Factory, runF func(*ReadDirOptions) error) *cobra.Command {
 	opts := &ReadDirOptions{
 		IO:         f.IOStreams,
@@ -50,27 +50,26 @@ func NewCmdReadDir(f *cmdutil.Factory, runF func(*ReadDirOptions) error) *cobra.
 
 	cmd := &cobra.Command{
 		Use:   "read-dir [<path>] [flags]",
-		Short: "List a directory in a repository (preview)",
+		Short: "列出仓库中的目录(预览)",
 		Long: heredoc.Docf(`
-			List the contents of a directory in a GitHub repository without cloning it.
+			无需克隆即可列出 GitHub 仓库中目录的内容。
 
-			This command is in preview and subject to change without notice.
+			此命令处于预览阶段，可能会随时变更，恕不另行通知。
 
-			By default, the directory is listed from the default branch. Use the %[1]s--ref%[1]s flag to
-			list from a specific branch, tag, or commit. When no path is given, the repository root
-			is listed.
+			默认情况下，从默认分支列出目录。使用 %[1]s--ref%[1]s 标志可以从特定的分支、标签或提交列出。
+			未指定路径时，将列出仓库根目录。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# List the root of the default branch
+			# 列出默认分支的根目录
 			$ gh repo read-dir --repo cli/cli
 
-			# List a subdirectory
+			# 列出子目录
 			$ gh repo read-dir docs --repo cli/cli
 
-			# List a directory at a specific ref
+			# 列出特定 ref 上的目录
 			$ gh repo read-dir docs --repo cli/cli --ref v2.50.0
 
-			# Print selected fields as JSON
+			# 以 JSON 格式打印选定的字段
 			$ gh repo read-dir docs --repo cli/cli --json name,path,type,size
 		`),
 		Args: cobra.MaximumNArgs(1),
@@ -89,7 +88,7 @@ func NewCmdReadDir(f *cmdutil.Factory, runF func(*ReadDirOptions) error) *cobra.
 		},
 	}
 
-	cmd.Flags().StringVar(&opts.Ref, "ref", "", "The branch, tag, or commit to list from")
+	cmd.Flags().StringVar(&opts.Ref, "ref", "", "要列出内容的分支、标签或提交")
 
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, dirEntryFields)
 
@@ -106,7 +105,7 @@ func readDirRun(opts *ReadDirOptions) error {
 
 	repo, err := opts.BaseRepo()
 	if err != nil {
-		return fmt.Errorf("%w. Run this command from within a git repository, or use the `--repo` flag to specify one", err)
+		return fmt.Errorf("%w。请在 git 仓库内运行此命令，或使用 `--repo` 标志指定仓库", err)
 	}
 
 	dir, err := fetchTree(httpClient, repo, opts.Path, opts.Ref)
@@ -123,7 +122,7 @@ func readDirRun(opts *ReadDirOptions) error {
 		if opts.Path != "" {
 			location = fmt.Sprintf("%s/%s", location, strings.TrimPrefix(opts.Path, "/"))
 		}
-		fmt.Fprintf(opts.IO.ErrOut, "No entries found in %s\n", location)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 中未找到任何条目\n", location)
 		return nil
 	}
 
@@ -132,7 +131,7 @@ func readDirRun(opts *ReadDirOptions) error {
 	}
 
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "error starting pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器(pager)时出错: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -140,17 +139,14 @@ func readDirRun(opts *ReadDirOptions) error {
 	if opts.Path != "" {
 		location = fmt.Sprintf("%s/%s", location, strings.TrimPrefix(opts.Path, "/"))
 	}
-	noun := "entries"
-	if len(dir.Entries) == 1 {
-		noun = "entry"
-	}
-	fmt.Fprintf(opts.IO.Out, "Showing %d %s in %s\n\n", len(dir.Entries), noun, location)
+	noun := "个条目"
+	fmt.Fprintf(opts.IO.Out, "显示 %s 中的 %d %s\n\n", location, len(dir.Entries), noun)
 
 	return writeTable(opts.IO, dir)
 }
 
-// writeTSV writes a tab-separated listing for non-TTY output: type, name,
-// octal mode, and raw byte size, with no header.
+// writeTSV 为非 TTY 输出写入制表符分隔的列表: 类型、名称、
+// 八进制权限模式和原始字节大小，无表头。
 func writeTSV(io *iostreams.IOStreams, dir *repoDir) error {
 	var sb strings.Builder
 	for _, e := range dir.Entries {
@@ -160,12 +156,11 @@ func writeTSV(io *iostreams.IOStreams, dir *repoDir) error {
 	return err
 }
 
-// writeTable writes the TTY listing as a TYPE/NAME/SIZE table. Names are colored
-// by entry type and directories and submodules show "-" since git reports no size
-// for them.
+// writeTable 将 TTY 列表输出为 TYPE/NAME/SIZE 表格。名称按条目类型着色，
+// 目录和子模块显示 "-"，因为 git 未报告它们的大小。
 func writeTable(io *iostreams.IOStreams, dir *repoDir) error {
 	cs := io.ColorScheme()
-	tp := tableprinter.New(io, tableprinter.WithHeader("TYPE", "NAME", "SIZE"))
+	tp := tableprinter.New(io, tableprinter.WithHeader("类型", "名称", "大小"))
 	for _, e := range dir.Entries {
 		entryType := e.Type
 		if e.Type == "file" && e.isExecutable() {

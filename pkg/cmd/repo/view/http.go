@@ -47,7 +47,7 @@ func RepositoryReadme(client *http.Client, repo ghrepo.Interface, branch string)
 
 	decoded, err := base64.StdEncoding.DecodeString(response.Content)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode readme: %w", err)
+		return nil, fmt.Errorf("解码 README 失败: %w", err)
 	}
 
 	sanitized, err := io.ReadAll(transform.NewReader(bytes.NewReader(decoded), &asciisanitizer.Sanitizer{}))

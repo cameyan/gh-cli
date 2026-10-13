@@ -15,7 +15,7 @@ import (
 
 const defaultEventType = "gh_cli"
 
-// Job represents a coding agent's task. Used to request a new session.
+// Job 表示一个编码 agent 的任务。用于请求新的 session。
 type Job struct {
 	ID                string          `json:"job_id,omitempty"`
 	SessionID         string          `json:"session_id,omitempty"`
@@ -56,15 +56,14 @@ func (c *CAPIClient) jobsBasePathV1() string {
 	return c.capiBaseURL + "/agents/swe/v1/jobs"
 }
 
-// CreateJob queues a new job using the v1 Jobs API. It may or may not
-// return Pull Request information. If Pull Request information is required
-// following up by polling GetJob with the job ID is necessary.
+// CreateJob 使用 v1 Jobs API 排队一个新 job。它可能返回也可能不返回 Pull Request 信息。
+// 如果需要 Pull Request 信息，则必须随后使用 job ID 轮询 GetJob。
 func (c *CAPIClient) CreateJob(ctx context.Context, owner, repo, problemStatement, baseBranch, customAgent string) (*Job, error) {
 	if owner == "" || repo == "" {
-		return nil, errors.New("owner and repo are required")
+		return nil, errors.New("必须提供 owner 和 repo")
 	}
 	if problemStatement == "" {
-		return nil, errors.New("problem statement is required")
+		return nil, errors.New("必须提供 problem statement")
 	}
 
 	u, err := safeurl.JoinPathWithHostPrefix(c.jobsBasePathV1(), owner, repo)
@@ -101,40 +100,40 @@ func (c *CAPIClient) CreateJob(ctx context.Context, owner, repo, problemStatemen
 
 	var j Job
 	if err := json.NewDecoder(bytes.NewReader(body)).Decode(&j); err != nil {
-		if res.StatusCode != http.StatusCreated && res.StatusCode != http.StatusOK { // accept 201 or 200
-			// This happens when there's an error like unauthorized (401).
+		if res.StatusCode != http.StatusCreated && res.StatusCode != http.StatusOK { // 接受 201 或 200
+			// 当出现类似未授权 (401) 的错误时会发生这种情况。
 			statusText := fmt.Sprintf("%d %s", res.StatusCode, http.StatusText(res.StatusCode))
-			return nil, fmt.Errorf("failed to create job: %s", statusText)
+			return nil, fmt.Errorf("创建 job 失败: %s", statusText)
 		}
-		return nil, fmt.Errorf("failed to decode create job response: %w", err)
+		return nil, fmt.Errorf("解码创建 job 响应失败: %w", err)
 	}
 
-	if res.StatusCode != http.StatusCreated && res.StatusCode != http.StatusOK { // accept 201 or 200
+	if res.StatusCode != http.StatusCreated && res.StatusCode != http.StatusOK { // 接受 201 或 200
 		statusText := fmt.Sprintf("%d %s", res.StatusCode, http.StatusText(res.StatusCode))
 
-		// If the response has error embedded, we can use that.
-		// TODO: Does this really ever happen?
+		// 如果响应中内嵌了错误信息，我们可以直接使用它。
+		// TODO: 这种情况真的会发生吗？
 		if j.ErrorInfo != nil {
-			return nil, fmt.Errorf("failed to create job: %s: %s", statusText, j.ErrorInfo.Message)
+			return nil, fmt.Errorf("创建 job 失败: %s: %s", statusText, j.ErrorInfo.Message)
 		}
 
-		// If the response doesn't have error embedded,
-		// try to decode the response itself as a jobError.
+		// 如果响应中没有内嵌错误信息，
+		// 则尝试将响应本身解码为 jobError。
 		var errInfo JobError
 		if err := json.NewDecoder(bytes.NewReader(body)).Decode(&errInfo); err != nil {
-			return nil, fmt.Errorf("failed to create job: %s", statusText)
+			return nil, fmt.Errorf("创建 job 失败: %s", statusText)
 		}
 
-		return nil, fmt.Errorf("failed to create job: %s: %s", statusText, errInfo.Message)
+		return nil, fmt.Errorf("创建 job 失败: %s: %s", statusText, errInfo.Message)
 	}
 
 	return &j, nil
 }
 
-// GetJob retrieves an agent job
+// GetJob 获取一个 agent job
 func (c *CAPIClient) GetJob(ctx context.Context, owner, repo, jobID string) (*Job, error) {
 	if owner == "" || repo == "" || jobID == "" {
-		return nil, errors.New("owner, repo, and jobID are required")
+		return nil, errors.New("必须提供 owner、repo 和 jobID")
 	}
 	u, err := safeurl.JoinPathWithHostPrefix(c.jobsBasePathV1(), owner, repo, jobID)
 	if err != nil {
@@ -150,13 +149,13 @@ func (c *CAPIClient) GetJob(ctx context.Context, owner, repo, jobID string) (*Jo
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		// Normalize to "<code> <text>" form
+		// 规范化为 "<code> <text>" 形式
 		statusText := fmt.Sprintf("%d %s", res.StatusCode, http.StatusText(res.StatusCode))
-		return nil, fmt.Errorf("failed to get job: %s", statusText)
+		return nil, fmt.Errorf("获取 job 失败: %s", statusText)
 	}
 	var j Job
 	if err := json.NewDecoder(res.Body).Decode(&j); err != nil {
-		return nil, fmt.Errorf("failed to decode get job response: %w", err)
+		return nil, fmt.Errorf("解码获取 job 响应失败: %w", err)
 	}
 	return &j, nil
 }

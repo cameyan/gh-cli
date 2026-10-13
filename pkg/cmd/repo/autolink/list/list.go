@@ -8,7 +8,6 @@ import (
 	"github.com/cli/cli/v2/internal/browser"
 	"github.com/cli/cli/v2/internal/ghrepo"
 	"github.com/cli/cli/v2/internal/tableprinter"
-	"github.com/cli/cli/v2/internal/text"
 	"github.com/cli/cli/v2/pkg/cmd/repo/autolink/shared"
 	"github.com/cli/cli/v2/pkg/cmdutil"
 	"github.com/cli/cli/v2/pkg/iostreams"
@@ -37,11 +36,11 @@ func NewCmdList(f *cmdutil.Factory, runF func(*listOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List autolink references for a GitHub repository",
+		Short: "列出 GitHub 仓库的自动链接引用",
 		Long: heredoc.Doc(`
-			Gets all autolink references that are configured for a repository.
+			获取为仓库配置的所有自动链接引用。
 
-			Information about autolinks is only available to repository administrators.
+			自动链接信息仅对仓库管理员(admin)可见。
 		`),
 		Aliases: []string{"ls"},
 		Args:    cobra.NoArgs,
@@ -62,7 +61,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*listOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "List autolink references in the web browser")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在网页浏览器中列出自动链接引用")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, shared.AutolinkFields)
 
 	return cmd
@@ -78,7 +77,7 @@ func listRun(opts *listOptions) error {
 		autolinksListURL := ghrepo.GenerateRepoURL(repo, "settings/key_links")
 
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(autolinksListURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", autolinksListURL)
 		}
 
 		return opts.Browser.Browse(autolinksListURL)
@@ -94,7 +93,7 @@ func listRun(opts *listOptions) error {
 	if len(autolinks) == 0 {
 		return cmdutil.NewNoResultsError(
 			fmt.Sprintf(
-				"no autolinks found in %s",
+				"%s 中未找到自动链接",
 				cs.Bold(ghrepo.FullName(repo))),
 		)
 	}
@@ -105,14 +104,13 @@ func listRun(opts *listOptions) error {
 
 	if opts.IO.IsStdoutTTY() {
 		title := fmt.Sprintf(
-			"Showing %s in %s",
-			text.Pluralize(len(autolinks), "autolink reference"),
+			"显示 %s 中的 %d 个自动链接引用",
 			cs.Bold(ghrepo.FullName(repo)),
 		)
 		fmt.Fprintf(opts.IO.Out, "\n%s\n\n", title)
 	}
 
-	tp := tableprinter.New(opts.IO, tableprinter.WithHeader("ID", "KEY PREFIX", "URL TEMPLATE", "ALPHANUMERIC"))
+	tp := tableprinter.New(opts.IO, tableprinter.WithHeader("ID", "键前缀", "URL 模板", "字母数字"))
 
 	for _, autolink := range autolinks {
 		tp.AddField(cs.Cyanf("%d", autolink.ID))

@@ -31,7 +31,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// PublishOptions holds all dependencies and user-provided flags for the publish command.
+// PublishOptions 保存 publish 命令的所有依赖项与用户提供的标志。
 type PublishOptions struct {
 	IO         *iostreams.IOStreams
 	HttpClient func() (*http.Client, error)
@@ -47,7 +47,7 @@ type PublishOptions struct {
 	host string // resolved from config in production
 }
 
-// publishDiagnostic is a single validation finding.
+// publishDiagnostic 是单条校验发现。
 type publishDiagnostic struct {
 	skill    string // empty for repo-level issues
 	severity string // "error", "warning", "fixed", or "info"
@@ -88,7 +88,7 @@ type repoSecurityResponse struct {
 	SecurityAndAnalysis *securityAnalysis `json:"security_and_analysis"`
 }
 
-// NewCmdPublish creates the "skills publish" command.
+// NewCmdPublish 创建 "skills publish" 命令。
 func NewCmdPublish(f *cmdutil.Factory, runF func(*PublishOptions) error) *cobra.Command {
 	opts := &PublishOptions{
 		IO:         f.IOStreams,
@@ -100,48 +100,48 @@ func NewCmdPublish(f *cmdutil.Factory, runF func(*PublishOptions) error) *cobra.
 
 	cmd := &cobra.Command{
 		Use:   "publish [<directory>] [flags]",
-		Short: "Validate and publish skills to a GitHub repository (preview)",
+		Short: "校验技能并发布到 GitHub 仓库 (预览版)",
 		Long: heredoc.Docf(`
-			Validate a local repository's skills against the Agent Skills specification
-			and publish them by creating a GitHub release.
+			依据 Agent Skills 规范校验本地仓库中的技能，
+			并通过创建 GitHub release 发布它们。
 
-			Skills are discovered using the same conventions as install:
+			技能的发现方式与 install 相同:
 
 			  - %[1]sskills/*/SKILL.md%[1]s
 			  - %[1]sskills/{scope}/*/SKILL.md%[1]s
-			  - %[1]s*/SKILL.md%[1]s (root-level)
+			  - %[1]s*/SKILL.md%[1]s (根目录)
 			  - %[1]splugins/{scope}/skills/*/SKILL.md%[1]s
 
-			Validation checks include:
+			校验项包括:
 
-			  - Skill names match the strict agentskills.io naming rules
-			  - Each skill name matches its directory name
-			  - Required frontmatter fields (name, description) are present
-			  - allowed-tools is a string, not an array
-			  - Install metadata (%[1]smetadata.github-*%[1]s) is stripped if present
+			  - 技能名称符合 agentskills.io 严格命名规则
+			  - 每个技能名称与其目录名一致
+			  - 必需的 frontmatter 字段 (name、description) 存在
+			  - allowed-tools 是字符串而非数组
+			  - 安装元数据 (%[1]smetadata.github-*%[1]s) 若存在则会被剥离
 
-			After validation passes, publish will interactively guide you through:
+			校验通过后，publish 将交互式引导你完成:
 
-			  - Adding the %[1]sagent-skills%[1]s topic to the repository
-			  - Choosing a version tag (semver recommended)
-			  - Creating a GitHub release with auto-generated notes
+			  - 为仓库添加 %[1]sagent-skills%[1]s 主题
+			  - 选择版本标签 (推荐 semver)
+			  - 创建带自动生成说明的 GitHub release
 
-			Use %[1]s--dry-run%[1]s to validate without publishing.
-			Use %[1]s--tag%[1]s to publish non-interactively with a specific tag.
-			Use %[1]s--fix%[1]s to automatically strip install metadata from committed files
-			without publishing. Review and commit the changes, then run publish again.
+			使用 %[1]s--dry-run%[1]s 仅校验而不发布。
+			使用 %[1]s--tag%[1]s 以指定标签非交互发布。
+			使用 %[1]s--fix%[1]s 自动剥离已提交文件中的安装元数据而不发布。
+			检查并提交变更后再次运行 publish。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Validate and publish interactively
+			# 交互式校验并发布
 			$ gh skill publish
 
-			# Publish with a specific tag (non-interactive)
+			# 以指定标签发布 (非交互)
 			$ gh skill publish --tag v1.0.0
 
-			# Validate only (no publish)
+			# 仅校验 (不发布)
 			$ gh skill publish --dry-run
 
-			# Strip install metadata without publishing
+			# 剥离安装元数据而不发布
 			$ gh skill publish --fix
 		`),
 		Args: cobra.MaximumNArgs(1),
@@ -149,7 +149,7 @@ func NewCmdPublish(f *cmdutil.Factory, runF func(*PublishOptions) error) *cobra.
 			if len(args) == 1 {
 				opts.Dir = args[0]
 			}
-			if err := cmdutil.MutuallyExclusive("specify only one of `--fix` or `--dry-run`", opts.Fix, opts.DryRun); err != nil {
+			if err := cmdutil.MutuallyExclusive("只能指定 --fix 或 --dry-run 之一", opts.Fix, opts.DryRun); err != nil {
 				return err
 			}
 			if runF != nil {
@@ -159,9 +159,9 @@ func NewCmdPublish(f *cmdutil.Factory, runF func(*PublishOptions) error) *cobra.
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.Fix, "fix", false, "Auto-fix issues where possible without publishing (e.g. strip install metadata)")
-	cmd.Flags().BoolVar(&opts.DryRun, "dry-run", false, "Validate without publishing")
-	cmd.Flags().StringVar(&opts.Tag, "tag", "", "Version tag for the release (e.g. v1.0.0)")
+	cmd.Flags().BoolVar(&opts.Fix, "fix", false, "在不发布的前提下尽可能自动修复问题 (如剥离安装元数据)")
+	cmd.Flags().BoolVar(&opts.DryRun, "dry-run", false, "仅校验而不发布")
+	cmd.Flags().StringVar(&opts.Tag, "tag", "", "release 的版本标签 (如 v1.0.0)")
 
 	return cmd
 }
@@ -172,13 +172,13 @@ func publishRun(opts *PublishOptions) error {
 		var err error
 		dir, err = os.Getwd()
 		if err != nil {
-			return fmt.Errorf("could not determine working directory: %w", err)
+			return fmt.Errorf("无法确定工作目录: %w", err)
 		}
 	}
 
 	dir, err := filepath.Abs(dir)
 	if err != nil {
-		return fmt.Errorf("could not resolve path: %w", err)
+		return fmt.Errorf("无法解析路径: %w", err)
 	}
 
 	canPrompt := opts.IO.CanPrompt()
@@ -204,7 +204,7 @@ func publishRun(opts *PublishOptions) error {
 			diagnostics = append(diagnostics, publishDiagnostic{
 				skill:    skill.DisplayName(),
 				severity: "error",
-				message:  "missing SKILL.md file",
+				message:  "缺少 SKILL.md 文件",
 			})
 			continue
 		}
@@ -214,7 +214,7 @@ func publishRun(opts *PublishOptions) error {
 			diagnostics = append(diagnostics, publishDiagnostic{
 				skill:    skill.DisplayName(),
 				severity: "error",
-				message:  fmt.Sprintf("invalid frontmatter YAML: %s", err),
+				message:  fmt.Sprintf("frontmatter YAML 无效: %s", err),
 			})
 			continue
 		}
@@ -224,7 +224,7 @@ func publishRun(opts *PublishOptions) error {
 			diagnostics = append(diagnostics, publishDiagnostic{
 				skill:    skill.DisplayName(),
 				severity: "error",
-				message:  "missing required field: name",
+				message:  "缺少必需字段: name",
 			})
 		} else {
 			// Validate name matches directory
@@ -232,7 +232,7 @@ func publishRun(opts *PublishOptions) error {
 				diagnostics = append(diagnostics, publishDiagnostic{
 					skill:    skill.DisplayName(),
 					severity: "error",
-					message:  fmt.Sprintf("name %q does not match directory name %q", result.Metadata.Name, dirName),
+					message:  fmt.Sprintf("name %q 与目录名 %q 不一致", result.Metadata.Name, dirName),
 				})
 			}
 
@@ -241,7 +241,7 @@ func publishRun(opts *PublishOptions) error {
 				diagnostics = append(diagnostics, publishDiagnostic{
 					skill:    skill.DisplayName(),
 					severity: "error",
-					message:  fmt.Sprintf("name %q does not follow agentskills.io naming convention (lowercase alphanumeric + hyphens)", result.Metadata.Name),
+					message:  fmt.Sprintf("name %q 不符合 agentskills.io 命名规范 (小写字母数字加连字符)", result.Metadata.Name),
 				})
 			}
 		}
@@ -251,13 +251,13 @@ func publishRun(opts *PublishOptions) error {
 			diagnostics = append(diagnostics, publishDiagnostic{
 				skill:    skill.DisplayName(),
 				severity: "error",
-				message:  "missing required field: description",
+				message:  "缺少必需字段: description",
 			})
 		} else if len(result.Metadata.Description) > 1024 {
 			diagnostics = append(diagnostics, publishDiagnostic{
 				skill:    skill.DisplayName(),
 				severity: "warning",
-				message:  fmt.Sprintf("description is %d chars (recommended max: 1024)", len(result.Metadata.Description)),
+				message:  fmt.Sprintf("description 为 %d 个字符 (建议上限: 1024)", len(result.Metadata.Description)),
 			})
 		}
 
@@ -267,7 +267,7 @@ func publishRun(opts *PublishOptions) error {
 				diagnostics = append(diagnostics, publishDiagnostic{
 					skill:    skill.DisplayName(),
 					severity: "error",
-					message:  "allowed-tools must be a string (space-delimited), not an array",
+					message:  "allowed-tools 必须是字符串 (以空格分隔)，不能是数组",
 				})
 			}
 		}
@@ -282,26 +282,26 @@ func publishRun(opts *PublishOptions) error {
 						diagnostics = append(diagnostics, publishDiagnostic{
 							skill:    skill.DisplayName(),
 							severity: "error",
-							message:  fmt.Sprintf("could not strip install metadata: %s", fixErr),
+							message:  fmt.Sprintf("无法剥离安装元数据: %s", fixErr),
 						})
 					} else if writeErr := os.WriteFile(skillPath, []byte(fixed), 0o644); writeErr != nil {
 						diagnostics = append(diagnostics, publishDiagnostic{
 							skill:    skill.DisplayName(),
 							severity: "error",
-							message:  fmt.Sprintf("could not write fixed SKILL.md: %s", writeErr),
+							message:  fmt.Sprintf("无法写入修复后的 SKILL.md: %s", writeErr),
 						})
 					} else {
 						diagnostics = append(diagnostics, publishDiagnostic{
 							skill:    skill.DisplayName(),
 							severity: "fixed",
-							message:  fmt.Sprintf("stripped install metadata: %s", strings.Join(githubKeys, ", ")),
+							message:  fmt.Sprintf("已剥离安装元数据: %s", strings.Join(githubKeys, ", ")),
 						})
 					}
 				} else {
 					diagnostics = append(diagnostics, publishDiagnostic{
 						skill:    skill.DisplayName(),
 						severity: "error",
-						message:  fmt.Sprintf("contains install metadata that must be stripped: %s (use --fix)", strings.Join(githubKeys, ", ")),
+						message:  fmt.Sprintf("包含必须剥离的安装元数据: %s (使用 --fix)", strings.Join(githubKeys, ", ")),
 					})
 				}
 			}
@@ -313,7 +313,7 @@ func publishRun(opts *PublishOptions) error {
 				diagnostics = append(diagnostics, publishDiagnostic{
 					skill:    skill.DisplayName(),
 					severity: "warning",
-					message:  "recommended field missing: license",
+					message:  "缺少建议字段: license",
 				})
 			}
 		}
@@ -324,7 +324,7 @@ func publishRun(opts *PublishOptions) error {
 			diagnostics = append(diagnostics, publishDiagnostic{
 				skill:    skill.DisplayName(),
 				severity: "warning",
-				message:  fmt.Sprintf("skill body is %d lines (recommended max: 500 for efficient context)", bodyLines),
+				message:  fmt.Sprintf("技能正文为 %d 行 (建议上限: 500 行以保证上下文高效)", bodyLines),
 			})
 		}
 	}
@@ -407,35 +407,35 @@ func publishRun(opts *PublishOptions) error {
 	}
 
 	if errors > 0 {
-		return fmt.Errorf("validation failed with %d error(s)", errors)
+		return fmt.Errorf("校验失败，共 %d 个错误", errors)
 	}
 
 	// --- Publish flow ---
 	if opts.DryRun {
-		fmt.Fprintf(opts.IO.ErrOut, "\nDry run complete. Use without --dry-run to publish.\n")
+		fmt.Fprintf(opts.IO.ErrOut, "\n试运行完成。去掉 --dry-run 即可发布。\n")
 		return nil
 	}
 
 	if opts.Fix {
 		if fixes > 0 {
-			fmt.Fprintf(opts.IO.ErrOut, "\nFixed %d file(s). Review and commit the changes, then run %s to publish.\n", fixes, "gh skill publish")
+			fmt.Fprintf(opts.IO.ErrOut, "\n已修复 %d 个文件。检查并提交变更，然后运行 %s 发布。\n", fixes, "gh skill publish")
 		} else {
-			fmt.Fprintf(opts.IO.ErrOut, "\nNo issues to fix.\n")
+			fmt.Fprintf(opts.IO.ErrOut, "\n没有需要修复的问题。\n")
 		}
 		return nil
 	}
 
 	if owner == "" || repo == "" {
-		fmt.Fprintf(opts.IO.ErrOut, "\nValidation passed. Set up a GitHub remote to publish.\n")
+		fmt.Fprintf(opts.IO.ErrOut, "\n校验通过。配置 GitHub 远程仓库后即可发布。\n")
 		return nil
 	}
 
 	if !canPrompt && opts.Tag == "" {
-		fmt.Fprintf(opts.IO.ErrOut, "\nValidation passed. Use --tag to publish non-interactively.\n")
+		fmt.Fprintf(opts.IO.ErrOut, "\n校验通过。使用 --tag 进行非交互发布。\n")
 		return nil
 	}
 
-	fmt.Fprintf(opts.IO.ErrOut, "\nPublishing to %s/%s...\n\n", owner, repo)
+	fmt.Fprintf(opts.IO.ErrOut, "\n正在发布到 %s/%s...\n\n", owner, repo)
 
 	return runPublishRelease(opts, client, host, owner, repo, dir, repoInfo.RemoteName, hasTopic, existingTags)
 }
@@ -473,7 +473,7 @@ func fetchTags(client *api.Client, host, owner, repo string) []tagEntry {
 	return tags
 }
 
-// runPublishRelease handles the interactive publish flow: topic, tag, release, immutability.
+// runPublishRelease 处理交互式发布流程: 主题、标签、release、不可变性。
 func runPublishRelease(opts *PublishOptions, client *api.Client, host, owner, repo, dir, remoteName string, hasTopic bool, existingTags []tagEntry) error {
 	cs := opts.IO.ColorScheme()
 	canPrompt := opts.IO.CanPrompt()
@@ -484,17 +484,17 @@ func runPublishRelease(opts *PublishOptions, client *api.Client, host, owner, re
 		if canPrompt {
 			var err error
 			addTopic, err = opts.Prompter.Confirm(
-				fmt.Sprintf("Add \"agent-skills\" topic to %s/%s? (required for discoverability)", owner, repo), true)
+				fmt.Sprintf("为 %s/%s 添加 \"agent-skills\" 主题？ (发现该仓库所必需)", owner, repo), true)
 			if err != nil {
 				return err
 			}
 		}
 		if addTopic {
 			if err := addAgentSkillsTopic(client, host, owner, repo); err != nil {
-				fmt.Fprintf(opts.IO.ErrOut, "%s Could not add topic: %v\n", cs.WarningIcon(), err)
-				fmt.Fprintf(opts.IO.ErrOut, "  Add it manually: gh repo edit %s/%s --add-topic agent-skills\n", owner, repo)
+				fmt.Fprintf(opts.IO.ErrOut, "%s 无法添加主题: %v\n", cs.WarningIcon(), err)
+				fmt.Fprintf(opts.IO.ErrOut, "  可手动添加: gh repo edit %s/%s --add-topic agent-skills\n", owner, repo)
 			} else {
-				fmt.Fprintf(opts.IO.Out, "%s Added \"agent-skills\" topic\n", cs.SuccessIcon())
+				fmt.Fprintf(opts.IO.Out, "%s 已添加 \"agent-skills\" 主题\n", cs.SuccessIcon())
 			}
 		}
 	}
@@ -516,17 +516,17 @@ func runPublishRelease(opts *PublishOptions, client *api.Client, host, owner, re
 
 		if canPrompt {
 			strategies := []string{
-				fmt.Sprintf("Semver (recommended): %s", suggested),
-				"Custom tag",
+				fmt.Sprintf("Semver (推荐): %s", suggested),
+				"自定义标签",
 			}
-			idx, err := opts.Prompter.Select("Tagging strategy:", "", strategies)
+			idx, err := opts.Prompter.Select("标签策略:", "", strategies)
 			if err != nil {
 				return err
 			}
 
 			if idx == 0 {
 				tag = suggested
-				edited, err := opts.Prompter.Input(fmt.Sprintf("Version tag [%s]:", suggested), suggested)
+				edited, err := opts.Prompter.Input(fmt.Sprintf("版本标签 [%s]:", suggested), suggested)
 				if err != nil {
 					return err
 				}
@@ -534,24 +534,24 @@ func runPublishRelease(opts *PublishOptions, client *api.Client, host, owner, re
 					tag = edited
 				}
 			} else {
-				custom, err := opts.Prompter.Input("Tag:", "")
+				custom, err := opts.Prompter.Input("标签:", "")
 				if err != nil {
 					return err
 				}
 				if custom == "" {
-					return fmt.Errorf("tag is required")
+					return fmt.Errorf("标签不能为空")
 				}
 				tag = custom
 			}
 		} else {
-			return fmt.Errorf("--tag is required for non-interactive publish")
+			return fmt.Errorf("非交互发布必须提供 --tag")
 		}
 	}
 
 	// Validate tag doesn't already exist
 	for _, t := range existingTags {
 		if t.Name == tag {
-			return fmt.Errorf("tag %s already exists; choose a different version", tag)
+			return fmt.Errorf("标签 %s 已存在；请选择其他版本", tag)
 		}
 	}
 
@@ -559,16 +559,16 @@ func runPublishRelease(opts *PublishOptions, client *api.Client, host, owner, re
 	immutableEnabled := checkImmutableReleases(client, host, owner, repo)
 	if !immutableEnabled && canPrompt {
 		enableImmutable, err := opts.Prompter.Confirm(
-			"Enable immutable releases? (prevents tampering with published releases)", true)
+			"启用不可变 release？ (防止已发布的 release 被篡改)", true)
 		if err != nil {
 			return err
 		}
 		if enableImmutable {
 			if err := enableImmutableReleases(client, host, owner, repo); err != nil {
-				fmt.Fprintf(opts.IO.ErrOut, "%s Could not enable immutable releases: %v\n", cs.WarningIcon(), err)
-				fmt.Fprintf(opts.IO.ErrOut, "  Enable manually in Settings > General > Releases\n")
+				fmt.Fprintf(opts.IO.ErrOut, "%s 无法启用不可变 release: %v\n", cs.WarningIcon(), err)
+				fmt.Fprintf(opts.IO.ErrOut, "  可在 Settings > General > Releases 中手动启用\n")
 			} else {
-				fmt.Fprintf(opts.IO.Out, "%s Enabled immutable releases\n", cs.SuccessIcon())
+				fmt.Fprintf(opts.IO.Out, "%s 已启用不可变 release\n", cs.SuccessIcon())
 			}
 		}
 	}
@@ -584,18 +584,18 @@ func runPublishRelease(opts *PublishOptions, client *api.Client, host, owner, re
 	}
 	defaultBranch := detectDefaultBranch(client, host, owner, repo)
 	if currentBranch != "" && defaultBranch != "" && currentBranch != defaultBranch {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Publishing from branch %q (default is %q)\n", cs.WarningIcon(), currentBranch, defaultBranch)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 正在从分支 %q 发布 (默认分支为 %q)\n", cs.WarningIcon(), currentBranch, defaultBranch)
 	}
 
 	// Confirm and create release
 	if canPrompt {
 		confirmed, err := opts.Prompter.Confirm(
-			fmt.Sprintf("Create release %s with auto-generated notes?", tag), true)
+			fmt.Sprintf("使用自动生成的说明创建 release %s？", tag), true)
 		if err != nil {
 			return err
 		}
 		if !confirmed {
-			fmt.Fprintf(opts.IO.ErrOut, "Publish cancelled.\n")
+			fmt.Fprintf(opts.IO.ErrOut, "发布已取消。\n")
 			return cmdutil.CancelError
 		}
 	}
@@ -610,7 +610,7 @@ func runPublishRelease(opts *PublishOptions, client *api.Client, host, owner, re
 	}
 	releaseJSON, err := json.Marshal(releaseBody)
 	if err != nil {
-		return fmt.Errorf("failed to serialize release request: %w", err)
+		return fmt.Errorf("无法序列化 release 请求: %w", err)
 	}
 
 	releasePath, err := safeurl.JoinPath("repos", owner, repo, "releases")
@@ -621,18 +621,18 @@ func runPublishRelease(opts *PublishOptions, client *api.Client, host, owner, re
 		HTMLURL string `json:"html_url"`
 	}
 	if err := client.REST(host, "POST", releasePath.String(), bytes.NewReader(releaseJSON), &releaseResp); err != nil {
-		return fmt.Errorf("failed to create release: %w", err)
+		return fmt.Errorf("创建 release 失败: %w", err)
 	}
 
-	fmt.Fprintf(opts.IO.Out, "%s Published %s\n", cs.SuccessIcon(), tag)
-	fmt.Fprintf(opts.IO.Out, "%s Install with: gh skill install %s/%s\n", cs.SuccessIcon(), owner, repo)
-	fmt.Fprintf(opts.IO.Out, "%s Pin with:     gh skill install %s/%s <skill> --pin %s\n", cs.SuccessIcon(), owner, repo, tag)
+	fmt.Fprintf(opts.IO.Out, "%s 已发布 %s\n", cs.SuccessIcon(), tag)
+	fmt.Fprintf(opts.IO.Out, "%s 安装命令: gh skill install %s/%s\n", cs.SuccessIcon(), owner, repo)
+	fmt.Fprintf(opts.IO.Out, "%s 固定版本:   gh skill install %s/%s <skill> --pin %s\n", cs.SuccessIcon(), owner, repo, tag)
 
 	return nil
 }
 
-// ensurePushed checks whether the current branch has unpushed commits and
-// pushes them automatically, consistent with how gh pr create behaves.
+// ensurePushed 检查当前分支是否有未推送的提交并自动推送，
+// 与 gh pr create 的行为保持一致。
 func ensurePushed(opts *PublishOptions, dir, remoteName string) error {
 	if opts.GitClient == nil {
 		return nil
@@ -651,19 +651,23 @@ func ensurePushed(opts *PublishOptions, dir, remoteName string) error {
 	// Count commits ahead of the push target (remote tracking branch).
 	// If the branch has no upstream, rev-list will fail; we treat that as
 	// "everything is unpushed" and push the whole branch.
+	// 统计领先于推送目标 (远程跟踪分支) 的提交数。
+	// 若分支没有上游，rev-list 会失败；此时视为"全部未推送"，
+	// 推送整个分支。
 	unpushed := 0
 	revCmd, err := gitClient.Command(ctx, "rev-list", "--count", "@{push}..HEAD")
 	if err != nil {
-		return fmt.Errorf("could not check unpushed commits: %w", err)
+		return fmt.Errorf("无法检查未推送的提交: %w", err)
 	}
 	out, revErr := revCmd.Output()
 	if revErr != nil {
 		// @{push} not resolvable; branch has never been pushed
+		// @{push} 无法解析；该分支从未推送过
 		unpushed = -1
 	} else {
 		n, parseErr := strconv.Atoi(strings.TrimSpace(string(out)))
 		if parseErr != nil {
-			return fmt.Errorf("could not parse unpushed commit count: %w", parseErr)
+			return fmt.Errorf("无法解析未推送提交数: %w", parseErr)
 		}
 		unpushed = n
 	}
@@ -673,16 +677,16 @@ func ensurePushed(opts *PublishOptions, dir, remoteName string) error {
 	}
 
 	ref := fmt.Sprintf("HEAD:refs/heads/%s", currentBranch)
-	fmt.Fprintf(opts.IO.ErrOut, "Pushing %s to %s...\n", currentBranch, remoteName)
+	fmt.Fprintf(opts.IO.ErrOut, "正在推送 %s 到 %s...\n", currentBranch, remoteName)
 	if err := gitClient.Push(ctx, remoteName, ref); err != nil {
-		return fmt.Errorf("failed to push branch %s: %w", currentBranch, err)
+		return fmt.Errorf("推送分支 %s 失败: %w", currentBranch, err)
 	}
-	fmt.Fprintf(opts.IO.ErrOut, "%s Pushed %s to %s\n", cs.SuccessIcon(), currentBranch, remoteName)
+	fmt.Fprintf(opts.IO.ErrOut, "%s 已推送 %s 到 %s\n", cs.SuccessIcon(), currentBranch, remoteName)
 
 	return nil
 }
 
-// detectDefaultBranch returns the default branch of the remote repo via the API.
+// detectDefaultBranch 通过 API 返回远程仓库的默认分支。
 func detectDefaultBranch(client *api.Client, host, owner, repo string) string {
 	if client == nil {
 		return ""
@@ -700,7 +704,7 @@ func detectDefaultBranch(client *api.Client, host, owner, repo string) string {
 	return result.DefaultBranch
 }
 
-// addAgentSkillsTopic adds the "agent-skills" topic to the repo, preserving existing topics.
+// addAgentSkillsTopic 为仓库添加 "agent-skills" 主题，保留已有主题。
 func addAgentSkillsTopic(client *api.Client, host, owner, repo string) error {
 	apiPath, err := safeurl.JoinPath("repos", owner, repo, "topics")
 	if err != nil {
@@ -710,7 +714,7 @@ func addAgentSkillsTopic(client *api.Client, host, owner, repo string) error {
 	// Fetch existing topics
 	var resp repoTopicsResponse
 	if err := client.REST(host, "GET", apiPath.String(), nil, &resp); err != nil {
-		return fmt.Errorf("could not fetch existing topics: %w", err)
+		return fmt.Errorf("无法获取已有主题: %w", err)
 	}
 
 	// Deduplicate: only add if not already present
@@ -721,12 +725,12 @@ func addAgentSkillsTopic(client *api.Client, host, owner, repo string) error {
 	topics := append(resp.Names, "agent-skills")
 	topicsJSON, err := json.Marshal(map[string][]string{"names": topics})
 	if err != nil {
-		return fmt.Errorf("could not serialize topics: %w", err)
+		return fmt.Errorf("无法序列化主题: %w", err)
 	}
 	return client.REST(host, "PUT", apiPath.String(), bytes.NewReader(topicsJSON), nil)
 }
 
-// checkImmutableReleases checks if immutable releases are enabled for the repo.
+// checkImmutableReleases 检查仓库是否启用了不可变 release。
 func checkImmutableReleases(client *api.Client, host, owner, repo string) bool {
 	if client == nil {
 		return false
@@ -744,7 +748,7 @@ func checkImmutableReleases(client *api.Client, host, owner, repo string) bool {
 	return resp.Enabled
 }
 
-// enableImmutableReleases enables immutable releases for the repo.
+// enableImmutableReleases 为仓库启用不可变 release。
 func enableImmutableReleases(client *api.Client, host, owner, repo string) error {
 	apiPath, err := safeurl.JoinPath("repos", owner, repo, "immutable-releases")
 	if err != nil {
@@ -754,7 +758,7 @@ func enableImmutableReleases(client *api.Client, host, owner, repo string) error
 	return client.REST(host, "PATCH", apiPath.String(), body, nil)
 }
 
-// checkTagProtection checks whether tag protection rulesets are enabled.
+// checkTagProtection 检查是否启用了标签保护规则集。
 func checkTagProtection(client *api.Client, host, owner, repo string) []publishDiagnostic {
 	if client == nil {
 		return nil
@@ -776,11 +780,11 @@ func checkTagProtection(client *api.Client, host, owner, repo string) []publishD
 
 	return []publishDiagnostic{{
 		severity: "warning",
-		message:  "no active tag protection rulesets found. Consider protecting tags to ensure immutable releases (Settings > Rules > Rulesets)",
+		message:  "未找到生效的标签保护规则集。建议保护标签以确保 release 不可变 (Settings > Rules > Rulesets)",
 	}}
 }
 
-// checkSecuritySettings checks whether recommended security features are enabled.
+// checkSecuritySettings 检查是否启用了推荐的安全功能。
 func checkSecuritySettings(client *api.Client, host, owner, repo string, skillDirs []string) []publishDiagnostic {
 	if client == nil {
 		return nil
@@ -804,14 +808,14 @@ func checkSecuritySettings(client *api.Client, host, owner, repo string, skillDi
 	if sa.SecretScanning == nil || sa.SecretScanning.Status != "enabled" {
 		diagnostics = append(diagnostics, publishDiagnostic{
 			severity: "warning",
-			message:  "secret scanning is not enabled. Recommended to prevent accidental credential exposure (gh repo edit --enable-secret-scanning)",
+			message:  "未启用 secret scanning。建议启用以防止凭据意外泄露 (gh repo edit --enable-secret-scanning)",
 		})
 	}
 
 	if sa.SecretScanningPushProtection == nil || sa.SecretScanningPushProtection.Status != "enabled" {
 		diagnostics = append(diagnostics, publishDiagnostic{
 			severity: "warning",
-			message:  "secret scanning push protection is not enabled. Blocks pushes containing secrets (gh repo edit --enable-secret-scanning-push-protection)",
+			message:  "未启用 secret scanning 推送保护。该功能可阻止包含密钥的推送 (gh repo edit --enable-secret-scanning-push-protection)",
 		})
 	}
 
@@ -824,7 +828,7 @@ func checkSecuritySettings(client *api.Client, host, owner, repo string, skillDi
 			if err := client.REST(host, "GET", u.String(), nil, new([]any)); err != nil {
 				diagnostics = append(diagnostics, publishDiagnostic{
 					severity: "info",
-					message:  "skills include code files but code scanning does not appear to be configured (Settings > Code security > Code scanning)",
+					message:  "技能包含代码文件，但似乎未配置 code scanning (Settings > Code security > Code scanning)",
 				})
 			}
 		}
@@ -835,7 +839,7 @@ func checkSecuritySettings(client *api.Client, host, owner, repo string, skillDi
 			if err := client.REST(host, "GET", dependabotPath.String(), nil, nil); err != nil {
 				diagnostics = append(diagnostics, publishDiagnostic{
 					severity: "info",
-					message:  "skills include dependency manifests but Dependabot alerts do not appear to be enabled (Settings > Code security > Dependabot)",
+					message:  "技能包含依赖清单，但似乎未启用 Dependabot 警报 (Settings > Code security > Dependabot)",
 				})
 			}
 		}
@@ -862,8 +866,7 @@ var manifestFiles = map[string]bool{
 	"composer.json": true, "composer.lock": true,
 }
 
-// detectCodeAndManifests walks the skill directories looking for code files
-// and dependency manifests.
+// detectCodeAndManifests 遍历技能目录，查找代码文件与依赖清单。
 func detectCodeAndManifests(skillDirs []string) (hasCode, hasManifests bool) {
 	for _, dir := range skillDirs {
 		_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
@@ -894,8 +897,8 @@ func detectCodeAndManifests(skillDirs []string) (hasCode, hasManifests bool) {
 	return
 }
 
-// checkInstalledSkillDirs warns when agent host skill directories exist
-// in the repo and are not gitignored.
+// checkInstalledSkillDirs 当仓库中存在 agent 宿主技能目录且未被
+// gitignore 时给出警告。
 func checkInstalledSkillDirs(gitClient *git.Client, repoDir string) []publishDiagnostic {
 	var diagnostics []publishDiagnostic
 
@@ -920,7 +923,7 @@ func checkInstalledSkillDirs(gitClient *git.Client, repoDir string) []publishDia
 			if err != nil {
 				diagnostics = append(diagnostics, publishDiagnostic{
 					severity: "warning",
-					message:  fmt.Sprintf("%s/ may contain installed skills that are not gitignored (could not verify: %v)", relPath, err),
+					message:  fmt.Sprintf("%s/ 可能包含未 gitignore 的已安装技能 (无法验证: %v)", relPath, err),
 				})
 				continue
 			}
@@ -929,7 +932,7 @@ func checkInstalledSkillDirs(gitClient *git.Client, repoDir string) []publishDia
 		diagnostics = append(diagnostics, publishDiagnostic{
 			severity: "warning",
 			message: fmt.Sprintf(
-				"%s/ contains installed skills and should be added to .gitignore to avoid publishing other authors' content",
+				"%s/ 包含已安装的技能，应加入 .gitignore 以避免发布其他作者的内容",
 				relPath),
 		})
 	}
@@ -965,10 +968,9 @@ type gitHubRemote struct {
 	RemoteName string
 }
 
-// detectGitHubRemote attempts to detect the GitHub owner/repo from git remotes
-// in the given directory. Remotes are tried in the order returned by
-// gitClient.Remotes (upstream > github > origin > rest), so the first
-// GitHub-pointing remote wins.
+// detectGitHubRemote 尝试从给定目录的 git 远程中检测 GitHub owner/repo。
+// 按 gitClient.Remotes 返回的顺序尝试 (upstream > github > origin > 其余)，
+// 因此第一个指向 GitHub 的远程生效。
 func detectGitHubRemote(gitClient *git.Client, dir string) (*gitHubRemote, error) {
 	if gitClient == nil {
 		return nil, nil
@@ -995,8 +997,8 @@ func detectGitHubRemote(gitClient *git.Client, dir string) (*gitHubRemote, error
 	return nil, nil
 }
 
-// parseGitHubURL extracts owner/repo from a GitHub remote URL.
-// Only github.com and GHEC data residency (*.ghe.com) URLs are recognized.
+// parseGitHubURL 从 GitHub 远程 URL 中提取 owner/repo。
+// 仅识别 github.com 和 GHEC 数据驻留 (*.ghe.com) URL。
 func parseGitHubURL(rawURL string) (ghrepo.Interface, error) {
 	u, err := git.ParseURL(rawURL)
 	if err != nil {
@@ -1012,7 +1014,7 @@ func parseGitHubURL(rawURL string) (ghrepo.Interface, error) {
 	return r, nil
 }
 
-// detectMissingRepoDiagnostic explains why remote checks were skipped.
+// detectMissingRepoDiagnostic 说明跳过远程检查的原因。
 func detectMissingRepoDiagnostic(gitClient *git.Client, dir string) []publishDiagnostic {
 	if gitClient == nil {
 		return nil
@@ -1023,7 +1025,7 @@ func detectMissingRepoDiagnostic(gitClient *git.Client, dir string) []publishDia
 	if _, err := dirGitClient.GitDir(context.Background()); err != nil {
 		return []publishDiagnostic{{
 			severity: "warning",
-			message:  "not a git repository. Initialize with: git init && gh repo create",
+			message:  "不是 git 仓库。请先初始化: git init && gh repo create",
 		}}
 	}
 
@@ -1031,7 +1033,7 @@ func detectMissingRepoDiagnostic(gitClient *git.Client, dir string) []publishDia
 	if err != nil || len(remotes) == 0 {
 		return []publishDiagnostic{{
 			severity: "warning",
-			message:  "no git remote found. Create a GitHub repository with: gh repo create",
+			message:  "未找到 git 远程。可使用以下命令创建 GitHub 仓库: gh repo create",
 		}}
 	}
 
@@ -1043,7 +1045,7 @@ func detectMissingRepoDiagnostic(gitClient *git.Client, dir string) []publishDia
 	}
 	return []publishDiagnostic{{
 		severity: "warning",
-		message:  fmt.Sprintf("remote %q is not a GitHub repository. Skills must be hosted on GitHub for discovery", strings.Join(urls, ", ")),
+		message:  fmt.Sprintf("远程 %q 不是 GitHub 仓库。技能必须托管在 GitHub 上才能被发现", strings.Join(urls, ", ")),
 	}}
 }
 
@@ -1061,7 +1063,7 @@ func renderDiagnosticsTTY(opts *PublishOptions, skillCount int, diagnostics []pu
 	}
 
 	if len(issues) == 0 && fixes == 0 {
-		fmt.Fprintf(opts.IO.Out, "%s %d skill(s) validated successfully\n", cs.SuccessIcon(), skillCount)
+		fmt.Fprintf(opts.IO.Out, "%s 已成功校验 %d 个技能\n", cs.SuccessIcon(), skillCount)
 	} else {
 		for _, d := range issues {
 			var prefix string
@@ -1084,14 +1086,14 @@ func renderDiagnosticsTTY(opts *PublishOptions, skillCount int, diagnostics []pu
 
 		fmt.Fprintln(opts.IO.Out)
 		if fixes > 0 {
-			fmt.Fprintf(opts.IO.Out, "Fixed %d issue(s)\n", fixes)
+			fmt.Fprintf(opts.IO.Out, "已修复 %d 个问题\n", fixes)
 		}
 		if errors > 0 {
-			fmt.Fprintf(opts.IO.Out, "%s, %s\n",
-				cs.Red(fmt.Sprintf("%d error(s)", errors)),
-				cs.Yellow(fmt.Sprintf("%d warning(s)", warnings)))
+			fmt.Fprintf(opts.IO.Out, "%s，%s\n",
+				cs.Red(fmt.Sprintf("%d 个错误", errors)),
+				cs.Yellow(fmt.Sprintf("%d 个警告", warnings)))
 		} else {
-			fmt.Fprintf(opts.IO.Out, "%s\n", cs.Yellow(fmt.Sprintf("%d warning(s)", warnings)))
+			fmt.Fprintf(opts.IO.Out, "%s\n", cs.Yellow(fmt.Sprintf("%d 个警告", warnings)))
 		}
 	}
 
@@ -1102,9 +1104,9 @@ func renderDiagnosticsTTY(opts *PublishOptions, skillCount int, diagnostics []pu
 
 	if errors == 0 && !opts.Fix {
 		if owner != "" && repo != "" {
-			fmt.Fprintf(opts.IO.ErrOut, "\n%s Repository: %s/%s\n", cs.Green("Ready to publish!"), owner, repo)
+			fmt.Fprintf(opts.IO.ErrOut, "\n%s 仓库: %s/%s\n", cs.Green("可以发布了！"), owner, repo)
 		} else {
-			fmt.Fprintf(opts.IO.ErrOut, "\n%s Ensure the repository has the \"agent-skills\" topic.\n", cs.Green("Ready to publish!"))
+			fmt.Fprintf(opts.IO.ErrOut, "\n%s 请确保仓库带有 \"agent-skills\" 主题。\n", cs.Green("可以发布了！"))
 		}
 	}
 }
@@ -1121,7 +1123,7 @@ func renderDiagnosticsPlain(opts *PublishOptions, diagnostics []publishDiagnosti
 	}
 }
 
-// findGitHubMetadataKeys returns metadata keys with the "github-" prefix.
+// findGitHubMetadataKeys 返回带 "github-" 前缀的元数据键。
 func findGitHubMetadataKeys(meta map[string]any) []string {
 	var keys []string
 	for k := range meta {
@@ -1133,7 +1135,7 @@ func findGitHubMetadataKeys(meta map[string]any) []string {
 	return keys
 }
 
-// stripGitHubMetadata removes github-* keys from the metadata map and re-serializes.
+// stripGitHubMetadata 从 metadata 映射中移除 github-* 键并重新序列化。
 func stripGitHubMetadata(content string) (string, error) {
 	result, err := frontmatter.Parse(content)
 	if err != nil {

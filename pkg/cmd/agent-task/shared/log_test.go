@@ -41,7 +41,7 @@ func TestFollow(t *testing.T) {
 			raw, err := os.ReadFile(tt.log)
 			require.NoError(t, err)
 
-			// Normalize CRLF to LF to make the tests OS-agnostic.
+			// 将 CRLF 归一化为 LF，使测试与操作系统无关。
 			raw = []byte(strings.ReplaceAll(string(raw), "\r\n", "\n"))
 
 			lines := slices.DeleteFunc(strings.Split(string(raw), "\n"), func(line string) bool {
@@ -62,7 +62,7 @@ func TestFollow(t *testing.T) {
 			err = NewLogRenderer().Follow(fetcher, stdout, ios)
 			require.NoError(t, err)
 
-			// Handy note for updating the testdata files when they change:
+			// 更新 testdata 文件时的实用提示:
 			// ext := filepath.Ext(tt.log)
 			// stripped := strings.TrimSuffix(tt.log, ext)
 			// stripped = strings.TrimSuffix(stripped, "-input")
@@ -74,7 +74,7 @@ func TestFollow(t *testing.T) {
 			wantStdout, err := os.ReadFile(tt.wantStdoutFile)
 			require.NoError(t, err)
 
-			// Normalize CRLF to LF to make the tests OS-agnostic.
+			// 将 CRLF 归一化为 LF，使测试与操作系统无关。
 			wantStdout = []byte(strings.ReplaceAll(string(wantStdout), "\r\n", "\n"))
 
 			assert.Equal(t, string(wantStdout), stdout.String())
@@ -83,7 +83,7 @@ func TestFollow(t *testing.T) {
 				wantStderr, err := os.ReadFile(tt.wantStderrFile)
 				require.NoError(t, err)
 
-				// Normalize CRLF to LF to make the tests OS-agnostic.
+				// 将 CRLF 归一化为 LF，使测试与操作系统无关。
 				wantStderr = []byte(strings.ReplaceAll(string(wantStderr), "\r\n", "\n"))
 
 				assert.Equal(t, string(wantStderr), stderr.String())

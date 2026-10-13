@@ -37,14 +37,14 @@ func CapiClientFunc(f *cmdutil.Factory) func() (capi.CapiClient, error) {
 		cachedClient := api.NewCachedHTTPClient(httpClient, time.Minute*10)
 		capiBaseURL, err := resolveCapiURL(cachedClient, host)
 		if err != nil {
-			return nil, fmt.Errorf("failed to resolve Copilot API URL: %w", err)
+			return nil, fmt.Errorf("解析 Copilot API URL 失败: %w", err)
 		}
 
 		return capi.NewCAPIClient(httpClient, token, host, capiBaseURL), nil
 	}
 }
 
-// resolveCapiURL queries the GitHub API for the Copilot API endpoint URL.
+// resolveCapiURL 查询 GitHub API 以获取 Copilot API 端点 URL。
 func resolveCapiURL(httpClient *http.Client, host string) (string, error) {
 	apiClient := api.NewClientFromHTTP(httpClient)
 
@@ -61,7 +61,7 @@ func resolveCapiURL(httpClient *http.Client, host string) (string, error) {
 	}
 
 	if resp.Viewer.CopilotEndpoints.Api == "" {
-		return "", errors.New("empty Copilot API URL returned")
+		return "", errors.New("返回的 Copilot API URL 为空")
 	}
 
 	return resp.Viewer.CopilotEndpoints.Api, nil
@@ -71,8 +71,8 @@ func IsSessionID(s string) bool {
 	return sessionIDRegexp.MatchString(s)
 }
 
-// ParseSessionIDFromURL parses session ID from a pull request's agent session
-// URL, which is of the form:
+// ParseSessionIDFromURL 从 PR 的 agent session URL 中解析 session ID，
+// 其格式形如:
 //
 //	`https://github.com/OWNER/REPO/pull/NUMBER/agent-sessions/SESSION-ID`
 func ParseSessionIDFromURL(u string) (string, error) {
@@ -83,7 +83,7 @@ func ParseSessionIDFromURL(u string) (string, error) {
 
 	match := agentSessionURLRegexp.FindStringSubmatch(rest)
 	if match == nil {
-		return "", errors.New("not a valid agent session URL")
+		return "", errors.New("不是有效的 agent session URL")
 	}
 	return match[1], nil
 }

@@ -1,10 +1,10 @@
 
-failed to parse 'view' tool call arguments: unexpected end of JSON input
+解析 'view' tool call 参数失败: unexpected end of JSON input
 
-failed to parse 'think' tool call arguments: unexpected end of JSON input
+解析 'think' tool call 参数失败: unexpected end of JSON input
 
-failed to parse 'report_progress' tool call arguments: unexpected end of JSON input
+解析 'report_progress' tool call 参数失败: unexpected end of JSON input
 
-failed to parse 'create' tool call arguments: unexpected end of JSON input
+解析 'create' tool call 参数失败: unexpected end of JSON input
 
-failed to parse 'str_replace' tool call arguments: unexpected end of JSON input
+解析 'str_replace' tool call 参数失败: unexpected end of JSON input

@@ -6,11 +6,11 @@ import (
 	"github.com/cli/cli/v2/internal/gh"
 )
 
-// AuthTokenRefreshable reports whether the token is stored by gh and can be
-// renewed with `gh auth refresh`.
+// AuthTokenRefreshable 报告令牌是否由 gh 存储并且可以通过
+// `gh auth refresh` 更新。
 //
-// TODO: this matches a token prefix itself. It could ask
-// gh.AuthConfig.ActiveTokenType instead.
+// TODO: 它自行匹配令牌前缀。本可以改问
+// gh.AuthConfig.ActiveTokenType。
 func AuthTokenRefreshable(token, src string) bool {
 	return token != "" && !strings.HasSuffix(src, "_TOKEN") && strings.HasPrefix(token, "gho_")
 }

@@ -18,15 +18,15 @@ type CodespaceSelector struct {
 	repoOwner     string
 }
 
-var errNoFilteredCodespaces = errors.New("you have no codespaces meeting the filter criteria")
+var errNoFilteredCodespaces = errors.New("没有符合筛选条件的 codespace")
 
-// AddCodespaceSelector adds persistent flags for selecting a codespace to the given command and returns a CodespaceSelector which applies them
+// AddCodespaceSelector 为给定命令添加选择 codespace 的持久标志，并返回应用这些标志的 CodespaceSelector
 func AddCodespaceSelector(cmd *cobra.Command, api apiClient) *CodespaceSelector {
 	cs := &CodespaceSelector{api: api}
 
-	cmd.PersistentFlags().StringVarP(&cs.codespaceName, "codespace", "c", "", "Name of the codespace")
-	cmd.PersistentFlags().StringVarP(&cs.repoName, "repo", "R", "", "Filter codespace selection by repository name (user/repo)")
-	cmd.PersistentFlags().StringVar(&cs.repoOwner, "repo-owner", "", "Filter codespace selection by repository owner (username or org)")
+	cmd.PersistentFlags().StringVarP(&cs.codespaceName, "codespace", "c", "", "codespace 的名称")
+	cmd.PersistentFlags().StringVarP(&cs.repoName, "repo", "R", "", "按仓库名称 (user/repo) 筛选 codespace 选择")
+	cmd.PersistentFlags().StringVar(&cs.repoOwner, "repo-owner", "", "按仓库所有者 (用户名或组织) 筛选 codespace 选择")
 
 	cmd.MarkFlagsMutuallyExclusive("codespace", "repo")
 	cmd.MarkFlagsMutuallyExclusive("codespace", "repo-owner")
@@ -38,7 +38,7 @@ func (cs *CodespaceSelector) Select(ctx context.Context) (codespace *api.Codespa
 	if cs.codespaceName != "" {
 		codespace, err = cs.api.GetCodespace(ctx, cs.codespaceName, true)
 		if err != nil {
-			return nil, fmt.Errorf("getting full codespace details: %w", err)
+			return nil, fmt.Errorf("获取 codespace 完整详情失败: %w", err)
 		}
 	} else {
 		codespaces, err := cs.fetchCodespaces(ctx)
@@ -54,7 +54,7 @@ func (cs *CodespaceSelector) Select(ctx context.Context) (codespace *api.Codespa
 
 	if codespace.PendingOperation {
 		return nil, fmt.Errorf(
-			"codespace is disabled while it has a pending operation: %s",
+			"codespace 存在待处理操作，已被禁用: %s",
 			codespace.PendingOperationDisabledReason,
 		)
 	}
@@ -83,7 +83,7 @@ func (cs *CodespaceSelector) SelectName(ctx context.Context) (string, error) {
 func (cs *CodespaceSelector) fetchCodespaces(ctx context.Context) (codespaces []*api.Codespace, err error) {
 	codespaces, err = cs.api.ListCodespaces(ctx, api.ListCodespacesOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("error getting codespaces: %w", err)
+		return nil, fmt.Errorf("获取 codespace 时出错: %w", err)
 	}
 
 	if len(codespaces) == 0 {
@@ -92,6 +92,8 @@ func (cs *CodespaceSelector) fetchCodespaces(ctx context.Context) (codespaces []
 
 	// Note that repo filtering done here can also be done in api.ListCodespaces.
 	// We do it here instead so that we can differentiate no codespaces in general vs. none after filtering.
+	// 注意: 这里的仓库过滤也可以在 api.ListCodespaces 中完成。
+	// 放在这里是为了区分"总体上没有 codespace"与"过滤后没有 codespace"。
 	if cs.repoName != "" {
 		var filteredCodespaces []*api.Codespace
 		for _, c := range codespaces {
@@ -123,7 +125,7 @@ func (cs *CodespaceSelector) chooseCodespace(ctx context.Context, codespaces []*
 		if err == errNoCodespaces {
 			return nil, err
 		}
-		return nil, fmt.Errorf("choosing codespace: %w", err)
+		return nil, fmt.Errorf("选择 codespace 失败: %w", err)
 	}
 
 	return codespace, nil

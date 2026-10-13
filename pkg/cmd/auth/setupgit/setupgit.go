@@ -32,23 +32,23 @@ func NewCmdSetupGit(f *cmdutil.Factory, runF func(*SetupGitOptions) error) *cobr
 
 	cmd := &cobra.Command{
 		Use:   "setup-git",
-		Short: "Setup git with GitHub CLI",
+		Short: "为 git 配置 GitHub CLI",
 		Long: heredoc.Docf(`
-			This command configures %[1]sgit%[1]s to use GitHub CLI as a credential helper.
-			For more information on git credential helpers please reference:
-			<https://git-scm.com/docs/gitcredentials>.
+			此命令将 %[1]sgit%[1]s 配置为使用 GitHub CLI 作为凭据助手(credential helper)。
+			有关 git 凭据助手的更多信息，请参考:
+			<https://git-scm.com/docs/gitcredentials>。
 
-			By default, GitHub CLI will be set as the credential helper for all authenticated hosts.
-			If there is no authenticated hosts the command fails with an error.
+			默认情况下，GitHub CLI 将被设置为所有已通过身份验证主机的凭据助手。
+			如果没有已通过身份验证的主机，该命令将报错失败。
 
-			Alternatively, use the %[1]s--hostname%[1]s flag to specify a single host to be configured.
-			If the host is not authenticated with, the command fails with an error.
+			或者，使用 %[1]s--hostname%[1]s 标志指定要配置的单个主机。
+			如果该主机未通过身份验证，该命令将报错失败。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Configure git to use GitHub CLI as the credential helper for all authenticated hosts
+			# 将 git 配置为对所有已通过身份验证的主机使用 GitHub CLI 作为凭据助手
 			$ gh auth setup-git
 
-			# Configure git to use GitHub CLI as the credential helper for enterprise.internal host
+			# 将 git 配置为对 enterprise.internal 主机使用 GitHub CLI 作为凭据助手
 			$ gh auth setup-git --hostname enterprise.internal
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -57,7 +57,7 @@ func NewCmdSetupGit(f *cmdutil.Factory, runF func(*SetupGitOptions) error) *cobr
 				GitClient:          f.GitClient,
 			}
 			if opts.Hostname == "" && opts.Force {
-				return cmdutil.FlagErrorf("`--force` must be used in conjunction with `--hostname`")
+				return cmdutil.FlagErrorf("`--force` 必须与 `--hostname` 一起使用")
 			}
 			if runF != nil {
 				return runF(opts)
@@ -66,8 +66,8 @@ func NewCmdSetupGit(f *cmdutil.Factory, runF func(*SetupGitOptions) error) *cobr
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "The hostname to configure git for")
-	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Force setup even if the host is not known. Must be used in conjunction with `--hostname`")
+	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "要为其配置 git 的主机名")
+	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "即使主机未知也强制配置。必须与 `--hostname` 一起使用")
 
 	return cmd
 }
@@ -83,27 +83,27 @@ func setupGitRun(opts *SetupGitOptions) error {
 	stderr := opts.IO.ErrOut
 	cs := opts.IO.ColorScheme()
 
-	// If a hostname was provided, we'll set up just that one
+	// 如果提供了主机名，则仅设置该主机
 	if opts.Hostname != "" {
 		if !opts.Force && !has(opts.Hostname, hostnames) {
-			return fmt.Errorf("You are not logged into the GitHub host %q. Run %s to authenticate or provide `--force`",
+			return fmt.Errorf("您尚未登录 GitHub 主机 %q。请运行 %s 进行身份验证，或提供 `--force`",
 				opts.Hostname,
 				cs.Bold(fmt.Sprintf("gh auth login -h %s", opts.Hostname)),
 			)
 		}
 
 		if err := opts.CredentialsHelperConfig.ConfigureOurs(opts.Hostname); err != nil {
-			return fmt.Errorf("failed to set up git credential helper: %s", err)
+			return fmt.Errorf("设置 git 凭据助手(credential helper)失败: %s", err)
 		}
 
 		return nil
 	}
 
-	// Otherwise we'll set up any known hosts
+	// 否则我们将设置所有已知主机
 	if len(hostnames) == 0 {
 		fmt.Fprintf(
 			stderr,
-			"You are not logged into any GitHub hosts. Run %s to authenticate.\n",
+			"您尚未登录任何 GitHub 主机。请运行 %s 进行身份验证。\n",
 			cs.Bold("gh auth login"),
 		)
 
@@ -112,7 +112,7 @@ func setupGitRun(opts *SetupGitOptions) error {
 
 	for _, hostname := range hostnames {
 		if err := opts.CredentialsHelperConfig.ConfigureOurs(hostname); err != nil {
-			return fmt.Errorf("failed to set up git credential helper: %s", err)
+			return fmt.Errorf("设置 git 凭据助手(credential helper)失败: %s", err)
 		}
 	}
 

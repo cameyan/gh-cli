@@ -21,11 +21,11 @@ func newEditCmd(app *App) *cobra.Command {
 
 	editCmd := &cobra.Command{
 		Use:   "edit",
-		Short: "Edit a codespace",
+		Short: "编辑 codespace",
 		Args:  noArgsConstraint,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.displayName == "" && opts.machine == "" {
-				return cmdutil.FlagErrorf("must provide `--display-name` or `--machine`")
+				return cmdutil.FlagErrorf("必须提供 `--display-name` 或 `--machine`")
 			}
 
 			return app.Edit(cmd.Context(), opts)
@@ -33,28 +33,29 @@ func newEditCmd(app *App) *cobra.Command {
 	}
 
 	opts.selector = AddCodespaceSelector(editCmd, app.apiClient)
-	editCmd.Flags().StringVarP(&opts.displayName, "display-name", "d", "", "Set the display name")
-	editCmd.Flags().StringVar(&opts.displayName, "displayName", "", "Display name")
-	if err := editCmd.Flags().MarkDeprecated("displayName", "use `--display-name` instead"); err != nil {
-		fmt.Fprintf(app.io.ErrOut, "error marking flag as deprecated: %v\n", err)
+	editCmd.Flags().StringVarP(&opts.displayName, "display-name", "d", "", "设置显示名称")
+	editCmd.Flags().StringVar(&opts.displayName, "displayName", "", "显示名称")
+	if err := editCmd.Flags().MarkDeprecated("displayName", "请改用 `--display-name`"); err != nil {
+		fmt.Fprintf(app.io.ErrOut, "将标志标记为已弃用时出错: %v\n", err)
 	}
-	editCmd.Flags().StringVarP(&opts.machine, "machine", "m", "", "Set hardware specifications for the VM")
+	editCmd.Flags().StringVarP(&opts.machine, "machine", "m", "", "设置虚拟机的硬件规格")
 
 	return editCmd
 }
 
-// Edits a codespace
+// 编辑 codespace
 func (a *App) Edit(ctx context.Context, opts editOptions) error {
 	codespaceName, err := opts.selector.SelectName(ctx)
 	if err != nil {
 		// TODO: is there a cleaner way to do this?
+		// TODO: 有没有更简洁的写法？
 		if errors.Is(err, errNoCodespaces) || errors.Is(err, errNoFilteredCodespaces) {
 			return err
 		}
-		return fmt.Errorf("error choosing codespace: %w", err)
+		return fmt.Errorf("选择 codespace 时出错: %w", err)
 	}
 
-	err = a.RunWithProgress("Editing codespace", func() (err error) {
+	err = a.RunWithProgress("正在编辑 codespace", func() (err error) {
 		_, err = a.apiClient.EditCodespace(ctx, codespaceName, &api.EditCodespaceParams{
 			DisplayName: opts.displayName,
 			Machine:     opts.machine,
@@ -62,7 +63,7 @@ func (a *App) Edit(ctx context.Context, opts editOptions) error {
 		return
 	})
 	if err != nil {
-		return fmt.Errorf("error editing codespace: %w", err)
+		return fmt.Errorf("编辑 codespace 时出错: %w", err)
 	}
 
 	return nil

@@ -13,13 +13,13 @@ import (
 func NewCmdAutolink(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "autolink <command>",
-		Short: "Manage autolink references",
+		Short: "管理自动链接引用",
 		Long: heredoc.Docf(`
-			Autolinks link issues, pull requests, commit messages, and release descriptions to external third-party services.
+			自动链接(autolink)将议题(issue)、拉取请求(pull request)、提交信息和发布描述链接到外部第三方服务。
 
-			Autolinks require %[1]sadmin%[1]s role to view or manage.
+			查看或管理自动链接需要 %[1]sadmin%[1]s 角色。
 
-			For more information, see <https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/configuring-autolinks-to-reference-external-resources>
+			更多信息请参见 <https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/configuring-autolinks-to-reference-external-resources>
 		`, "`"),
 	}
 	cmdutil.EnableRepoOverride(cmd, f)

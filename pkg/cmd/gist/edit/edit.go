@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var editNextOptions = []string{"Edit another file", "Submit", "Cancel"}
+var editNextOptions = []string{"编辑另一个文件", "提交", "取消"}
 
 type EditOptions struct {
 	IO         *iostreams.IOStreams
@@ -59,32 +59,32 @@ func NewCmdEdit(f *cmdutil.Factory, runF func(*EditOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "edit {<id> | <url>} [<filename>]",
-		Short: "Edit one of your gists",
+		Short: "编辑你的某个 gist",
 		Example: heredoc.Doc(`
-			# Select a gist to edit interactively
+			# 交互式选择要编辑的 gist
 			$ gh gist edit
 
-			# Edit a gist file in the default editor
+			# 在默认编辑器中编辑 gist 文件
 			$ gh gist edit 1234567890abcdef1234567890abcdef
 
-			# Edit a specific file in the gist
+			# 编辑 gist 中的特定文件
 			$ gh gist edit 1234567890abcdef1234567890abcdef --filename hello.py
 
-			# Replace a gist file with content from a local file
+			# 用本地文件的内容替换 gist 文件
 			$ gh gist edit 1234567890abcdef1234567890abcdef --filename hello.py hello.py
 
-			# Add a new file to the gist
+			# 向 gist 添加新文件
 			$ gh gist edit 1234567890abcdef1234567890abcdef --add newfile.py
 
-			# Change the description of the gist
-			$ gh gist edit 1234567890abcdef1234567890abcdef --desc "new description"
+			# 修改 gist 的描述
+			$ gh gist edit 1234567890abcdef1234567890abcdef --desc "新描述"
 
-			# Remove a file from the gist
+			# 从 gist 中移除文件
 			$ gh gist edit 1234567890abcdef1234567890abcdef --remove hello.py
 		`),
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 2 {
-				return cmdutil.FlagErrorf("too many arguments")
+				return cmdutil.FlagErrorf("参数过多")
 			}
 			return nil
 		},
@@ -104,10 +104,10 @@ func NewCmdEdit(f *cmdutil.Factory, runF func(*EditOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.AddFilename, "add", "a", "", "Add a new file to the gist")
-	cmd.Flags().StringVarP(&opts.Description, "desc", "d", "", "New description for the gist")
-	cmd.Flags().StringVarP(&opts.EditFilename, "filename", "f", "", "Select a file to edit")
-	cmd.Flags().StringVarP(&opts.RemoveFilename, "remove", "r", "", "Remove a file from the gist")
+	cmd.Flags().StringVarP(&opts.AddFilename, "add", "a", "", "向 gist 添加新文件")
+	cmd.Flags().StringVarP(&opts.Description, "desc", "d", "", "gist 的新描述")
+	cmd.Flags().StringVarP(&opts.EditFilename, "filename", "f", "", "选择要编辑的文件")
+	cmd.Flags().StringVarP(&opts.RemoveFilename, "remove", "r", "", "从 gist 中移除文件")
 
 	cmd.MarkFlagsMutuallyExclusive("add", "remove")
 	cmd.MarkFlagsMutuallyExclusive("remove", "filename")
@@ -133,7 +133,7 @@ func editRun(opts *EditOptions) error {
 		cs := opts.IO.ColorScheme()
 		if gistID == "" {
 			if !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("gist ID or URL required when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时必须指定 gist ID 或 URL")
 			}
 
 			gist, err := shared.PromptGists(opts.Prompter, client, host, cs)
@@ -142,7 +142,7 @@ func editRun(opts *EditOptions) error {
 			}
 
 			if gist.ID == "" {
-				fmt.Fprintln(opts.IO.Out, "No gists found.")
+				fmt.Fprintln(opts.IO.Out, "未找到 gist。")
 				return nil
 			}
 			gistID = gist.ID
@@ -162,7 +162,7 @@ func editRun(opts *EditOptions) error {
 	gist, err := shared.GetGist(client, host, gistID)
 	if err != nil {
 		if errors.Is(err, shared.NotFoundErr) {
-			return fmt.Errorf("gist not found: %s", gistID)
+			return fmt.Errorf("gist 未找到: %s", gistID)
 		}
 		return err
 	}
@@ -173,10 +173,10 @@ func editRun(opts *EditOptions) error {
 	}
 
 	if username != gist.Owner.Login {
-		return errors.New("you do not own this gist")
+		return errors.New("你不拥有此 gist")
 	}
 
-	// Transform our gist into the schema that the update endpoint expects
+	// 将我们的 gist 转换为更新端点所期望的 schema
 	filesToupdate := make(map[string]*gistFileToUpdate, len(gist.Files))
 	for filename, file := range gist.Files {
 		filesToupdate[filename] = &gistFileToUpdate{
@@ -224,7 +224,7 @@ func editRun(opts *EditOptions) error {
 
 		content, err := io.ReadAll(input)
 		if err != nil {
-			return fmt.Errorf("read content: %w", err)
+			return fmt.Errorf("读取内容: %w", err)
 		}
 
 		files, err := getFilesToAdd(opts.AddFilename, content)
@@ -236,7 +236,7 @@ func editRun(opts *EditOptions) error {
 		return updateGist(apiClient, host, gistToUpdate)
 	}
 
-	// Remove a file from the gist
+	// 从 gist 中移除文件
 	if opts.RemoveFilename != "" {
 		files, err := getFilesToRemove(gistToUpdate, opts.RemoveFilename)
 		if err != nil {
@@ -262,14 +262,14 @@ func editRun(opts *EditOptions) error {
 			if len(candidates) == 1 {
 				filename = candidates[0]
 			} else if len(candidates) == 0 {
-				return errors.New("no file in the gist")
+				return errors.New("gist 中没有文件")
 			} else {
 				if !opts.IO.CanPrompt() {
-					return errors.New("unsure what file to edit; either specify --filename or run interactively")
+					return errors.New("无法确定要编辑哪个文件; 请指定 --filename 或交互式运行")
 				}
-				result, err := opts.Prompter.Select("Edit which file?", "", candidates)
+				result, err := opts.Prompter.Select("编辑哪个文件?", "", candidates)
 				if err != nil {
-					return fmt.Errorf("could not prompt: %w", err)
+					return fmt.Errorf("无法提示: %w", err)
 				}
 				filename = candidates[result]
 			}
@@ -277,14 +277,14 @@ func editRun(opts *EditOptions) error {
 
 		gistFile, found := gistToUpdate.Files[filename]
 		if !found {
-			return fmt.Errorf("gist has no file %q", filename)
+			return fmt.Errorf("gist 中没有文件 %q", filename)
 		}
 		if shared.IsBinaryContents([]byte(gistFile.Content)) {
-			return fmt.Errorf("editing binary files not supported")
+			return fmt.Errorf("不支持编辑二进制文件")
 		}
 
-		// If the file is truncated, fetch the full content
-		// but only if it hasn't already been edited in this session
+		// 如果文件被截断，则获取完整内容
+		// 但仅当它尚未在本次会话中被编辑过
 		file := gist.Files[filename]
 		if file.Truncated {
 			if _, alreadyEdited := filesToUpdate[filename]; !alreadyEdited {
@@ -293,8 +293,8 @@ func editRun(opts *EditOptions) error {
 					return err
 				}
 
-				// Round-trip path: the content is opened in an editor and sent
-				// back to the API, so the raw bytes must be preserved verbatim.
+				// 往返路径: 内容会在编辑器中打开并发送
+				// 回 API，因此原始字节必须原样保留。
 				gistFile.Content = fullContent.Raw()
 			}
 		}
@@ -304,13 +304,13 @@ func editRun(opts *EditOptions) error {
 			if src == "-" {
 				data, err := io.ReadAll(opts.IO.In)
 				if err != nil {
-					return fmt.Errorf("read from stdin: %w", err)
+					return fmt.Errorf("从 stdin 读取: %w", err)
 				}
 				text = string(data)
 			} else {
 				data, err := os.ReadFile(src)
 				if err != nil {
-					return fmt.Errorf("read %s: %w", src, err)
+					return fmt.Errorf("读取 %s: %w", src, err)
 				}
 				text = string(data)
 			}
@@ -328,7 +328,7 @@ func editRun(opts *EditOptions) error {
 		}
 
 		if text != gistFile.Content {
-			gistFile.Content = text // so it appears if they re-edit
+			gistFile.Content = text // 这样在他们重新编辑时也能看到
 			filesToUpdate[filename] = text
 		}
 
@@ -339,20 +339,20 @@ func editRun(opts *EditOptions) error {
 		}
 
 		choice := ""
-		result, err := opts.Prompter.Select("What next?", "", editNextOptions)
+		result, err := opts.Prompter.Select("接下来做什么?", "", editNextOptions)
 		if err != nil {
-			return fmt.Errorf("could not prompt: %w", err)
+			return fmt.Errorf("无法提示: %w", err)
 		}
 		choice = editNextOptions[result]
 
 		stop := false
 
 		switch choice {
-		case "Edit another file":
+		case "编辑另一个文件":
 			continue
-		case "Submit":
+		case "提交":
 			stop = true
-		case "Cancel":
+		case "取消":
 			return cmdutil.CancelError
 		}
 
@@ -380,19 +380,19 @@ func editRun(opts *EditOptions) error {
 
 // https://docs.github.com/en/rest/gists/gists?apiVersion=2022-11-28#update-a-gist
 type gistToUpdate struct {
-	// The id of the gist to update. Does not get marshalled to JSON.
+	// 要更新的 gist 的 id。不会被序列化为 JSON。
 	id string
-	// The description of the gist
+	// gist 的描述
 	Description string `json:"description"`
-	// The gist files to be updated, renamed or deleted. The key must match the current
-	// filename of the file to change. To delete a file, set the value to nil
+	// 要更新、重命名或删除的 gist 文件。键必须与要更改的文件的
+	// 当前文件名匹配。要删除文件，请将值设为 nil
 	Files map[string]*gistFileToUpdate `json:"files"`
 }
 
 type gistFileToUpdate struct {
-	// The new content of the file
+	// 文件的新内容
 	Content string `json:"content"`
-	// The new name for the file
+	// 文件的新名称
 	NewFilename string `json:"filename,omitempty"`
 }
 
@@ -419,11 +419,11 @@ func updateGist(apiClient *api.Client, hostname string, gist gistToUpdate) error
 
 func getFilesToAdd(file string, content []byte) (map[string]*gistFileToUpdate, error) {
 	if shared.IsBinaryContents(content) {
-		return nil, fmt.Errorf("failed to upload %s: binary file not supported", file)
+		return nil, fmt.Errorf("上传 %s 失败: 不支持二进制文件", file)
 	}
 
 	if len(content) == 0 {
-		return nil, errors.New("file contents cannot be empty")
+		return nil, errors.New("文件内容不能为空")
 	}
 
 	filename := filepath.Base(file)
@@ -437,7 +437,7 @@ func getFilesToAdd(file string, content []byte) (map[string]*gistFileToUpdate, e
 
 func getFilesToRemove(gist gistToUpdate, filename string) (map[string]*gistFileToUpdate, error) {
 	if _, found := gist.Files[filename]; !found {
-		return nil, fmt.Errorf("gist has no file %q", filename)
+		return nil, fmt.Errorf("gist 中没有文件 %q", filename)
 	}
 
 	gist.Files[filename] = nil

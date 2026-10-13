@@ -83,7 +83,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 						sampleDateString,
 					)),
 				)
-				// GraphQL hydration
+				// GraphQL 信息填充
 				reg.Register(
 					httpmock.GraphQL(`query FetchPRsAndUsersForAgentTaskSessions\b`),
 					httpmock.GraphQLQuery(heredoc.Docf(`
@@ -160,7 +160,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 			},
 		},
 		{
-			// This happens at the early moments of a session lifecycle, before a PR is created and associated with it.
+			// 这发生在 session 生命周期的早期阶段，此时 PR 尚未创建并与之关联。
 			name:  "single session, no pull request resource",
 			limit: 10,
 			httpStubs: func(t *testing.T, reg *httpmock.Registry) {
@@ -194,7 +194,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 						sampleDateString,
 					)),
 				)
-				// GraphQL hydration
+				// GraphQL 信息填充
 				reg.Register(
 					httpmock.GraphQL(`query FetchPRsAndUsersForAgentTaskSessions\b`),
 					httpmock.GraphQLQuery(heredoc.Docf(`
@@ -241,7 +241,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 		},
 		{
 			name:    "multiple sessions, paginated",
-			perPage: 1, // to enforce pagination
+			perPage: 1, // 以强制分页
 			limit:   2,
 			httpStubs: func(t *testing.T, reg *httpmock.Registry) {
 				reg.Register(
@@ -275,7 +275,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 					)),
 				)
 
-				// Second page
+				// 第二页
 				reg.Register(
 					httpmock.WithHost(
 						httpmock.QueryMatcher("GET", "agents/sessions", url.Values{
@@ -306,7 +306,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 						sampleDateString,
 					)),
 				)
-				// GraphQL hydration
+				// GraphQL 信息填充
 				reg.Register(
 					httpmock.GraphQL(`query FetchPRsAndUsersForAgentTaskSessions\b`),
 					httpmock.GraphQLQuery(heredoc.Docf(`
@@ -436,7 +436,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 			perPage: 2,
 			limit:   3,
 			httpStubs: func(t *testing.T, reg *httpmock.Registry) {
-				// Page 1 returns newest sessions (ordered newest first overall)
+				// 第 1 页返回最新的 session (整体按最新优先排序)
 				reg.Register(
 					httpmock.WithHost(
 						httpmock.QueryMatcher("GET", "agents/sessions", url.Values{
@@ -481,7 +481,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 					)),
 				)
 
-				// Page 2 returns older duplicate sessions for 3000, plus another new PR 3002
+				// 第 2 页返回 3000 的更旧的重复 session，以及另一个新 PR 3002
 				reg.Register(
 					httpmock.WithHost(
 						httpmock.QueryMatcher("GET", "agents/sessions", url.Values{
@@ -526,7 +526,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 					)),
 				)
 
-				// GraphQL hydration for PRs 3000, 3001, 3002 and user 1
+				// 对 PR 3000、3001、3002 和用户 1 进行 GraphQL 信息填充
 				reg.Register(
 					httpmock.GraphQL(`query FetchPRsAndUsersForAgentTaskSessions\b`),
 					httpmock.GraphQLQuery(heredoc.Docf(`
@@ -586,7 +586,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 						}`,
 						sampleDateString,
 					), func(q string, vars map[string]any) {
-						// Expected encoded node IDs for resource IDs 3000,3001,3002 and user octocat
+						// resource ID 3000、3001、3002 和用户 octocat 预期的编码 node ID
 						assert.Equal(t, []any{"PR_kwDNA-jNC7g", "PR_kwDNA-jNC7k", "PR_kwDNA-jNC7o", "U_kgAB"}, vars["ids"])
 					}),
 				)
@@ -686,7 +686,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 			perPage: 2,
 			limit:   3,
 			httpStubs: func(t *testing.T, reg *httpmock.Registry) {
-				// Page 1 returns newest sessions, one with a zero resource ID
+				// 第 1 页返回最新的 session，其中一个的 resource ID 为零
 				reg.Register(
 					httpmock.WithHost(
 						httpmock.QueryMatcher("GET", "agents/sessions", url.Values{
@@ -731,7 +731,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 					)),
 				)
 
-				// Page 2 returns older duplicate sessions for 3000, plus another new session with zero resource ID
+				// 第 2 页返回 3000 的更旧的重复 session，以及另一个 resource ID 为零的新 session
 				reg.Register(
 					httpmock.WithHost(
 						httpmock.QueryMatcher("GET", "agents/sessions", url.Values{
@@ -776,7 +776,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 					)),
 				)
 
-				// GraphQL hydration for PRs 3000 and user 1
+				// 对 PR 3000 和用户 1 进行 GraphQL 信息填充
 				reg.Register(
 					httpmock.GraphQL(`query FetchPRsAndUsersForAgentTaskSessions\b`),
 					httpmock.GraphQLQuery(heredoc.Docf(`
@@ -808,7 +808,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 						}`,
 						sampleDateString,
 					), func(q string, vars map[string]any) {
-						// Expected encoded node IDs for resource IDs 3000 and user octocat
+						// resource ID 3000 和用户 octocat 预期的编码 node ID
 						assert.Equal(t, []any{"PR_kwDNA-jNC7g", "U_kgAB"}, vars["ids"])
 					}),
 				)
@@ -912,7 +912,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 					)),
 				)
 
-				// GraphQL hydration
+				// GraphQL 信息填充
 				reg.Register(
 					httpmock.GraphQL(`query FetchPRsAndUsersForAgentTaskSessions\b`),
 					httpmock.GraphQLQuery(heredoc.Docf(`
@@ -944,7 +944,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 						}`,
 						sampleDateString,
 					), func(q string, vars map[string]any) {
-						// Expected encoded node IDs for resource IDs 3000 and user octocat
+						// resource ID 3000 和用户 octocat 预期的编码 node ID
 						assert.Equal(t, []any{"PR_kwDNA-jNC7g", "U_kgAB"}, vars["ids"])
 					}),
 				)
@@ -1021,7 +1021,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 					)),
 				)
 
-				// GraphQL hydration
+				// GraphQL 信息填充
 				reg.Register(
 					httpmock.GraphQL(`query FetchPRsAndUsersForAgentTaskSessions\b`),
 					httpmock.GraphQLQuery(heredoc.Docf(`
@@ -1053,7 +1053,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 						}`,
 						sampleDateString,
 					), func(q string, vars map[string]any) {
-						// Expected encoded node IDs for resource IDs 3000 and user octocat
+						// resource ID 3000 和用户 octocat 预期的编码 node ID
 						assert.Equal(t, []any{"PR_kwDNA-jNC7g", "U_kgAB"}, vars["ids"])
 					}),
 				)
@@ -1106,7 +1106,7 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 					httpmock.StatusStringResponse(500, "{}"),
 				)
 			},
-			wantErr: "failed to list sessions:",
+			wantErr: "列出 session 失败:",
 		}, {
 			name:  "API error at hydration",
 			limit: 10,
@@ -1141,13 +1141,13 @@ func TestListLatestSessionsForViewer(t *testing.T) {
 						sampleDateString,
 					)),
 				)
-				// GraphQL hydration
+				// GraphQL 信息填充
 				reg.Register(
 					httpmock.GraphQL(`query FetchPRsAndUsersForAgentTaskSessions\b`),
 					httpmock.StatusStringResponse(500, `{}`),
 				)
 			},
-			wantErr: `failed to fetch session resources: non-200 OK status code:`,
+			wantErr: `获取 session 资源失败: non-200 OK status code:`,
 		},
 	}
 
@@ -1189,11 +1189,11 @@ func TestListSessionsByResourceIDRequiresResource(t *testing.T) {
 	client := &CAPIClient{}
 
 	_, err := client.ListSessionsByResourceID(context.Background(), "", 999, 0)
-	assert.EqualError(t, err, "missing resource type/ID")
+	assert.EqualError(t, err, "缺少 resource 类型/ID")
 	_, err = client.ListSessionsByResourceID(context.Background(), "only-resource-type", 0, 0)
-	assert.EqualError(t, err, "missing resource type/ID")
+	assert.EqualError(t, err, "缺少 resource 类型/ID")
 	_, err = client.ListSessionsByResourceID(context.Background(), "", 0, 0)
-	assert.EqualError(t, err, "missing resource type/ID")
+	assert.EqualError(t, err, "缺少 resource 类型/ID")
 }
 
 func TestListSessionsByResourceID(t *testing.T) {
@@ -1219,9 +1219,9 @@ func TestListSessionsByResourceID(t *testing.T) {
 			wantOut: nil,
 		},
 		{
-			// If the given pull request does not exist or the pull request has no sessions,
-			// the API endpoint returns 404 with different messages. We should treat them
-			// the same though.
+			// 如果给定的 pull request 不存在，或该 pull request 没有 session，
+			// API 端点会返回 404 和不同的消息。但我们应当将它们
+			// 一视同仁。
 			name:  "no sessions or no pull request",
 			limit: 10,
 			httpStubs: func(t *testing.T, reg *httpmock.Registry) {
@@ -1231,7 +1231,7 @@ func TestListSessionsByResourceID(t *testing.T) {
 					httpmock.StatusStringResponse(404, "{}"),
 				)
 			},
-			wantErr: "failed to list sessions",
+			wantErr: "列出 session 失败",
 		},
 		{
 			name:  "single session",
@@ -1262,7 +1262,7 @@ func TestListSessionsByResourceID(t *testing.T) {
 						sampleDateTimestamp,
 					)),
 				)
-				// GraphQL hydration
+				// GraphQL 信息填充
 				reg.Register(
 					httpmock.GraphQL(`query FetchPRsAndUsersForAgentTaskSessions\b`),
 					httpmock.GraphQLQuery(heredoc.Docf(`
@@ -1335,7 +1335,7 @@ func TestListSessionsByResourceID(t *testing.T) {
 		},
 		{
 			name:    "multiple sessions",
-			perPage: 1, // to enforce pagination
+			perPage: 1, // 以强制分页
 			limit:   2,
 			httpStubs: func(t *testing.T, reg *httpmock.Registry) {
 				reg.Register(
@@ -1385,7 +1385,7 @@ func TestListSessionsByResourceID(t *testing.T) {
 						sampleDateTimestamp,
 					)),
 				)
-				// GraphQL hydration
+				// GraphQL 信息填充
 				reg.Register(
 					httpmock.GraphQL(`query FetchPRsAndUsersForAgentTaskSessions\b`),
 					httpmock.GraphQLQuery(heredoc.Docf(`
@@ -1491,7 +1491,7 @@ func TestListSessionsByResourceID(t *testing.T) {
 					httpmock.StatusStringResponse(500, "{}"),
 				)
 			},
-			wantErr: "failed to list sessions:",
+			wantErr: "列出 session 失败:",
 		}, {
 			name:  "API error at hydration",
 			limit: 10,
@@ -1520,13 +1520,13 @@ func TestListSessionsByResourceID(t *testing.T) {
 						sampleDateString,
 					)),
 				)
-				// GraphQL hydration
+				// GraphQL 信息填充
 				reg.Register(
 					httpmock.GraphQL(`query FetchPRsAndUsersForAgentTaskSessions\b`),
 					httpmock.StatusStringResponse(500, `{}`),
 				)
 			},
-			wantErr: `failed to fetch session resources: non-200 OK status code:`,
+			wantErr: `获取 session 资源失败: non-200 OK status code:`,
 		},
 	}
 
@@ -1568,7 +1568,7 @@ func TestGetSessionRequiresID(t *testing.T) {
 	client := &CAPIClient{}
 
 	_, err := client.GetSession(context.Background(), "")
-	assert.EqualError(t, err, "missing session ID")
+	assert.EqualError(t, err, "缺少 session ID")
 }
 
 func TestGetSession(t *testing.T) {
@@ -1592,7 +1592,7 @@ func TestGetSession(t *testing.T) {
 				)
 			},
 			wantErrIs: ErrSessionNotFound,
-			wantErr:   "not found",
+			wantErr:   "未找到",
 		},
 		{
 			name: "API error",
@@ -1602,7 +1602,7 @@ func TestGetSession(t *testing.T) {
 					httpmock.StatusStringResponse(500, "some error"),
 				)
 			},
-			wantErr: "failed to get session:",
+			wantErr: "获取 session 失败:",
 		},
 		{
 			name: "invalid JSON response",
@@ -1612,7 +1612,7 @@ func TestGetSession(t *testing.T) {
 					httpmock.StatusStringResponse(200, ""),
 				)
 			},
-			wantErr: "failed to decode session response: EOF",
+			wantErr: "解码 session 响应失败: EOF",
 		},
 		{
 			name: "success",
@@ -1637,7 +1637,7 @@ func TestGetSession(t *testing.T) {
 						sampleDateString,
 					)),
 				)
-				// GraphQL hydration
+				// GraphQL 信息填充
 				reg.Register(
 					httpmock.GraphQL(`query FetchPRsAndUsersForAgentTaskSessions\b`),
 					httpmock.GraphQLQuery(heredoc.Docf(`
@@ -1711,7 +1711,7 @@ func TestGetSession(t *testing.T) {
 			},
 		},
 		{
-			// This happens at the early moments of a session lifecycle, before a PR is created and associated with it.
+			// 这发生在 session 生命周期的早期阶段，此时 PR 尚未创建并与之关联。
 			name: "success, but no pull request resource",
 			httpStubs: func(t *testing.T, reg *httpmock.Registry) {
 				reg.Register(
@@ -1734,7 +1734,7 @@ func TestGetSession(t *testing.T) {
 						sampleDateString,
 					)),
 				)
-				// GraphQL hydration
+				// GraphQL 信息填充
 				reg.Register(
 					httpmock.GraphQL(`query FetchPRsAndUsersForAgentTaskSessions\b`),
 					httpmock.GraphQLQuery(heredoc.Docf(`
@@ -1799,13 +1799,13 @@ func TestGetSession(t *testing.T) {
 						sampleDateString,
 					)),
 				)
-				// GraphQL hydration
+				// GraphQL 信息填充
 				reg.Register(
 					httpmock.GraphQL(`query FetchPRsAndUsersForAgentTaskSessions\b`),
 					httpmock.StatusStringResponse(500, `{}`),
 				)
 			},
-			wantErr: `failed to fetch session resources: non-200 OK status code:`,
+			wantErr: `获取 session 资源失败: non-200 OK status code:`,
 		},
 	}
 
@@ -1857,7 +1857,7 @@ func TestGetPullRequestDatabaseID(t *testing.T) {
 			wantErr: "some gql error",
 		},
 		{
-			// This never happens in practice and it's just to cover more code path
+			// 这种情况在实践中不会发生，只是为了覆盖更多代码路径
 			name: "non-int database ID",
 			httpStubs: func(t *testing.T, reg *httpmock.Registry) {
 				reg.Register(

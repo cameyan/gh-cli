@@ -44,7 +44,7 @@ type LoginOptions struct {
 	sshContext ssh.Context
 }
 
-// ShouldCopyToClipboard resolves an explicit flag value before falling back to configuration.
+// ShouldCopyToClipboard 先解析显式的标志值，然后回退到配置。
 func ShouldCopyToClipboard(cfg gh.Config, flagValue *bool) bool {
 	if flagValue != nil {
 		return *flagValue
@@ -65,7 +65,7 @@ func Login(opts *LoginOptions) error {
 			"SSH",
 		}
 		result, err := opts.Prompter.Select(
-			"What is your preferred protocol for Git operations on this host?",
+			"在此主机上进行 Git 操作时，您首选的协议是什么？",
 			options[0],
 			options)
 		if err != nil {
@@ -93,9 +93,9 @@ func Login(opts *LoginOptions) error {
 		}
 
 		if len(pubKeys) > 0 {
-			options := append(pubKeys, "Skip")
+			options := append(pubKeys, "跳过")
 			keyChoice, err := opts.Prompter.Select(
-				"Upload your SSH public key to your GitHub account?",
+				"将您的 SSH 公钥上传到 GitHub 账户？",
 				options[0],
 				options)
 			if err != nil {
@@ -105,14 +105,14 @@ func Login(opts *LoginOptions) error {
 				keyToUpload = pubKeys[keyChoice]
 			}
 		} else if opts.sshContext.HasKeygen() {
-			sshChoice, err := opts.Prompter.Confirm("Generate a new SSH key to add to your GitHub account?", true)
+			sshChoice, err := opts.Prompter.Confirm("生成新的 SSH 密钥以添加到您的 GitHub 账户？", true)
 			if err != nil {
 				return err
 			}
 
 			if sshChoice {
 				passphrase, err := opts.Prompter.Password(
-					"Enter a passphrase for your new SSH key (Optional):")
+					"输入新 SSH 密钥的密码短语(passphrase)(可选): ")
 				if err != nil {
 					return err
 				}
@@ -127,7 +127,7 @@ func Login(opts *LoginOptions) error {
 		if keyToUpload != "" {
 			var err error
 			keyTitle, err = opts.Prompter.Input(
-				"Title for your SSH key:", defaultSSHKeyTitle)
+				"SSH 密钥的标题:", defaultSSHKeyTitle)
 			if err != nil {
 				return err
 			}
@@ -140,10 +140,10 @@ func Login(opts *LoginOptions) error {
 	if opts.Web {
 		authMode = 0
 	} else if opts.Interactive {
-		options := []string{"Login with a web browser", "Paste an authentication token"}
+		options := []string{"使用网页浏览器登录", "粘贴身份验证令牌"}
 		var err error
 		authMode, err = opts.Prompter.Select(
-			"How would you like to authenticate GitHub CLI?",
+			"您希望如何向 GitHub CLI 进行身份验证？",
 			options[0],
 			options)
 		if err != nil {
@@ -158,14 +158,14 @@ func Login(opts *LoginOptions) error {
 		var err error
 		authToken, username, err = authflow.AuthFlow(opts.PlainHTTPClient, hostname, opts.IO, "", append(opts.Scopes, additionalScopes...), opts.Interactive, opts.Browser, opts.CopyToClipboard)
 		if err != nil {
-			return fmt.Errorf("failed to authenticate via web browser: %w", err)
+			return fmt.Errorf("通过网页浏览器进行身份验证失败: %w", err)
 		}
-		fmt.Fprintf(opts.IO.ErrOut, "%s Authentication complete.\n", cs.SuccessIcon())
+		fmt.Fprintf(opts.IO.ErrOut, "%s 身份验证完成。\n", cs.SuccessIcon())
 	} else {
 		minimumScopes := append([]string{"repo", "read:org"}, additionalScopes...)
 		fmt.Fprint(opts.IO.ErrOut, heredoc.Docf(`
-			Tip: you can generate a Personal Access Token here https://%s/settings/tokens
-			The minimum required scopes are %s.
+			提示: 您可以在此处生成个人访问令牌(personal access token) https://%s/settings/tokens
+			所需的最低作用域(scopes)为 %s。
 		`, hostname, scopesSentence(minimumScopes)))
 
 		var err error
@@ -175,7 +175,7 @@ func Login(opts *LoginOptions) error {
 		}
 
 		if err := HasMinimumScopes(httpClient, hostname, authToken); err != nil {
-			return fmt.Errorf("error validating token: %w", err)
+			return fmt.Errorf("验证令牌时出错: %w", err)
 		}
 	}
 
@@ -183,22 +183,21 @@ func Login(opts *LoginOptions) error {
 		var err error
 		username, err = GetCurrentLogin(httpClient, hostname, authToken)
 		if err != nil {
-			return fmt.Errorf("error retrieving current user: %w", err)
+			return fmt.Errorf("获取当前用户时出错: %w", err)
 		}
 	}
 
-	// Get these users before adding the new one, so that we can
-	// check whether the user was already logged in later.
+	// 在添加新用户之前获取这些用户，以便稍后
+	// 检查该用户是否已经登录。
 	//
-	// In this case we ignore the error if the host doesn't exist
-	// because that can occur when the user is logging into a host
-	// for the first time.
+	// 在这种情况下，若主机不存在则忽略错误，
+	// 因为用户首次登录某台主机时可能会发生这种情况。
 	usersForHost := cfg.UsersForHost(hostname)
 	userWasAlreadyLoggedIn := slices.Contains(usersForHost, username)
 
 	if gitProtocol != "" {
 		fmt.Fprintf(opts.IO.ErrOut, "- gh config set -h %s git_protocol %s\n", hostname, gitProtocol)
-		fmt.Fprintf(opts.IO.ErrOut, "%s Configured git protocol\n", cs.SuccessIcon())
+		fmt.Fprintf(opts.IO.ErrOut, "%s 已配置 git 协议\n", cs.SuccessIcon())
 	}
 
 	insecureStorageUsed, err := cfg.Login(hostname, username, authToken, gitProtocol, opts.SecureStorage)
@@ -206,7 +205,7 @@ func Login(opts *LoginOptions) error {
 		return err
 	}
 	if insecureStorageUsed {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Authentication credentials saved in plain text\n", cs.Yellow("!"))
+		fmt.Fprintf(opts.IO.ErrOut, "%s 身份验证凭据已保存为纯文本\n", cs.Yellow("!"))
 	}
 
 	if opts.CredentialFlow.ShouldSetup() {
@@ -223,15 +222,15 @@ func Login(opts *LoginOptions) error {
 		}
 
 		if uploaded {
-			fmt.Fprintf(opts.IO.ErrOut, "%s Uploaded the SSH key to your GitHub account: %s\n", cs.SuccessIcon(), cs.Bold(keyToUpload))
+			fmt.Fprintf(opts.IO.ErrOut, "%s 已将 SSH 密钥上传到您的 GitHub 账户: %s\n", cs.SuccessIcon(), cs.Bold(keyToUpload))
 		} else {
-			fmt.Fprintf(opts.IO.ErrOut, "%s SSH key already existed on your GitHub account: %s\n", cs.SuccessIcon(), cs.Bold(keyToUpload))
+			fmt.Fprintf(opts.IO.ErrOut, "%s SSH 密钥已存在于您的 GitHub 账户中: %s\n", cs.SuccessIcon(), cs.Bold(keyToUpload))
 		}
 	}
 
-	fmt.Fprintf(opts.IO.ErrOut, "%s Logged in as %s\n", cs.SuccessIcon(), cs.Bold(username))
+	fmt.Fprintf(opts.IO.ErrOut, "%s 已以 %s 身份登录\n", cs.SuccessIcon(), cs.Bold(username))
 	if userWasAlreadyLoggedIn {
-		fmt.Fprintf(opts.IO.ErrOut, "%s You were already logged in to this account\n", cs.WarningIcon())
+		fmt.Fprintf(opts.IO.ErrOut, "%s 您已经登录过此账户\n", cs.WarningIcon())
 	}
 
 	return nil
@@ -255,17 +254,17 @@ func sshKeyUpload(httpClient *http.Client, hostname, keyFile string, title strin
 	return add.SSHKeyUpload(httpClient, hostname, f, title)
 }
 
-// GetCurrentLogin returns the login of the user the token belongs to.
+// GetCurrentLogin 返回令牌所属用户的登录名。
 //
-// The token is passed explicitly because this runs before the token is stored in config, so
-// the transport has nothing to attach. The transport only sets Authorization when it is
-// absent, so the header set here wins.
+// 显式传入令牌是因为此函数在令牌存入配置之前运行，
+// 因此 transport 没有可附加的内容。transport 仅在 Authorization
+// 缺失时才设置它，因此此处设置的头会生效。
 func GetCurrentLogin(httpClient *http.Client, hostname, authToken string) (string, error) {
 	var result struct{ Viewer struct{ Login string } }
 
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 作为后续工作，考虑是否可以将 api client 注入到此调用处，而不是在此构造
 	err := api.NewClientFromHTTP(httpClient).GraphQL(hostname, `query UserCurrent{viewer{login}}`, nil, &result,
 		api.WithHeader("Authorization", "token "+authToken))
 	if err != nil {

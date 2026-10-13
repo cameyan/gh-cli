@@ -22,20 +22,20 @@ func (e MissingScopesError) Error() string {
 	scopes := strings.Join(missing, ", ")
 
 	if len(e.MissingScopes) == 1 {
-		return "missing required scope " + scopes
+		return "缺少所需的作用域(scope) " + scopes
 	}
-	return "missing required scopes " + scopes
+	return "缺少所需的作用域(scopes) " + scopes
 }
 
-// GetScopes performs a GitHub API request and returns the value of the X-Oauth-Scopes header.
+// GetScopes 执行一次 GitHub API 请求并返回 X-Oauth-Scopes 头的值。
 //
-// The token is passed explicitly because this runs before the token is stored in config, so
-// the transport has nothing to attach. The transport only sets Authorization when it is
-// absent, so the header set here wins.
+// 显式传入令牌是因为此函数在令牌存入配置之前运行，
+// 因此 transport 没有可附加的内容。transport 仅在 Authorization
+// 缺失时才设置它，因此此处设置的头会生效。
 func GetScopes(httpClient *http.Client, hostname, authToken string) (string, error) {
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 作为后续工作，考虑是否可以将 api client 注入到此调用处，而不是在此构造
 	res, err := api.NewClientFromHTTP(httpClient).Request(hostname, http.MethodGet, safeurl.NewImmutableSafeURL("").String(), nil,
 		api.WithHeader("Authorization", "token "+authToken))
 	if err != nil {
@@ -43,8 +43,8 @@ func GetScopes(httpClient *http.Client, hostname, authToken string) (string, err
 	}
 
 	defer func() {
-		// Ensure the response body is fully read and closed
-		// before we reconnect, so that we reuse the same TCPconnection.
+		// 在重新连接之前确保响应体已被完整读取并关闭，
+		// 以便我们复用同一个 TCP 连接。
 		_, _ = io.Copy(io.Discard, res.Body)
 		res.Body.Close()
 	}()
@@ -56,8 +56,8 @@ func GetScopes(httpClient *http.Client, hostname, authToken string) (string, err
 	return res.Header.Get("X-Oauth-Scopes"), nil
 }
 
-// HasMinimumScopes performs a GitHub API request and returns an error if the token used in the request
-// lacks the minimum required scopes for performing API operations with gh.
+// HasMinimumScopes 执行一次 GitHub API 请求，若请求中使用的令牌缺少
+// 使用 gh 执行 API 操作所需的最低作用域(scopes)，则返回错误。
 func HasMinimumScopes(httpClient *http.Client, hostname, authToken string) error {
 	scopesHeader, err := GetScopes(httpClient, hostname, authToken)
 	if err != nil {
@@ -67,12 +67,12 @@ func HasMinimumScopes(httpClient *http.Client, hostname, authToken string) error
 	return HeaderHasMinimumScopes(scopesHeader)
 }
 
-// HeaderHasMinimumScopes parses the comma separated scopesHeader string and returns an error
-// if it lacks the minimum required scopes for performing API operations with gh.
+// HeaderHasMinimumScopes 解析以逗号分隔的 scopesHeader 字符串，若它缺少
+// 使用 gh 执行 API 操作所需的最低作用域(scopes)，则返回错误。
 func HeaderHasMinimumScopes(scopesHeader string) error {
 	if scopesHeader == "" {
-		// if the token reports no scopes, assume that it's an integration token and give up on
-		// detecting its capabilities
+		// 如果令牌报告没有任何作用域，则假定它是集成令牌，
+		// 并放弃检测其能力
 		return nil
 	}
 

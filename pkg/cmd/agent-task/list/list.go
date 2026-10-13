@@ -18,7 +18,7 @@ import (
 
 const defaultLimit = 30
 
-// ListOptions are the options for the list command
+// ListOptions 是 list 命令的选项
 type ListOptions struct {
 	IO         *iostreams.IOStreams
 	Limit      int
@@ -28,7 +28,7 @@ type ListOptions struct {
 	Exporter   cmdutil.Exporter
 }
 
-// NewCmdList creates the list command
+// NewCmdList 创建 list 命令
 func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Command {
 	opts := &ListOptions{
 		IO:         f.IOStreams,
@@ -39,11 +39,11 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List agent tasks (preview)",
+		Short: "列出 agent task（预览版）",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Limit < 1 {
-				return cmdutil.FlagErrorf("invalid limit: %v", opts.Limit)
+				return cmdutil.FlagErrorf("无效的 limit: %v", opts.Limit)
 			}
 			if runF != nil {
 				return runF(opts)
@@ -52,8 +52,8 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", defaultLimit, "Maximum number of agent tasks to fetch")
-	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "Open agent tasks in the browser")
+	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", defaultLimit, "最多获取的 agent task 数量")
+	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "在浏览器中打开 agent task")
 
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, capi.SessionFields)
 
@@ -64,7 +64,7 @@ func listRun(opts *ListOptions) error {
 	if opts.Web {
 		webURL := capi.AgentsHomeURL
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(webURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在在浏览器中打开 %s。\n", text.DisplayURL(webURL))
 		}
 		return opts.Browser.Browse(webURL)
 	}
@@ -78,7 +78,7 @@ func listRun(opts *ListOptions) error {
 		return err
 	}
 
-	opts.IO.StartProgressIndicatorWithLabel("Fetching agent tasks...")
+	opts.IO.StartProgressIndicatorWithLabel("正在获取 agent task...")
 	defer opts.IO.StopProgressIndicator()
 	var sessions []*capi.Session
 	ctx := context.Background()
@@ -91,7 +91,7 @@ func listRun(opts *ListOptions) error {
 	opts.IO.StopProgressIndicator()
 
 	if len(sessions) == 0 && opts.Exporter == nil {
-		return cmdutil.NewNoResultsError("no agent tasks found")
+		return cmdutil.NewNoResultsError("未找到 agent task")
 	}
 
 	if opts.Exporter != nil {
@@ -101,27 +101,27 @@ func listRun(opts *ListOptions) error {
 	if err := opts.IO.StartPager(); err == nil {
 		defer opts.IO.StopPager()
 	} else {
-		fmt.Fprintf(opts.IO.ErrOut, "error starting pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 
 	if opts.IO.IsStdoutTTY() {
 		count := len(sessions)
-		header := fmt.Sprintf("Showing %s", text.Pluralize(count, "session"))
+		header := fmt.Sprintf("正在显示 %d 个 session", count)
 		fmt.Fprintf(opts.IO.Out, "%s\n\n", header)
 	}
 
 	cs := opts.IO.ColorScheme()
-	tp := tableprinter.New(opts.IO, tableprinter.WithHeader("Session Name", "Pull Request", "Repo", "Session State", "Created"))
+	tp := tableprinter.New(opts.IO, tableprinter.WithHeader("会话名称", "PR", "仓库", "会话状态", "创建时间"))
 	for _, s := range sessions {
 		if s.ResourceType != "pull" || s.PullRequest == nil || s.PullRequest.Repository == nil {
-			// Skip these sessions in case they happen, for now.
+			// 跳过这些可能出现的 session（暂时）。
 			continue
 		}
 
 		pr := fmt.Sprintf("#%d", s.PullRequest.Number)
 		repo := s.PullRequest.Repository.NameWithOwner
 
-		// Name
+		// 名称
 		tp.AddField(s.Name)
 		if tp.IsTTY() {
 			tp.AddField(pr, tableprinter.WithColor(cs.ColorFromString(prShared.ColorForPRState(*s.PullRequest))))
@@ -129,17 +129,17 @@ func listRun(opts *ListOptions) error {
 			tp.AddField(pr)
 		}
 
-		// Repo
+		// 仓库
 		tp.AddField(repo, tableprinter.WithColor(cs.Muted))
 
-		// State
+		// 状态
 		if tp.IsTTY() {
 			tp.AddField(shared.SessionStateString(s.State), tableprinter.WithColor(shared.ColorFuncForSessionState(*s, cs)))
 		} else {
 			tp.AddField(shared.SessionStateString(s.State))
 		}
 
-		// Created
+		// 创建时间
 		if tp.IsTTY() {
 			tp.AddTimeField(time.Now(), s.CreatedAt, cs.Muted)
 		} else {

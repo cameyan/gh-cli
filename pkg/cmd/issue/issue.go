@@ -24,8 +24,8 @@ import (
 func NewCmdIssue(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "issue <command>",
-		Short: "Manage issues",
-		Long:  `Work with GitHub issues.`,
+		Short: "管理议题",
+		Long:  `使用 GitHub 议题工作`,
 		Example: heredoc.Doc(`
 			$ gh issue list
 			$ gh issue create --label bug
@@ -33,9 +33,9 @@ func NewCmdIssue(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder) *
 		`),
 		Annotations: map[string]string{
 			"help:arguments": heredoc.Doc(`
-				An issue can be supplied as argument in any of the following formats:
-				- by number, e.g. "123"; or
-				- by URL, e.g. "https://github.com/OWNER/REPO/issues/123".
+				可以通过以下任意格式在参数中提供议题:
+				- 通过编号, 例如 "123"; 或
+				- 通过 URL, 例如 "https://github.com/OWNER/REPO/issues/123".
 			`),
 		},
 		GroupID: "core",

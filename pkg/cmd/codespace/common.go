@@ -1,6 +1,6 @@
 package codespace
 
-// This file defines functions common to the entire codespace command set.
+// 本文件定义整个 codespace 命令集共用的函数。
 
 import (
 	"context"
@@ -50,12 +50,12 @@ func NewApp(io *iostreams.IOStreams, exe executable, apiClient apiClient, browse
 	}
 }
 
-// StartProgressIndicatorWithLabel starts a progress indicator with a message.
+// StartProgressIndicatorWithLabel 启动一个带消息的进度指示器。
 func (a *App) StartProgressIndicatorWithLabel(s string) {
 	a.io.StartProgressIndicatorWithLabel(s)
 }
 
-// StopProgressIndicator stops the progress indicator.
+// StopProgressIndicator 停止进度指示器。
 func (a *App) StopProgressIndicator() {
 	a.io.StopProgressIndicator()
 }
@@ -86,10 +86,10 @@ type apiClient interface {
 	ExternalHTTPClient() (*http.Client, error)
 }
 
-var errNoCodespaces = errors.New("you have no codespaces")
+var errNoCodespaces = errors.New("你没有任何 codespace")
 
-// chooseCodespaceFromList returns the codespace that the user has interactively selected from the list, or
-// an error if there are no codespaces.
+// chooseCodespaceFromList 返回用户从列表中交互选择的 codespace，
+// 没有任何 codespace 时返回错误。
 func chooseCodespaceFromList(ctx context.Context, codespaces []*api.Codespace, includeOwner bool, skipPromptForSingleOption bool) (*api.Codespace, error) {
 	if len(codespaces) == 0 {
 		return nil, errNoCodespaces
@@ -108,7 +108,7 @@ func chooseCodespaceFromList(ctx context.Context, codespaces []*api.Codespace, i
 		{
 			Name: "codespace",
 			Prompt: &survey.Select{
-				Message: "Choose codespace:",
+				Message: "选择 codespace:",
 				Options: formatCodespacesForSelect(sortedCodespaces, includeOwner),
 			},
 			Validate: survey.Required,
@@ -120,7 +120,7 @@ func chooseCodespaceFromList(ctx context.Context, codespaces []*api.Codespace, i
 		Codespace int
 	}
 	if err := prompter.Ask(csSurvey, &answers); err != nil {
-		return nil, fmt.Errorf("error getting answers: %w", err)
+		return nil, fmt.Errorf("获取回答时出错: %w", err)
 	}
 
 	return sortedCodespaces[answers.Codespace], nil
@@ -143,8 +143,8 @@ func safeClose(closer io.Closer, err *error) {
 	}
 }
 
-// hasTTY indicates whether the process connected to a terminal.
-// It is not portable to assume stdin/stdout are fds 0 and 1.
+// hasTTY 指示进程是否连接到终端。
+// 假设 stdin/stdout 是文件描述符 0 和 1 是不可移植的。
 var hasTTY = term.IsTerminal(int(os.Stdin.Fd())) && term.IsTerminal(int(os.Stdout.Fd()))
 
 type SurveyPrompter interface {
@@ -153,17 +153,20 @@ type SurveyPrompter interface {
 
 type Prompter struct{}
 
-// ask asks survey questions on the terminal, using standard options.
-// It fails unless hasTTY, but ideally callers should avoid calling it in that case.
+// ask 在终端上以标准选项显示 survey 问题。
+// 除非 hasTTY 为真，否则会失败，但理想情况下调用方应避免在该情况下调用。
 func (p *Prompter) Ask(qs []*survey.Question, response any) error {
 	if !hasTTY {
-		return fmt.Errorf("no terminal")
+		return fmt.Errorf("无终端")
 	}
 	err := survey.Ask(qs, response, survey.WithShowCursor(true))
 	// The survey package temporarily clears the terminal's ISIG mode bit
 	// (see tcsetattr(3)) so the QUIT button (Ctrl-C) is reported as
 	// ASCII \x03 (ETX) instead of delivering SIGINT to the application.
 	// So we have to serve ourselves the SIGINT.
+	// survey 包会临时清除终端的 ISIG 模式位 (见 tcsetattr(3))，
+	// 使 QUIT 键 (Ctrl-C) 以 ASCII \x03 (ETX) 上报，而不是向应用递送 SIGINT。
+	// 因此我们必须自己触发 SIGINT。
 	//
 	// https://github.com/AlecAivazis/survey/#why-isnt-ctrl-c-working
 	if err == terminal.InterruptErr {
@@ -172,12 +175,13 @@ func (p *Prompter) Ask(qs []*survey.Question, response any) error {
 
 		// Suspend the goroutine, to avoid a race between
 		// return from main and async delivery of INT signal.
+		// 挂起该 goroutine，避免从 main 返回与 INT 信号异步递送之间产生竞争。
 		select {}
 	}
 	return err
 }
 
-var ErrTooManyArgs = errors.New("the command accepts no arguments")
+var ErrTooManyArgs = errors.New("该命令不接受任何参数")
 
 func noArgsConstraint(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
@@ -190,7 +194,7 @@ type codespace struct {
 	*api.Codespace
 }
 
-// displayName formats the codespace name for the interactive selector prompt.
+// displayName 为交互选择器提示格式化 codespace 名称。
 func (c codespace) displayName(includeOwner bool) string {
 	branch := c.branchWithGitStatus()
 	displayName := c.DisplayName
@@ -208,11 +212,11 @@ func (c codespace) displayName(includeOwner bool) string {
 	return description
 }
 
-// gitStatusDirty represents an unsaved changes status.
+// gitStatusDirty 表示有未保存的更改状态。
 const gitStatusDirty = "*"
 
-// branchWithGitStatus returns the branch with a star
-// if the branch is currently being worked on.
+// branchWithGitStatus 在分支名后附加星号，
+// 表示该分支当前有正在进行的修改。
 func (c codespace) branchWithGitStatus() string {
 	if c.hasUnsavedChanges() {
 		return c.GitStatus.Ref + gitStatusDirty
@@ -221,28 +225,27 @@ func (c codespace) branchWithGitStatus() string {
 	return c.GitStatus.Ref
 }
 
-// hasUnsavedChanges returns whether the environment has
-// unsaved changes.
+// hasUnsavedChanges 返回环境中是否有未保存的更改。
 func (c codespace) hasUnsavedChanges() bool {
 	return c.GitStatus.HasUncommittedChanges || c.GitStatus.HasUnpushedChanges
 }
 
-// running returns whether the codespace environment is running.
+// running 返回 codespace 环境是否正在运行。
 func (c codespace) running() bool {
 	return c.State == api.CodespaceStateAvailable
 }
 
-// addDeprecatedRepoShorthand adds a -r parameter (deprecated shorthand for --repo)
-// which instructs the user to use -R instead.
+// addDeprecatedRepoShorthand 添加 -r 参数 (--repo 的已弃用简写)，
+// 提示用户改用 -R。
 func addDeprecatedRepoShorthand(cmd *cobra.Command, target *string) error {
-	cmd.Flags().StringVarP(target, "repo-deprecated", "r", "", "(Deprecated) Shorthand for --repo")
+	cmd.Flags().StringVarP(target, "repo-deprecated", "r", "", "(已弃用) --repo 的简写")
 
 	if err := cmd.Flags().MarkHidden("repo-deprecated"); err != nil {
-		return fmt.Errorf("error marking `-r` shorthand as hidden: %w", err)
+		return fmt.Errorf("将 `-r` 简写标记为隐藏时出错: %w", err)
 	}
 
-	if err := cmd.Flags().MarkShorthandDeprecated("repo-deprecated", "use `-R` instead"); err != nil {
-		return fmt.Errorf("error marking `-r` shorthand as deprecated: %w", err)
+	if err := cmd.Flags().MarkShorthandDeprecated("repo-deprecated", "请改用 `-R`"); err != nil {
+		return fmt.Errorf("将 `-r` 简写标记为已弃用时出错: %w", err)
 	}
 
 	if cmd.Flag("codespace") != nil {
@@ -252,13 +255,13 @@ func addDeprecatedRepoShorthand(cmd *cobra.Command, target *string) error {
 	return nil
 }
 
-// validateNWO returns an error if nwo is not a valid "owner/repo" repository reference.
+// validateNWO 在 nwo 不是有效的 "owner/repo" 仓库引用时返回错误。
 func validateNWO(nwo string) error {
 	_, _, err := safeurl.RepoPartsFromNWO(nwo)
 	return err
 }
 
-// filterCodespacesByRepoOwner filters a list of codespaces by the owner of the repository.
+// filterCodespacesByRepoOwner 按仓库 owner 过滤 codespace 列表。
 func filterCodespacesByRepoOwner(codespaces []*api.Codespace, repoOwner string) []*api.Codespace {
 	filtered := make([]*api.Codespace, 0, len(codespaces))
 	for _, c := range codespaces {

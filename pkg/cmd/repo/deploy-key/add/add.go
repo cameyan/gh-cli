@@ -31,16 +31,16 @@ func NewCmdAdd(f *cmdutil.Factory, runF func(*AddOptions) error) *cobra.Command 
 
 	cmd := &cobra.Command{
 		Use:   "add <key-file>",
-		Short: "Add a deploy key to a GitHub repository",
+		Short: "向 GitHub 仓库添加部署密钥(deploy key)",
 		Long: heredoc.Doc(`
-			Add a deploy key to a GitHub repository.
+			向 GitHub 仓库添加部署密钥(deploy key)。
 
-			Note that any key added by gh will be associated with the current authentication token.
-			If you de-authorize the GitHub CLI app or authentication token from your account, any
-			deploy keys added by GitHub CLI will be removed as well.
+			注意: 由 gh 添加的密钥将与当前身份验证令牌(token)关联。
+			如果您从账户中取消授权 GitHub CLI 应用或身份验证令牌，
+			由 GitHub CLI 添加的部署密钥也将被一并移除。
 		`),
 		Example: heredoc.Doc(`
-			# Generate a passwordless SSH key and add it as a deploy key to a repository
+			# 生成一个无密码的 SSH 密钥，并将其作为部署密钥添加到仓库
 			$ ssh-keygen -t ed25519 -C "my description" -N "" -f ~/.ssh/gh-test
 			$ gh repo deploy-key add ~/.ssh/gh-test.pub
 		`),
@@ -56,8 +56,8 @@ func NewCmdAdd(f *cmdutil.Factory, runF func(*AddOptions) error) *cobra.Command 
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Title, "title", "t", "", "Title of the new key")
-	cmd.Flags().BoolVarP(&opts.AllowWrite, "allow-write", "w", false, "Allow write access for the key")
+	cmd.Flags().StringVarP(&opts.Title, "title", "t", "", "新密钥的标题")
+	cmd.Flags().BoolVarP(&opts.AllowWrite, "allow-write", "w", false, "允许该密钥进行写访问")
 	return cmd
 }
 
@@ -94,6 +94,6 @@ func addRun(opts *AddOptions) error {
 	}
 
 	cs := opts.IO.ColorScheme()
-	_, err = fmt.Fprintf(opts.IO.Out, "%s Deploy key added to %s\n", cs.SuccessIcon(), cs.Bold(ghrepo.FullName(repo)))
+	_, err = fmt.Fprintf(opts.IO.Out, "%s 已向 %s 添加部署密钥\n", cs.SuccessIcon(), cs.Bold(ghrepo.FullName(repo)))
 	return err
 }
