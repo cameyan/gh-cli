@@ -582,7 +582,7 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantBrowserURL: "https://github.com/copilot/agents",
-			wantStderr:     "正在在浏览器中打开 https://github.com/copilot/agents。\n",
+			wantStderr:     "正在浏览器中打开 https://github.com/copilot/agents\n",
 		},
 		{
 			name: "with session id, with pr data, web mode (tty)",
@@ -615,7 +615,7 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantBrowserURL: "https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id",
-			wantStderr:     "正在在浏览器中打开 https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id。\n",
+			wantStderr:     "正在浏览器中打开 https://github.com/OWNER/REPO/pull/101/agent-sessions/some-session-id\n",
 		},
 		{
 			name: "with pr number, api error (tty)",
@@ -647,7 +647,7 @@ func Test_viewRun(t *testing.T) {
 					return ghrepo.NewWithHost("OWNER", "REPO", "foo.com"), nil
 				},
 			},
-			wantErr: errors.New("此主机不支持 agent tasks: foo.com"),
+			wantErr: errors.New("此主机不支持 agent 任务: foo.com"),
 		},
 		{
 			name: "with pr reference, api error when fetching pr database ID (tty)",
@@ -991,7 +991,7 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantBrowserURL: "https://github.com/OWNER/REPO/pull/101/agent-sessions",
-			wantStderr:     "正在在浏览器中打开 https://github.com/OWNER/REPO/pull/101/agent-sessions。\n",
+			wantStderr:     "正在浏览器中打开 https://github.com/OWNER/REPO/pull/101/agent-sessions\n",
 		},
 		{
 			name: "with pr number, multiple sessions, web mode (tty)",
@@ -1052,7 +1052,7 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantBrowserURL: "https://github.com/OWNER/REPO/pull/101/agent-sessions",
-			wantStderr:     "正在在浏览器中打开 https://github.com/OWNER/REPO/pull/101/agent-sessions。\n",
+			wantStderr:     "正在浏览器中打开 https://github.com/OWNER/REPO/pull/101/agent-sessions\n",
 		},
 		{
 			name: "with pr reference, multiple sessions, web mode (tty)",
@@ -1115,7 +1115,7 @@ func Test_viewRun(t *testing.T) {
 				}
 			},
 			wantBrowserURL: "https://github.com/OWNER/REPO/pull/101/agent-sessions",
-			wantStderr:     "正在在浏览器中打开 https://github.com/OWNER/REPO/pull/101/agent-sessions。\n",
+			wantStderr:     "正在浏览器中打开 https://github.com/OWNER/REPO/pull/101/agent-sessions\n",
 		},
 		{
 			name: "with log (tty)",

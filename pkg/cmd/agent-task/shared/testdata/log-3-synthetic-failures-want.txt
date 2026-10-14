@@ -22,7 +22,7 @@ hello world
     +new line                                                                 
     unchanged line
 
-Call to mystery_tool
+调用 mystery_tool
 
 输出:
 

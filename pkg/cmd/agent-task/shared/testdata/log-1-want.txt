@@ -376,7 +376,7 @@ Perfect! I have successfully implemented the shell script to print OS
   information. Let me run the CodeQL security checker to ensure there are no  
   security vulnerabilities:
 
-Run CodeQL analysis
+运行 CodeQL 分析
 
 输入:
 

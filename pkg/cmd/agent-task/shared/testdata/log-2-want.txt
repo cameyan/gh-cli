@@ -315,7 +315,7 @@ Creating a .yaml file with random fields as requested.
 Perfect! I have successfully completed the task. Let me also run a security 
   check to ensure there are no vulnerabilities in the changes:
 
-Run CodeQL analysis
+运行 CodeQL 分析
 
 输入:
 
