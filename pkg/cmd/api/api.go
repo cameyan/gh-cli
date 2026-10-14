@@ -300,7 +300,7 @@ func apiRun(opts *ApiOptions) error {
 	isGraphQL := opts.RequestPath == "graphql"
 	requestPath, err := fillPlaceholders(opts.RequestPath, opts)
 	if err != nil {
-		return fmt.Errorf("unable to expand placeholder in path: %w", err)
+		return fmt.Errorf("无法展开路径中的占位符: %w", err)
 	}
 	method := opts.RequestMethod
 	requestHeaders := opts.RequestHeaders
@@ -317,14 +317,14 @@ func apiRun(opts *ApiOptions) error {
 		if err := opts.IO.StartPager(); err == nil {
 			defer opts.IO.StopPager()
 		} else {
-			fmt.Fprintf(opts.IO.ErrOut, "failed to start pager: %v\n", err)
+			fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 		}
 	}
 
-	// Response content funnels through ContentOut. It stays in passthrough here:
-	// JSON is sanitized by the transport and the jq/template/jsoncolor paths emit
-	// our own formatting, so only a raw non-JSON body needs neutralizing, done at
-	// its copy below.
+	// 响应内容经由 ContentOut 输出。此处保持透传状态:
+	// JSON 由传输层进行净化，而 jq/template/jsoncolor 路径会生成
+	// 我们自己的格式化输出，因此只有原始的非 JSON 响应体需要中和处理，
+	// 该处理在其下方的拷贝处完成。
 	opts.IO.SetContentSanitization(false)
 
 	var bodyWriter io.Writer = opts.IO.ContentOut
@@ -333,7 +333,7 @@ func apiRun(opts *ApiOptions) error {
 		bodyWriter = io.Discard
 	}
 	if opts.Verbose {
-		// httpClient handles output when verbose flag is specified.
+		// 指定 verbose 标志时由 httpClient 处理输出。
 		bodyWriter = io.Discard
 		headersWriter = io.Discard
 	}
@@ -342,7 +342,7 @@ func apiRun(opts *ApiOptions) error {
 		requestPath = addPerPage(requestPath, 100, params)
 	}
 
-	// Similar to `jq --slurp`, write all pages JSON arrays or objects into a JSON array.
+	// 类似于 `jq --slurp`，将所有页面的 JSON 数组或对象写入一个 JSON 数组中。
 	if opts.Paginate && opts.Slurp {
 		w := &jsonArrayWriter{
 			Writer: bodyWriter,
@@ -421,10 +421,10 @@ func apiRun(opts *ApiOptions) error {
 
 		if !isGraphQL {
 			requestPath, hasNextPage = findNextPage(resp)
-			requestBody = nil // prevent repeating GET parameters
+			requestBody = nil // 防止重复发送 GET 参数
 		}
 
-		// Tell optional jsonArrayWriter to start a new page.
+		// 通知可选的 jsonArrayWriter 开始新的一页。
 		err = startPage(bodyWriter)
 		if err != nil {
 			return err
@@ -490,7 +490,7 @@ func processResponse(resp *http.Response, opts *ApiOptions, bodyWriter, headersW
 	}
 
 	if opts.FilterOutput != "" && serverError == "" {
-		// TODO: reuse parsed query across pagination invocations
+		// TODO: 在分页调用间复用已解析的查询
 		indent := ""
 		if opts.IO.IsStdoutTTY() {
 			indent = ttyIndent
@@ -514,16 +514,16 @@ func processResponse(resp *http.Response, opts *ApiOptions, bodyWriter, headersW
 				isLastPage:  isLastPage,
 			}
 		}
-		// A raw non-JSON body is the only response the transport does not sanitize.
-		// It is faithful byte output, so binary bound for a terminal and text
-		// carrying escape sequences are refused; the opt-out flag and discarded
-		// output stream verbatim.
+		// 原始非 JSON 响应体是传输层唯一不进行净化的响应。
+		// 它是逐字节的忠实输出，因此发往终端的二进制数据以及
+		// 携带转义序列的文本都会被拒绝；可通过选择退出标志绕过，
+		// 或将输出流丢弃后原样输出。
 		if !isJSON && !opts.AllowEscapeSequences && bodyWriter != io.Discard {
 			err = iostreams.CopyGuardedContent(bodyWriter, responseBody, opts.IO.IsStdoutTTY())
 			if binErr, ok := errors.AsType[iostreams.BinaryTerminalError](err); ok {
-				err = fmt.Errorf("%w; redirect or pipe stdout to save it, or pass --allow-escape-sequences to output it anyway", binErr)
+				err = fmt.Errorf("%w; 请将标准输出重定向或通过管道保存，或传入 --allow-escape-sequences 以强制输出", binErr)
 			} else if errors.Is(err, iostreams.ErrEscapeSequence) {
-				err = errors.New("the response contains terminal escape sequences; pass --allow-escape-sequences to output it anyway")
+				err = errors.New("响应中包含终端转义序列; 请传入 --allow-escape-sequences 以强制输出")
 			}
 		} else {
 			_, err = io.Copy(bodyWriter, responseBody)
@@ -542,7 +542,7 @@ func processResponse(resp *http.Response, opts *ApiOptions, bodyWriter, headersW
 			fmt.Fprintf(opts.IO.ErrOut, "gh: %s\n", msg)
 		}
 		if u := factory.SSOURL(); u != "" {
-			fmt.Fprintf(opts.IO.ErrOut, "Authorize in your web browser: %s\n", u)
+			fmt.Fprintf(opts.IO.ErrOut, "请在浏览器中授权: %s\n", u)
 		}
 		err = cmdutil.SilentError
 		return
@@ -557,7 +557,7 @@ func processResponse(resp *http.Response, opts *ApiOptions, bodyWriter, headersW
 
 var placeholderRE = regexp.MustCompile(`(\:(owner|repo|branch)\b|\{[a-z]+\})`)
 
-// fillPlaceholders replaces placeholders with values from the current repository
+// fillPlaceholders 使用当前仓库的值替换占位符
 func fillPlaceholders(value string, opts *ApiOptions) (string, error) {
 	var err error
 	return placeholderRE.ReplaceAllStringFunc(value, func(m string) string {
@@ -583,7 +583,7 @@ func fillPlaceholders(value string, opts *ApiOptions) (string, error) {
 			}
 		case "branch":
 			if os.Getenv("GH_REPO") != "" {
-				err = errors.New("unable to determine an appropriate value for the 'branch' placeholder")
+				err = errors.New("无法为 'branch' 占位符确定合适的值")
 				return m
 			}
 
@@ -609,7 +609,7 @@ func printHeaders(w io.Writer, headers http.Header, colorize bool) {
 
 	var headerColor, headerColorReset string
 	if colorize {
-		headerColor = "\x1b[1;34m" // bright blue
+		headerColor = "\x1b[1;34m" // 亮蓝色
 		headerColorReset = "\x1b[m"
 	}
 	for _, name := range names {
