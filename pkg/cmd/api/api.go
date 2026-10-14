@@ -79,102 +79,86 @@ func NewCmdApi(f *cmdutil.Factory, runF func(*ApiOptions) error) *cobra.Command 
 
 	cmd := &cobra.Command{
 		Use:   "api <endpoint>",
-		Short: "Make an authenticated GitHub API request",
+		Short: "发起经过身份验证的 GitHub API 请求",
 		Long: heredoc.Docf(`
-			Makes an authenticated HTTP request to the GitHub API and prints the response.
+			向 GitHub API 发起一个经过身份验证的 HTTP 请求并打印响应。
 
-			The endpoint argument should either be a path of a GitHub API v3 endpoint, or
-			%[1]sgraphql%[1]s to access the GitHub API v4.
+			端点参数应为 GitHub API v3 端点的路径，或 %[1]sgraphql%[1]s 以访问 GitHub API v4。
 
-			Placeholder values %[1]s{owner}%[1]s, %[1]s{repo}%[1]s, and %[1]s{branch}%[1]s in the endpoint
-			argument will get replaced with values from the repository of the current
-			directory or the repository specified in the %[1]sGH_REPO%[1]s environment variable.
-			Note that in some shells, for example PowerShell, you may need to enclose
-			any value that contains %[1]s{...}%[1]s in quotes to prevent the shell from
-			applying special meaning to curly braces.
+			占位符值 %[1]s{owner}%[1]s、%[1]s{repo}%[1]s 和 %[1]s{branch}%[1]s 在端点参数中将
+			替换为当前目录的仓库或 %[1]sGH_REPO%[1]s 环境变量中指定的仓库的值。请注意，在某些 shell(例如 PowerShell)中，
+			您可能需要将包含 %[1]s{...}%[1]s 的任何值用引号括起来，以防止 shell 对大括号赋予特殊含义。
 
-			The %[1]s-p/--preview%[1]s flag enables opting into previews, which are feature-flagged,
-			experimental API endpoints or behaviors. The API expects opt-in via the %[1]sAccept%[1]s
-			header with format %[1]sapplication/vnd.github.<preview-name>-preview+json%[1]s and this
-			command facilitates that via %[1]s--preview <preview-name>%[1]s. To send a request for
-			the corsair and scarlet witch previews, you could use %[1]s-p corsair,scarlet-witch%[1]s
-			or %[1]s--preview corsair --preview scarlet-witch%[1]s.
+			%[1]s-p/--preview%[1]s 标志用于启用预览功能，这些功能是带有特性标记的实验性 API 端点或行为。
+			API 期望通过 %[1]sAccept%[1]s 头字段以格式 %[1]sapplication/vnd.github.<preview-name>-preview+json%[1]s 进行
+			选项加入，而此命令通过 %[1]s--preview <preview-name>%[1]s 来简化这一过程。若要发送针对 corsair 和
+			scarlet 预览的请求，您可以使用 %[1]s-p corsair,scarlet-witch%[1]s 或 %[1]s--preview corsair --preview scarlet-witch%[1]s。
 
-			The default HTTP request method is %[1]sGET%[1]s normally and %[1]sPOST%[1]s if any parameters
-			were added. Override the method with %[1]s--method%[1]s.
+			默认的 HTTP 请求方法是 %[1]sGET%[1]s 或 %[1]sPOST%[1]s，可使用 %[1]s--method%[1]s 覆盖该方法。
 
-			Pass one or more %[1]s-f/--raw-field%[1]s values in %[1]skey=value%[1]s format to add static string
-			parameters to the request payload. To add non-string or placeholder-determined values, see
-			%[1]s-F/--field%[1]s below. Note that adding request parameters will automatically switch the
-			request method to %[1]sPOST%[1]s. To send the parameters as a %[1]sGET%[1]s query string instead, use
-			%[1]s--method GET%[1]s.
+			以 %[1]skey=value%[1]s 的格式传入一个或多个 %[1]s-f/--raw-field%[1]s 值，可将静态字符串参数添加
+			到请求负载中。若需添加非字符串或占位符决定的值，请参阅下方的 %[1]s-F/--field%[1]s。请注意，添加请求参
+			数会自动将请求方法切换为 %[1]sPOST%[1]s。若希望将参数作为 %[1]sGET%[1]s 查询字符串发送，
+			请使用 %[1]s--method GET%[1]s。
 
-			The %[1]s-F/--field%[1]s flag has magic type conversion based on the format of the value:
+			%[1]s-F/--field%[1]s 标志根据值的格式具有神奇的类型转换功能:
 
-			- literal values %[1]strue%[1]s, %[1]sfalse%[1]s, %[1]snull%[1]s, and integer numbers get converted to
-			  appropriate JSON types;
-			- placeholder values %[1]s{owner}%[1]s, %[1]s{repo}%[1]s, and %[1]s{branch}%[1]s get populated with values
-			  from the repository of the current directory;
-			- if the value starts with %[1]s@%[1]s, the rest of the value is interpreted as a
-			  filename to read the value from. Pass %[1]s-%[1]s to read from standard input.
+			- 字面值 %[1]strue%[1]s、%[1]sfalse%[1]s、%[1]snull%[1]s 以及整数会被转换为相应的 JSON 类型
+			- 占位符值 %[1]s{owner}%[1]s、%[1]s{repo}%[1]s 和 %[1]s{branch}%[1]s 将从当前目录的仓库中获取相应的值填充
+			- 如果值以 %[1]s@%[1]s 开头，则该值的其余部分将被解释为从中读取值的文件名。传递 %[1]s-%[1]s 可从标准输入读取
 
-			For GraphQL requests, all fields other than %[1]squery%[1]s and %[1]soperationName%[1]s are
-			interpreted as GraphQL variables.
+			对于 GraphQL 请求，除了 %[1]squery%[1]s 和 %[1]soperationName%[1]s 之外的所有字段均被解释
+			为 GraphQL 变量。
 
-			To pass nested parameters in the request payload, use %[1]skey[subkey]=value%[1]s syntax when
-			declaring fields. To pass nested values as arrays, declare multiple fields with the
-			syntax %[1]skey[]=value1%[1]s, %[1]skey[]=value2%[1]s. To pass an empty array, use %[1]skey[]%[1]s without a
-			value.
+			要在请求负载中传递嵌套参数，请在声明字段时使用 %[1]skey[subkey]=value%[1]s 语法。要将嵌套值作为数组传递，
+			请使用 %[1]skey[]=value1%[1]s、%[1]skey[]=value2%[1]s 语法声明多个字段。要传递空数组，请使用不带值的
+			%[1]skey[]%[1]s。
 
-			To pass pre-constructed JSON or payloads in other formats, a request body may be read
-			from file specified by %[1]s--input%[1]s. Use %[1]s-%[1]s to read from standard input. When passing the
-			request body this way, any parameters specified via field flags are added to the query
-			string of the endpoint URL.
+			要传递预先构建的 JSON 或其他格式的负载，可以从由 %[1]s--input%[1]s 指定的文件中读取请求体。使用 %[1]s-%[1]s
+			可从标准输入读取。以这种方式传递请求体时，通过字段标志指定的任何参数都会添加到端点 URL 的查询字符串中。
 
-			In %[1]s--paginate%[1]s mode, all pages of results will sequentially be requested until
-			there are no more pages of results. For GraphQL requests, this requires that the
-			original query accepts an %[1]s$endCursor: String%[1]s variable and that it fetches the
-			%[1]spageInfo{ hasNextPage, endCursor }%[1]s set of fields from a collection. Each page is a separate
-			JSON array or object. Pass %[1]s--slurp%[1]s to wrap all pages of JSON arrays or objects
-			into an outer JSON array.
+			在 %[1]s--paginate%[1]s 模式下，所有结果页将按顺序请求，直到没有更多结果页为止。对于 GraphQL 请求，这要
+			求原始查询必须接受一个 %[1]s$endCursor: String%[1]s 变量，并且从集合中获取
+			%[1]spageInfo{ hasNextPage, endCursor }%[1]s 字段集。每一页都是一个独立的 JSON 数组或对象。传递
+			%[1]s--slurp%[1]s 参数可将所有 JSON 数组或对象页封装到一个外层 JSON 数组中。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# List releases in the current repository
+			# 列出当前仓库中的发布版本
 			$ gh api repos/{owner}/{repo}/releases
 
-			# Post an issue comment
+			# 发布问题评论
 			$ gh api repos/{owner}/{repo}/issues/123/comments -f body='Hi from CLI'
 
-			# Post nested parameter read from a file
+			# 从文件中读取嵌套参数并发布
 			$ gh api gists -F 'files[myfile.txt][content]=@myfile.txt'
 
-			# Add parameters to a GET request
+			# 将参数添加到 GET 请求中
 			$ gh api -X GET search/issues -f q='repo:cli/cli is:open remote'
 
-			# Use a JSON file as request body
+			# 使用 JSON 文件作为请求体
 			$ gh api repos/{owner}/{repo}/rulesets --input file.json
 
-			# Set a custom HTTP header
+			# 设置自定义 HTTP 头
 			$ gh api -H 'Accept: application/vnd.github.v3.raw+json' ...
 
-			# Opt into GitHub API previews
+			# 加入 GitHub API 预览版
 			$ gh api --preview baptiste,nebula ...
 
-			# Print only specific fields from the response
+			# 仅打印响应中的特定字段
 			$ gh api repos/{owner}/{repo}/issues --jq '.[].title'
 
-			# Use a template for the output
+			# 使用模板格式化输出
 			$ gh api repos/{owner}/{repo}/issues --template \
 			  '{{range .}}{{.title}} ({{.labels | pluck "name" | join ", " | color "yellow"}}){{"\n"}}{{end}}'
 
-			# Update allowed values of the "environment" custom property in a deeply nested array
+			# 更新深层嵌套数组中“environment”自定义属性的允许值
 			$ gh api -X PATCH /orgs/{org}/properties/schema \
 			   -F 'properties[][property_name]=environment' \
 			   -F 'properties[][default_value]=production' \
 			   -F 'properties[][allowed_values][]=staging' \
 			   -F 'properties[][allowed_values][]=production'
 
-			# List releases with GraphQL
+			# 使用 GraphQL 列出发布版本
 			$ gh api graphql -F owner='{owner}' -F name='{repo}' -f query='
 			  query($name: String!, $owner: String!) {
 			    repository(owner: $owner, name: $name) {
@@ -185,7 +169,7 @@ func NewCmdApi(f *cmdutil.Factory, runF func(*ApiOptions) error) *cobra.Command 
 			  }
 			'
 
-			# List all repositories for a user
+			# 列出用户的所有仓库
 			$ gh api graphql --paginate -f query='
 			  query($endCursor: String) {
 			    viewer {
@@ -200,7 +184,7 @@ func NewCmdApi(f *cmdutil.Factory, runF func(*ApiOptions) error) *cobra.Command 
 			  }
 			'
 
-			# Get the percentage of forks for the current user
+			# 获取当前用户的分支百分比
 			$ gh api graphql --paginate --slurp -f query='
 			  query($endCursor: String) {
 			    viewer {
@@ -218,13 +202,12 @@ func NewCmdApi(f *cmdutil.Factory, runF func(*ApiOptions) error) *cobra.Command 
 		`),
 		Annotations: map[string]string{
 			"help:environment": heredoc.Docf(`
-				GH_TOKEN, GITHUB_TOKEN (in order of precedence): an authentication token for
-				%[1]sgithub.com%[1]s API requests.
+				GH_TOKEN、GITHUB_TOKEN(按优先级顺序): 用于 %[1]sgithub.com%[1]s API 请求的身份验证令牌。
 
-				GH_ENTERPRISE_TOKEN, GITHUB_ENTERPRISE_TOKEN (in order of precedence): an
-				authentication token for API requests to GitHub Enterprise.
+				GH_ENTERPRISE_TOKEN、GITHUB_ENTERPRISE_TOKEN(按优先级顺序): 用于向 GitHub Enterprise
+				发起 API 请求的身份验证令牌。
 
-				GH_HOST: make the request to a GitHub host other than %[1]sgithub.com%[1]s.
+				GH_HOST: 向除 %[1]sgithub.com%[1]s 以外的 GitHub 主机提出请求。
 			`, "`"),
 		},
 		Args: cobra.ExactArgs(1),
@@ -236,21 +219,21 @@ func NewCmdApi(f *cmdutil.Factory, runF func(*ApiOptions) error) *cobra.Command 
 			opts.RequestMethodPassed = c.Flags().Changed("method")
 
 			if runtime.GOOS == "windows" && filepath.IsAbs(opts.RequestPath) {
-				return fmt.Errorf(`invalid API endpoint: "%s". Your shell might be rewriting URL paths as filesystem paths. To avoid this, omit the leading slash from the endpoint argument`, opts.RequestPath)
+				return fmt.Errorf(`无效的 API 端点: "%s"。您的 shell 可能正在将 URL 路径重写为文件系统路径。为避免此问题，请从端点参数中省略开头的斜杠。`, opts.RequestPath)
 			}
 
 			if c.Flags().Changed("hostname") {
 				if err := ghinstance.HostnameValidator(opts.Hostname); err != nil {
-					return cmdutil.FlagErrorf("error parsing `--hostname`: %w", err)
+					return cmdutil.FlagErrorf("`--hostname` 解析错误: %w", err)
 				}
 			}
 
 			if opts.Paginate && !strings.EqualFold(opts.RequestMethod, "GET") && opts.RequestPath != "graphql" {
-				return cmdutil.FlagErrorf("the `--paginate` option is not supported for non-GET requests")
+				return cmdutil.FlagErrorf("`--paginate` 选项不支持非 GET 请求")
 			}
 
 			if err := cmdutil.MutuallyExclusive(
-				"the `--paginate` option is not supported with `--input`",
+				"`--input` 不支持 `--paginate` 选项",
 				opts.Paginate,
 				opts.RequestInputFile != "",
 			); err != nil {
@@ -259,7 +242,7 @@ func NewCmdApi(f *cmdutil.Factory, runF func(*ApiOptions) error) *cobra.Command 
 
 			if opts.Slurp {
 				if err := cmdutil.MutuallyExclusive(
-					"the `--slurp` option is not supported with `--jq` or `--template`",
+					"`--slurp` 选项不支持与 `--jq` 或 `--template` 一起使用",
 					opts.Slurp,
 					opts.FilterOutput != "",
 					opts.Template != "",
@@ -268,12 +251,12 @@ func NewCmdApi(f *cmdutil.Factory, runF func(*ApiOptions) error) *cobra.Command 
 				}
 
 				if !opts.Paginate {
-					return cmdutil.FlagErrorf("`--paginate` required when passing `--slurp`")
+					return cmdutil.FlagErrorf("`--paginate` 在传递 `--slurp` 时是必需的")
 				}
 			}
 
 			if err := cmdutil.MutuallyExclusive(
-				"only one of `--template`, `--jq`, `--silent`, or `--verbose` may be used",
+				"只能使用 `--template`、`--jq`、`--silent` 或 `--verbose` 中的一个",
 				opts.Verbose,
 				opts.Silent,
 				opts.FilterOutput != "",
@@ -289,22 +272,22 @@ func NewCmdApi(f *cmdutil.Factory, runF func(*ApiOptions) error) *cobra.Command 
 		},
 	}
 
-	cmd.Flags().StringVar(&opts.Hostname, "hostname", "", "The GitHub hostname for the request (default \"github.com\")")
-	cmd.Flags().StringVarP(&opts.RequestMethod, "method", "X", "GET", "The HTTP method for the request")
-	cmd.Flags().StringArrayVarP(&opts.MagicFields, "field", "F", nil, "Add a typed parameter in `key=value` format (use \"@<path>\" or \"@-\" to read value from file or stdin)")
-	cmd.Flags().StringArrayVarP(&opts.RawFields, "raw-field", "f", nil, "Add a string parameter in `key=value` format")
-	cmd.Flags().StringArrayVarP(&opts.RequestHeaders, "header", "H", nil, "Add a HTTP request header in `key:value` format")
-	cmd.Flags().StringSliceVarP(&opts.Previews, "preview", "p", nil, "Opt into GitHub API previews (names should omit '-preview')")
-	cmd.Flags().BoolVarP(&opts.ShowResponseHeaders, "include", "i", false, "Include HTTP response status line and headers in the output")
-	cmd.Flags().BoolVar(&opts.Slurp, "slurp", false, "Use with \"--paginate\" to return an array of all pages of either JSON arrays or objects")
-	cmd.Flags().BoolVar(&opts.Paginate, "paginate", false, "Make additional HTTP requests to fetch all pages of results")
-	cmd.Flags().StringVar(&opts.RequestInputFile, "input", "", "The `file` to use as body for the HTTP request (use \"-\" to read from standard input)")
-	cmd.Flags().BoolVar(&opts.Silent, "silent", false, "Do not print the response body")
-	cmd.Flags().StringVarP(&opts.Template, "template", "t", "", "Format JSON output using a Go template; see \"gh help formatting\"")
-	cmd.Flags().StringVarP(&opts.FilterOutput, "jq", "q", "", "Query to select values from the response using jq syntax")
-	cmd.Flags().DurationVar(&opts.CacheTTL, "cache", 0, "Cache the response, e.g. \"3600s\", \"60m\", \"1h\"")
-	cmd.Flags().BoolVar(&opts.Verbose, "verbose", false, "Include full HTTP request and response in the output")
-	cmd.Flags().BoolVar(&opts.AllowEscapeSequences, "allow-escape-sequences", false, "Allow printing terminal escape sequences")
+	cmd.Flags().StringVar(&opts.Hostname, "hostname", "", "请求的 GitHub 主机名(默认 \"github.com\")")
+	cmd.Flags().StringVarP(&opts.RequestMethod, "method", "X", "GET", "请求的 HTTP 方法")
+	cmd.Flags().StringArrayVarP(&opts.MagicFields, "field", "F", nil, "在 `key=value` 格式中添加类型化参数(使用 \"@<path>\" 或 \"@-\" 从文件标志输入读取值)")
+	cmd.Flags().StringArrayVarP(&opts.RawFields, "raw-field", "f", nil, "添加一个格式为 `key=value` 的字符串参数")
+	cmd.Flags().StringArrayVarP(&opts.RequestHeaders, "header", "H", nil, "以 `key:value` 格式添加 HTTP 请求头")
+	cmd.Flags().StringSliceVarP(&opts.Previews, "preview", "p", nil, "订阅 GitHub API 预览版功能(名称应省略 '-preview' 部分)")
+	cmd.Flags().BoolVarP(&opts.ShowResponseHeaders, "include", "i", false, "在输出中包含 HTTP 响应状态行和头部信息")
+	cmd.Flags().BoolVar(&opts.Slurp, "slurp", false, "与 \"--paginate\" 一起使用，以返回所有页面的数组，数组中的元素可以是 JSON 数组或对象")
+	cmd.Flags().BoolVar(&opts.Paginate, "paginate", false, "发起额外的 HTTP 请求以获取所有结果页面")
+	cmd.Flags().StringVar(&opts.RequestInputFile, "input", "", "用作 HTTP 请求正文的 `file`(使用 \"-\" 从标准输入读取数据)")
+	cmd.Flags().BoolVar(&opts.Silent, "silent", false, "不要打印响应体")
+	cmd.Flags().StringVarP(&opts.Template, "template", "t", "", "使用 Go 模板格式化 JSON 输出。请参阅 \"gh help formatting\"")
+	cmd.Flags().StringVarP(&opts.FilterOutput, "jq", "q", "", "使用 jq 语法从响应中选择值的查询语句")
+	cmd.Flags().DurationVar(&opts.CacheTTL, "cache", 0, "缓存响应，例如: \"3600s\"、\"60m\"、\"1h\"")
+	cmd.Flags().BoolVar(&opts.Verbose, "verbose", false, "在输出中包含完整的 HTTP 请求和响应")
+	cmd.Flags().BoolVar(&opts.AllowEscapeSequences, "allow-escape-sequences", false, "允许打印终端转义序列")
 	return cmd
 }
 
