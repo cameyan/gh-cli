@@ -466,7 +466,7 @@ func Test_apiRun(t *testing.T) {
 		isatty       bool
 	}{
 		{
-			name: "成功",
+			name: "success",
 			httpResponse: &http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewBufferString(`bam!`)),
@@ -477,7 +477,7 @@ func Test_apiRun(t *testing.T) {
 			isatty: false,
 		},
 		{
-			name: "显示响应头",
+			name: "show response headers",
 			options: ApiOptions{
 				ShowResponseHeaders: true,
 			},
@@ -494,7 +494,7 @@ func Test_apiRun(t *testing.T) {
 			isatty: false,
 		},
 		{
-			name: "成功 204",
+			name: "success 204",
 			httpResponse: &http.Response{
 				StatusCode: 204,
 				Body:       nil,
@@ -505,7 +505,7 @@ func Test_apiRun(t *testing.T) {
 			isatty: false,
 		},
 		{
-			name: "REST 错误",
+			name: "REST error",
 			httpResponse: &http.Response{
 				StatusCode: 400,
 				Body:       io.NopCloser(bytes.NewBufferString(`{"message": "THIS IS FINE"}`)),
@@ -517,7 +517,7 @@ func Test_apiRun(t *testing.T) {
 			isatty: false,
 		},
 		{
-			name: "REST 字符串错误",
+			name: "REST string errors",
 			httpResponse: &http.Response{
 				StatusCode: 400,
 				Body:       io.NopCloser(bytes.NewBufferString(`{"errors": ["ALSO", "FINE"]}`)),
@@ -529,7 +529,7 @@ func Test_apiRun(t *testing.T) {
 			isatty: false,
 		},
 		{
-			name: "GraphQL 错误",
+			name: "GraphQL error",
 			options: ApiOptions{
 				RequestPath: "graphql",
 			},
@@ -544,7 +544,7 @@ func Test_apiRun(t *testing.T) {
 			isatty: false,
 		},
 		{
-			name: "失败",
+			name: "failure",
 			httpResponse: &http.Response{
 				StatusCode: 502,
 				Body:       io.NopCloser(bytes.NewBufferString(`gateway timeout`)),
@@ -555,7 +555,7 @@ func Test_apiRun(t *testing.T) {
 			isatty: false,
 		},
 		{
-			name: "静默",
+			name: "silent",
 			options: ApiOptions{
 				Silent: true,
 			},
@@ -569,7 +569,7 @@ func Test_apiRun(t *testing.T) {
 			isatty: false,
 		},
 		{
-			name: "静默时仍显示响应头",
+			name: "show response headers even when silent",
 			options: ApiOptions{
 				ShowResponseHeaders: true,
 				Silent:              true,
@@ -587,7 +587,7 @@ func Test_apiRun(t *testing.T) {
 			isatty: false,
 		},
 		{
-			name: "输出模板",
+			name: "output template",
 			options: ApiOptions{
 				Template: `{{.status}}`,
 			},
@@ -602,7 +602,7 @@ func Test_apiRun(t *testing.T) {
 			isatty: false,
 		},
 		{
-			name: "带 range 的输出模板",
+			name: "output template with range",
 			options: ApiOptions{
 				Template: `{{range .}}{{.title}} ({{.labels | pluck "name" | join ", " }}){{"\n"}}{{end}}`,
 			},
@@ -630,7 +630,7 @@ func Test_apiRun(t *testing.T) {
 		`),
 		},
 		{
-			name: "REST 错误时的输出模板",
+			name: "output template when REST error",
 			options: ApiOptions{
 				Template: `{{.status}}`,
 			},
@@ -645,7 +645,7 @@ func Test_apiRun(t *testing.T) {
 			isatty: false,
 		},
 		{
-			name: "jq 过滤器",
+			name: "jq filter",
 			options: ApiOptions{
 				FilterOutput: `.[].name`,
 			},
@@ -660,7 +660,7 @@ func Test_apiRun(t *testing.T) {
 			isatty: false,
 		},
 		{
-			name: "REST 错误时的 jq 过滤器",
+			name: "jq filter when REST error",
 			options: ApiOptions{
 				FilterOutput: `.[].name`,
 			},
@@ -675,7 +675,7 @@ func Test_apiRun(t *testing.T) {
 			isatty: false,
 		},
 		{
-			name: "jq 过滤器将 JSON 输出到 TTY",
+			name: "jq filter outputting JSON to a TTY",
 			options: ApiOptions{
 				FilterOutput: `.`,
 			},
@@ -690,19 +690,19 @@ func Test_apiRun(t *testing.T) {
 			isatty: true,
 		},
 		{
-			name: "在 TTY 上拒绝非 JSON 响应体中的转义序列",
+			name: "refuses escape sequences in non-JSON body on a TTY",
 			httpResponse: &http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewBufferString("\x1b[31mred\x1b[m")),
 				Header:     http.Header{"Content-Type": []string{"text/plain"}},
 			},
-			errMsg: "the response contains terminal escape sequences; pass --allow-escape-sequences to output it anyway",
+			errMsg: "响应中包含终端转义序列; 请传入 --allow-escape-sequences 以强制输出",
 			stdout: ``,
 			stderr: ``,
 			isatty: true,
 		},
 		{
-			name: "在 TTY 上通过 --allow-escape-sequences 透传转义序列",
+			name: "passes escape sequences through with --allow-escape-sequences on a TTY",
 			options: ApiOptions{
 				AllowEscapeSequences: true,
 			},
@@ -717,19 +717,19 @@ func Test_apiRun(t *testing.T) {
 			isatty: true,
 		},
 		{
-			name: "管道输出时拒绝非 JSON 响应体中的转义序列",
+			name: "refuses escape sequences in non-JSON body when piped",
 			httpResponse: &http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewBufferString("\x1b[31mred\x1b[m")),
 				Header:     http.Header{"Content-Type": []string{"text/plain"}},
 			},
-			errMsg: "the response contains terminal escape sequences; pass --allow-escape-sequences to output it anyway",
+			errMsg: "响应中包含终端转义序列; 请传入 --allow-escape-sequences 以强制输出",
 			stdout: ``,
 			stderr: ``,
 			isatty: false,
 		},
 		{
-			name: "在 TTY 上输出干净的非 JSON 文本",
+			name: "outputs clean non-JSON text on a TTY",
 			httpResponse: &http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewBufferString("plain readme text\n")),
@@ -741,7 +741,7 @@ func Test_apiRun(t *testing.T) {
 			isatty: true,
 		},
 		{
-			name: "管道输出时以流方式传输非 JSON 二进制响应体",
+			name: "streams binary non-JSON body when piped",
 			httpResponse: &http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewReader(append([]byte("\x89PNG\r\n\x1a\n"), make([]byte, 16)...))),
@@ -753,13 +753,13 @@ func Test_apiRun(t *testing.T) {
 			isatty: false,
 		},
 		{
-			name: "在 TTY 上拒绝非 JSON 二进制响应体",
+			name: "refuses binary non-JSON body on a TTY",
 			httpResponse: &http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewReader(append([]byte("\x89PNG\r\n\x1a\n"), make([]byte, 16)...))),
 				Header:     http.Header{"Content-Type": []string{"application/octet-stream"}},
 			},
-			errMsg: "refusing to output binary content (image/png) to the terminal; redirect or pipe stdout to save it, or pass --allow-escape-sequences to output it anyway",
+			errMsg: "refusing to output binary content (image/png) to the terminal; 请将标准输出重定向或通过管道保存，或传入 --allow-escape-sequences 以强制输出",
 			stdout: ``,
 			stderr: ``,
 			isatty: true,
