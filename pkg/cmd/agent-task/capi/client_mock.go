@@ -8,36 +8,36 @@ import (
 	"sync"
 )
 
-// 确保 CapiClientMock 实现了 CapiClient。
-// 如果不是这种情况，请使用 moq 重新生成此文件。
+// Ensure, that CapiClientMock does implement CapiClient.
+// If this is not the case, regenerate this file with moq.
 var _ CapiClient = &CapiClientMock{}
 
-// CapiClientMock 是 CapiClient 的 mock 实现。
+// CapiClientMock is a mock implementation of CapiClient.
 //
 //	func TestSomethingThatUsesCapiClient(t *testing.T) {
 //
-//		// 创建并配置一个 mock 的 CapiClient
+//		// make and configure a mocked CapiClient
 //		mockedCapiClient := &CapiClientMock{
 //			CreateJobFunc: func(ctx context.Context, owner string, repo string, problemStatement string, baseBranch string, customAgent string) (*Job, error) {
-//				panic("mock 掉 CreateJob method")
+//				panic("mock out the CreateJob method")
 //			},
 //			GetJobFunc: func(ctx context.Context, owner string, repo string, jobID string) (*Job, error) {
-//				panic("mock 掉 GetJob method")
+//				panic("mock out the GetJob method")
 //			},
 //			GetPullRequestDatabaseIDFunc: func(ctx context.Context, hostname string, owner string, repo string, number int) (int64, string, error) {
-//				panic("mock 掉 GetPullRequestDatabaseID method")
+//				panic("mock out the GetPullRequestDatabaseID method")
 //			},
 //			GetSessionFunc: func(ctx context.Context, id string) (*Session, error) {
-//				panic("mock 掉 GetSession method")
+//				panic("mock out the GetSession method")
 //			},
 //			GetSessionLogsFunc: func(ctx context.Context, id string) ([]byte, error) {
-//				panic("mock 掉 GetSessionLogs method")
+//				panic("mock out the GetSessionLogs method")
 //			},
 //			ListLatestSessionsForViewerFunc: func(ctx context.Context, limit int) ([]*Session, error) {
-//				panic("mock 掉 ListLatestSessionsForViewer method")
+//				panic("mock out the ListLatestSessionsForViewer method")
 //			},
 //			ListSessionsByResourceIDFunc: func(ctx context.Context, resourceType string, resourceID int64, limit int) ([]*Session, error) {
-//				panic("mock 掉 ListSessionsByResourceID method")
+//				panic("mock out the ListSessionsByResourceID method")
 //			},
 //		}
 //
@@ -46,25 +46,25 @@ var _ CapiClient = &CapiClientMock{}
 //
 //	}
 type CapiClientMock struct {
-	// CreateJobFunc mock 了 CreateJob 方法。
+	// CreateJobFunc mocks the CreateJob method.
 	CreateJobFunc func(ctx context.Context, owner string, repo string, problemStatement string, baseBranch string, customAgent string) (*Job, error)
 
-	// GetJobFunc mock 了 GetJob 方法。
+	// GetJobFunc mocks the GetJob method.
 	GetJobFunc func(ctx context.Context, owner string, repo string, jobID string) (*Job, error)
 
-	// GetPullRequestDatabaseIDFunc mock 了 GetPullRequestDatabaseID 方法。
+	// GetPullRequestDatabaseIDFunc mocks the GetPullRequestDatabaseID method.
 	GetPullRequestDatabaseIDFunc func(ctx context.Context, hostname string, owner string, repo string, number int) (int64, string, error)
 
-	// GetSessionFunc mock 了 GetSession 方法。
+	// GetSessionFunc mocks the GetSession method.
 	GetSessionFunc func(ctx context.Context, id string) (*Session, error)
 
-	// GetSessionLogsFunc mock 了 GetSessionLogs 方法。
+	// GetSessionLogsFunc mocks the GetSessionLogs method.
 	GetSessionLogsFunc func(ctx context.Context, id string) ([]byte, error)
 
-	// ListLatestSessionsForViewerFunc mock 了 ListLatestSessionsForViewer 方法。
+	// ListLatestSessionsForViewerFunc mocks the ListLatestSessionsForViewer method.
 	ListLatestSessionsForViewerFunc func(ctx context.Context, limit int) ([]*Session, error)
 
-	// ListSessionsByResourceIDFunc mock 了 ListSessionsByResourceID 方法。
+	// ListSessionsByResourceIDFunc mocks the ListSessionsByResourceID method.
 	ListSessionsByResourceIDFunc func(ctx context.Context, resourceType string, resourceID int64, limit int) ([]*Session, error)
 
 	// calls tracks calls to the methods.

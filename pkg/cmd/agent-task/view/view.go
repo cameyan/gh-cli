@@ -67,24 +67,24 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view [<session-id> | <pr-number> | <pr-url> | <pr-branch>]",
-		Short: "查看 agent task 会话 (预览)",
+		Short: "查看 agent 任务会话(预览)",
 		Long: heredoc.Doc(`
-			查看 agent task 会话。
+			查看 agent 任务会话。
 		`),
 		Example: heredoc.Doc(`
-			# 按 session ID 查看 agent task
+			# 按 session ID 查看 agent 任务
 			$ gh agent-task view e2fa49d2-f164-4a56-ab99-498090b8fcdf
 
-			# 按当前仓库中的 pull request 编号查看 agent task
+			# 按当前仓库中的 PR 编号查看 agent 任务
 			$ gh agent-task view 12345
 
-			# 按 pull request 编号查看 agent task
+			# 按 PR 编号查看 agent 任务
 			$ gh agent-task view --repo OWNER/REPO 12345
 
-			# 按 pull request 引用查看 agent task
+			# 按 PR 引用查看 agent 任务
 			$ gh agent-task view OWNER/REPO#12345
 
-			# 在浏览器中查看 pull request 的 agent tasks
+			# 在浏览器中查看 PR 的 agent 任务
 			$ gh agent-task view 12345 --web
 		`),
 		Args: cobra.MaximumNArgs(1),
@@ -122,7 +122,7 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmdutil.EnableRepoOverride(cmd, f)
 
-	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "在浏览器中打开 agent task")
+	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "在浏览器中打开 agent 任务")
 	cmd.Flags().BoolVar(&opts.Log, "log", false, "显示 agent 会话日志")
 	cmd.Flags().BoolVar(&opts.Follow, "follow", false, "持续跟踪 agent 会话日志")
 
@@ -168,7 +168,7 @@ func viewRun(opts *ViewOptions) error {
 			}
 
 			if opts.IO.IsStdoutTTY() {
-				fmt.Fprintf(opts.IO.ErrOut, "正在在浏览器中打开 %s。\n", text.DisplayURL(webURL))
+				fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(webURL))
 			}
 			return opts.Browser.Browse(webURL)
 		}
@@ -191,12 +191,12 @@ func viewRun(opts *ViewOptions) error {
 
 				hostname := baseRepo.RepoHost()
 				if hostname != ghinstance.Default() {
-					return fmt.Errorf("此主机不支持 agent tasks: %s", hostname)
+					return fmt.Errorf("此主机不支持 agent 任务: %s", hostname)
 				}
 
 				prID, prURL, err = capiClient.GetPullRequestDatabaseID(ctx, hostname, repo.RepoOwner(), repo.RepoName(), num)
 				if err != nil {
-					return fmt.Errorf("获取 pull request 失败: %w", err)
+					return fmt.Errorf("获取 PR 失败: %w", err)
 				}
 			}
 		}
@@ -214,12 +214,12 @@ func viewRun(opts *ViewOptions) error {
 			}
 
 			if repo.RepoHost() != ghinstance.Default() {
-				return fmt.Errorf("此主机不支持 agent tasks: %s", repo.RepoHost())
+				return fmt.Errorf("此主机不支持 agent 任务: %s", repo.RepoHost())
 			}
 
 			databaseID, err := strconv.ParseInt(pr.FullDatabaseID, 10, 64)
 			if err != nil {
-				return fmt.Errorf("解析 pull request 失败: %w", err)
+				return fmt.Errorf("解析 PR 失败: %w", err)
 			}
 
 			prID = databaseID
@@ -228,11 +228,11 @@ func viewRun(opts *ViewOptions) error {
 
 		sessions, err := capiClient.ListSessionsByResourceID(ctx, "pull", prID, defaultLimit)
 		if err != nil {
-			return fmt.Errorf("列出 pull request 的会话失败: %w", err)
+			return fmt.Errorf("列出 PR 的会话失败: %w", err)
 		}
 
 		if len(sessions) == 0 {
-			fmt.Fprintln(opts.IO.ErrOut, "该 pull request 没有找到会话")
+			fmt.Fprintln(opts.IO.ErrOut, "该 PR 没有找到会话")
 			return cmdutil.SilentError
 		}
 
@@ -247,7 +247,7 @@ func viewRun(opts *ViewOptions) error {
 			// 这样做是为了避免不必要的提示。
 			webURL := prURL + "/agent-sessions"
 			if opts.IO.IsStdoutTTY() {
-				fmt.Fprintf(opts.IO.ErrOut, "正在在浏览器中打开 %s。\n", text.DisplayURL(webURL))
+				fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(webURL))
 			}
 			return opts.Browser.Browse(webURL)
 		}
@@ -314,7 +314,7 @@ func printSession(opts *ViewOptions, session *capi.Session) {
 	}
 
 	usedPremiumRequests := strings.TrimSuffix(fmt.Sprintf("%.1f", session.PremiumRequests), ".0")
-	usedPremiumRequestsNote := fmt.Sprintf("已使用 %s 个 premium request", usedPremiumRequests)
+	usedPremiumRequestsNote := fmt.Sprintf("已使用 %s 个高级请求", usedPremiumRequests)
 
 	var durationNote string
 	if session.CompletedAt.After(session.CreatedAt) {

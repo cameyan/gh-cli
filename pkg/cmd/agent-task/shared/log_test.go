@@ -52,7 +52,7 @@ func TestFollow(t *testing.T) {
 			fetcher := func() ([]byte, error) {
 				hits++
 				if hits > len(lines) {
-					require.FailNow(t, "too many API calls")
+					require.FailNow(t, "API 调用次数过多")
 				}
 				return []byte(strings.Join(lines[0:hits], "\n\n")), nil
 			}
@@ -88,7 +88,7 @@ func TestFollow(t *testing.T) {
 
 				assert.Equal(t, string(wantStderr), stderr.String())
 			} else {
-				require.Empty(t, stderr, "expected no stderr output")
+				require.Empty(t, stderr, "预期没有标准错误输出")
 			}
 		})
 	}

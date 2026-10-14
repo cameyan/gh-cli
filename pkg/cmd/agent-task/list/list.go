@@ -39,7 +39,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "列出 agent task（预览版）",
+		Short: "列出 agent task(预览版)",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Limit < 1 {
@@ -52,8 +52,8 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", defaultLimit, "最多获取的 agent task 数量")
-	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "在浏览器中打开 agent task")
+	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", defaultLimit, "最大可获取的 agent 任务数量")
+	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "在浏览器中打开 agent 任务")
 
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, capi.SessionFields)
 
@@ -64,7 +64,7 @@ func listRun(opts *ListOptions) error {
 	if opts.Web {
 		webURL := capi.AgentsHomeURL
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "正在在浏览器中打开 %s。\n", text.DisplayURL(webURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(webURL))
 		}
 		return opts.Browser.Browse(webURL)
 	}
@@ -78,7 +78,7 @@ func listRun(opts *ListOptions) error {
 		return err
 	}
 
-	opts.IO.StartProgressIndicatorWithLabel("正在获取 agent task...")
+	opts.IO.StartProgressIndicatorWithLabel("正在获取 agent 任务...")
 	defer opts.IO.StopProgressIndicator()
 	var sessions []*capi.Session
 	ctx := context.Background()
@@ -91,7 +91,7 @@ func listRun(opts *ListOptions) error {
 	opts.IO.StopProgressIndicator()
 
 	if len(sessions) == 0 && opts.Exporter == nil {
-		return cmdutil.NewNoResultsError("未找到 agent task")
+		return cmdutil.NewNoResultsError("未找到 agent 任务")
 	}
 
 	if opts.Exporter != nil {

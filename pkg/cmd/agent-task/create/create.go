@@ -58,7 +58,7 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "create [<task description>] [flags]",
-		Short: "创建 agent 任务 (预览)",
+		Short: "创建 agent 任务(预览)",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// 支持 -R/--repo 覆盖
@@ -112,8 +112,8 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 
 	cmdutil.EnableRepoOverride(cmd, f)
 
-	cmd.Flags().StringVarP(&opts.ProblemStatementFile, "from-file", "F", "", "从 `file` 读取任务描述 (使用 \"-\" 表示从标准输入读取)")
-	cmd.Flags().StringVarP(&opts.BaseBranch, "base", "b", "", "PR 的基础分支 (未提供时使用默认分支)")
+	cmd.Flags().StringVarP(&opts.ProblemStatementFile, "from-file", "F", "", "从 `file` 读取任务描述(使用 \"-\" 表示从标准输入读取)")
+	cmd.Flags().StringVarP(&opts.BaseBranch, "base", "b", "", "PR 的基础分支(未提供时使用默认分支)")
 	cmd.Flags().BoolVar(&opts.Follow, "follow", false, "跟踪 agent 会话日志")
 	cmd.Flags().StringVarP(&opts.CustomAgent, "custom-agent", "a", "", "为任务使用自定义 agent，例如使用 'my-agent' 对应 'my-agent.md' 这个 agent")
 
@@ -187,7 +187,7 @@ func createRun(opts *CreateOptions) error {
 			// 消息和 URL。因此我们不因该错误而返回，但仍会打印它。
 			fmt.Fprintf(opts.IO.ErrOut, "%v\n", err)
 		}
-		fmt.Fprintf(opts.IO.Out, "任务 %s 已排队。查看进度: %s\n", job.ID, capi.AgentsHomeURL)
+		fmt.Fprintf(opts.IO.Out, "任务 %s 已排队，查看进度: %s\n", job.ID, capi.AgentsHomeURL)
 	}
 
 	return nil

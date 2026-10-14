@@ -237,7 +237,7 @@ func Test_viewRun(t *testing.T) {
 			wantOut: heredoc.Doc(`
 				可评审 • session one
 				代表 octocat 发起于 about 6 hours ago
-				已使用 1.5 个 premium request • 耗时 5m0s
+				已使用 1.5 个高级请求 • 耗时 5m0s
 
 				OWNER/REPO#101 • fix something
 
@@ -280,7 +280,7 @@ func Test_viewRun(t *testing.T) {
 			wantOut: heredoc.Doc(`
 				可评审 • session one
 				发起于 about 6 hours ago
-				已使用 1.5 个 premium request • 耗时 5m0s
+				已使用 1.5 个高级请求 • 耗时 5m0s
 
 				OWNER/REPO#101 • fix something
 
@@ -318,7 +318,7 @@ func Test_viewRun(t *testing.T) {
 			wantOut: heredoc.Doc(`
 				可评审 • session one
 				代表 octocat 发起于 about 6 hours ago
-				已使用 1.5 个 premium request • 耗时 5m0s
+				已使用 1.5 个高级请求 • 耗时 5m0s
 
 				查看详细的会话日志，请尝试:
 				gh agent-task view 'some-session-id' --log
@@ -348,7 +348,7 @@ func Test_viewRun(t *testing.T) {
 			wantOut: heredoc.Doc(`
 				可评审 • session one
 				发起于 about 6 hours ago
-				已使用 1.5 个 premium request • 耗时 5m0s
+				已使用 1.5 个高级请求 • 耗时 5m0s
 
 				查看详细的会话日志，请尝试:
 				gh agent-task view 'some-session-id' --log
@@ -388,7 +388,7 @@ func Test_viewRun(t *testing.T) {
 			wantOut: heredoc.Doc(`
 				可评审 • session one
 				代表 octocat 发起于 about 6 hours ago
-				已使用 0 个 premium request • 耗时 5m0s
+				已使用 0 个高级请求 • 耗时 5m0s
 
 				OWNER/REPO#101 • fix something
 
@@ -432,7 +432,7 @@ func Test_viewRun(t *testing.T) {
 			wantOut: heredoc.Doc(`
 				进行中 • session one
 				代表 octocat 发起于 about 6 hours ago
-				已使用 1.5 个 premium request
+				已使用 1.5 个高级请求
 
 				OWNER/REPO#101 • fix something
 
@@ -479,7 +479,7 @@ func Test_viewRun(t *testing.T) {
 			wantOut: heredoc.Doc(`
 				失败 • session one
 				代表 octocat 发起于 about 6 hours ago
-				已使用 1.5 个 premium request
+				已使用 1.5 个高级请求
 
 				OWNER/REPO#101 • fix something
 
@@ -529,7 +529,7 @@ func Test_viewRun(t *testing.T) {
 			wantOut: heredoc.Doc(`
 				失败 • session one
 				代表 octocat 发起于 about 6 hours ago
-				已使用 1.5 个 premium request
+				已使用 1.5 个高级请求
 
 				OWNER/REPO#101 • fix something
 
@@ -636,7 +636,7 @@ func Test_viewRun(t *testing.T) {
 					return nil, errors.New("some error")
 				}
 			},
-			wantErr: errors.New("列出 pull request 的会话失败: some error"),
+			wantErr: errors.New("列出 PR 的会话失败: some error"),
 		},
 		{
 			name: "with pr reference, unsupported hostname (tty)",
@@ -663,7 +663,7 @@ func Test_viewRun(t *testing.T) {
 					return 0, "", errors.New("some error")
 				}
 			},
-			wantErr: errors.New("获取 pull request 失败: some error"),
+			wantErr: errors.New("获取 PR 失败: some error"),
 		},
 		{
 			name: "with pr reference, api error when fetching session (tty)",
@@ -682,7 +682,7 @@ func Test_viewRun(t *testing.T) {
 					return nil, errors.New("some error")
 				}
 			},
-			wantErr: errors.New("列出 pull request 的会话失败: some error"),
+			wantErr: errors.New("列出 PR 的会话失败: some error"),
 		},
 		{
 			name: "with pr number, success, single session (tty)",
@@ -740,7 +740,7 @@ func Test_viewRun(t *testing.T) {
 			wantOut: heredoc.Doc(`
 				可评审 • session one
 				代表 octocat 发起于 about 6 hours ago
-				已使用 1.5 个 premium request • 耗时 5m0s
+				已使用 1.5 个高级请求 • 耗时 5m0s
 
 				OWNER/REPO#101 • fix something
 
@@ -827,7 +827,7 @@ func Test_viewRun(t *testing.T) {
 			wantOut: heredoc.Doc(`
 				可评审 • session one
 				代表 octocat 发起于 about 6 hours ago
-				已使用 1.5 个 premium request • 耗时 5m0s
+				已使用 1.5 个高级请求 • 耗时 5m0s
 
 				OWNER/REPO#101 • fix something
 
@@ -916,7 +916,7 @@ func Test_viewRun(t *testing.T) {
 			wantOut: heredoc.Doc(`
 				可评审 • session one
 				代表 octocat 发起于 about 6 hours ago
-				已使用 1.5 个 premium request • 耗时 5m0s
+				已使用 1.5 个高级请求 • 耗时 5m0s
 
 				OWNER/REPO#101 • fix something
 
@@ -947,7 +947,7 @@ func Test_viewRun(t *testing.T) {
 					return nil, errors.New("some error")
 				}
 			},
-			wantErr: errors.New("列出 pull request 的会话失败: some error"),
+			wantErr: errors.New("列出 PR 的会话失败: some error"),
 		},
 		{
 			name: "with pr number, single session, web mode (tty)",

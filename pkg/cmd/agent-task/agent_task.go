@@ -19,33 +19,31 @@ func NewCmdAgentTask(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "agent-task <command>",
 		Aliases: []string{"agent-tasks", "agent", "agents"},
-		Short:   "操作 agent task（预览版）",
+		Short:   "操作 agent task(预览版)",
 		Long: heredoc.Doc(`
-			在 GitHub CLI 中操作 agent task 目前处于预览阶段，
-			可能会在不另行通知的情况下变更。
+			在 GitHub CLI 中操作 agent 任务目前处于预览阶段，可能会在不另行通知的情况下变更。
 		`),
 		Annotations: map[string]string{
 			"help:arguments": heredoc.Doc(`
-				task 可以通过以下任意一种格式作为参数来标识：
-				- 通过 PR 编号，例如 "123"；
-				- 通过 session ID，例如 "12345abc-12345-12345-12345-12345abc"；
-				- 通过 URL，例如 "https://github.com/OWNER/REPO/pull/123/agent-sessions/12345abc-12345-12345-12345-12345abc"。
+				task 可以通过以下任意一种格式作为参数来标识:
+				- 通过 PR 编号，例如 "123"
+				- 通过 session ID，例如 "12345abc-12345-12345-12345-12345abc"
+				- 通过 URL，例如 "https://github.com/OWNER/REPO/pull/123/agent-sessions/12345abc-12345-12345-12345-12345abc"
 
-				对于非交互式使用场景，不建议通过 PR 来标识 task，
-				因为给定的 PR 可能存在多个需要区分的 task。
+				对于非交互式使用场景，不建议通过 PR 来标识 task，因为给定的 PR 可能存在多个需要区分的任务。
 			`),
 		},
 		Example: heredoc.Doc(`
-			# 列出你最近的 agent task
+			# 列出你最近的 agent 任务
 			$ gh agent-task list
 			
-			# 在当前仓库创建一个新的 agent task
-			$ gh agent-task create "Improve the performance of the data processing pipeline"
+			# 在当前仓库创建一个新的 agent 任务
+			$ gh agent-task create "提升数据处理管道的性能"
 			
-			# 查看与某个 PR 关联的 agent task 详情
+			# 查看与某个 PR 关联的 agent 任务详情
 			$ gh agent-task view 123
 
-			# 查看某个特定 agent task 的详情
+			# 查看某个特定 agent 任务的详情
 			$ gh agent-task view 12345abc-12345-12345-12345-12345abc
 		`),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
@@ -77,11 +75,11 @@ func requireOAuthToken(f *cmdutil.Factory) error {
 	authCfg := cfg.Authentication()
 	host, _ := authCfg.DefaultHost()
 	if host == "" {
-		return errors.New("未配置默认主机；请运行 'gh auth login'")
+		return errors.New("未配置默认主机，请运行 'gh auth login'")
 	}
 
 	if auth.IsEnterprise(host) {
-		return errors.New("此主机不支持 agent task")
+		return errors.New("此主机不支持 agent 任务")
 	}
 
 	token, source := authCfg.ActiveToken(host)

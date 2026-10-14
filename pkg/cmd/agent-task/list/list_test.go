@@ -113,7 +113,7 @@ func Test_listRun(t *testing.T) {
 					return nil, nil
 				}
 			},
-			wantErr: cmdutil.NewNoResultsError("未找到 agent task"),
+			wantErr: cmdutil.NewNoResultsError("未找到 agent 任务"),
 		},
 		{
 			name:  "viewer-scoped respects --limit",
@@ -125,7 +125,7 @@ func Test_listRun(t *testing.T) {
 					return nil, nil
 				}
 			},
-			wantErr: cmdutil.NewNoResultsError("未找到 agent task"), // not important
+			wantErr: cmdutil.NewNoResultsError("未找到 agent 任务"), // not important
 		},
 		{
 			name: "viewer-scoped single session (tty)",
@@ -284,7 +284,7 @@ func Test_listRun(t *testing.T) {
 			tty:            true,
 			web:            true,
 			wantOut:        "",
-			wantStderr:     "正在在浏览器中打开 https://github.com/copilot/agents。\n",
+			wantStderr:     "正在浏览器中打开 https://github.com/copilot/agents\n",
 			wantBrowserURL: "https://github.com/copilot/agents",
 		},
 		{

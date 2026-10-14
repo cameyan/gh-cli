@@ -365,7 +365,7 @@ func Test_createRun(t *testing.T) {
 				}
 			},
 			wantStdErr: "some error\n",
-			wantStdout: "任务 job123 已排队。查看进度: https://github.com/copilot/agents\n",
+			wantStdout: "任务 job123 已排队，查看进度: https://github.com/copilot/agents\n",
 		},
 		{
 			name: "success with immediate PR",
@@ -436,7 +436,7 @@ func Test_createRun(t *testing.T) {
 					return &createdJobSuccess, nil
 				}
 			},
-			wantStdout: "任务 job123 已排队。查看进度: https://github.com/copilot/agents\n",
+			wantStdout: "任务 job123 已排队，查看进度: https://github.com/copilot/agents\n",
 		},
 		{
 			name: "success with follow logs and delayed PR after polling",

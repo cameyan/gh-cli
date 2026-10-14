@@ -515,7 +515,7 @@ func (c *CAPIClient) GetPullRequestDatabaseID(ctx context.Context, hostname stri
 	// TODO: 更好地处理 int，这样我们就无需做边界检查，
 	// 既能确保不可能发生 panic，也不会触发 CodeQL 告警。
 	if number <= 0 || number > math.MaxInt32 {
-		return 0, "", fmt.Errorf("pull request 编号 %d 超出范围", number)
+		return 0, "", fmt.Errorf("PR 编号 %d 超出范围", number)
 	}
 
 	var resp struct {

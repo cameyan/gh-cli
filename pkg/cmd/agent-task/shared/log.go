@@ -132,7 +132,7 @@ func renderLogEntry(entry chatCompletionChunkEntry, w io.Writer, io *iostreams.I
 			case "view":
 				args := viewToolArgs{}
 				if err := json.Unmarshal([]byte(tc.Function.Arguments), &args); err != nil {
-					fmt.Fprintf(io.ErrOut, "\n解析 'view' tool call 参数失败: %v\n", err)
+					fmt.Fprintf(io.ErrOut, "\n解析 'view' 工具调用参数失败: %v\n", err)
 					continue
 				}
 				renderToolCallTitle(w, cs, fmt.Sprintf("查看 %s", cs.Bold(relativeFilePath(args.Path))), "")
@@ -194,7 +194,7 @@ func renderLogEntry(entry chatCompletionChunkEntry, w io.Writer, io *iostreams.I
 			case "think":
 				args := thinkToolArgs{}
 				if err := json.Unmarshal([]byte(tc.Function.Arguments), &args); err != nil {
-					fmt.Fprintf(io.ErrOut, "\n解析 'think' tool call 参数失败: %v\n", err)
+					fmt.Fprintf(io.ErrOut, "\n解析 'think' 工具调用参数失败: %v\n", err)
 					continue
 				}
 
@@ -206,7 +206,7 @@ func renderLogEntry(entry chatCompletionChunkEntry, w io.Writer, io *iostreams.I
 			case "report_progress":
 				args := reportProgressToolArgs{}
 				if err := json.Unmarshal([]byte(tc.Function.Arguments), &args); err != nil {
-					fmt.Fprintf(io.ErrOut, "\n解析 'report_progress' tool call 参数失败: %v\n", err)
+					fmt.Fprintf(io.ErrOut, "\n解析 'report_progress' 工具调用参数失败: %v\n", err)
 					continue
 				}
 
@@ -228,7 +228,7 @@ func renderLogEntry(entry chatCompletionChunkEntry, w io.Writer, io *iostreams.I
 			case "create":
 				args := createToolArgs{}
 				if err := json.Unmarshal([]byte(tc.Function.Arguments), &args); err != nil {
-					fmt.Fprintf(io.ErrOut, "\n解析 'create' tool call 参数失败: %v\n", err)
+					fmt.Fprintf(io.ErrOut, "\n解析 'create' 工具调用参数失败: %v\n", err)
 					continue
 				}
 				renderToolCallTitle(w, cs, "创建", cs.Bold(relativeFilePath(args.Path)))
@@ -240,13 +240,13 @@ func renderLogEntry(entry chatCompletionChunkEntry, w io.Writer, io *iostreams.I
 			case "str_replace":
 				args := strReplaceToolArgs{}
 				if err := json.Unmarshal([]byte(tc.Function.Arguments), &args); err != nil {
-					fmt.Fprintf(io.ErrOut, "\n解析 'str_replace' tool call 参数失败: %v\n", err)
+					fmt.Fprintf(io.ErrOut, "\n解析 'str_replace' 工具调用参数失败: %v\n", err)
 					continue
 				}
 
 				renderToolCallTitle(w, cs, "编辑", cs.Bold(relativeFilePath(args.Path)))
 				if err := renderFileContentAsMarkdown("output.diff", choice.Delta.Content.String(), w, io); err != nil {
-					fmt.Fprintf(io.ErrOut, "\nfailed to render str_replace diff: %v\n\n", err)
+					fmt.Fprintf(io.ErrOut, "\n渲染 str_replace 差异失败: %v\n\n", err)
 					fmt.Fprintln(io.ErrOut, choice.Delta.Content.String())
 				}
 			default:
@@ -255,11 +255,11 @@ func renderLogEntry(entry chatCompletionChunkEntry, w io.Writer, io *iostreams.I
 				renderGenericToolCall(w, cs, name)
 
 				// 如果是 JSON，则按 JSON 处理，否则跳过内容。
-				_ = renderContentAsJSONMarkdown("输出:", choice.Delta.Content.String(), w, io)
+				_ = renderContentAsJSONMarkdown("输出: ", choice.Delta.Content.String(), w, io)
 
 				// The entirety of the args can be treated as "input" to the tool call.
 				// We try to render it as JSON, but if that fails, just skip it.
-				_ = renderContentAsJSONMarkdown("输入:", args, w, io)
+				_ = renderContentAsJSONMarkdown("输入: ", args, w, io)
 			}
 		}
 	}
@@ -411,7 +411,7 @@ func renderToolCallTitle(w io.Writer, cs *iostreams.ColorScheme, toolName, title
 	// Should not happen, but if it does we still want to print a heading
 	// with the information we do have.
 	if toolName == "" {
-		toolName = "Generic tool call"
+		toolName = "通用工具调用"
 	}
 
 	if title != "" {
@@ -428,63 +428,63 @@ func renderToolCallTitle(w io.Writer, cs *iostreams.ColorScheme, toolName, title
 // genericToolCallNamesToTitles maps known generic tool call identifiers to human-friendly titles.
 var genericToolCallNamesToTitles = map[string]string{
 	// Custom tools, the GitHub UI doesn't currently have these.
-	"codeql_checker": "Run CodeQL analysis",
+	"codeql_checker": "运行 CodeQL 分析",
 
 	// Playwright tools.
-	"playwright-browser_navigate":         "Navigate Playwright web browser to a URL",
-	"playwright-browser_navigate_back":    "Navigate back in Playwright web browser",
-	"playwright-browser_navigate_forward": "Navigate forward in Playwright web browser",
-	"playwright-browser_click":            "Click element in Playwright web browser",
-	"playwright-browser_take_screenshot":  "Take screenshot of Playwright web browser",
-	"playwright-browser_type":             "Type in Playwright web browser",
-	"playwright-browser_wait_for":         "Wait for text to appear/disappear in Playwright web browser",
-	"playwright-browser_evaluate":         "Run JavaScript in Playwright web browser",
-	"playwright-browser_snapshot":         "Take snapshot of page in Playwright web browser",
-	"playwright-browser_resize":           "Resize Playwright web browser window",
-	"playwright-browser_close":            "Close Playwright web browser",
-	"playwright-browser_press_key":        "Press key in Playwright web browser",
-	"playwright-browser_select_option":    "Select option in Playwright web browser",
-	"playwright-browser_handle_dialog":    "Interact with dialog in Playwright web browser",
-	"playwright-browser_console_messages": "Get console messages from Playwright web browser",
-	"playwright-browser_drag":             "Drag mouse between elements in Playwright web browser",
-	"playwright-browser_file_upload":      "Upload file in Playwright web browser",
-	"playwright-browser_hover":            "Hover mouse over element in Playwright web browser",
-	"playwright-browser_network_requests": "Get network requests from Playwright web browser",
+	"playwright-browser_navigate":         "在 Playwright 浏览器中导航至某个 URL",
+	"playwright-browser_navigate_back":    "在 Playwright 浏览器中返回上一页",
+	"playwright-browser_navigate_forward": "在 Playwright 浏览器中前进到下一页",
+	"playwright-browser_click":            "在 Playwright 浏览器中点击元素",
+	"playwright-browser_take_screenshot":  "截取 Playwright 浏览器的截图",
+	"playwright-browser_type":             "在 Playwright 浏览器中输入文本",
+	"playwright-browser_wait_for":         "等待 Playwright 浏览器中的文本出现/消失",
+	"playwright-browser_evaluate":         "在 Playwright 浏览器中运行 JavaScript",
+	"playwright-browser_snapshot":         "截取 Playwright 浏览器页面的快照",
+	"playwright-browser_resize":           "调整 Playwright 浏览器窗口大小",
+	"playwright-browser_close":            "关闭 Playwright 浏览器",
+	"playwright-browser_press_key":        "在 Playwright 浏览器中按下按键",
+	"playwright-browser_select_option":    "在 Playwright 浏览器中选择选项",
+	"playwright-browser_handle_dialog":    "与 Playwright 浏览器中的对话框进行交互",
+	"playwright-browser_console_messages": "从 Playwright 浏览器获取控制台消息",
+	"playwright-browser_drag":             "在 Playwright 浏览器中在元素之间拖动鼠标",
+	"playwright-browser_file_upload":      "在 Playwright 浏览器中上传文件",
+	"playwright-browser_hover":            "在 Playwright 浏览器中将鼠标悬停在元素上",
+	"playwright-browser_network_requests": "从 Playwright 浏览器获取网络请求数据",
 
 	// GitHub MCP server common tools
-	"github-mcp-server-get_file_contents":              "Get file contents from GitHub",
-	"github-mcp-server-get_pull_request":               "Get pull request from GitHub",
-	"github-mcp-server-get_issue":                      "Get issue from GitHub",
-	"github-mcp-server-get_pull_request_files":         "Get pull request changed files from GitHub",
-	"github-mcp-server-list_pull_requests":             "List pull requests on GitHub",
-	"github-mcp-server-list_branches":                  "List branches on GitHub",
-	"github-mcp-server-get_pull_request_diff":          "Get pull request diff from GitHub",
-	"github-mcp-server-get_pull_request_comments":      "Get pull request comments from GitHub",
-	"github-mcp-server-get_commit":                     "Get commit from GitHub",
-	"github-mcp-server-search_repositories":            "Search repositories on GitHub",
-	"github-mcp-server-search_code":                    "Search code on GitHub",
-	"github-mcp-server-get_issue_comments":             "Get issue comments from GitHub",
-	"github-mcp-server-list_issues":                    "List issues on GitHub",
-	"github-mcp-server-search_pull_requests":           "Search pull requests on GitHub",
-	"github-mcp-server-list_commits":                   "List commits on GitHub",
-	"github-mcp-server-get_pull_request_status":        "Get pull request status from GitHub",
-	"github-mcp-server-search_issues":                  "Search issues on GitHub",
-	"github-mcp-server-get_pull_request_reviews":       "Get pull request reviews from GitHub",
-	"github-mcp-server-download_workflow_run_artifact": "Download GitHub Actions workflow run artifact",
-	"github-mcp-server-get_job_logs":                   "Get GitHub Actions job logs",
-	"github-mcp-server-get_workflow_run":               "Get GitHub Actions workflow run",
-	"github-mcp-server-get_workflow_run_logs":          "Get GitHub Actions workflow run logs",
-	"github-mcp-server-get_workflow_run_usage":         "Get GitHub Actions workflow usage",
-	"github-mcp-server-list_workflow_jobs":             "List GitHub Actions workflow jobs",
-	"github-mcp-server-list_workflow_run_artifacts":    "List GitHub Actions workflow run artifacts",
-	"github-mcp-server-list_workflow_runs":             "List GitHub Actions workflow runs",
-	"github-mcp-server-list_workflows":                 "List GitHub Actions workflows",
+	"github-mcp-server-get_file_contents":              "从 GitHub 获取文件内容",
+	"github-mcp-server-get_pull_request":               "从 GitHub 获取拉取请求",
+	"github-mcp-server-get_issue":                      "从 GitHub 获取问题",
+	"github-mcp-server-get_pull_request_files":         "从 GitHub 获取拉取请求变更的文件",
+	"github-mcp-server-list_pull_requests":             "列出 GitHub 上的拉取请求",
+	"github-mcp-server-list_branches":                  "列出 GitHub 上的分支",
+	"github-mcp-server-get_pull_request_diff":          "从 GitHub 获取拉取请求差异",
+	"github-mcp-server-get_pull_request_comments":      "从 GitHub 获取拉取请求评论",
+	"github-mcp-server-get_commit":                     "从 GitHub 获取提交",
+	"github-mcp-server-search_repositories":            "在 GitHub 上搜索仓库",
+	"github-mcp-server-search_code":                    "在 GitHub 上搜索代码",
+	"github-mcp-server-get_issue_comments":             "从 GitHub 获取问题评论",
+	"github-mcp-server-list_issues":                    "列出 GitHub 上的问题",
+	"github-mcp-server-search_pull_requests":           "在 GitHub 上搜索拉取请求",
+	"github-mcp-server-list_commits":                   "列出 GitHub 上的提交",
+	"github-mcp-server-get_pull_request_status":        "从 GitHub 获取拉取请求状态",
+	"github-mcp-server-search_issues":                  "在 GitHub 上搜索问题",
+	"github-mcp-server-get_pull_request_reviews":       "从 GitHub 获取拉取请求评审",
+	"github-mcp-server-download_workflow_run_artifact": "下载 GitHub Actions 工作流运行工件",
+	"github-mcp-server-get_job_logs":                   "获取 GitHub Actions 作业日志",
+	"github-mcp-server-get_workflow_run":               "获取 GitHub Actions 工作流运行",
+	"github-mcp-server-get_workflow_run_logs":          "获取 GitHub Actions 工作流运行日志",
+	"github-mcp-server-get_workflow_run_usage":         "获取 GitHub Actions 工作流使用情况",
+	"github-mcp-server-list_workflow_jobs":             "列出 GitHub Actions 工作流作业",
+	"github-mcp-server-list_workflow_run_artifacts":    "列出 GitHub Actions 工作流运行工件",
+	"github-mcp-server-list_workflow_runs":             "列出 GitHub Actions 工作流运行",
+	"github-mcp-server-list_workflows":                 "列出 GitHub Actions 工作流",
 }
 
 func renderGenericToolCall(w io.Writer, cs *iostreams.ColorScheme, name string) {
 	toolName, ok := genericToolCallNamesToTitles[name]
 	if !ok {
-		toolName = fmt.Sprintf("Call to %s", name)
+		toolName = fmt.Sprintf("调用 %s", name)
 	}
 
 	renderToolCallTitle(w, cs, toolName, "")
