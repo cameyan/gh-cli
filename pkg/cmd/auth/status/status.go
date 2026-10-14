@@ -68,14 +68,14 @@ func (e authEntry) String(cs *iostreams.ColorScheme) string {
 		activeStr := fmt.Sprintf("%v", e.Active)
 		sb.WriteString(fmt.Sprintf("  - 活跃账户: %s\n", cs.Bold(activeStr)))
 		sb.WriteString(fmt.Sprintf("  - Git 操作协议: %s\n", cs.Bold(e.GitProtocol)))
-		sb.WriteString(fmt.Sprintf("  - 令牌(token): %s\n", cs.Bold(e.Token)))
+		sb.WriteString(fmt.Sprintf("  - 令牌: %s\n", cs.Bold(e.Token)))
 
 		if expectScopes(e.Token) {
-			sb.WriteString(fmt.Sprintf("  - 令牌作用域(scopes): %s\n", cs.Bold(displayScopes(e.Scopes))))
+			sb.WriteString(fmt.Sprintf("  - 令牌作用域: %s\n", cs.Bold(displayScopes(e.Scopes))))
 			if err := shared.HeaderHasMinimumScopes(e.Scopes); err != nil {
 				if missingScopesError, ok := errors.AsType[*shared.MissingScopesError](err); ok {
 					missingScopes := strings.Join(missingScopesError.MissingScopes, ",")
-					sb.WriteString(fmt.Sprintf("  %s 缺少所需的令牌作用域(scopes): %s\n",
+					sb.WriteString(fmt.Sprintf("  %s 缺少所需的令牌作用域: %s\n",
 						cs.WarningIcon(),
 						cs.Bold(displayScopes(missingScopes))))
 					refreshInstructions := fmt.Sprintf("gh auth refresh -h %s", e.Host)
@@ -179,7 +179,7 @@ func NewCmdStatus(f *cmdutil.Factory, runF func(*StatusOptions) error) *cobra.Co
 	}
 
 	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "仅检查特定主机名的身份验证状态")
-	cmd.Flags().BoolVarP(&opts.ShowToken, "show-token", "t", false, "显示身份验证令牌(token)")
+	cmd.Flags().BoolVarP(&opts.ShowToken, "show-token", "t", false, "显示身份验证令牌")
 	cmd.Flags().BoolVarP(&opts.Active, "active", "a", false, "仅显示活跃账户")
 
 	// json 标志刻意不设置简写，以避免与 -t/--show-token 冲突

@@ -125,7 +125,7 @@ func TestTokenRun(t *testing.T) {
 			name:       "no token",
 			opts:       TokenOptions{},
 			wantErr:    true,
-			wantErrMsg: "no oauth token found for github.com",
+			wantErrMsg: "未找到 github.com 的 OAuth 令牌",
 		},
 		{
 			name: "no token for hostname user",
@@ -134,7 +134,7 @@ func TestTokenRun(t *testing.T) {
 				Username: "test-user",
 			},
 			wantErr:    true,
-			wantErrMsg: "no oauth token found for ghe.io account test-user",
+			wantErrMsg: "未找到 ghe.io 的 OAuth 令牌 的账户 test-user",
 		},
 		{
 			name: "uses default host when one is not provided",
@@ -223,7 +223,7 @@ func TestTokenRunSecureStorage(t *testing.T) {
 			name:       "no token",
 			opts:       TokenOptions{},
 			wantErr:    true,
-			wantErrMsg: "no oauth token found for github.com",
+			wantErrMsg: "未找到 github.com 的 OAuth 令牌",
 		},
 		{
 			name: "no token for hostname user",
@@ -232,7 +232,7 @@ func TestTokenRunSecureStorage(t *testing.T) {
 				Username: "test-user",
 			},
 			wantErr:    true,
-			wantErrMsg: "no oauth token found for ghe.io account test-user",
+			wantErrMsg: "未找到 ghe.io 的 OAuth 令牌 的账户 test-user",
 		},
 		{
 			name: "token for user",

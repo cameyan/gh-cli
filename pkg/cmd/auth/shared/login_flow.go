@@ -112,7 +112,7 @@ func Login(opts *LoginOptions) error {
 
 			if sshChoice {
 				passphrase, err := opts.Prompter.Password(
-					"输入新 SSH 密钥的密码短语(passphrase)(可选): ")
+					"输入新 SSH 密钥的密码短语(可选): ")
 				if err != nil {
 					return err
 				}
@@ -164,8 +164,8 @@ func Login(opts *LoginOptions) error {
 	} else {
 		minimumScopes := append([]string{"repo", "read:org"}, additionalScopes...)
 		fmt.Fprint(opts.IO.ErrOut, heredoc.Docf(`
-			提示: 您可以在此处生成个人访问令牌(personal access token) https://%s/settings/tokens
-			所需的最低作用域(scopes)为 %s。
+			提示: 您可以在此处生成个人访问令牌 https://%s/settings/tokens，
+			所需的最低作用域为 %s。
 		`, hostname, scopesSentence(minimumScopes)))
 
 		var err error
@@ -175,7 +175,7 @@ func Login(opts *LoginOptions) error {
 		}
 
 		if err := HasMinimumScopes(httpClient, hostname, authToken); err != nil {
-			return fmt.Errorf("验证令牌时出错: %w", err)
+			return fmt.Errorf("验证令牌失败: %w", err)
 		}
 	}
 
@@ -183,7 +183,7 @@ func Login(opts *LoginOptions) error {
 		var err error
 		username, err = GetCurrentLogin(httpClient, hostname, authToken)
 		if err != nil {
-			return fmt.Errorf("获取当前用户时出错: %w", err)
+			return fmt.Errorf("获取当前用户失败: %w", err)
 		}
 	}
 

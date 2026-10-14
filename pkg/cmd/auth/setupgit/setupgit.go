@@ -34,15 +34,14 @@ func NewCmdSetupGit(f *cmdutil.Factory, runF func(*SetupGitOptions) error) *cobr
 		Use:   "setup-git",
 		Short: "为 git 配置 GitHub CLI",
 		Long: heredoc.Docf(`
-			此命令将 %[1]sgit%[1]s 配置为使用 GitHub CLI 作为凭据助手(credential helper)。
-			有关 git 凭据助手的更多信息，请参考:
+			此命令将 %[1]sgit%[1]s 配置为使用 GitHub CLI 作为凭据助手。有关 git 凭据助手的更多信息，请参考:
 			<https://git-scm.com/docs/gitcredentials>。
 
-			默认情况下，GitHub CLI 将被设置为所有已通过身份验证主机的凭据助手。
-			如果没有已通过身份验证的主机，该命令将报错失败。
+			默认情况下，GitHub CLI 将被设置为所有已通过身份验证主机的凭据助手。如果没有已通过身份验证
+			的主机，该命令将报错失败。
 
-			或者，使用 %[1]s--hostname%[1]s 标志指定要配置的单个主机。
-			如果该主机未通过身份验证，该命令将报错失败。
+			或者，使用 %[1]s--hostname%[1]s 标志指定要配置的单个主机。如果该主机未通过身份验证，
+			该命令将报错失败。
 		`, "`"),
 		Example: heredoc.Doc(`
 			# 将 git 配置为对所有已通过身份验证的主机使用 GitHub CLI 作为凭据助手
@@ -93,7 +92,7 @@ func setupGitRun(opts *SetupGitOptions) error {
 		}
 
 		if err := opts.CredentialsHelperConfig.ConfigureOurs(opts.Hostname); err != nil {
-			return fmt.Errorf("设置 git 凭据助手(credential helper)失败: %s", err)
+			return fmt.Errorf("设置 git 凭据助手失败: %s", err)
 		}
 
 		return nil
@@ -103,7 +102,7 @@ func setupGitRun(opts *SetupGitOptions) error {
 	if len(hostnames) == 0 {
 		fmt.Fprintf(
 			stderr,
-			"您尚未登录任何 GitHub 主机。请运行 %s 进行身份验证。\n",
+			"您尚未登录任何 GitHub 主机。请运行 %s 进行身份验证\n",
 			cs.Bold("gh auth login"),
 		)
 
@@ -112,7 +111,7 @@ func setupGitRun(opts *SetupGitOptions) error {
 
 	for _, hostname := range hostnames {
 		if err := opts.CredentialsHelperConfig.ConfigureOurs(hostname); err != nil {
-			return fmt.Errorf("设置 git 凭据助手(credential helper)失败: %s", err)
+			return fmt.Errorf("设置 git 凭据助手失败: %s", err)
 		}
 	}
 

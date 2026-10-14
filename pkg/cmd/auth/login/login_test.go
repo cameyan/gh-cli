@@ -374,7 +374,7 @@ func Test_loginRun_nontty(t *testing.T) {
 			httpStubs: func(reg *httpmock.Registry) {
 				reg.Register(httpmock.REST("GET", ""), httpmock.ScopesResponder("read:org"))
 			},
-			wantErr: `error validating token: missing required scope 'repo'`,
+			wantErr: `验证令牌失败: 缺少所需的作用域 'repo'`,
 		},
 		{
 			name: "missing read scope",
@@ -385,7 +385,7 @@ func Test_loginRun_nontty(t *testing.T) {
 			httpStubs: func(reg *httpmock.Registry) {
 				reg.Register(httpmock.REST("GET", ""), httpmock.ScopesResponder("repo"))
 			},
-			wantErr: `error validating token: missing required scope 'read:org'`,
+			wantErr: `验证令牌失败: 缺少所需的作用域 'read:org'`,
 		},
 		{
 			name: "has admin scope",
@@ -411,8 +411,8 @@ func Test_loginRun_nontty(t *testing.T) {
 			env:     map[string]string{"GH_TOKEN": "value_from_env"},
 			wantErr: "SilentError",
 			wantStderr: heredoc.Doc(`
-                The value of the GH_TOKEN environment variable is being used for authentication.
-                To have GitHub CLI store credentials instead, first clear the value from the environment.
+                环境变量 GH_TOKEN 的值正在用于身份验证
+                若要改为让 GitHub CLI 存储凭据，请先从环境中清除该值
             `),
 		},
 		{
@@ -424,8 +424,8 @@ func Test_loginRun_nontty(t *testing.T) {
 			env:     map[string]string{"GH_ENTERPRISE_TOKEN": "value_from_env"},
 			wantErr: "SilentError",
 			wantStderr: heredoc.Doc(`
-                The value of the GH_ENTERPRISE_TOKEN environment variable is being used for authentication.
-                To have GitHub CLI store credentials instead, first clear the value from the environment.
+                环境变量 GH_ENTERPRISE_TOKEN 的值正在用于身份验证
+                若要改为让 GitHub CLI 存储凭据，请先从环境中清除该值
             `),
 		},
 		{
@@ -559,10 +559,10 @@ func Test_loginRun_Survey(t *testing.T) {
 			prompterStubs: func(pm *prompter.PrompterMock) {
 				pm.SelectFunc = func(prompt, _ string, opts []string) (int, error) {
 					switch prompt {
-					case "What is your preferred protocol for Git operations on this host?":
+					case "在此主机上进行 Git 操作时，您首选的协议是什么？":
 						return prompter.IndexFor(opts, "HTTPS")
-					case "How would you like to authenticate GitHub CLI?":
-						return prompter.IndexFor(opts, "Paste an authentication token")
+					case "您希望如何向 GitHub CLI 进行身份验证？":
+						return prompter.IndexFor(opts, "粘贴身份验证令牌")
 					}
 					return -1, prompter.NoSuchPromptErr(prompt)
 				}
@@ -577,7 +577,7 @@ func Test_loginRun_Survey(t *testing.T) {
 					httpmock.GraphQL(`query UserCurrent\b`),
 					httpmock.StringResponse(`{"data":{"viewer":{"login":"jillv"}}}`))
 			},
-			wantErrOut: regexp.MustCompile("Tip: you can generate a Personal Access Token here https://rebecca.chambers/settings/tokens"),
+			wantErrOut: regexp.MustCompile("提示: 您可以在此处生成个人访问令牌 https://rebecca.chambers/settings/tokens"),
 		},
 		{
 			name: "choose Other",
@@ -597,12 +597,12 @@ func Test_loginRun_Survey(t *testing.T) {
 			prompterStubs: func(pm *prompter.PrompterMock) {
 				pm.SelectFunc = func(prompt, _ string, opts []string) (int, error) {
 					switch prompt {
-					case "Where do you use GitHub?":
+					case "您在哪里使用 GitHub？":
 						return prompter.IndexFor(opts, "Other")
-					case "What is your preferred protocol for Git operations on this host?":
+					case "在此主机上进行 Git 操作时，您首选的协议是什么？":
 						return prompter.IndexFor(opts, "HTTPS")
-					case "How would you like to authenticate GitHub CLI?":
-						return prompter.IndexFor(opts, "Paste an authentication token")
+					case "您希望如何向 GitHub CLI 进行身份验证？":
+						return prompter.IndexFor(opts, "粘贴身份验证令牌")
 					}
 					return -1, prompter.NoSuchPromptErr(prompt)
 				}
@@ -620,7 +620,7 @@ func Test_loginRun_Survey(t *testing.T) {
 					httpmock.GraphQL(`query UserCurrent\b`),
 					httpmock.StringResponse(`{"data":{"viewer":{"login":"jillv"}}}`))
 			},
-			wantErrOut: regexp.MustCompile("Tip: you can generate a Personal Access Token here https://brad.vickers/settings/tokens"),
+			wantErrOut: regexp.MustCompile("提示: 您可以在此处生成个人访问令牌 https://brad.vickers/settings/tokens"),
 		},
 		{
 			name: "choose github.com",
@@ -640,12 +640,12 @@ func Test_loginRun_Survey(t *testing.T) {
 			prompterStubs: func(pm *prompter.PrompterMock) {
 				pm.SelectFunc = func(prompt, _ string, opts []string) (int, error) {
 					switch prompt {
-					case "Where do you use GitHub?":
+					case "您在哪里使用 GitHub？":
 						return prompter.IndexFor(opts, "GitHub.com")
-					case "What is your preferred protocol for Git operations on this host?":
+					case "在此主机上进行 Git 操作时，您首选的协议是什么？":
 						return prompter.IndexFor(opts, "HTTPS")
-					case "How would you like to authenticate GitHub CLI?":
-						return prompter.IndexFor(opts, "Paste an authentication token")
+					case "您希望如何向 GitHub CLI 进行身份验证？":
+						return prompter.IndexFor(opts, "粘贴身份验证令牌")
 					}
 					return -1, prompter.NoSuchPromptErr(prompt)
 				}
@@ -654,7 +654,7 @@ func Test_loginRun_Survey(t *testing.T) {
 				rs.Register(`git config credential\.https:/`, 1, "")
 				rs.Register(`git config credential\.helper`, 1, "")
 			},
-			wantErrOut: regexp.MustCompile("Tip: you can generate a Personal Access Token here https://github.com/settings/tokens"),
+			wantErrOut: regexp.MustCompile("提示: 您可以在此处生成个人访问令牌 https://github.com/settings/tokens"),
 		},
 		{
 			name: "sets git_protocol",
@@ -674,17 +674,17 @@ func Test_loginRun_Survey(t *testing.T) {
 			prompterStubs: func(pm *prompter.PrompterMock) {
 				pm.SelectFunc = func(prompt, _ string, opts []string) (int, error) {
 					switch prompt {
-					case "Where do you use GitHub?":
+					case "您在哪里使用 GitHub？":
 						return prompter.IndexFor(opts, "GitHub.com")
-					case "What is your preferred protocol for Git operations on this host?":
+					case "在此主机上进行 Git 操作时，您首选的协议是什么？":
 						return prompter.IndexFor(opts, "SSH")
-					case "How would you like to authenticate GitHub CLI?":
-						return prompter.IndexFor(opts, "Paste an authentication token")
+					case "您希望如何向 GitHub CLI 进行身份验证？":
+						return prompter.IndexFor(opts, "粘贴身份验证令牌")
 					}
 					return -1, prompter.NoSuchPromptErr(prompt)
 				}
 			},
-			wantErrOut: regexp.MustCompile("Tip: you can generate a Personal Access Token here https://github.com/settings/tokens"),
+			wantErrOut: regexp.MustCompile("提示: 您可以在此处生成个人访问令牌 https://github.com/settings/tokens"),
 		},
 		{
 			name: "secure storage",
@@ -695,10 +695,10 @@ func Test_loginRun_Survey(t *testing.T) {
 			prompterStubs: func(pm *prompter.PrompterMock) {
 				pm.SelectFunc = func(prompt, _ string, opts []string) (int, error) {
 					switch prompt {
-					case "What is your preferred protocol for Git operations on this host?":
+					case "在此主机上进行 Git 操作时，您首选的协议是什么？":
 						return prompter.IndexFor(opts, "HTTPS")
-					case "How would you like to authenticate GitHub CLI?":
-						return prompter.IndexFor(opts, "Paste an authentication token")
+					case "您希望如何向 GitHub CLI 进行身份验证？":
+						return prompter.IndexFor(opts, "粘贴身份验证令牌")
 					}
 					return -1, prompter.NoSuchPromptErr(prompt)
 				}
@@ -714,7 +714,7 @@ func Test_loginRun_Survey(t *testing.T) {
                         jillv:
                     user: jillv
             `),
-			wantErrOut:      regexp.MustCompile("Logged in as jillv"),
+			wantErrOut:      regexp.MustCompile("已以 jillv 身份登录"),
 			wantSecureToken: "def456",
 		},
 		{
@@ -727,10 +727,10 @@ func Test_loginRun_Survey(t *testing.T) {
 			prompterStubs: func(pm *prompter.PrompterMock) {
 				pm.SelectFunc = func(prompt, _ string, opts []string) (int, error) {
 					switch prompt {
-					case "What is your preferred protocol for Git operations on this host?":
+					case "在此主机上进行 Git 操作时，您首选的协议是什么？":
 						return prompter.IndexFor(opts, "HTTPS")
-					case "How would you like to authenticate GitHub CLI?":
-						return prompter.IndexFor(opts, "Paste an authentication token")
+					case "您希望如何向 GitHub CLI 进行身份验证？":
+						return prompter.IndexFor(opts, "粘贴身份验证令牌")
 					}
 					return -1, prompter.NoSuchPromptErr(prompt)
 				}
@@ -758,7 +758,7 @@ func Test_loginRun_Survey(t *testing.T) {
                 user: monalisa
                 oauth_token: def456
             `),
-			wantErrOut: regexp.MustCompile(`! You were already logged in to this account`),
+			wantErrOut: regexp.MustCompile(`! 您已经登录过此账户`),
 		},
 	}
 

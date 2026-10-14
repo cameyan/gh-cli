@@ -22,9 +22,9 @@ func (e MissingScopesError) Error() string {
 	scopes := strings.Join(missing, ", ")
 
 	if len(e.MissingScopes) == 1 {
-		return "缺少所需的作用域(scope) " + scopes
+		return "缺少所需的作用域 " + scopes
 	}
-	return "缺少所需的作用域(scopes) " + scopes
+	return "缺少所需的作用域 " + scopes
 }
 
 // GetScopes 执行一次 GitHub API 请求并返回 X-Oauth-Scopes 头的值。

@@ -36,7 +36,7 @@ func TestNewCmdSetupGit(t *testing.T) {
 			name:     "--force without hostname",
 			cli:      "--force",
 			wantsErr: true,
-			errMsg:   "`--force` must be used in conjunction with `--hostname`",
+			errMsg:   "`--force` 必须与 `--hostname` 一起使用",
 		},
 		{
 			name:     "no error when --force used with hostname",
@@ -101,7 +101,7 @@ func Test_setupGitRun(t *testing.T) {
 			cfgStubs: func(t *testing.T, cfg gh.Config) {
 				login(t, cfg, "github.com", "test-user", "gho_ABCDEFG", "https", false)
 			},
-			expectedErr: errors.New("You are not logged into the GitHub host \"ghe.io\". Run gh auth login -h ghe.io to authenticate or provide `--force`"),
+			expectedErr: errors.New("您尚未登录 GitHub 主机 \"ghe.io\"。请运行 gh auth login -h ghe.io 进行身份验证，或提供 `--force`"),
 		},
 		{
 			name: "when an unknown hostname is provided with forcing, set it up",
@@ -130,14 +130,14 @@ func Test_setupGitRun(t *testing.T) {
 			cfgStubs: func(t *testing.T, cfg gh.Config) {
 				login(t, cfg, "ghe.io", "test-user", "gho_ABCDEFG", "https", false)
 			},
-			expectedErr:    errors.New("failed to set up git credential helper: broken"),
+			expectedErr:    errors.New("设置 git 凭据助手失败: broken"),
 			expectedErrOut: "",
 		},
 		{
 			name:           "when there are no known hosts and no hostname is provided, return an error",
 			opts:           &SetupGitOptions{},
 			expectedErr:    cmdutil.SilentError,
-			expectedErrOut: "You are not logged into any GitHub hosts. Run gh auth login to authenticate.\n",
+			expectedErrOut: "您尚未登录任何 GitHub 主机。请运行 gh auth login 进行身份验证\n",
 		},
 		{
 			name: "when there are known hosts, and no hostname is provided, set them all up",
@@ -155,7 +155,7 @@ func Test_setupGitRun(t *testing.T) {
 			cfgStubs: func(t *testing.T, cfg gh.Config) {
 				login(t, cfg, "ghe.io", "test-user", "gho_ABCDEFG", "https", false)
 			},
-			expectedErr:    errors.New("failed to set up git credential helper: broken"),
+			expectedErr:    errors.New("设置 git 凭据助手失败: broken"),
 			expectedErrOut: "",
 		},
 	}

@@ -35,11 +35,10 @@ func NewCmdSwitch(f *cmdutil.Factory, runF func(*SwitchOptions) error) *cobra.Co
 		Long: heredoc.Docf(`
 			切换 GitHub 主机的活跃账户。
 
-			此命令更改在运行针对指定 GitHub 主机的命令时
-			将使用的身份验证配置。
+			此命令更改在运行针对指定 GitHub 主机的命令时将使用的身份验证配置。
 
-			如果指定的主机有两个账户，活跃账户将自动切换。如果账户多于两个，
-			则需要通过 %[1]s--user%[1]s 标志或交互式提示来消歧。
+			如果指定的主机有两个账户，活跃账户将自动切换。如果账户多于两个，则需要通过
+			%[1]s--user%[1]s 标志或交互式提示来消歧。
 
 			要列出已通过身份验证的账户，可以运行 %[1]sgh auth status%[1]s。
 		`, "`"),
@@ -155,8 +154,8 @@ func switchRun(opts *SwitchOptions) error {
 	}
 
 	if src, writeable := shared.AuthTokenWriteable(authCfg, hostname); !writeable {
-		fmt.Fprintf(opts.IO.ErrOut, "环境变量 %s 的值正在用于身份验证。\n", src)
-		fmt.Fprint(opts.IO.ErrOut, "若要改为让 GitHub CLI 管理凭据，请先从环境中清除该值。\n")
+		fmt.Fprintf(opts.IO.ErrOut, "环境变量 %s 的值正在用于身份验证\n", src)
+		fmt.Fprint(opts.IO.ErrOut, "若要改为让 GitHub CLI 管理凭据，请先从环境中清除该值\n")
 		return cmdutil.SilentError
 	}
 

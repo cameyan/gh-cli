@@ -59,24 +59,22 @@ func NewCmdRefresh(f *cmdutil.Factory, runF func(*RefreshOptions) error) *cobra.
 		Args:  cobra.ExactArgs(0),
 		Short: "刷新已存储的身份验证凭据",
 		Long: heredoc.Docf(`
-			为活跃账户扩展或修复已存储凭据的权限作用域(scopes)。
+			为活跃账户扩展或修复已存储凭据的权限作用域。
 
-			%[1]s--scopes%[1]s 标志接受以逗号分隔的作用域列表，即您希望
-			gh 凭据拥有的作用域。若未提供任何作用域，该命令将
-			保留之前添加的作用域。
+			%[1]s--scopes%[1]s 标志接受以逗号分隔的作用域列表，即您希望 gh 凭据拥有的作用域。
+			若未提供任何作用域，该命令将保留之前添加的作用域。
 
-			%[1]s--remove-scopes%[1]s 标志接受以逗号分隔的作用域列表，即您希望
-			从 gh 凭据中移除的作用域。移除作用域是幂等的。
+			%[1]s--remove-scopes%[1]s 标志接受以逗号分隔的作用域列表，即您希望从 gh 凭据中
+			移除的作用域。移除作用域是幂等的。
+
 			最低作用域集合(%[1]srepo%[1]s、%[1]sread:org%[1]s 和 %[1]sgist%[1]s)无法被移除。
 
-			%[1]s--reset-scopes%[1]s 标志将 gh 凭据的作用域重置为
-			您身份验证流程的默认作用域集合。
+			%[1]s--reset-scopes%[1]s 标志将 gh 凭据的作用域重置为您身份验证流程的默认作用域集合。
 
 			如果您在 %[1]sgh auth status%[1]s 中有多个账户，并希望刷新某个非活跃账户的凭据，
-			必须先使用 %[1]sgh auth switch%[1]s 切换到该账户，然后再使用
-			此命令，完成后切换回来。
+			必须先使用 %[1]sgh auth switch%[1]s 切换到该账户，然后再使用此命令，完成后切换回来。
 
-			有关 OAuth 作用域(scopes)的更多信息，请参见
+			有关 OAuth 作用域的更多信息，请参见:
 			<https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps/>。
 		`, "`"),
 		Example: heredoc.Doc(`
@@ -111,8 +109,8 @@ func NewCmdRefresh(f *cmdutil.Factory, runF func(*RefreshOptions) error) *cobra.
 	}
 
 	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "用于身份验证的 GitHub 主机")
-	cmd.Flags().StringSliceVarP(&opts.Scopes, "scopes", "s", nil, "gh 要拥有的额外身份验证作用域(scopes)")
-	cmd.Flags().StringSliceVarP(&opts.RemoveScopes, "remove-scopes", "r", nil, "要从 gh 移除的身份验证作用域(scopes)")
+	cmd.Flags().StringSliceVarP(&opts.Scopes, "scopes", "s", nil, "gh 要拥有的额外身份验证作用域")
+	cmd.Flags().StringSliceVarP(&opts.RemoveScopes, "remove-scopes", "r", nil, "要从 gh 移除的身份验证作用域")
 	cmd.Flags().BoolVar(&opts.ResetScopes, "reset-scopes", false, "将身份验证作用域重置为默认的最低作用域集合")
 	cmdutil.NilBoolFlag(cmd, &opts.Clipboard, "clipboard", "c", "将一次性 OAuth 设备码复制到剪贴板")
 	// 安全存储(secure storage)于 2023/4/04 起成为默认；此标志保留为无操作(no-op)以保持向后兼容
@@ -159,8 +157,8 @@ func refreshRun(opts *RefreshOptions) error {
 	}
 
 	if src, writeable := shared.AuthTokenWriteable(authCfg, hostname); !writeable {
-		fmt.Fprintf(opts.IO.ErrOut, "环境变量 %s 的值正在用于身份验证。\n", src)
-		fmt.Fprint(opts.IO.ErrOut, "若要刷新 GitHub CLI 中存储的凭据，请先从环境中清除该值。\n")
+		fmt.Fprintf(opts.IO.ErrOut, "环境变量 %s 的值正在用于身份验证\n", src)
+		fmt.Fprint(opts.IO.ErrOut, "若要刷新 GitHub CLI 中存储的凭据，请先从环境中清除该值\n")
 		return cmdutil.SilentError
 	}
 
@@ -214,7 +212,7 @@ func refreshRun(opts *RefreshOptions) error {
 	}
 
 	cs := opts.IO.ColorScheme()
-	fmt.Fprintf(opts.IO.ErrOut, "%s 身份验证完成。\n", cs.SuccessIcon())
+	fmt.Fprintf(opts.IO.ErrOut, "%s 身份验证完成\n", cs.SuccessIcon())
 
 	if credentialFlow.ShouldSetup() {
 		username, _ := authCfg.ActiveUser(hostname)

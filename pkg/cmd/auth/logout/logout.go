@@ -35,10 +35,9 @@ func NewCmdLogout(f *cmdutil.Factory, runF func(*LogoutOptions) error) *cobra.Co
 		Long: heredoc.Doc(`
 			移除 GitHub 账户的身份验证。
 
-			此命令移除某个账户已存储的身份验证配置。
-			身份验证配置仅在本地移除。
+			此命令移除某个账户已存储的身份验证配置，身份验证配置仅在本地移除。
 
-			此命令不会撤销(revoke)身份验证令牌(token)。
+			此命令不会撤销身份验证令牌。
 
 			要撤销 GitHub CLI 生成的所有身份验证令牌:
 
@@ -47,8 +46,7 @@ func NewCmdLogout(f *cmdutil.Factory, runF func(*LogoutOptions) error) *cobra.Co
 			3. 选择 "Revoke Access"(撤销访问)
 			4. 选择 "I understand, revoke access"(我了解，撤销访问)
 
-			注意: 此操作将撤销 GitHub CLI 在您所有设备上生成的
-			所有身份验证令牌。
+			注意: 此操作将撤销 GitHub CLI 在您所有设备上生成的所有身份验证令牌。
 
 			有关撤销 OAuth 应用令牌的更多信息，请参见:
 			<https://docs.github.com/en/apps/oauth-apps/using-oauth-apps/reviewing-your-authorized-oauth-apps>
@@ -144,8 +142,8 @@ func logoutRun(opts *LogoutOptions) error {
 	}
 
 	if src, writeable := shared.AuthTokenWriteable(authCfg, hostname); !writeable {
-		fmt.Fprintf(opts.IO.ErrOut, "环境变量 %s 的值正在用于身份验证。\n", src)
-		fmt.Fprint(opts.IO.ErrOut, "若要擦除 GitHub CLI 中存储的凭据，请先从环境中清除该值。\n")
+		fmt.Fprintf(opts.IO.ErrOut, "环境变量 %s 的值正在用于身份验证\n", src)
+		fmt.Fprint(opts.IO.ErrOut, "若要擦除 GitHub CLI 中存储的凭据，请先从环境中清除该值\n")
 		return cmdutil.SilentError
 	}
 

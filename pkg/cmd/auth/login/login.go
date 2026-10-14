@@ -62,35 +62,30 @@ func NewCmdLogin(f *cmdutil.Factory, runF func(*LoginOptions) error) *cobra.Comm
 		Long: heredoc.Docf(`
 			向 GitHub 主机进行身份验证。
 
-			默认主机名为 %[1]sgithub.com%[1]s。可以使用 %[1]s--hostname%[1]s
-			标志覆盖它。
+			默认主机名为 %[1]sgithub.com%[1]s，可以使用 %[1]s--hostname%[1]s 标志覆盖它。
 
-			默认身份验证模式是基于网页的浏览器流程。完成后，身份验证令牌(token)将被安全地
-			存储在系统凭据存储(credential store)中。如果找不到凭据存储或使用它时出现问题，
-			gh 将回退为将令牌写入纯文本文件。请参阅 %[1]sgh auth status%[1]s 了解其
-			存储位置。
+			默认身份验证模式是基于网页的浏览器流程。完成后，身份验证令牌将被安全地存储在系统凭据
+			存储中。如果找不到凭据存储或使用它时出现问题，gh 将回退为将令牌写入纯文本文件。请参阅
+			%[1]sgh auth status%[1]s 了解其存储位置。
 
-			或者，使用 %[1]s--with-token%[1]s 在标准输入上传入个人访问令牌(personal access token)(classic)。
-			该令牌所需的最低作用域(scopes)为: %[1]srepo%[1]s、%[1]sread:org%[1]s 和 %[1]sgist%[1]s。
-			将细粒度个人访问令牌传入 %[1]s--with-token%[1]s 时请务必小心，
-			因为其固有的资源限定作用域可能在与其它资源交互时导致令人困惑的行为。
-			对于细粒度个人访问令牌的使用，建议改用 %[1]sGH_TOKEN%[1]s。
+			或者，使用 %[1]s--with-token%[1]s 在标准输入上传入个人访问令牌(classic)。
+			该令牌所需的最低作用域为: %[1]srepo%[1]s、%[1]sread:org%[1]s 和 %[1]sgist%[1]s。
+			将细粒度个人访问令牌传入 %[1]s--with-token%[1]s 时请务必小心，因为其固有的资源限定
+			作用域可能在与其它资源交互时导致令人困惑的行为。对于细粒度个人访问令牌的使用，建议改用
+			%[1]sGH_TOKEN%[1]s。
 
 			或者，gh 将使用在环境变量中找到的身份验证令牌。
-			此方法最适合"无头(headless)"使用 gh，例如在自动化场景中。更多信息请参见
-			%[1]sgh help environment%[1]s。
+			此方法最适合“无头环境”使用 gh，例如在自动化场景中。更多信息请参见 %[1]sgh help environment%[1]s。
 
 			要在 GitHub Actions 中使用 gh，请在 %[1]senv%[1]s 中添加 %[1]sGH_TOKEN: ${{ github.token }}%[1]s。
 
-			可以使用 %[1]s--git-protocol%[1]s 设置此主机上 git 操作使用的 git 协议，
-			或在交互式提示期间设置。虽然登录针对主机上的单个账户，但设置
-			git 协议将对主机上的所有用户生效。
+			可以使用 %[1]s--git-protocol%[1]s 设置此主机上 git 操作使用的 git 协议，或在交互式
+			提示期间设置。虽然登录针对主机上的单个账户，但设置 git 协议将对主机上的所有用户生效。
 
-			为 git 协议指定 %[1]sssh%[1]s 将检测现有的 SSH 密钥以供上传，
-			若未找到密钥则提示创建并上传新密钥。可以使用
-			%[1]s--skip-ssh-key%[1]s 标志跳过此步骤。
+			为 git 协议指定 %[1]sssh%[1]s 将检测现有的 SSH 密钥以供上传，若未找到密钥则提示创建
+			并上传新密钥。可以使用 %[1]s--skip-ssh-key%[1]s 标志跳过此步骤。
 
-			有关 OAuth 作用域(scopes)的更多信息，请参见
+			有关 OAuth 作用域的更多信息，请参见:
 			<https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps/>。
 		`, "`"),
 		Example: heredoc.Doc(`
@@ -129,7 +124,7 @@ func NewCmdLogin(f *cmdutil.Factory, runF func(*LoginOptions) error) *cobra.Comm
 
 			if cmd.Flags().Changed("hostname") {
 				if err := ghinstance.HostnameValidator(opts.Hostname); err != nil {
-					return cmdutil.FlagErrorf("解析主机名(hostname)时出错: %w", err)
+					return cmdutil.FlagErrorf("解析主机名失败: %w", err)
 				}
 			}
 
@@ -147,7 +142,7 @@ func NewCmdLogin(f *cmdutil.Factory, runF func(*LoginOptions) error) *cobra.Comm
 	}
 
 	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "要进行身份验证的 GitHub 实例的主机名")
-	cmd.Flags().StringSliceVarP(&opts.Scopes, "scopes", "s", nil, "要请求的额外身份验证作用域(scopes)")
+	cmd.Flags().StringSliceVarP(&opts.Scopes, "scopes", "s", nil, "要请求的额外身份验证作用域")
 	cmd.Flags().BoolVar(&tokenStdin, "with-token", false, "从标准输入读取令牌")
 	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "打开浏览器进行身份验证")
 	cmdutil.NilBoolFlag(cmd, &opts.Clipboard, "clipboard", "c", "将一次性 OAuth 设备码复制到剪贴板")
@@ -187,8 +182,8 @@ func loginRun(opts *LoginOptions) error {
 	hostname = strings.ToLower(hostname)
 
 	if src, writeable := shared.AuthTokenWriteable(authCfg, hostname); !writeable {
-		fmt.Fprintf(opts.IO.ErrOut, "环境变量 %s 的值正在用于身份验证。\n", src)
-		fmt.Fprint(opts.IO.ErrOut, "若要改为让 GitHub CLI 存储凭据，请先从环境中清除该值。\n")
+		fmt.Fprintf(opts.IO.ErrOut, "环境变量 %s 的值正在用于身份验证\n", src)
+		fmt.Fprint(opts.IO.ErrOut, "若要改为让 GitHub CLI 存储凭据，请先从环境中清除该值\n")
 		return cmdutil.SilentError
 	}
 
@@ -204,11 +199,11 @@ func loginRun(opts *LoginOptions) error {
 
 	if opts.Token != "" {
 		if err := shared.HasMinimumScopes(httpClient, hostname, opts.Token); err != nil {
-			return fmt.Errorf("验证令牌时出错: %w", err)
+			return fmt.Errorf("验证令牌失败: %w", err)
 		}
 		username, err := shared.GetCurrentLogin(httpClient, hostname, opts.Token)
 		if err != nil {
-			return fmt.Errorf("获取当前用户时出错: %w", err)
+			return fmt.Errorf("获取当前用户失败: %w", err)
 		}
 
 		// 添加 user 键可确保非空的主机部分被写入配置文件。

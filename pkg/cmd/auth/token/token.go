@@ -28,9 +28,9 @@ func NewCmdToken(f *cmdutil.Factory, runF func(*TokenOptions) error) *cobra.Comm
 
 	cmd := &cobra.Command{
 		Use:   "token",
-		Short: "打印 gh 对指定主机名和账户使用的身份验证令牌(token)",
+		Short: "打印 gh 对指定主机名和账户使用的身份验证令牌",
 		Long: heredoc.Docf(`
-			此命令输出给定 GitHub 主机上某个账户的身份验证令牌(token)。
+			此命令输出给定 GitHub 主机上某个账户的身份验证令牌。
 
 			未使用 %[1]s--hostname%[1]s 标志时，将选择默认主机。
 
@@ -85,7 +85,7 @@ func tokenRun(opts *TokenOptions) error {
 	}
 
 	if val == "" {
-		errMsg := fmt.Sprintf("未找到 %s 的 OAuth 令牌(token)", hostname)
+		errMsg := fmt.Sprintf("未找到 %s 的 OAuth 令牌", hostname)
 		if opts.Username != "" {
 			errMsg += fmt.Sprintf(" 的账户 %s", opts.Username)
 		}

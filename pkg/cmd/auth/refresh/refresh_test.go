@@ -236,7 +236,7 @@ func Test_refreshRun(t *testing.T) {
 		{
 			name:    "no hosts configured",
 			opts:    &RefreshOptions{},
-			wantErr: `not logged in to any hosts`,
+			wantErr: `未登录任何主机`,
 		},
 		{
 			name: "hostname given but not previously authenticated with it",
@@ -247,7 +247,7 @@ func Test_refreshRun(t *testing.T) {
 			opts: &RefreshOptions{
 				Hostname: "obed.morton",
 			},
-			wantErr: `not logged in to obed.morton`,
+			wantErr: `未登录 obed.morton`,
 		},
 		{
 			name: "hostname provided and is configured",
@@ -520,7 +520,7 @@ func Test_refreshRun(t *testing.T) {
 				token:    "xyz456",
 			},
 			opts:    &RefreshOptions{},
-			wantErr: "error refreshing credentials for test-user, received credentials for not-test-user, did you use the correct account in the browser?",
+			wantErr: "刷新 test-user 的凭据时出错，但收到的是 not-test-user 的凭据，您在浏览器中使用的是正确的账户吗？",
 		},
 	}
 	for _, tt := range tests {
