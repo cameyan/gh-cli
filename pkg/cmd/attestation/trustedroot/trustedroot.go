@@ -35,27 +35,26 @@ func NewTrustedRootCmd(f *cmdutil.Factory, runF func(*Options) error) *cobra.Com
 	trustedRootCmd := cobra.Command{
 		Use:   "trusted-root [--tuf-url <url> --tuf-root <file-path>] [--verify-only]",
 		Args:  cobra.ExactArgs(0),
-		Short: "Output trusted_root.jsonl contents, likely for offline verification",
+		Short: "输出 trusted_root.jsonl 的内容，通常用于离线验证(offline verification)",
 		Long: heredoc.Docf(`
-			Output contents for a trusted_root.jsonl file, likely for offline verification.
+			输出 trusted_root.jsonl 文件的内容，通常用于离线验证(offline verification)。
 
-			When using %[1]sgh attestation verify%[1]s, if your machine is on the internet,
-			this will happen automatically. But to do offline verification, you need to
-			supply a trusted root file with %[1]s--custom-trusted-root%[1]s; this command
-			will help you fetch a %[1]strusted_root.jsonl%[1]s file for that purpose.
+			使用 %[1]sgh attestation verify%[1]s 时，如果您的机器已联网，
+			该过程会自动完成。但若要进行离线验证，您需要通过 %[1]s--custom-trusted-root%[1]s
+			提供受信任根(trusted root)文件；该命令将帮助您为此获取 %[1]strusted_root.jsonl%[1]s 文件。
 
-			You can call this command without any flags to get a trusted root file covering
-			the Sigstore Public Good Instance as well as GitHub's Sigstore instance.
+			您可以不带任何标志(flag)调用该命令，以获取同时覆盖 Sigstore 公共善意实例(Public Good Instance)
+			和 GitHub 的 Sigstore 实例的受信任根(trusted root)文件。
 
-			Otherwise you can use %[1]s--tuf-url%[1]s to specify the URL of a custom TUF
-			repository mirror, and %[1]s--tuf-root%[1]s should be the path to the
-			%[1]sroot.json%[1]s file that you securely obtained out-of-band.
+			此外，您也可以使用 %[1]s--tuf-url%[1]s 指定自定义 TUF 仓库镜像(repository mirror)的 URL，
+			并且 %[1]s--tuf-root%[1]s 应为您通过带外(out-of-band)安全方式获取的
+			%[1]sroot.json%[1]s 文件的路径。
 
-			If you just want to verify the integrity of your local TUF repository, and don't
-			want the contents of a trusted_root.jsonl file, use %[1]s--verify-only%[1]s.
+			如果您只想验证本地 TUF 仓库(repository)的完整性，而不需要 trusted_root.jsonl 文件的内容，
+			请使用 %[1]s--verify-only%[1]s。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Get a trusted_root.jsonl for both Sigstore Public Good and GitHub's instance
+			# 获取同时覆盖 Sigstore 公共善意实例(Public Good)和 GitHub 实例的 trusted_root.jsonl
 			$ gh attestation trusted-root
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -84,7 +83,7 @@ func NewTrustedRootCmd(f *cmdutil.Factory, runF func(*Options) error) *cobra.Com
 				}
 
 				if !c.Authentication().HasActiveToken(opts.Hostname) {
-					return fmt.Errorf("not authenticated with %s", opts.Hostname)
+					return fmt.Errorf("未针对 %s 完成身份认证", opts.Hostname)
 				}
 				logger := io.NewHandler(f.IOStreams)
 				apiClient := api.NewLiveClient(hc, externalClient, opts.Hostname, logger)
@@ -100,7 +99,7 @@ func NewTrustedRootCmd(f *cmdutil.Factory, runF func(*Options) error) *cobra.Com
 			}
 
 			if err := getTrustedRoot(tuf.New, opts, externalClient); err != nil {
-				return fmt.Errorf("Failed to verify the TUF repository: %w", err)
+				return fmt.Errorf("验证 TUF 仓库(repository)失败: %w", err)
 			}
 
 			return nil
@@ -108,11 +107,11 @@ func NewTrustedRootCmd(f *cmdutil.Factory, runF func(*Options) error) *cobra.Com
 	}
 
 	cmdutil.DisableAuthCheck(&trustedRootCmd)
-	trustedRootCmd.Flags().StringVarP(&opts.TufUrl, "tuf-url", "", "", "URL to the TUF repository mirror")
-	trustedRootCmd.Flags().StringVarP(&opts.TufRootPath, "tuf-root", "", "", "Path to the TUF root.json file on disk")
+	trustedRootCmd.Flags().StringVarP(&opts.TufUrl, "tuf-url", "", "", "TUF 仓库镜像(repository mirror)的 URL")
+	trustedRootCmd.Flags().StringVarP(&opts.TufRootPath, "tuf-root", "", "", "磁盘上 TUF root.json 文件的路径")
 	trustedRootCmd.MarkFlagsRequiredTogether("tuf-url", "tuf-root")
-	trustedRootCmd.Flags().BoolVarP(&opts.VerifyOnly, "verify-only", "", false, "Don't output trusted_root.jsonl contents")
-	trustedRootCmd.Flags().StringVarP(&opts.Hostname, "hostname", "", "", "Configure host to use")
+	trustedRootCmd.Flags().BoolVarP(&opts.VerifyOnly, "verify-only", "", false, "不输出 trusted_root.jsonl 的内容")
+	trustedRootCmd.Flags().StringVarP(&opts.Hostname, "hostname", "", "", "配置要使用的主机(host)")
 
 	return &trustedRootCmd
 }
@@ -127,10 +126,10 @@ func getTrustedRoot(makeTUF tufClientInstantiator, opts *Options, hc *http.Clien
 	var defaultTR = "trusted_root.json"
 
 	tufOpt := verification.DefaultOptionsWithCacheSetting(o.None[string](), hc)
-	// Disable local caching, so we get up-to-date response from TUF repository
+	// 禁用本地缓存，以便从 TUF 仓库(repository)获取最新响应
 	tufOpt.CacheValidity = 0
 
-	// Target will be either the default trusted root, or the trust domain-qualified one
+	// 目标(target)将是默认的受信任根(trusted root)，或带信任域(trust domain)限定的那个
 	ghTR := defaultTR
 	if opts.TrustDomain != "" {
 		ghTR = fmt.Sprintf("%s.%s", opts.TrustDomain, defaultTR)
@@ -139,7 +138,7 @@ func getTrustedRoot(makeTUF tufClientInstantiator, opts *Options, hc *http.Clien
 	if opts.TufUrl != "" && opts.TufRootPath != "" {
 		tufRoot, err := os.ReadFile(opts.TufRootPath)
 		if err != nil {
-			return fmt.Errorf("failed to read root file %s: %v", opts.TufRootPath, err)
+			return fmt.Errorf("读取根文件(root file) %s 失败: %v", opts.TufRootPath, err)
 		}
 
 		tufOpt.Root = tufRoot
@@ -149,7 +148,7 @@ func getTrustedRoot(makeTUF tufClientInstantiator, opts *Options, hc *http.Clien
 			targets:    []string{ghTR},
 		})
 	} else {
-		// Get from both Sigstore public good and GitHub private instance
+		// 从 Sigstore 公共善意实例(public good)和 GitHub 私有实例两者获取
 		tufOptions = append(tufOptions, tufConfig{
 			tufOptions: tufOpt,
 			targets:    []string{defaultTR},
@@ -166,13 +165,13 @@ func getTrustedRoot(makeTUF tufClientInstantiator, opts *Options, hc *http.Clien
 	for _, tufOpt := range tufOptions {
 		tufClient, err := makeTUF(tufOpt.tufOptions)
 		if err != nil {
-			return fmt.Errorf("failed to create TUF client: %v", err)
+			return fmt.Errorf("创建 TUF 客户端(client)失败: %v", err)
 		}
 
 		for _, target := range tufOpt.targets {
 			t, err := tufClient.GetTarget(target)
 			if err != nil {
-				return fmt.Errorf("failed to retrieve trusted root %s via TUF: %w",
+				return fmt.Errorf("通过 TUF 获取受信任根(trusted root) %s 失败: %w",
 					target, err)
 			}
 
@@ -185,7 +184,7 @@ func getTrustedRoot(makeTUF tufClientInstantiator, opts *Options, hc *http.Clien
 			if !opts.VerifyOnly {
 				fmt.Println(output)
 			} else {
-				fmt.Printf("Local TUF repository for %s updated and verified\n", tufOpt.tufOptions.RepositoryBaseURL)
+				fmt.Printf("用于 %s 的本地 TUF 仓库(repository)已更新并完成验证\n", tufOpt.tufOptions.RepositoryBaseURL)
 			}
 		}
 	}
