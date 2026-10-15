@@ -61,12 +61,12 @@ func NewCmdBrowse(f *cmdutil.Factory, runF func(*BrowseOptions) error) *cobra.Co
 	}
 
 	cmd := &cobra.Command{
-		Short: "在浏览器中打开仓库、议题(issue)、拉取请求(pull request)等页面",
+		Short: "在浏览器中打开仓库、issue、PR 等页面",
 		Long: heredoc.Doc(`
 			从终端切换到 Web 浏览器，查看以下内容并与之交互:
 
-			- 议题(issue)
-			- 拉取请求(pull request)
+			- issue
+			- PR
 			- 仓库内容
 			- 仓库主页
 			- 仓库设置
@@ -80,10 +80,10 @@ func NewCmdBrowse(f *cmdutil.Factory, runF func(*BrowseOptions) error) *cobra.Co
 			# 打开当前仓库的 script 目录
 			$ gh browse script/
 
-			# 打开编号为 217 的议题(issue)或拉取请求(pull request)
+			# 打开编号为 217 的 issue 或 PR
 			$ gh browse 217
 
-			# 打开提交(commit)页面
+			# 打开提交页面
 			$ gh browse 77507cd94ccafcf568f8560cfecde965fcfa63
 
 			# 打开仓库设置
@@ -98,15 +98,15 @@ func NewCmdBrowse(f *cmdutil.Factory, runF func(*BrowseOptions) error) *cobra.Co
 			# 在 bug-fix 分支的最新位置打开 main.go
 			$ gh browse main.go --branch bug-fix
 
-			# 在提交(commit) 775007cd 处打开 main.go
+			# 在提交 775007cd 处打开 main.go
 			$ gh browse main.go --commit=77507cd94ccafcf568f8560cfecde965fcfa63
 		`),
 		Annotations: map[string]string{
 			"help:arguments": heredoc.Doc(`
 				可以通过参数指定浏览器打开的位置，支持以下格式:
-				- 使用编号(number)指定议题(issue)或拉取请求(pull request)，例如 "123"; 或
-				- 使用路径(path)打开文件夹和文件，例如 "cmd/gh/main.go"; 或
-				- 使用提交 SHA(commit SHA)
+				- 使用编号指定 issue 或 PR，例如 "123"；或
+				- 使用路径打开文件夹和文件，例如 "cmd/gh/main.go"；或
+				- 使用提交 SHA
 			`),
 			"help:environment": heredoc.Doc(`
 				如需配置默认浏览器以外的 Web 浏览器，请使用 BROWSER 环境变量。
@@ -166,14 +166,14 @@ func NewCmdBrowse(f *cmdutil.Factory, runF func(*BrowseOptions) error) *cobra.Co
 	}
 
 	cmdutil.EnableRepoOverride(cmd, f)
-	cmd.Flags().BoolVarP(&opts.ProjectsFlag, "projects", "p", false, "打开仓库的项目(projects)页面")
-	cmd.Flags().BoolVarP(&opts.ReleasesFlag, "releases", "r", false, "打开仓库的发布(releases)页面")
-	cmd.Flags().BoolVarP(&opts.WikiFlag, "wiki", "w", false, "打开仓库的维基(wiki)页面")
-	cmd.Flags().BoolVarP(&opts.ActionsFlag, "actions", "a", false, "打开仓库的动作(actions)页面")
-	cmd.Flags().BoolVarP(&opts.SettingsFlag, "settings", "s", false, "打开仓库的设置(settings)页面")
+	cmd.Flags().BoolVarP(&opts.ProjectsFlag, "projects", "p", false, "打开仓库的项目页面")
+	cmd.Flags().BoolVarP(&opts.ReleasesFlag, "releases", "r", false, "打开仓库的发布页面")
+	cmd.Flags().BoolVarP(&opts.WikiFlag, "wiki", "w", false, "打开仓库的 wiki 页面")
+	cmd.Flags().BoolVarP(&opts.ActionsFlag, "actions", "a", false, "打开仓库的 actions 页面")
+	cmd.Flags().BoolVarP(&opts.SettingsFlag, "settings", "s", false, "打开仓库的设置页面")
 	cmd.Flags().BoolVar(&opts.BlameFlag, "blame", false, "打开文件的 blame 视图")
 	cmd.Flags().BoolVarP(&opts.NoBrowserFlag, "no-browser", "n", false, "打印目标 URL 而不打开浏览器")
-	cmd.Flags().StringVarP(&opts.Commit, "commit", "c", "", "通过传入提交 SHA(commit SHA)选择其他提交(commit)，默认为最后一次提交")
+	cmd.Flags().StringVarP(&opts.Commit, "commit", "c", "", "通过传入提交 SHA 选择其他提交，默认为最后一次提交")
 	cmd.Flags().StringVarP(&opts.Branch, "branch", "b", "", "通过传入分支名称选择其他分支")
 
 	_ = cmdutil.RegisterBranchCompletionFlags(f.GitClient, cmd, "branch")
@@ -222,7 +222,7 @@ func runBrowse(opts *BrowseOptions) error {
 	}
 
 	if opts.IO.IsStdoutTTY() {
-		fmt.Fprintf(opts.IO.Out, "正在浏览器中打开 %s。\n", text.DisplayURL(url))
+		fmt.Fprintf(opts.IO.Out, "正在浏览器中打开 %s\n", text.DisplayURL(url))
 	}
 	return opts.Browser.Browse(url)
 }
@@ -265,7 +265,7 @@ func parseSection(baseRepo ghrepo.Interface, opts *BrowseOptions) (string, error
 		apiClient := api.NewClientFromHTTP(httpClient)
 		ref, err = api.RepoDefaultBranch(apiClient, baseRepo)
 		if err != nil {
-			return "", fmt.Errorf("确定默认分支时出错: %w", err)
+			return "", fmt.Errorf("确定默认分支失败: %w", err)
 		}
 	}
 
