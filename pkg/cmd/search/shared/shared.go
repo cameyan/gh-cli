@@ -18,7 +18,7 @@ import (
 type EntityType int
 
 const (
-	// Limitation of GitHub search see:
+	// GitHub 搜索的限制，参见:
 	// https://docs.github.com/en/rest/reference/search
 	SearchMaxResults = 1000
 
@@ -60,7 +60,7 @@ func SearchIssues(opts *IssuesOptions) error {
 	if opts.WebMode {
 		url := opts.Searcher.URL(opts.Query)
 		if io.IsStdoutTTY() {
-			fmt.Fprintf(io.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(url))
+			fmt.Fprintf(io.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(url))
 		}
 		return opts.Browser.Browse(url)
 	}
@@ -74,11 +74,11 @@ func SearchIssues(opts *IssuesOptions) error {
 		var msg string
 		switch opts.Entity {
 		case Both:
-			msg = "no issues or pull requests matched your search"
+			msg = "没有匹配您搜索的 issue 或拉取请求(PR)"
 		case Issues:
-			msg = "no issues matched your search"
+			msg = "没有匹配您搜索的 issue"
 		case PullRequests:
-			msg = "no pull requests matched your search"
+			msg = "没有匹配您搜索的拉取请求(PR)"
 		}
 		return cmdutil.NewNoResultsError(msg)
 	}
@@ -86,7 +86,7 @@ func SearchIssues(opts *IssuesOptions) error {
 	if err := io.StartPager(); err == nil {
 		defer io.StopPager()
 	} else {
-		fmt.Fprintf(io.ErrOut, "failed to start pager: %v\n", err)
+		fmt.Fprintf(io.ErrOut, "启动分页器(pager)失败: %v\n", err)
 	}
 
 	if opts.Exporter != nil {
@@ -103,9 +103,9 @@ func displayIssueResults(io *iostreams.IOStreams, now time.Time, et EntityType, 
 
 	var headers []string
 	if et == Both {
-		headers = []string{"Kind", "Repo", "ID", "Title", "Labels", "Updated"}
+		headers = []string{"类型", "仓库", "ID", "标题", "标签", "更新时间"}
 	} else {
-		headers = []string{"Repo", "ID", "Title", "Labels", "Updated"}
+		headers = []string{"仓库", "ID", "标题", "标签", "更新时间"}
 	}
 
 	cs := io.ColorScheme()
@@ -145,11 +145,11 @@ func displayIssueResults(io *iostreams.IOStreams, now time.Time, et EntityType, 
 		var header string
 		switch et {
 		case Both:
-			header = fmt.Sprintf("Showing %d of %d issues and pull requests\n\n", len(results.Items), results.Total)
+			header = fmt.Sprintf("显示 %d 条，共 %d 条 issue 和拉取请求(PR)\n\n", len(results.Items), results.Total)
 		case Issues:
-			header = fmt.Sprintf("Showing %d of %d issues\n\n", len(results.Items), results.Total)
+			header = fmt.Sprintf("显示 %d 条，共 %d 条 issue\n\n", len(results.Items), results.Total)
 		case PullRequests:
-			header = fmt.Sprintf("Showing %d of %d pull requests\n\n", len(results.Items), results.Total)
+			header = fmt.Sprintf("显示 %d 条，共 %d 条拉取请求(PR)\n\n", len(results.Items), results.Total)
 		}
 		fmt.Fprintf(io.Out, "\n%s", header)
 	}

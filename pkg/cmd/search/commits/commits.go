@@ -36,43 +36,42 @@ func NewCmdCommits(f *cmdutil.Factory, runF func(*CommitsOptions) error) *cobra.
 
 	cmd := &cobra.Command{
 		Use:   "commits [<query>]",
-		Short: "Search for commits",
+		Short: "搜索提交(commit)",
 		Long: heredoc.Docf(`
-			Search for commits on GitHub.
+			在 GitHub 上搜索提交(commit)。
 
-			The command supports constructing queries using the GitHub search syntax,
-			using the parameter and qualifier flags, or a combination of the two.
+			该命令支持使用 GitHub 搜索语法、参数与限定符(qualifier) flags，或两者的组合来构造查询。
 
-			GitHub search syntax is documented at:
+			GitHub 搜索语法文档见:
 			<https://docs.github.com/search-github/searching-on-github/searching-commits>
 
-			For more information on handling search queries containing a hyphen, run %[1]sgh search --help%[1]s.
+			有关处理包含连字符的搜索查询的更多信息，请运行 %[1]sgh search --help%[1]s。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Search commits matching set of keywords "readme" and "typo"
+			# 搜索匹配关键字集合 "readme" 和 "typo" 的提交
 			$ gh search commits readme typo
 
-			# Search commits matching phrase "bug fix"
+			# 搜索匹配短语 "bug fix" 的提交
 			$ gh search commits "bug fix"
 
-			# Search commits using raw search qualifiers as separate arguments
+			# 以独立参数的形式使用原始搜索限定符搜索提交
 			$ gh search commits fix author:monalisa merge:false
 
-			# Search commits committed by user "monalisa"
+			# 搜索由用户 "monalisa" 提交(commit)的提交
 			$ gh search commits --committer=monalisa
 
-			# Search commits authored by users with name "Jane Doe"
+			# 搜索作者名为 "Jane Doe" 的用户的提交
 			$ gh search commits --author-name="Jane Doe"
 
-			# Search commits matching hash "8dd03144ffdc6c0d486d6b705f9c7fba871ee7c3"
+			# 搜索匹配哈希 "8dd03144ffdc6c0d486d6b705f9c7fba871ee7c3" 的提交
 			$ gh search commits --hash=8dd03144ffdc6c0d486d6b705f9c7fba871ee7c3
 
-			# Search commits authored before February 1st, 2022
+			# 搜索 2022 年 2 月 1 日之前提交(authored)的提交
 			$ gh search commits --author-date="<2022-02-01"
 		`),
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) == 0 && c.Flags().NFlag() == 0 {
-				return cmdutil.FlagErrorf("specify search keywords or flags")
+				return cmdutil.FlagErrorf("请指定搜索关键字或 flag")
 			}
 			if opts.Query.Limit < 1 || opts.Query.Limit > shared.SearchMaxResults {
 				return cmdutil.FlagErrorf("`--limit` must be between 1 and 1000")
@@ -96,31 +95,31 @@ func NewCmdCommits(f *cmdutil.Factory, runF func(*CommitsOptions) error) *cobra.
 		},
 	}
 
-	// Output flags
+	// 输出 flags
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, search.CommitFields)
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "Open the search query in the web browser")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在 web 浏览器中打开搜索查询")
 
-	// Query parameter flags
-	cmd.Flags().IntVarP(&opts.Query.Limit, "limit", "L", 30, "Maximum number of commits to fetch")
-	cmdutil.StringEnumFlag(cmd, &order, "order", "", "desc", []string{"asc", "desc"}, "Order of commits returned, ignored unless '--sort' flag is specified")
-	cmdutil.StringEnumFlag(cmd, &sort, "sort", "", "best-match", []string{"author-date", "committer-date"}, "Sort fetched commits")
+	// 查询参数 flags
+	cmd.Flags().IntVarP(&opts.Query.Limit, "limit", "L", 30, "获取提交的最大数量")
+	cmdutil.StringEnumFlag(cmd, &order, "order", "", "desc", []string{"asc", "desc"}, "返回提交的排序方向，除非指定 '--sort' flag，否则将被忽略")
+	cmdutil.StringEnumFlag(cmd, &sort, "sort", "", "best-match", []string{"author-date", "committer-date"}, "对获取的提交排序")
 
-	// Query qualifier flags
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Author, "author", "", "Filter by author")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.AuthorDate, "author-date", "", "Filter based on authored `date`")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.AuthorEmail, "author-email", "", "Filter on author email")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.AuthorName, "author-name", "", "Filter on author name")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Committer, "committer", "", "Filter by committer")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.CommitterDate, "committer-date", "", "Filter based on committed `date`")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.CommitterEmail, "committer-email", "", "Filter on committer email")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.CommitterName, "committer-name", "", "Filter on committer name")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Hash, "hash", "", "Filter by commit hash")
-	cmdutil.NilBoolFlag(cmd, &opts.Query.Qualifiers.Merge, "merge", "", "Filter on merge commits")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Parent, "parent", "", "Filter by parent hash")
-	cmd.Flags().StringSliceVarP(&opts.Query.Qualifiers.Repo, "repo", "R", nil, "Filter on repository, in `OWNER/REPO` format")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Tree, "tree", "", "Filter by tree hash")
-	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.User, "owner", nil, "Filter on repository owner")
-	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.Is, "visibility", "", nil, []string{"public", "private", "internal"}, "Filter based on repository visibility")
+	// 查询限定符(qualifier) flags
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Author, "author", "", "按作者过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.AuthorDate, "author-date", "", "按创作(author) `date` 过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.AuthorEmail, "author-email", "", "按作者邮箱过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.AuthorName, "author-name", "", "按作者姓名过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Committer, "committer", "", "按提交者(committer)过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.CommitterDate, "committer-date", "", "按提交(commit) `date` 过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.CommitterEmail, "committer-email", "", "按提交者邮箱过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.CommitterName, "committer-name", "", "按提交者姓名过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Hash, "hash", "", "按提交哈希过滤")
+	cmdutil.NilBoolFlag(cmd, &opts.Query.Qualifiers.Merge, "merge", "", "按合并(merge)提交过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Parent, "parent", "", "按父提交哈希过滤")
+	cmd.Flags().StringSliceVarP(&opts.Query.Qualifiers.Repo, "repo", "R", nil, "按仓库过滤，格式为 `OWNER/REPO`")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Tree, "tree", "", "按树(tree)哈希过滤")
+	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.User, "owner", nil, "按仓库所有者过滤")
+	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.Is, "visibility", "", nil, []string{"public", "private", "internal"}, "按仓库可见性过滤")
 
 	return cmd
 }
@@ -130,7 +129,7 @@ func commitsRun(opts *CommitsOptions) error {
 	if opts.WebMode {
 		url := opts.Searcher.URL(opts.Query)
 		if io.IsStdoutTTY() {
-			fmt.Fprintf(io.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(url))
+			fmt.Fprintf(io.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(url))
 		}
 		return opts.Browser.Browse(url)
 	}
@@ -141,12 +140,12 @@ func commitsRun(opts *CommitsOptions) error {
 		return err
 	}
 	if len(result.Items) == 0 && opts.Exporter == nil {
-		return cmdutil.NewNoResultsError("no commits matched your search")
+		return cmdutil.NewNoResultsError("没有匹配您搜索的提交(commit)")
 	}
 	if err := io.StartPager(); err == nil {
 		defer io.StopPager()
 	} else {
-		fmt.Fprintf(io.ErrOut, "failed to start pager: %v\n", err)
+		fmt.Fprintf(io.ErrOut, "启动分页器(pager)失败: %v\n", err)
 	}
 	if opts.Exporter != nil {
 		return opts.Exporter.Write(io, result.Items)
@@ -160,7 +159,7 @@ func displayResults(io *iostreams.IOStreams, now time.Time, results search.Commi
 		now = time.Now()
 	}
 	cs := io.ColorScheme()
-	tp := tableprinter.New(io, tableprinter.WithHeader("Repo", "SHA", "Message", "Author", "Created"))
+	tp := tableprinter.New(io, tableprinter.WithHeader("仓库", "SHA", "消息", "作者", "创建时间"))
 	for _, commit := range results.Items {
 		tp.AddField(commit.Repo.FullName)
 		tp.AddField(commit.Sha)
@@ -170,7 +169,7 @@ func displayResults(io *iostreams.IOStreams, now time.Time, results search.Commi
 		tp.EndRow()
 	}
 	if io.IsStdoutTTY() {
-		header := fmt.Sprintf("Showing %d of %d commits\n\n", len(results.Items), results.Total)
+		header := fmt.Sprintf("显示 %d 条，共 %d 条提交(commit)\n\n", len(results.Items), results.Total)
 		fmt.Fprintf(io.Out, "\n%s", header)
 	}
 	return tp.Render()
