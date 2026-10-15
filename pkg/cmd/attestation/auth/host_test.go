@@ -15,22 +15,22 @@ func TestIsHostSupported(t *testing.T) {
 		host        string
 	}{
 		{
-			name:        "Default github.com host",
+			name:        "默认 github.com 主机(host)",
 			expectedErr: false,
 			host:        "github.com",
 		},
 		{
-			name:        "Localhost",
+			name:        "本地主机(localhost)",
 			expectedErr: false,
 			host:        "github.localhost",
 		},
 		{
-			name:        "No host set",
+			name:        "未设置主机(host)",
 			expectedErr: false,
 			host:        "",
 		},
 		{
-			name:        "GHE tenant host",
+			name:        "GHE 租户(tenant)主机(host)",
 			expectedErr: false,
 			host:        "some-tenant.ghe.com",
 		},
