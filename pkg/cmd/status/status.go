@@ -50,7 +50,7 @@ func NewCmdStatus(f *cmdutil.Factory, runF func(*StatusOptions) error) *cobra.Co
 	opts.IO = f.IOStreams
 	cmd := &cobra.Command{
 		Use:   "status",
-		Short: "打印跨仓库的相关 issue、拉取请求(PR)和通知信息",
+		Short: "打印跨仓库的相关 issue、PR 和通知信息",
 		Long: heredoc.Doc(`
 			status 命令打印你在 GitHub 上所订阅的所有仓库中的工作信息，包括:
 
@@ -61,8 +61,11 @@ func NewCmdStatus(f *cmdutil.Factory, runF func(*StatusOptions) error) *cobra.Co
 			- 仓库活动(新 issue/PR、评论)
 		`),
 		Example: heredoc.Doc(`
-			$ gh status -e cli/cli -e cli/go-gh # 排除多个仓库
-			$ gh status -o cli # 将结果限定在单个组织内
+		    # 排除多个仓库
+			$ gh status -e cli/cli -e cli/go-gh
+
+			# 将结果限定在单个组织内
+			$ gh status -o cli
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := f.Config()
@@ -613,7 +616,7 @@ func (s *StatusGetter) addAuthError(msg, ssoURL string) {
 	}
 
 	if ssoURL != "" {
-		s.authErrors.Add(fmt.Sprintf("%s\n请在浏览器中授权:  %s", msg, ssoURL))
+		s.authErrors.Add(fmt.Sprintf("%s\n请在浏览器中授权: %s", msg, ssoURL))
 	} else {
 		s.authErrors.Add(msg)
 	}
@@ -746,3 +749,4 @@ func statusRun(opts *StatusOptions) error {
 
 	return nil
 }
+
