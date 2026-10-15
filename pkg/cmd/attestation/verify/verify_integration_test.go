@@ -58,12 +58,12 @@ func TestVerifyIntegration(t *testing.T) {
 		SigstoreVerifier: sigstoreVerifier,
 	}
 
-	t.Run("with valid owner", func(t *testing.T) {
+	t.Run("owner 有效的情况", func(t *testing.T) {
 		err := runVerify(&publicGoodOpts)
 		require.NoError(t, err)
 	})
 
-	t.Run("with valid repo", func(t *testing.T) {
+	t.Run("repo 有效的情况", func(t *testing.T) {
 		opts := publicGoodOpts
 		opts.Repo = "sigstore/sigstore-js"
 
@@ -71,52 +71,52 @@ func TestVerifyIntegration(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("with valid owner and invalid repo", func(t *testing.T) {
+	t.Run("owner 有效且 repo 无效的情况", func(t *testing.T) {
 		opts := publicGoodOpts
 		opts.Repo = "sigstore/fakerepo"
 
 		err := runVerify(&opts)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "expected SourceRepositoryURI to be https://github.com/sigstore/fakerepo, got https://github.com/sigstore/sigstore-js")
+		require.ErrorContains(t, err, "期望 SourceRepositoryURI 为 https://github.com/sigstore/fakerepo，实际为 https://github.com/sigstore/sigstore-js")
 	})
 
-	t.Run("with invalid owner", func(t *testing.T) {
+	t.Run("owner 无效的情况", func(t *testing.T) {
 		opts := publicGoodOpts
 		opts.Owner = "fakeowner"
 
 		err := runVerify(&opts)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "expected SourceRepositoryOwnerURI to be https://github.com/fakeowner, got https://github.com/sigstore")
+		require.ErrorContains(t, err, "期望 SourceRepositoryOwnerURI 为 https://github.com/fakeowner，实际为 https://github.com/sigstore")
 	})
 
-	t.Run("with no matching OIDC issuer", func(t *testing.T) {
+	t.Run("没有匹配的 OIDC 签发者(issuer)的情况", func(t *testing.T) {
 		opts := publicGoodOpts
 		opts.OIDCIssuer = "some-other-issuer"
 
 		err := runVerify(&opts)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "expected Issuer to be some-other-issuer, got https://token.actions.githubusercontent.com")
+		require.ErrorContains(t, err, "期望 Issuer 为 some-other-issuer，实际为 https://token.actions.githubusercontent.com")
 	})
 
-	t.Run("with invalid SAN", func(t *testing.T) {
+	t.Run("SAN 无效的情况", func(t *testing.T) {
 		opts := publicGoodOpts
 		opts.SAN = "fake san"
 
 		err := runVerify(&opts)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "verifying with issuer \"sigstore.dev\"")
+		require.ErrorContains(t, err, "使用签发者(issuer) \"sigstore.dev\" 进行验证时出错")
 	})
 
-	t.Run("with invalid SAN regex", func(t *testing.T) {
+	t.Run("SAN 正则(regex)无效的情况", func(t *testing.T) {
 		opts := publicGoodOpts
 		opts.SANRegex = "^https://github.com/sigstore/not-real/"
 
 		err := runVerify(&opts)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "verifying with issuer \"sigstore.dev\"")
+		require.ErrorContains(t, err, "使用签发者(issuer) \"sigstore.dev\" 进行验证时出错")
 	})
 
-	t.Run("with bundle from OCI registry", func(t *testing.T) {
+	t.Run("来自 OCI 镜像仓库(registry)的 bundle 的情况", func(t *testing.T) {
 		sigstoreVerifier, err := verification.NewLiveSigstoreVerifier(sigstoreConfig)
 		require.NoError(t, err)
 		opts := Options{
@@ -176,7 +176,7 @@ func TestVerifyIntegrationCustomIssuer(t *testing.T) {
 		SigstoreVerifier: sigstoreVerifier,
 	}
 
-	t.Run("with owner and valid workflow SAN", func(t *testing.T) {
+	t.Run("owner 和有效工作流(workflow) SAN 的情况", func(t *testing.T) {
 		opts := baseOpts
 		opts.Owner = "too-legit"
 		opts.SAN = "https://github.com/too-legit/attest/.github/workflows/integration.yml@refs/heads/main"
@@ -185,7 +185,7 @@ func TestVerifyIntegrationCustomIssuer(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("with owner and valid workflow SAN regex", func(t *testing.T) {
+	t.Run("owner 和有效工作流(workflow) SAN 正则(regex)的情况", func(t *testing.T) {
 		opts := baseOpts
 		opts.Owner = "too-legit"
 		opts.SANRegex = "^https://github.com/too-legit/attest"
@@ -194,7 +194,7 @@ func TestVerifyIntegrationCustomIssuer(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("with repo and valid workflow SAN", func(t *testing.T) {
+	t.Run("repo 和有效工作流(workflow) SAN 的情况", func(t *testing.T) {
 		opts := baseOpts
 		opts.Owner = "too-legit"
 		opts.Repo = "too-legit/attest"
@@ -204,7 +204,7 @@ func TestVerifyIntegrationCustomIssuer(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("with repo and valid workflow SAN regex", func(t *testing.T) {
+	t.Run("repo 和有效工作流(workflow) SAN 正则(regex)的情况", func(t *testing.T) {
 		opts := baseOpts
 		opts.Owner = "too-legit"
 		opts.Repo = "too-legit/attest"
@@ -254,7 +254,7 @@ func TestVerifyIntegrationReusableWorkflow(t *testing.T) {
 		SigstoreVerifier: sigstoreVerifier,
 	}
 
-	t.Run("with owner and valid reusable workflow SAN", func(t *testing.T) {
+	t.Run("owner 和有效可复用工作流(reusable workflow) SAN 的情况", func(t *testing.T) {
 		opts := baseOpts
 		opts.Owner = "malancas"
 		opts.SAN = "https://github.com/github/artifact-attestations-workflows/.github/workflows/attest.yml@09b495c3f12c7881b3cc17209a327792065c1a1d"
@@ -263,7 +263,7 @@ func TestVerifyIntegrationReusableWorkflow(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("with owner and valid reusable workflow SAN regex", func(t *testing.T) {
+	t.Run("owner 和有效可复用工作流(reusable workflow) SAN 正则(regex)的情况", func(t *testing.T) {
 		opts := baseOpts
 		opts.Owner = "malancas"
 		opts.SANRegex = "^https://github.com/github/artifact-attestations-workflows/"
@@ -272,7 +272,7 @@ func TestVerifyIntegrationReusableWorkflow(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("with owner and valid reusable signer repo", func(t *testing.T) {
+	t.Run("owner 和有效可复用签名仓库(signer repo)的情况", func(t *testing.T) {
 		opts := baseOpts
 		opts.Owner = "malancas"
 		opts.SignerRepo = "github/artifact-attestations-workflows"
@@ -281,7 +281,7 @@ func TestVerifyIntegrationReusableWorkflow(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("with repo and valid reusable workflow SAN", func(t *testing.T) {
+	t.Run("repo 和有效可复用工作流(reusable workflow) SAN 的情况", func(t *testing.T) {
 		opts := baseOpts
 		opts.Owner = "malancas"
 		opts.Repo = "malancas/attest-demo"
@@ -291,7 +291,7 @@ func TestVerifyIntegrationReusableWorkflow(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("with repo and valid reusable workflow SAN regex", func(t *testing.T) {
+	t.Run("repo 和有效可复用工作流(reusable workflow) SAN 正则(regex)的情况", func(t *testing.T) {
 		opts := baseOpts
 		opts.Owner = "malancas"
 		opts.Repo = "malancas/attest-demo"
@@ -301,7 +301,7 @@ func TestVerifyIntegrationReusableWorkflow(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("with repo and valid reusable signer repo", func(t *testing.T) {
+	t.Run("repo 和有效可复用签名仓库(signer repo)的情况", func(t *testing.T) {
 		opts := baseOpts
 		opts.Owner = "malancas"
 		opts.Repo = "malancas/attest-demo"
@@ -365,17 +365,17 @@ func TestVerifyIntegrationReusableWorkflowSignerWorkflow(t *testing.T) {
 
 	testcases := []testcase{
 		{
-			name:           "with invalid signer workflow",
+			name:           "签名者工作流(signer workflow)无效的情况",
 			signerWorkflow: "foo/bar/.github/workflows/attest.yml",
 			expectErr:      true,
 		},
 		{
-			name:           "valid signer workflow with host",
+			name:           "带主机(host)的有效签名者工作流(signer workflow)",
 			signerWorkflow: "github.com/github/artifact-attestations-workflows/.github/workflows/attest.yml",
 			expectErr:      false,
 		},
 		{
-			name:           "valid signer workflow without host (defaults to github.com)",
+			name:           "不带主机(host)的有效签名者工作流(signer workflow)(默认为 github.com)",
 			signerWorkflow: "github/artifact-attestations-workflows/.github/workflows/attest.yml",
 			expectErr:      false,
 			host:           "github.com",
@@ -389,9 +389,9 @@ func TestVerifyIntegrationReusableWorkflowSignerWorkflow(t *testing.T) {
 
 		err := runVerify(&opts)
 		if tc.expectErr {
-			require.Error(t, err, "expected error for '%s'", tc.name)
+			require.Error(t, err, "'%s' 应返回错误", tc.name)
 		} else {
-			require.NoError(t, err, "unexpected error for '%s'", tc.name)
+			require.NoError(t, err, "'%s' 出现意外错误", tc.name)
 		}
 	}
 }
