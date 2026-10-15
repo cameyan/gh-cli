@@ -18,7 +18,7 @@ func TestNormalizeReference(t *testing.T) {
 		expectedError  bool
 	}{
 		{
-			name:           "不带协议(scheme)的 Windows 文件引用(reference)",
+			name:           "windows file reference without scheme",
 			reference:      `c:\path\to\file`,
 			pathSeparator:  '\\',
 			expectedResult: `c:\path\to\file`,
@@ -26,7 +26,7 @@ func TestNormalizeReference(t *testing.T) {
 			expectedError:  false,
 		},
 		{
-			name:           "Windows 路径",
+			name:           "windows path",
 			reference:      "file:///C:/path/to/file",
 			pathSeparator:  '\\',
 			expectedResult: `C:\path\to\file`,
@@ -34,7 +34,7 @@ func TestNormalizeReference(t *testing.T) {
 			expectedError:  false,
 		},
 		{
-			name:           "带反斜杠的 Windows 路径",
+			name:           "windows path with backslashes",
 			reference:      "file:///C:\\path\\to\\file",
 			pathSeparator:  '\\',
 			expectedResult: `C:\path\to\file`,

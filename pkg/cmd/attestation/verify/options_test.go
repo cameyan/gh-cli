@@ -57,7 +57,7 @@ func TestAreFlagsValid(t *testing.T) {
 
 		err := opts.AreFlagsValid()
 		require.Error(t, err)
-		require.ErrorContains(t, err, "bundle-from-oci 标志(flag)只能用于 OCI 制品(artifact)路径")
+		require.ErrorContains(t, err, "bundle-from-oci 标志只能用于 OCI 制品路径")
 	})
 
 	t.Run("UseBundleFromRegistry 为 true 且 ArtifactPath 是 OCI 路径时不返回错误", func(t *testing.T) {
@@ -77,6 +77,6 @@ func TestAreFlagsValid(t *testing.T) {
 
 		err := opts.AreFlagsValid()
 		require.Error(t, err)
-		require.ErrorContains(t, err, "bundle-from-oci 标志(flag)不能与 bundle-path 标志(flag)一起使用")
+		require.ErrorContains(t, err, "bundle-from-oci 标志不能与 bundle-path 标志一起使用")
 	})
 }

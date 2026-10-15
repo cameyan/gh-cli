@@ -104,13 +104,13 @@ func TestGetLocalAttestations(t *testing.T) {
 		require.Nil(t, attestations)
 	})
 
-	t.Run("缺少验证材料(verification material)的情况", func(t *testing.T) {
+	t.Run("缺少验证材料的情况", func(t *testing.T) {
 		path := "../test/data/github_provenance_demo-0.0.12-py3-none-any-bundle-missing-verification-material.jsonl"
 		_, err := GetLocalAttestations(path)
 		require.ErrorIs(t, err, bundle.ErrMissingVerificationMaterial)
 	})
 
-	t.Run("缺少验证证书(certificate)的情况", func(t *testing.T) {
+	t.Run("缺少验证证书的情况", func(t *testing.T) {
 		path := "../test/data/github_provenance_demo-0.0.12-py3-none-any-bundle-missing-cert.jsonl"
 		_, err := GetLocalAttestations(path)
 		require.ErrorIs(t, err, bundle.ErrMissingBundleContent)

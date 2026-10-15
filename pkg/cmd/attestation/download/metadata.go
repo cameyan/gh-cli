@@ -11,7 +11,7 @@ import (
 	"github.com/cli/cli/v2/pkg/cmd/attestation/api"
 )
 
-var ErrAttestationFileCreation = fmt.Errorf("将证明(attestation)写入文件失败")
+var ErrAttestationFileCreation = fmt.Errorf("将证明写入文件失败")
 
 type MetadataStore interface {
 	createMetadataFile(artifactDigest string, attestationsResp []*api.Attestation) (string, error)
@@ -62,9 +62,9 @@ func (s *LiveStore) createMetadataFile(artifactDigest string, attestationsResp [
 		attBytes, err := json.Marshal(bundle)
 		if err != nil {
 			if err = f.Close(); err != nil {
-				return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("序列化(marshalling) JSON 时关闭文件失败: %v", err))
+				return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("序列化 JSON 时关闭文件失败: %v", err))
 			}
-			return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("写入文件时将证明(attestation)序列化为 JSON 失败: %v", err))
+			return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("写入文件时将证明序列化为 JSON 失败: %v", err))
 		}
 
 		withNewline := fmt.Sprintf("%s\n", attBytes)
@@ -74,12 +74,12 @@ func (s *LiveStore) createMetadataFile(artifactDigest string, attestationsResp [
 				return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("处理写入错误时关闭文件失败: %v", err))
 			}
 
-			return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("写入证明(attestation)失败: %v", err))
+			return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("写入证明失败: %v", err))
 		}
 	}
 
 	if err = f.Close(); err != nil {
-		return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("写入证明(attestation)后关闭文件失败: %v", err))
+		return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("写入证明后关闭文件失败: %v", err))
 	}
 
 	return metadataFilePath, nil

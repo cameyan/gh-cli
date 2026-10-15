@@ -62,7 +62,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Zero(t, c.SAN)
 	})
 
-	t.Run("使用匹配主机(host)正则(regex)的 SignerWorkflow 设置 SANRegex", func(t *testing.T) {
+	t.Run("使用匹配主机正则的 SignerWorkflow 设置 SANRegex", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath:   artifactPath,
 			Owner:          "wrong",
@@ -100,7 +100,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Equal(t, `(?i)^https://github\.com/foo/`, c.SANRegex)
 	})
 
-	t.Run("SANRegex 转义 repo 名称中的正则(regex)元字符", func(t *testing.T) {
+	t.Run("SANRegex 转义 repo 名称中的正则元字符", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath: artifactPath,
 			SignerRepo:   "my.org/my.repo",
@@ -294,7 +294,7 @@ func TestValidateSignerWorkflow(t *testing.T) {
 			name:                   "未指定主机(host)的工作流(workflow)",
 			providedSignerWorkflow: "github/artifact-attestations-workflows/.github/workflows/attest.yml",
 			expectErr:              true,
-			errContains:            "未知的签名者工作流(signer workflow)主机(host)",
+			errContains:            "未知的签名者工作流主机",
 		},
 		{
 			name:                   "使用默认主机(host)的工作流(workflow)",

@@ -78,36 +78,36 @@ type getByTestCase struct {
 
 var getByTestCases = []getByTestCase{
 	{
-		name:                 "按摘要(digest)和 owner 获取",
+		name:                 "get by digest with owner",
 		params:               testFetchParamsWithOwner,
 		expectedAttestations: 5,
 	},
 	{
-		name:                 "按摘要(digest)和 repo 获取",
+		name:                 "get by digest with repo",
 		params:               testFetchParamsWithRepo,
 		expectedAttestations: 5,
 	},
 	{
-		name:                 "证明(attestation)数量超过 limit 时获取",
+		name:                 "get by digest with attestations greater than limit",
 		params:               testFetchParamsWithRepo,
 		limit:                3,
 		expectedAttestations: 3,
 	},
 	{
-		name:                 "存在下一页时按摘要(digest)获取",
+		name:                 "get by digest with next page",
 		params:               testFetchParamsWithRepo,
 		expectedAttestations: 10,
 		hasNextPage:          true,
 	},
 	{
-		name:                 "存在下一页且数量超过 limit",
+		name:                 "greater than limit with next page",
 		params:               testFetchParamsWithRepo,
 		limit:                7,
 		expectedAttestations: 7,
 		hasNextPage:          true,
 	},
 	{
-		name:                 "按摘要(digest)、repo 和 GitHub 发起者(initiator)获取",
+		name:                 "get by digest with repo and GitHub initiator",
 		params:               testFetchParamsWithRepoWithGitHubInitiator,
 		expectedAttestations: 4,
 	},
@@ -196,7 +196,7 @@ func TestFetchBundleFromAttestations_MissingBundleAndBundleURLFields(t *testing.
 	att1 := Attestation{}
 	attestations := []*Attestation{&att1}
 	bundles, err := client.fetchBundleFromAttestations(attestations)
-	require.ErrorContains(t, err, "证明(attestation)既没有 bundle 也没有 bundle URL")
+	require.ErrorContains(t, err, "证明既没有 bundle 也没有 bundle URL")
 	require.Nil(t, bundles, 2)
 }
 

@@ -60,13 +60,13 @@ func getOrgAndRepo(tenant, repoURL string) (string, string, error) {
 	if tenant == "" {
 		after, found = strings.CutPrefix(repoURL, "https://github.com/")
 		if !found {
-			return "", "", fmt.Errorf("从 %s 获取组织(org)和仓库(repo)失败", repoURL)
+			return "", "", fmt.Errorf("从 %s 获取组织和仓库失败", repoURL)
 		}
 	} else {
 		after, found = strings.CutPrefix(repoURL,
 			fmt.Sprintf("https://%s.ghe.com/", tenant))
 		if !found {
-			return "", "", fmt.Errorf("从 %s 获取组织(org)和仓库(repo)失败", repoURL)
+			return "", "", fmt.Errorf("从 %s 获取组织和仓库失败", repoURL)
 		}
 	}
 
@@ -77,28 +77,28 @@ func getOrgAndRepo(tenant, repoURL string) (string, string, error) {
 func getAttestationDetail(tenant string, attr api.Attestation) (AttestationDetail, error) {
 	envelope, err := attr.Bundle.Envelope()
 	if err != nil {
-		return AttestationDetail{}, fmt.Errorf("从 bundle 获取信封(envelope)失败: %v", err)
+		return AttestationDetail{}, fmt.Errorf("从签名包获取签名信封失败: %v", err)
 	}
 
 	statement, err := envelope.EnvelopeContent().Statement()
 	if err != nil {
-		return AttestationDetail{}, fmt.Errorf("从信封(envelope)获取语句(statement)失败: %v", err)
+		return AttestationDetail{}, fmt.Errorf("从签名信封获取声明内容失败: %v", err)
 	}
 
 	var predicate Predicate
 	predicateJson, err := json.Marshal(statement.Predicate)
 	if err != nil {
-		return AttestationDetail{}, fmt.Errorf("序列化(marshal)谓词(predicate)失败: %v", err)
+		return AttestationDetail{}, fmt.Errorf("序列化断言失败: %v", err)
 	}
 
 	err = json.Unmarshal(predicateJson, &predicate)
 	if err != nil {
-		return AttestationDetail{}, fmt.Errorf("反序列化(unmarshal)谓词(predicate)失败: %v", err)
+		return AttestationDetail{}, fmt.Errorf("反序列化断言失败: %v", err)
 	}
 
 	org, repo, err := getOrgAndRepo(tenant, predicate.BuildDefinition.ExternalParameters.Workflow.Repository)
 	if err != nil {
-		return AttestationDetail{}, fmt.Errorf("解析证明(attestation)内容失败: %v", err)
+		return AttestationDetail{}, fmt.Errorf("解析证明内容失败: %v", err)
 	}
 
 	return AttestationDetail{

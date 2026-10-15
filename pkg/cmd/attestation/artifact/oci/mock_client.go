@@ -31,7 +31,7 @@ func (c MockClient) GetAttestations(name name.Reference, digest string) ([]*api.
 type ReferenceFailClient struct{}
 
 func (c ReferenceFailClient) GetImageDigest(imgName string) (*v1.Hash, name.Reference, error) {
-	return nil, nil, fmt.Errorf("failed to parse reference")
+	return nil, nil, fmt.Errorf("解析引用失败")
 }
 
 func (c ReferenceFailClient) GetAttestations(name name.Reference, digest string) ([]*api.Attestation, error) {
@@ -81,5 +81,5 @@ func (c FailedToFetchAttestationsClient) GetImageDigest(imgName string) (*v1.Has
 }
 
 func (c FailedToFetchAttestationsClient) GetAttestations(name name.Reference, digest string) ([]*api.Attestation, error) {
-	return nil, fmt.Errorf("failed to fetch attestations")
+	return nil, fmt.Errorf("未能获取证明文件")
 }

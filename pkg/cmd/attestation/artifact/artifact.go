@@ -34,7 +34,7 @@ func normalizeReference(reference string, pathSeparator rune) (normalized string
 	case strings.HasPrefix(reference, "file://"):
 		uri, err := url.ParseRequestURI(reference)
 		if err != nil {
-			return "", 0, fmt.Errorf("解析引用(reference) URI 失败: %v", err)
+			return "", 0, fmt.Errorf("解析引用 URI 失败: %v", err)
 		}
 		var path string
 		if pathSeparator == '/' {

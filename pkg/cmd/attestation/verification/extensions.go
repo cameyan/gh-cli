@@ -16,7 +16,7 @@ var (
 // VerifyCertExtensions 使我们能够对证书(certificate)扩展进行大小写不敏感的比较
 func VerifyCertExtensions(results []*AttestationProcessingResult, ec EnforcementCriteria) ([]*AttestationProcessingResult, error) {
 	if len(results) == 0 {
-		return nil, errors.New("没有证明(attestation)处理结果")
+		return nil, errors.New("没有证明处理结果")
 	}
 
 	verified := make([]*AttestationProcessingResult, 0, len(results))
@@ -54,7 +54,7 @@ func verifyCertExtensions(given, expected certificate.Summary) error {
 	// 返回相应的错误
 	if !strings.EqualFold(expected.Issuer, given.Issuer) {
 		if strings.Index(given.Issuer, expected.Issuer+"/") == 0 {
-			return fmt.Errorf("期望 Issuer 为 %s，实际为 %s -- 如果您的企业有自定义 OIDC 签发者(issuer)策略，请使用 --cert-oidc-issuer 标志(flag)并指定您期望的签发者(issuer)", expected.Issuer, given.Issuer)
+			return fmt.Errorf("期望 Issuer 为 %s，实际为 %s -- 如果您的企业有自定义 OIDC 签发者策略，请使用 --cert-oidc-issuer 标志并指定您期望的签发者", expected.Issuer, given.Issuer)
 		}
 		return fmt.Errorf("期望 Issuer 为 %s，实际为 %s", expected.Issuer, given.Issuer)
 	}

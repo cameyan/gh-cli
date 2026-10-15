@@ -79,18 +79,18 @@ func (opts *Options) AreFlagsValid() error {
 
 	// 检查 bundle-from-oci 标志(flag)是否仅与 OCI 制品(artifact)路径一起使用
 	if opts.UseBundleFromRegistry && !strings.HasPrefix(opts.ArtifactPath, "oci://") {
-		return fmt.Errorf("bundle-from-oci 标志(flag)只能用于 OCI 制品(artifact)路径")
+		return fmt.Errorf("bundle-from-oci 标志只能用于 OCI 制品路径")
 	}
 
 	// 检查 bundle-from-oci 和 bundle-path 标志(flag)是否未被同时使用
 	if opts.UseBundleFromRegistry && opts.BundlePath != "" {
-		return fmt.Errorf("bundle-from-oci 标志(flag)不能与 bundle-path 标志(flag)一起使用")
+		return fmt.Errorf("bundle-from-oci 标志不能与 bundle-path 标志一起使用")
 	}
 
 	// 验证提供的主机名(hostname)
 	if opts.Hostname != "" {
 		if err := ghinstance.HostnameValidator(opts.Hostname); err != nil {
-			return fmt.Errorf("解析主机名(hostname)出错: %w", err)
+			return fmt.Errorf("解析主机名出错: %w", err)
 		}
 	}
 

@@ -67,7 +67,7 @@ func TestNewVerifyCmd(t *testing.T) {
 		wantsExporter bool
 	}{
 		{
-			name: "无效的 digest-alg 标志(flag)",
+			name: "无效的 digest-alg 标志",
 			cli:  fmt.Sprintf("%s --bundle %s --digest-alg sha384 --owner sigstore", artifactPath, bundlePath),
 			wants: Options{
 				ArtifactPath:     test.NormalizeRelativePath("../test/data/sigstore-js-2.1.0.tgz"),
@@ -99,7 +99,7 @@ func TestNewVerifyCmd(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name: "自定义主机(host)",
+			name: "自定义主机",
 			cli:  fmt.Sprintf("%s --bundle %s --owner sigstore --hostname foo.ghe.com", artifactPath, bundlePath),
 			wants: Options{
 				ArtifactPath:     test.NormalizeRelativePath("../test/data/sigstore-js-2.1.0.tgz"),
@@ -115,7 +115,7 @@ func TestNewVerifyCmd(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name: "无效的自定义主机(host)",
+			name: "无效的自定义主机",
 			cli:  fmt.Sprintf("%s --bundle %s --owner sigstore --hostname foo.bar.com", artifactPath, bundlePath),
 			wants: Options{
 				ArtifactPath:     test.NormalizeRelativePath("../test/data/sigstore-js-2.1.0.tgz"),
@@ -147,7 +147,7 @@ func TestNewVerifyCmd(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name: "缺少 owner 和 repo 标志(flag)",
+			name: "缺少 owner 和 repo 标志",
 			cli:  artifactPath,
 			wants: Options{
 				ArtifactPath:     test.NormalizeRelativePath("../test/data/sigstore-js-2.1.0.tgz"),
@@ -163,7 +163,7 @@ func TestNewVerifyCmd(t *testing.T) {
 			wantsErr: true,
 		},
 		{
-			name: "同时提供 owner 和 repo 标志(flag)",
+			name: "同时提供 owner 和 repo 标志",
 			cli:  fmt.Sprintf("%s --owner sigstore --repo sigstore/sigstore-js", artifactPath),
 			wants: Options{
 				ArtifactPath:     artifactPath,
@@ -179,7 +179,7 @@ func TestNewVerifyCmd(t *testing.T) {
 			wantsErr: true,
 		},
 		{
-			name: "使用默认 limit 标志(flag)",
+			name: "使用默认 limit 标志",
 			cli:  fmt.Sprintf("%s --owner sigstore", artifactPath),
 			wants: Options{
 				ArtifactPath:     artifactPath,
@@ -194,7 +194,7 @@ func TestNewVerifyCmd(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name: "使用自定义 limit 标志(flag)",
+			name: "使用自定义 limit 标志",
 			cli:  fmt.Sprintf("%s --owner sigstore --limit 101", artifactPath),
 			wants: Options{
 				ArtifactPath:     artifactPath,
@@ -209,7 +209,7 @@ func TestNewVerifyCmd(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name: "使用无效的 limit 标志(flag)",
+			name: "使用无效的 limit 标志",
 			cli:  fmt.Sprintf("%s --owner sigstore --limit 0", artifactPath),
 			wants: Options{
 				ArtifactPath:     artifactPath,
@@ -225,7 +225,7 @@ func TestNewVerifyCmd(t *testing.T) {
 			wantsErr: true,
 		},
 		{
-			name: "同时提供 cert-identity 和 cert-identity-regex 标志(flag)",
+			name: "同时提供 cert-identity 和 cert-identity-regex 标志",
 			cli:  fmt.Sprintf("%s --owner sigstore --cert-identity https://github.com/sigstore/ --cert-identity-regex ^https://github.com/sigstore/", artifactPath),
 			wants: Options{
 				ArtifactPath:     artifactPath,
@@ -258,7 +258,7 @@ func TestNewVerifyCmd(t *testing.T) {
 			wantsExporter: true,
 		},
 		{
-			name: "使用指定的谓词类型(predicate type)",
+			name: "使用指定的谓词类型",
 			cli:  fmt.Sprintf("%s --bundle %s --owner sigstore --predicate-type https://spdx.dev/Document/v2.3 --format json", artifactPath, bundlePath),
 			wants: Options{
 				ArtifactPath:     artifactPath,
@@ -320,7 +320,7 @@ func TestNewVerifyCmd(t *testing.T) {
 func TestVerifyCmdAuthChecks(t *testing.T) {
 	f := &cmdutil.Factory{}
 
-	t.Run("默认情况下需要身份认证检查(auth check)", func(t *testing.T) {
+	t.Run("默认情况下需要身份认证检查", func(t *testing.T) {
 		cmd := NewVerifyCmd(f, func(o *Options) error {
 			return nil
 		})
@@ -330,10 +330,10 @@ func TestVerifyCmdAuthChecks(t *testing.T) {
 		parent.AddCommand(cmd)
 
 		require.NoError(t, cmd.ParseFlags([]string{}))
-		require.True(t, cmdutil.IsAuthCheckEnabled(cmd), "期望需要身份认证检查(auth check)")
+		require.True(t, cmdutil.IsAuthCheckEnabled(cmd), "期望需要身份认证检查")
 	})
 
-	t.Run("提供 --bundle 标志(flag)时不需要身份认证检查(auth check)", func(t *testing.T) {
+	t.Run("提供 --bundle 标志时不需要身份认证检查", func(t *testing.T) {
 		cmd := NewVerifyCmd(f, func(o *Options) error {
 			return nil
 		})
@@ -343,7 +343,7 @@ func TestVerifyCmdAuthChecks(t *testing.T) {
 		parent.AddCommand(cmd)
 
 		require.NoError(t, cmd.ParseFlags([]string{"--bundle", "not-important"}))
-		require.False(t, cmdutil.IsAuthCheckEnabled(cmd), "由于提供了 --bundle 标志(flag)，期望不需要身份认证检查(auth check)")
+		require.False(t, cmdutil.IsAuthCheckEnabled(cmd), "由于提供了 --bundle 标志，期望不需要身份认证检查")
 	})
 }
 
@@ -387,21 +387,21 @@ func TestRunVerify(t *testing.T) {
 		SigstoreVerifier: verification.NewMockSigstoreVerifier(t),
 	}
 
-	t.Run("制品(artifact)和 bundle 有效的情况", func(t *testing.T) {
+	t.Run("制品和 bundle 有效的情况", func(t *testing.T) {
 		require.NoError(t, runVerify(&publicGoodOpts))
 	})
 
-	t.Run("OCI 制品(artifact)获取失败的情况", func(t *testing.T) {
+	t.Run("OCI 制品获取失败的情况", func(t *testing.T) {
 		opts := publicGoodOpts
 		opts.ArtifactPath = "oci://ghcr.io/github/test"
 		opts.OCIClient = oci.ReferenceFailClient{}
 
 		err := runVerify(&opts)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "failed to parse reference")
+		require.ErrorContains(t, err, "解析引用失败")
 	})
 
-	t.Run("缺少制品(artifact)路径的情况", func(t *testing.T) {
+	t.Run("缺少制品路径的情况", func(t *testing.T) {
 		opts := publicGoodOpts
 		opts.ArtifactPath = "../test/data/non-existent-artifact.zip"
 		require.Error(t, runVerify(&opts))
@@ -439,7 +439,7 @@ func TestRunVerify(t *testing.T) {
 	})
 
 	// 使用错误的租户(tenancy)进行测试
-	t.Run("租户(tenancy)无效的情况", func(t *testing.T) {
+	t.Run("租户无效的情况", func(t *testing.T) {
 		opts := publicGoodOpts
 		opts.BundlePath = ""
 		opts.Repo = "sigstore/sigstore-js"
@@ -466,7 +466,7 @@ func TestRunVerify(t *testing.T) {
 
 		err := runVerify(&opts)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "从 wrong/example 获取证明(attestation)失败")
+		require.ErrorContains(t, err, "从 wrong/example 获取证明失败")
 	})
 
 	t.Run("owner 无效的情况", func(t *testing.T) {
@@ -477,17 +477,17 @@ func TestRunVerify(t *testing.T) {
 
 		err := runVerify(&opts)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "从 wrong-owner 获取证明(attestation)失败")
+		require.ErrorContains(t, err, "从 wrong-owner 获取证明失败")
 	})
 
-	t.Run("缺少 API 客户端(APIClient)的情况", func(t *testing.T) {
+	t.Run("缺少 API 客户端的情况", func(t *testing.T) {
 		customOpts := publicGoodOpts
 		customOpts.APIClient = nil
 		customOpts.BundlePath = ""
 		require.Error(t, runVerify(&customOpts))
 	})
 
-	t.Run("OCI 制品(artifact)有效的情况", func(t *testing.T) {
+	t.Run("OCI 制品有效的情况", func(t *testing.T) {
 		customOpts := publicGoodOpts
 		customOpts.ArtifactPath = "oci://ghcr.io/github/test"
 		customOpts.BundlePath = ""
@@ -495,7 +495,7 @@ func TestRunVerify(t *testing.T) {
 		require.Nil(t, runVerify(&customOpts))
 	})
 
-	t.Run("OCI 制品(artifact)有效且提供 UseBundleFromRegistry 标志(flag)的情况", func(t *testing.T) {
+	t.Run("OCI 制品有效且提供 UseBundleFromRegistry 标志的情况", func(t *testing.T) {
 		customOpts := publicGoodOpts
 		customOpts.ArtifactPath = "oci://ghcr.io/github/test"
 		customOpts.BundlePath = ""
@@ -504,7 +504,7 @@ func TestRunVerify(t *testing.T) {
 		require.Nil(t, runVerify(&customOpts))
 	})
 
-	t.Run("OCI 制品(artifact)有效、提供 UseBundleFromRegistry 标志(flag)且谓词类型(predicate type)未知的情况", func(t *testing.T) {
+	t.Run("OCI 制品有效、提供 UseBundleFromRegistry 标志且谓词类型未知的情况", func(t *testing.T) {
 		customOpts := publicGoodOpts
 		customOpts.ArtifactPath = "oci://ghcr.io/github/test"
 		customOpts.BundlePath = ""
@@ -513,26 +513,26 @@ func TestRunVerify(t *testing.T) {
 
 		err := runVerify(&customOpts)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "未找到谓词类型(predicate type)")
+		require.ErrorContains(t, err, "未找到具有谓词类型的证明")
 	})
 
-	t.Run("OCI 制品(artifact)有效、提供 UseBundleFromRegistry 标志(flag)但仓库(registry)未返回 bundle 的情况", func(t *testing.T) {
+	t.Run("OCI 制品有效、提供 UseBundleFromRegistry 标志但仓库未返回 bundle 的情况", func(t *testing.T) {
 		customOpts := publicGoodOpts
 		customOpts.ArtifactPath = "oci://ghcr.io/github/test"
 		customOpts.BundlePath = ""
 		customOpts.UseBundleFromRegistry = true
 		customOpts.OCIClient = oci.NoAttestationsClient{}
 
-		require.ErrorContains(t, runVerify(&customOpts), "在 OCI 镜像仓库(registry)中未找到证明(attestation)。请在不带 --bundle-from-oci 标志(flag)的情况下重试该命令，以检查 GitHub 上的证明(attestation)")
+		require.ErrorContains(t, runVerify(&customOpts), "在 OCI 镜像仓库中未找到证明。请在不带 --bundle-from-oci 标志的情况下重试该命令，以检查 GitHub 上的证明")
 	})
 
-	t.Run("OCI 制品(artifact)有效、提供 UseBundleFromRegistry 标志(flag)但从仓库(registry)获取 bundle 失败的情况", func(t *testing.T) {
+	t.Run("OCI 制品有效、提供 UseBundleFromRegistry 标志但从仓库获取 bundle 失败的情况", func(t *testing.T) {
 		customOpts := publicGoodOpts
 		customOpts.ArtifactPath = "oci://ghcr.io/github/test"
 		customOpts.BundlePath = ""
 		customOpts.UseBundleFromRegistry = true
 		customOpts.OCIClient = oci.NoAttestationsClient{}
 
-		require.ErrorContains(t, runVerify(&customOpts), "在 OCI 镜像仓库(registry)中未找到证明(attestation)。请在不带 --bundle-from-oci 标志(flag)的情况下重试该命令，以检查 GitHub 上的证明(attestation)")
+		require.ErrorContains(t, runVerify(&customOpts), "在 OCI 镜像仓库中未找到证明。请在不带 --bundle-from-oci 标志的情况下重试该命令，以检查 GitHub 上的证明")
 	})
 }

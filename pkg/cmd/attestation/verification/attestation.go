@@ -17,8 +17,8 @@ import (
 
 const SLSAPredicateV1 = "https://slsa.dev/provenance/v1"
 
-var ErrUnrecognisedBundleExtension = errors.New("bundle 文件扩展名不支持，必须为 json 或 jsonl")
-var ErrEmptyBundleFile = errors.New("提供的 bundle 文件为空")
+var ErrUnrecognisedBundleExtension = errors.New("签名包文件扩展名不支持，必须为 json 或 jsonl")
+var ErrEmptyBundleFile = errors.New("提供的签名包文件为空")
 
 // GetLocalAttestations 返回从本地 bundle 文件中读取的证明(attestation)切片。
 func GetLocalAttestations(path string) ([]*api.Attestation, error) {
@@ -39,7 +39,7 @@ func GetLocalAttestations(path string) ([]*api.Attestation, error) {
 		} else if errors.Is(err, bundle.ErrValidation) {
 			return nil, err
 		}
-		return nil, fmt.Errorf("bundle 内容无法解析: %w", err)
+		return nil, fmt.Errorf("签名包内容无法解析: %w", err)
 	}
 
 	return attestations, nil
@@ -84,10 +84,10 @@ func loadBundlesFromJSONLinesFile(path string) ([]*api.Attestation, error) {
 func GetOCIAttestations(client oci.Client, artifact artifact.DigestedArtifact) ([]*api.Attestation, error) {
 	attestations, err := client.GetAttestations(artifact.NameRef(), artifact.DigestWithAlg())
 	if err != nil {
-		return nil, fmt.Errorf("获取 OCI 证明(attestation)失败: %w", err)
+		return nil, fmt.Errorf("获取 OCI 证明失败: %w", err)
 	}
 	if len(attestations) == 0 {
-		return nil, fmt.Errorf("在 OCI 镜像仓库(registry)中未找到证明(attestation)。请在不带 --bundle-from-oci 标志(flag)的情况下重试该命令，以检查 GitHub 上的证明(attestation)")
+		return nil, fmt.Errorf("在 OCI 镜像仓库中未找到证明。请在不带 --bundle-from-oci 标志的情况下重试该命令，以检查 GitHub 上的证明")
 	}
 	return attestations, nil
 }

@@ -14,10 +14,10 @@ import (
 func NewCmdAttestation(f *cmdutil.Factory) *cobra.Command {
 	root := &cobra.Command{
 		Use:     "attestation [subcommand]",
-		Short:   "处理制品(artifact)证明(attestation)",
+		Short:   "处理制品证明",
 		Aliases: []string{"at"},
 		Long: heredoc.Doc(`
-			下载并验证制品证明(attestation)。
+			下载并验证制品证明
 		`),
 	}
 

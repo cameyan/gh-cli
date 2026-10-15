@@ -18,7 +18,7 @@ func TestNormalizeReference(t *testing.T) {
 		expectedError  bool
 	}{
 		{
-			name:           "不带协议(scheme)的文件引用(reference)",
+			name:           "file reference without scheme",
 			reference:      "/path/to/file",
 			pathSeparator:  '/',
 			expectedResult: "/path/to/file",
@@ -26,7 +26,7 @@ func TestNormalizeReference(t *testing.T) {
 			expectedError:  false,
 		},
 		{
-			name:           "带 %20 的文件(file)协议 URI",
+			name:           "file scheme uri with %20",
 			reference:      "file:///path/to/file%20with%20spaces",
 			pathSeparator:  '/',
 			expectedResult: "/path/to/file with spaces",
@@ -34,7 +34,7 @@ func TestNormalizeReference(t *testing.T) {
 			expectedError:  false,
 		},
 		{
-			name:           "不带协议(scheme)的 Windows 文件引用(reference)",
+			name:           "windows file reference without scheme",
 			reference:      `c:\path\to\file`,
 			pathSeparator:  '\\',
 			expectedResult: `c:\path\to\file`,
@@ -42,7 +42,7 @@ func TestNormalizeReference(t *testing.T) {
 			expectedError:  false,
 		},
 		{
-			name:           "带协议(scheme)的文件引用(reference)",
+			name:           "file reference with scheme",
 			reference:      "file:///path/to/file",
 			pathSeparator:  '/',
 			expectedResult: "/path/to/file",
@@ -50,7 +50,7 @@ func TestNormalizeReference(t *testing.T) {
 			expectedError:  false,
 		},
 		{
-			name:           "Windows 路径",
+			name:           "windows path",
 			reference:      "file:///C:/path/to/file",
 			pathSeparator:  '\\',
 			expectedResult: `C:\path\to\file`,
@@ -58,7 +58,7 @@ func TestNormalizeReference(t *testing.T) {
 			expectedError:  false,
 		},
 		{
-			name:           "带反斜杠的 Windows 路径",
+			name:           "windows path with backslashes",
 			reference:      "file:///C:\\path\\to\\file",
 			pathSeparator:  '\\',
 			expectedResult: `C:\path\to\file`,
@@ -66,7 +66,7 @@ func TestNormalizeReference(t *testing.T) {
 			expectedError:  false,
 		},
 		{
-			name:           "OCI 引用(reference)",
+			name:           "oci reference",
 			reference:      "oci://example.com/repo:tag",
 			pathSeparator:  '/',
 			expectedResult: "example.com/repo:tag",
@@ -74,7 +74,7 @@ func TestNormalizeReference(t *testing.T) {
 			expectedError:  false,
 		},
 		{
-			name:           "带摘要(digest)的 OCI 引用(reference)",
+			name:           "oci reference with digest",
 			reference:      "oci://example.com/repo@sha256:abcdef1234567890",
 			pathSeparator:  '/',
 			expectedResult: "example.com/repo@sha256:abcdef1234567890",

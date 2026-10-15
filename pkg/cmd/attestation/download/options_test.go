@@ -13,11 +13,11 @@ func TestAreFlagsValid(t *testing.T) {
 		limit int
 	}{
 		{
-			name:  "limit 过低",
+			name:  "Limit is too low",
 			limit: 0,
 		},
 		{
-			name:  "limit 过高",
+			name:  "Limit is too high",
 			limit: 1001,
 		},
 	}

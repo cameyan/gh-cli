@@ -45,22 +45,22 @@ func TestCreateJSONLinesFilePath(t *testing.T) {
 		expected   string
 	}{
 		{
-			name:       "提供输出路径(output path)的情况",
+			name:       "with output path",
 			outputPath: tempDir,
 			expected:   path.Join(tempDir, expectedFileName),
 		},
 		{
-			name:       "提供嵌套输出路径(output path)的情况",
+			name:       "with nested output path",
 			outputPath: path.Join(tempDir, "subdir"),
 			expected:   path.Join(tempDir, "subdir", expectedFileName),
 		},
 		{
-			name:       "输出路径(output path)以斜杠开头的情况",
+			name:       "with output path with beginning slash",
 			outputPath: path.Join("/", tempDir, "subdir"),
 			expected:   path.Join("/", tempDir, "subdir", expectedFileName),
 		},
 		{
-			name:       "未提供输出路径(output path)的情况",
+			name:       "without output path",
 			outputPath: "",
 			expected:   expectedFileName,
 		},

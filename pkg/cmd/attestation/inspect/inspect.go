@@ -29,31 +29,29 @@ func NewInspectCmd(f *cmdutil.Factory, runF func(*Options) error) *cobra.Command
 	opts := &Options{}
 	inspectCmd := &cobra.Command{
 		Use:    "inspect <path-to-sigstore-bundle>",
-		Args:   cmdutil.ExactArgs(1, "必须指定 bundle 文件路径"),
+		Args:   cmdutil.ExactArgs(1, "必须指定签名包文件路径"),
 		Hidden: true,
-		Short:  "检查(inspect)一个 Sigstore bundle",
+		Short:  "检查一个 Sigstore 签名包",
 		Long: heredoc.Docf(`
-			检查(inspect)已下载到磁盘的 Sigstore bundle。要下载与制品(artifact)关联的 bundle，
-			请参见 %[1]sgh at download%[1]s 命令。
+			检查已下载到磁盘的 Sigstore 签名包。要下载与制品关联的签名包，请参见 %[1]sgh at download%[1]s 命令。
 
 			给定一个 .json 或 .jsonl 文件，该命令将:
-			- 提取 bundle 的语句(statement)和谓词(predicate)
-			- 提供证书(certificate)摘要(summary)(如果存在)，并指明该证书是由 GitHub 还是
-			  由 Sigstore 的公共善意实例(Public Good Instance, PGI)签发
-			- 检查 bundle 的“真实性(authenticity)”
+			- 提取签名包的声明(statement)和断言(predicate)
+			- 提供证书摘要(如果存在)，并指明该证书是由 GitHub 还是由 Sigstore 的 Public Good Instance(PGI) 签发
+			- 检查签名包的真实性
 
-			就我们的目的而言，如果我们拥有验证所含证书(certificate)、透明日志(transparency log)条目
-			和签名时间戳所需的受信任材料，且所含签名与提供的公钥匹配，则该 bundle 是真实的(authentic)。
+			就我们的目的而言，如果我们拥有验证所含证书、透明日志条目和签名时间戳所需的受信任材料，
+			且所含签名与提供的公钥匹配，则该签名包是真实的。
 
-			该命令不能用于验证(verify) bundle。要验证 bundle，请参见 %[1]sgh at verify%[1]s 命令。
+			该命令不能用于验证签名包。要验证签名包，请参见 %[1]sgh at verify%[1]s 命令。
 
-			默认情况下，该命令打印一个精简表格。要查看完整结果，请提供 %[1]s--format=json%[1]s 标志(flag)。
+			默认情况下，该命令打印一个精简表格。要查看完整结果，请提供 %[1]s--format=json%[1]s 标志。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# 检查(inspect)一个 Sigstore bundle 并以表格格式打印结果
+			# 检查一个 Sigstore 签名包并以表格格式打印结果
 			$ gh attestation inspect <path-to-bundle>
 
-			# 检查(inspect)一个 Sigstore bundle 并以 JSON 格式打印结果
+			# 检查一个 Sigstore 签名包并以 JSON 格式打印结果
 			$ gh attestation inspect <path-to-bundle> --format=json
 		`),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -97,11 +95,11 @@ func NewInspectCmd(f *cmdutil.Factory, runF func(*Options) error) *cobra.Command
 				apiClient := api.NewLiveClient(hc, externalClient, opts.Hostname, opts.Logger)
 				td, err := apiClient.GetTrustDomain()
 				if err != nil {
-					return fmt.Errorf("获取信任域(trust domain)出错，请确保已对该主机(host)完成身份认证: %w", err)
+					return fmt.Errorf("获取信任域出错，请确保已对该主机完成身份认证: %w", err)
 				}
 				_, found := ghinstance.TenantName(opts.Hostname)
 				if !found {
-					return fmt.Errorf("提供的主机名(hostname)无效: '%s'",
+					return fmt.Errorf("提供的主机名无效: '%s'",
 						opts.Hostname)
 				}
 
@@ -110,7 +108,7 @@ func NewInspectCmd(f *cmdutil.Factory, runF func(*Options) error) *cobra.Command
 
 			sgVerifier, err := verification.NewLiveSigstoreVerifier(config)
 			if err != nil {
-				return fmt.Errorf("创建 Sigstore 验证器(verifier)失败: %w", err)
+				return fmt.Errorf("创建 Sigstore 验证器失败: %w", err)
 			}
 			opts.SigstoreVerifier = sgVerifier
 
@@ -119,13 +117,13 @@ func NewInspectCmd(f *cmdutil.Factory, runF func(*Options) error) *cobra.Command
 			}
 
 			if err := runInspect(opts); err != nil {
-				return fmt.Errorf("检查(inspect)制品(artifact)和 bundle 失败: %w", err)
+				return fmt.Errorf("检查制品和签名包失败: %w", err)
 			}
 			return nil
 		},
 	}
 
-	inspectCmd.Flags().StringVarP(&opts.Hostname, "hostname", "", "", "配置要使用的主机(host)")
+	inspectCmd.Flags().StringVarP(&opts.Hostname, "hostname", "", "", "配置要使用的主机")
 	cmdutil.AddFormatFlags(inspectCmd, &opts.exporter)
 
 	return inspectCmd
@@ -157,7 +155,7 @@ type TlogEntryInspection struct {
 func runInspect(opts *Options) error {
 	attestations, err := verification.GetLocalAttestations(opts.BundlePath)
 	if err != nil {
-		return fmt.Errorf("读取证明(attestation)失败")
+		return fmt.Errorf("读取证明失败")
 	}
 
 	inspectedBundles := []BundleInspection{}
@@ -181,7 +179,7 @@ func runInspect(opts *Options) error {
 		entity := a.Bundle
 		verificationContent, err := entity.VerificationContent()
 		if err != nil {
-			return fmt.Errorf("获取验证内容(verification content)失败: %w", err)
+			return fmt.Errorf("获取验证内容失败: %w", err)
 		}
 
 		// 如果存在证书(certificate)，则生成其摘要(summary)
@@ -189,7 +187,7 @@ func runInspect(opts *Options) error {
 
 			certSummary, err := certificate.SummarizeCertificate(leafCert)
 			if err != nil {
-				return fmt.Errorf("生成证书(certificate)摘要(summary)失败: %w", err)
+				return fmt.Errorf("生成证书摘要失败: %w", err)
 			}
 
 			inspectedBundle.Certificate = CertificateInspection{
@@ -203,13 +201,13 @@ func runInspect(opts *Options) error {
 		// 解析签名内容并取出语句(statement)
 		sigContent, err := entity.SignatureContent()
 		if err != nil {
-			return fmt.Errorf("获取签名内容(signature content)失败: %w", err)
+			return fmt.Errorf("获取签名内容失败: %w", err)
 		}
 
 		if envelope := sigContent.EnvelopeContent(); envelope != nil {
 			stmt, err := envelope.Statement()
 			if err != nil {
-				return fmt.Errorf("获取信封(envelope)语句(statement)失败: %w", err)
+				return fmt.Errorf("获取签名信封中的声明内容失败: %w", err)
 			}
 
 			inspectedBundle.Statement = stmt
@@ -218,7 +216,7 @@ func runInspect(opts *Options) error {
 		// 获取观察者时间戳(observer timestamps)
 		tlogTimestamps, err := dumpTlogs(entity)
 		if err != nil {
-			return fmt.Errorf("导出透明日志(tlog)失败: %w", err)
+			return fmt.Errorf("导出透明日志失败: %w", err)
 		}
 		inspectedBundle.TransparencyLogEntries = tlogTimestamps
 
@@ -247,7 +245,7 @@ func runInspect(opts *Options) error {
 }
 
 func printInspectionSummary(logger *io.Handler, bundles []BundleInspection) {
-	logger.Printf("正在检查(inspect) bundle…\n")
+	logger.Printf("正在检查签名包...\n")
 	logger.Printf("找到 %s:\n---\n", text.Pluralize(len(bundles), "attestation"))
 
 	bundleSummaries := make([][][]string, len(bundles))

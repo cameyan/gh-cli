@@ -30,7 +30,7 @@ func getAttestations(o *Options, a artifact.DigestedArtifact) ([]*api.Attestatio
 
 		attestations, err := o.APIClient.GetByDigest(params)
 		if err != nil {
-			msg := "✗ 从 GitHub API 加载证明(attestation)失败"
+			msg := "✗ 从 GitHub API 加载证明失败"
 			return nil, msg, err
 		}
 		pluralAttestation := text.Pluralize(len(attestations), "attestation")
@@ -49,15 +49,15 @@ func getAttestations(o *Options, a artifact.DigestedArtifact) ([]*api.Attestatio
 			pluralAttestation := text.Pluralize(len(attestations), "attestation")
 			msg = fmt.Sprintf("已从 %s 加载 %s", o.BundlePath, pluralAttestation)
 		} else {
-			msg = fmt.Sprintf("已从 %s 加载 %d 个证明(attestation)", o.BundlePath, len(attestations))
+			msg = fmt.Sprintf("已从 %s 加载 %d 个证明", o.BundlePath, len(attestations))
 		}
 	} else if o.UseBundleFromRegistry {
 		attestations, err = verification.GetOCIAttestations(o.OCIClient, a)
 		if err != nil {
-			msg = "✗ 从 OCI 镜像仓库(registry)加载证明(attestation)失败"
+			msg = "✗ 从 OCI 镜像仓库加载证明失败"
 		} else {
 			pluralAttestation := text.Pluralize(len(attestations), "attestation")
-			msg = fmt.Sprintf("已从 OCI 镜像仓库(registry)加载 %s", pluralAttestation)
+			msg = fmt.Sprintf("已从 OCI 镜像仓库加载 %s", pluralAttestation)
 		}
 	}
 	if err != nil {
@@ -74,7 +74,7 @@ func getAttestations(o *Options, a artifact.DigestedArtifact) ([]*api.Attestatio
 func verifyAttestations(art artifact.DigestedArtifact, att []*api.Attestation, sgVerifier verification.SigstoreVerifier, ec verification.EnforcementCriteria) ([]*verification.AttestationProcessingResult, string, error) {
 	sgPolicy, err := buildSigstoreVerifyPolicy(ec, art)
 	if err != nil {
-		logMsg := "✗ 构建 Sigstore 验证策略(verification policy)失败"
+		logMsg := "✗ 构建 Sigstore 验证策略失败"
 		return nil, logMsg, err
 	}
 
@@ -87,7 +87,7 @@ func verifyAttestations(art artifact.DigestedArtifact, att []*api.Attestation, s
 	// 验证扩展(extensions)
 	certExtVerified, err := verification.VerifyCertExtensions(sigstoreVerified, ec)
 	if err != nil {
-		logMsg := "✗ 策略(policy)验证失败"
+		logMsg := "✗ 策略验证失败"
 		return nil, logMsg, err
 	}
 

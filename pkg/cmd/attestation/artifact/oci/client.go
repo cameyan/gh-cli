@@ -16,8 +16,8 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
 )
 
-var ErrDenied = errors.New("the provided token was denied access to the requested resource, please check the token's expiration and repository access")
-var ErrRegistryAuthz = errors.New("remote registry authorization failed, please authenticate with the registry and try again")
+var ErrDenied = errors.New("提供的令牌被拒绝访问所请求的资源，请检查令牌的有效期和仓库访问权限。")
+var ErrRegistryAuthz = errors.New("远程注册表授权失败，请与注册表进行身份验证后重试。")
 
 type Client interface {
 	GetImageDigest(imgName string) (*v1.Hash, name.Reference, error)
@@ -49,7 +49,7 @@ func (c LiveClient) ParseReference(ref string) (name.Reference, error) {
 func (c LiveClient) GetImageDigest(imgName string) (*v1.Hash, name.Reference, error) {
 	name, err := c.parseReference(imgName)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create image tag: %v", err)
+		return nil, nil, fmt.Errorf("创建镜像标签失败: %v", err)
 	}
 	// The user must already be authenticated with the container registry
 	// The authn.DefaultKeychain argument indicates that Get should checks the
@@ -61,7 +61,7 @@ func (c LiveClient) GetImageDigest(imgName string) (*v1.Hash, name.Reference, er
 				return nil, nil, accessErr
 			}
 		}
-		return nil, nil, fmt.Errorf("failed to fetch remote image: %v", err)
+		return nil, nil, fmt.Errorf("无法获取远程镜像文件: %v", err)
 	}
 
 	return &desc.Digest, name, nil
@@ -73,11 +73,11 @@ func (c LiveClient) GetAttestations(ref name.Reference, digest string) ([]*api.A
 	transportOpts := []remote.Option{remote.WithAuthFromKeychain(authn.DefaultKeychain)}
 	referrers, err := remote.Referrers(ref.Context().Digest(digest), transportOpts...)
 	if err != nil {
-		return attestations, fmt.Errorf("error getting referrers: %w", err)
+		return attestations, fmt.Errorf("获取推荐人信息失败: %w", err)
 	}
 	refManifest, err := referrers.IndexManifest()
 	if err != nil {
-		return attestations, fmt.Errorf("error getting referrers manifest: %w", err)
+		return attestations, fmt.Errorf("获取推荐者清单失败: %w", err)
 	}
 
 	for _, refDesc := range refManifest.Manifests {
@@ -87,37 +87,37 @@ func (c LiveClient) GetAttestations(ref name.Reference, digest string) ([]*api.A
 
 		refImg, err := remote.Image(ref.Context().Digest(refDesc.Digest.String()), remote.WithAuthFromKeychain(authn.DefaultKeychain))
 		if err != nil {
-			return attestations, fmt.Errorf("error getting referrer image: %w", err)
+			return attestations, fmt.Errorf("获取推荐人图片失败: %w", err)
 		}
 		layers, err := refImg.Layers()
 		if err != nil {
-			return attestations, fmt.Errorf("error getting referrer image: %w", err)
+			return attestations, fmt.Errorf("获取推荐人图片失败: %w", err)
 		}
 
 		if len(layers) > 0 {
 			layer0, err := layers[0].Uncompressed()
 			if err != nil {
-				return attestations, fmt.Errorf("error getting referrer image: %w", err)
+				return attestations, fmt.Errorf("获取推荐人图片失败: %w", err)
 			}
 			defer layer0.Close()
 
 			bundleBytes, err := io.ReadAll(layer0)
 
 			if err != nil {
-				return attestations, fmt.Errorf("error getting referrer image: %w", err)
+				return attestations, fmt.Errorf("获取推荐人图片失败: %w", err)
 			}
 
 			b := &bundle.Bundle{}
 			err = b.UnmarshalJSON(bundleBytes)
 
 			if err != nil {
-				return attestations, fmt.Errorf("error unmarshalling bundle: %w", err)
+				return attestations, fmt.Errorf("解压 bundle 失败: %w", err)
 			}
 
 			a := api.Attestation{Bundle: b}
 			attestations = append(attestations, &a)
 		} else {
-			return attestations, fmt.Errorf("error getting referrer image: no layers found")
+			return attestations, fmt.Errorf("获取推荐人图片失败: 未找到任何图层")
 		}
 	}
 	return attestations, nil

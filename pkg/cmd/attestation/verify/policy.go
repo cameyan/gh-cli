@@ -196,7 +196,7 @@ func validateSignerWorkflow(hostname, signerWorkflow string) (string, error) {
 	// 如果提供的工作流(workflow)与期望的格式不匹配，
 	// 我们将继续使用提供的主机名(hostname)创建签名者工作流(signer workflow)
 	if hostname == "" {
-		return "", errors.New("未知的签名者工作流(signer workflow)主机(host)")
+		return "", errors.New("未知的签名者工作流主机")
 	}
 
 	return signerWorkflowSANPattern(fmt.Sprintf("https://%s/%s", hostname, signerWorkflow)), nil

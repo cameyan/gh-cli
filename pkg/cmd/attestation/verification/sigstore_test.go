@@ -24,7 +24,7 @@ func TestChooseVerifierWithNilPublicGood(t *testing.T) {
 	_, err := verifier.chooseVerifier(PublicGoodIssuerOrg)
 
 	require.Error(t, err)
-	require.ErrorContains(t, err, "公共善意实例(public good)验证器(verifier)不可用")
+	require.ErrorContains(t, err, "公共服务实例(Public Good Instance)验证器不可用")
 }
 
 func TestChooseVerifierWithNilGitHub(t *testing.T) {
@@ -38,7 +38,7 @@ func TestChooseVerifierWithNilGitHub(t *testing.T) {
 	_, err := verifier.chooseVerifier(GitHubIssuerOrg)
 
 	require.Error(t, err)
-	require.ErrorContains(t, err, "GitHub 验证器(verifier)不可用")
+	require.ErrorContains(t, err, "GitHub 验证器不可用")
 }
 
 // TestChooseVerifierUnrecognizedIssuer 测试对于无法识别的签发者(issuer)
@@ -52,7 +52,7 @@ func TestChooseVerifierUnrecognizedIssuer(t *testing.T) {
 	_, err := verifier.chooseVerifier("unknown-issuer")
 
 	require.Error(t, err)
-	require.ErrorContains(t, err, "无法识别叶子证书(leaf certificate)的签发者(issuer)")
+	require.ErrorContains(t, err, "无法识别叶子证书的签发者")
 }
 
 func TestLiveSigstoreVerifier_noVerifierSet(t *testing.T) {

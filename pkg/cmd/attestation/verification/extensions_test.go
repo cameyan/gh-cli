@@ -92,7 +92,7 @@ func TestVerifyCertExtensions(t *testing.T) {
 		expectedResults := []*AttestationProcessingResult{createSampleResult()}
 		expectedResults[0].VerificationResult.Signature.Certificate.Extensions.Issuer = "https://token.actions.githubusercontent.com/foo-bar"
 		verified, err := VerifyCertExtensions(expectedResults, c)
-		require.ErrorContains(t, err, "期望 Issuer 为 https://token.actions.githubusercontent.com，实际为 https://token.actions.githubusercontent.com/foo-bar -- 如果您的企业有自定义 OIDC 签发者(issuer)")
+		require.ErrorContains(t, err, "期望 Issuer 为 https://token.actions.githubusercontent.com，实际为 https://token.actions.githubusercontent.com/foo-bar -- 如果您的企业有自定义 OIDC 签发者")
 		require.Nil(t, verified)
 	})
 

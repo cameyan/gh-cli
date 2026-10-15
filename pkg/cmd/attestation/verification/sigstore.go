@@ -53,7 +53,7 @@ type LiveSigstoreVerifier struct {
 	Custom       map[string]*verify.Verifier
 }
 
-var ErrNoAttestationsVerified = errors.New("没有证明(attestation)通过验证")
+var ErrNoAttestationsVerified = errors.New("没有证明通过验证")
 
 // NewLiveSigstoreVerifier 创建一个新的 LiveSigstoreVerifier 结构体，
 // 用于针对公共善意实例(Public Good)、GitHub 或自定义受信任根(trusted root)
@@ -68,7 +68,7 @@ func NewLiveSigstoreVerifier(config SigstoreConfig) (*LiveSigstoreVerifier, erro
 	if config.TrustedRoot != "" {
 		customVerifiers, err := createCustomVerifiers(config.TrustedRoot, config.NoPublicGood)
 		if err != nil {
-			return nil, fmt.Errorf("创建自定义验证器(verifier)出错: %s", err)
+			return nil, fmt.Errorf("创建自定义验证器出错: %s", err)
 		}
 		liveVerifier.Custom = customVerifiers
 		return liveVerifier, nil
@@ -79,8 +79,8 @@ func NewLiveSigstoreVerifier(config SigstoreConfig) (*LiveSigstoreVerifier, erro
 		publicGoodVerifier, err := newPublicGoodVerifier(config.TUFMetadataDir, config.ExternalHttpClient)
 		if err != nil {
 			// 记录警告但继续执行 - PGI 不可用不应阻碍 GitHub 证明(attestation)的验证
-			config.Logger.VerbosePrintf("警告: 初始化 Sigstore 公共善意实例(Public Good)验证器(verifier)失败: %v\n", err)
-			config.Logger.VerbosePrintf("将在没有公共善意实例(Public Good Instance)验证的情况下继续\n")
+			config.Logger.VerbosePrintf("警告: 初始化 Sigstore 公共服务实例(Public Good Instance)验证器失败: %v\n", err)
+			config.Logger.VerbosePrintf("将在没有公共服务实例(Public Good Instance)验证的情况下继续\n")
 		} else {
 			liveVerifier.PublicGood = publicGoodVerifier
 		}
@@ -88,13 +88,13 @@ func NewLiveSigstoreVerifier(config SigstoreConfig) (*LiveSigstoreVerifier, erro
 
 	github, err := newGitHubVerifier(config.TrustDomain, config.TUFMetadataDir, config.ExternalHttpClient)
 	if err != nil {
-		config.Logger.VerbosePrintf("警告: 初始化 GitHub 验证器(verifier)失败: %v\n", err)
+		config.Logger.VerbosePrintf("警告: 初始化 GitHub 验证器失败: %v\n", err)
 	} else {
 		liveVerifier.GitHub = github
 	}
 
 	if liveVerifier.noVerifierSet() {
-		return nil, fmt.Errorf("无法初始化任何有效的 Sigstore 验证器(verifier)")
+		return nil, fmt.Errorf("无法初始化任何有效的 Sigstore 验证器")
 	}
 
 	return liveVerifier, nil
@@ -115,7 +115,7 @@ func createCustomVerifiers(trustedRoot string, noPublicGood bool) (map[string]*v
 		// 加载每个受信任根(trusted root)
 		trustedRoot, err := root.NewTrustedRootFromJSON(line)
 		if err != nil {
-			return nil, fmt.Errorf("创建自定义验证器(verifier)失败: %v", err)
+			return nil, fmt.Errorf("创建自定义验证器失败: %v", err)
 		}
 
 		// 将 bundle 叶子证书(leafCert)的签发者(issuer)与受信任根(trusted root)的证书颁发机构(cert authority)进行比较
@@ -123,7 +123,7 @@ func createCustomVerifiers(trustedRoot string, noPublicGood bool) (map[string]*v
 		for _, certAuthority := range certAuthorities {
 			fulcioCertAuthority, ok := certAuthority.(*root.FulcioCertificateAuthority)
 			if !ok {
-				return nil, fmt.Errorf("受信任根(trusted root)的证书颁发机构(cert authority)不是 FulcioCertificateAuthority")
+				return nil, fmt.Errorf("受信任根的证书颁发机构不是 FulcioCertificateAuthority")
 			}
 			lowestCert, err := getLowestCertInChain(fulcioCertAuthority)
 			if err != nil {
@@ -143,7 +143,7 @@ func createCustomVerifiers(trustedRoot string, noPublicGood bool) (map[string]*v
 			switch issuer {
 			case PublicGoodIssuerOrg:
 				if noPublicGood {
-					return nil, fmt.Errorf("检测到公共善意实例(public good instance)，但请求的验证不包含公共善意实例")
+					return nil, fmt.Errorf("检测到公共服务实例(Public Good Instance)，但请求的验证不包含公共服务实例")
 				}
 				if _, ok := verifiers[PublicGoodIssuerOrg]; ok {
 					// 我们已经使用此自定义受信任根(trusted root)创建了公共善意实例(public good)验证器(verifier)，
@@ -187,18 +187,18 @@ func createCustomVerifiers(trustedRoot string, noPublicGood bool) (map[string]*v
 
 func getBundleIssuer(b *bundle.Bundle) (string, error) {
 	if !b.MinVersion("0.2") {
-		return "", fmt.Errorf("不支持的 bundle 版本: %s", b.MediaType)
+		return "", fmt.Errorf("不支持的签名包版本: %s", b.MediaType)
 	}
 	verifyContent, err := b.VerificationContent()
 	if err != nil {
-		return "", fmt.Errorf("获取 bundle 验证内容(verification content)失败: %v", err)
+		return "", fmt.Errorf("获取签名包验证内容失败: %v", err)
 	}
 	leafCert := verifyContent.Certificate()
 	if leafCert == nil {
-		return "", fmt.Errorf("未找到叶子证书(leaf cert)")
+		return "", fmt.Errorf("未找到叶子证书")
 	}
 	if len(leafCert.Issuer.Organization) != 1 {
-		return "", fmt.Errorf("期望叶子证书(leaf certificate)的签发者(issuer)只包含一个组织(organization)")
+		return "", fmt.Errorf("期望叶子证书的签发者只包含一个组织")
 	}
 	return leafCert.Issuer.Organization[0], nil
 }
@@ -209,26 +209,26 @@ func (v *LiveSigstoreVerifier) chooseVerifier(issuer string) (*verify.Verifier, 
 	if v.Custom != nil {
 		custom, ok := v.Custom[issuer]
 		if !ok {
-			return nil, fmt.Errorf("未找到签发者(issuer) \"%s\" 对应的自定义验证器(verifier)", issuer)
+			return nil, fmt.Errorf("未找到签发者 \"%s\" 对应的自定义验证器", issuer)
 		}
 		return custom, nil
 	}
 	switch issuer {
 	case PublicGoodIssuerOrg:
 		if v.NoPublicGood {
-			return nil, fmt.Errorf("检测到公共善意实例(public good instance)，但请求的验证不包含公共善意实例")
+			return nil, fmt.Errorf("检测到公共服务实例(Public Good Instance)，但请求的验证不包含公共服务实例")
 		}
 		if v.PublicGood == nil {
-			return nil, fmt.Errorf("公共善意实例(public good)验证器(verifier)不可用(初始化可能已失败)")
+			return nil, fmt.Errorf("公共服务实例(Public Good Instance)验证器不可用(初始化可能已失败)")
 		}
 		return v.PublicGood, nil
 	case GitHubIssuerOrg:
 		if v.GitHub == nil {
-			return nil, fmt.Errorf("GitHub 验证器(verifier)不可用(初始化可能已失败)")
+			return nil, fmt.Errorf("GitHub 验证器不可用(初始化可能已失败)")
 		}
 		return v.GitHub, nil
 	default:
-		return nil, fmt.Errorf("无法识别叶子证书(leaf certificate)的签发者(issuer)")
+		return nil, fmt.Errorf("无法识别叶子证书的签发者")
 	}
 }
 
@@ -239,37 +239,37 @@ func getLowestCertInChain(ca *root.FulcioCertificateAuthority) (*x509.Certificat
 		return ca.Root, nil
 	}
 
-	return nil, fmt.Errorf("证书颁发机构(certificate authority)没有任何证书")
+	return nil, fmt.Errorf("证书颁发机构没有任何证书")
 }
 
 func (v *LiveSigstoreVerifier) verify(attestation *api.Attestation, policy verify.PolicyBuilder) (*AttestationProcessingResult, error) {
 	issuer, err := getBundleIssuer(attestation.Bundle)
 	if err != nil {
-		return nil, fmt.Errorf("获取 bundle 签发者(issuer)失败: %v", err)
+		return nil, fmt.Errorf("获取签名包签发者失败: %v", err)
 	}
 
 	// 确定应由哪个验证器(verifier)尝试对该 bundle 进行验证
 	verifier, err := v.chooseVerifier(issuer)
 	if err != nil {
-		return nil, fmt.Errorf("基于提供的 bundle 签发者(issuer)选择验证器(verifier)失败: %v", err)
+		return nil, fmt.Errorf("基于提供的签名包签发者选择验证器失败: %v", err)
 	}
 
-	v.Logger.VerbosePrintf("正在尝试针对签发者(issuer) \"%s\" 进行验证\n", issuer)
+	v.Logger.VerbosePrintf("正在尝试针对签发者 \"%s\" 进行验证\n", issuer)
 	// 尝试验证该证明(attestation)
 	result, err := verifier.Verify(attestation.Bundle, policy)
 	// 如果验证失败，则创建错误并提前退出验证
 	if err != nil {
 		v.Logger.VerbosePrint(v.Logger.ColorScheme.Redf(
-			"针对签发者(issuer) \"%s\" 验证失败 \n\n", issuer,
+			"针对签发者 \"%s\" 验证失败 \n\n", issuer,
 		))
 
-		return nil, fmt.Errorf("使用签发者(issuer) \"%s\" 进行验证时出错", issuer)
+		return nil, fmt.Errorf("使用签发者 \"%s\" 进行验证时出错", issuer)
 	}
 
 	// 如果验证成功，则将结果添加到
 	// AttestationProcessingResult 条目中
 	v.Logger.VerbosePrint(v.Logger.ColorScheme.Greenf(
-		"成功 - 已使用 \"%s\" 验证证明(attestation)签名\n", issuer,
+		"成功 - 已使用 \"%s\" 验证证明签名\n", issuer,
 	))
 
 	return &AttestationProcessingResult{
@@ -288,7 +288,7 @@ func (v *LiveSigstoreVerifier) Verify(attestations []*api.Attestation, policy ve
 	var lastError error
 	totalAttestations := len(attestations)
 	for i, a := range attestations {
-		v.Logger.VerbosePrintf("正在针对已配置的 Sigstore 受信任根(trust roots)验证证明(attestation) %d/%d\n", i+1, totalAttestations)
+		v.Logger.VerbosePrintf("正在针对已配置的 Sigstore 受信任根验证证明 %d/%d\n", i+1, totalAttestations)
 
 		apr, err := v.verify(a, policy)
 		if err != nil {
@@ -328,7 +328,7 @@ func newCustomVerifier(trustedRoot *root.TrustedRoot) (*verify.Verifier, error) 
 
 	gv, err := verify.NewVerifier(trustedRoot, verifierConfig...)
 	if err != nil {
-		return nil, fmt.Errorf("创建自定义验证器(verifier)失败: %v", err)
+		return nil, fmt.Errorf("创建自定义验证器失败: %v", err)
 	}
 
 	return gv, nil
@@ -340,7 +340,7 @@ func newGitHubVerifier(trustDomain string, tufMetadataDir o.Option[string], hc *
 	opts := GitHubTUFOptions(tufMetadataDir, hc)
 	client, err := tuf.New(opts)
 	if err != nil {
-		return nil, fmt.Errorf("创建 TUF 客户端(client)失败: %v", err)
+		return nil, fmt.Errorf("创建 TUF 客户端失败: %v", err)
 	}
 
 	if trustDomain == "" {
@@ -362,7 +362,7 @@ func newGitHubVerifier(trustDomain string, tufMetadataDir o.Option[string], hc *
 func newGitHubVerifierWithTrustedRoot(trustedRoot *root.TrustedRoot) (*verify.Verifier, error) {
 	gv, err := verify.NewVerifier(trustedRoot, verify.WithSignedTimestamps(1))
 	if err != nil {
-		return nil, fmt.Errorf("创建 GitHub 验证器(verifier)失败: %v", err)
+		return nil, fmt.Errorf("创建 GitHub 验证器失败: %v", err)
 	}
 
 	return gv, nil
@@ -372,11 +372,11 @@ func newPublicGoodVerifier(tufMetadataDir o.Option[string], hc *http.Client) (*v
 	opts := DefaultOptionsWithCacheSetting(tufMetadataDir, hc)
 	client, err := tuf.New(opts)
 	if err != nil {
-		return nil, fmt.Errorf("创建 TUF 客户端(client)失败: %v", err)
+		return nil, fmt.Errorf("创建 TUF 客户端失败: %v", err)
 	}
 	trustedRoot, err := root.GetTrustedRoot(client)
 	if err != nil {
-		return nil, fmt.Errorf("获取受信任根(trusted root)失败: %v", err)
+		return nil, fmt.Errorf("获取受信任根失败: %v", err)
 	}
 
 	return newPublicGoodVerifierWithTrustedRoot(trustedRoot)
@@ -385,7 +385,7 @@ func newPublicGoodVerifier(tufMetadataDir o.Option[string], hc *http.Client) (*v
 func newPublicGoodVerifierWithTrustedRoot(trustedRoot *root.TrustedRoot) (*verify.Verifier, error) {
 	sv, err := verify.NewVerifier(trustedRoot, verify.WithSignedCertificateTimestamps(1), verify.WithTransparencyLog(1), verify.WithObserverTimestamps(1))
 	if err != nil {
-		return nil, fmt.Errorf("创建公共善意实例(Public Good)验证器(verifier)失败: %v", err)
+		return nil, fmt.Errorf("创建公共服务实例(Public Good Instance)验证器()失败: %v", err)
 	}
 
 	return sv, nil

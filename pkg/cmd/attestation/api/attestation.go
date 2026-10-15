@@ -8,7 +8,7 @@ import (
 	"github.com/sigstore/sigstore-go/pkg/bundle"
 )
 
-var ErrNoAttestationsFound = errors.New("未找到任何证明(attestation)")
+var ErrNoAttestationsFound = errors.New("未找到任何证明")
 
 type Attestation struct {
 	Bundle    *bundle.Bundle `json:"bundle"`
@@ -46,7 +46,7 @@ func FilterAttestations(predicateType string, attestations []*Attestation) ([]*A
 	}
 
 	if len(filteredAttestations) == 0 {
-		return nil, fmt.Errorf("未找到谓词类型(predicate type)为 %s 的证明(attestation)", predicateType)
+		return nil, fmt.Errorf("未找到具有谓词类型的证明: %s", predicateType)
 	}
 
 	return filteredAttestations, nil

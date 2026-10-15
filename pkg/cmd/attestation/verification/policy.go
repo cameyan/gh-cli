@@ -54,33 +54,33 @@ func (c EnforcementCriteria) Valid() error {
 func (c EnforcementCriteria) BuildPolicyInformation() string {
 	policyAttr := [][]string{}
 
-	policyAttr = appendStr(policyAttr, "- 谓词类型(Predicate type)必须匹配", c.PredicateType)
+	policyAttr = appendStr(policyAttr, "- 断言类型必须匹配", c.PredicateType)
 
-	policyAttr = appendStr(policyAttr, "- 源仓库所有者 URI(Source Repository Owner URI)必须匹配", c.Certificate.SourceRepositoryOwnerURI)
+	policyAttr = appendStr(policyAttr, "- 源仓库所有者 URI 必须匹配", c.Certificate.SourceRepositoryOwnerURI)
 
 	if c.Certificate.SourceRepositoryURI != "" {
-		policyAttr = appendStr(policyAttr, "- 源仓库 URI(Source Repository URI)必须匹配", c.Certificate.SourceRepositoryURI)
+		policyAttr = appendStr(policyAttr, "- 源仓库 URI 必须匹配", c.Certificate.SourceRepositoryURI)
 	}
 
 	if c.Certificate.BuildSignerDigest != "" {
-		policyAttr = appendStr(policyAttr, "- 构建签名者摘要(Build signer digest)必须匹配", c.Certificate.BuildSignerDigest)
+		policyAttr = appendStr(policyAttr, "- 构建签名者摘要必须匹配", c.Certificate.BuildSignerDigest)
 	}
 	if c.Certificate.SourceRepositoryDigest != "" {
-		policyAttr = appendStr(policyAttr, "- 源仓库摘要(Source repo digest)必须匹配", c.Certificate.SourceRepositoryDigest)
+		policyAttr = appendStr(policyAttr, "- 源仓库摘要必须匹配", c.Certificate.SourceRepositoryDigest)
 	}
 	if c.Certificate.SourceRepositoryRef != "" {
-		policyAttr = appendStr(policyAttr, "- 源仓库引用(Source repo ref)必须匹配", c.Certificate.SourceRepositoryRef)
+		policyAttr = appendStr(policyAttr, "- 源仓库引用必须匹配", c.Certificate.SourceRepositoryRef)
 	}
 
 	if c.SAN != "" {
-		policyAttr = appendStr(policyAttr, "- 使用者备用名称(Subject Alternative Name)必须匹配", c.SAN)
+		policyAttr = appendStr(policyAttr, "- 使用者备用名称必须匹配", c.SAN)
 	} else if c.SANRegex != "" {
-		policyAttr = appendStr(policyAttr, "- 使用者备用名称(Subject Alternative Name)必须匹配正则(regex)", c.SANRegex)
+		policyAttr = appendStr(policyAttr, "- 使用者备用名称必须匹配正则", c.SANRegex)
 	}
 
-	policyAttr = appendStr(policyAttr, "- OIDC 签发者(Issuer)必须匹配", c.Certificate.Issuer)
+	policyAttr = appendStr(policyAttr, "- OIDC 签发者必须匹配", c.Certificate.Issuer)
 	if c.Certificate.RunnerEnvironment == GitHubRunner {
-		policyAttr = appendStr(policyAttr, "- Action 工作流运行环境(Runner Environment)必须匹配", GitHubRunner)
+		policyAttr = appendStr(policyAttr, "- Action 工作流运行环境必须匹配", GitHubRunner)
 	}
 
 	maxColLen := 0

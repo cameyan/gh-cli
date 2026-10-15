@@ -35,23 +35,21 @@ func NewTrustedRootCmd(f *cmdutil.Factory, runF func(*Options) error) *cobra.Com
 	trustedRootCmd := cobra.Command{
 		Use:   "trusted-root [--tuf-url <url> --tuf-root <file-path>] [--verify-only]",
 		Args:  cobra.ExactArgs(0),
-		Short: "输出 trusted_root.jsonl 的内容，通常用于离线验证(offline verification)",
+		Short: "输出 trusted_root.jsonl 的内容，通常用于离线验证",
 		Long: heredoc.Docf(`
-			输出 trusted_root.jsonl 文件的内容，通常用于离线验证(offline verification)。
+			输出 trusted_root.jsonl 文件的内容，通常用于离线验证。
 
-			使用 %[1]sgh attestation verify%[1]s 时，如果您的机器已联网，
-			该过程会自动完成。但若要进行离线验证，您需要通过 %[1]s--custom-trusted-root%[1]s
-			提供受信任根(trusted root)文件；该命令将帮助您为此获取 %[1]strusted_root.jsonl%[1]s 文件。
+			使用 %[1]sgh attestation verify%[1]s 时，如果您的机器已联网，该过程会自动完成。
+			但若要进行离线验证，您需要通过 %[1]s--custom-trusted-root%[1]s 提供受信任根文件；
+			该命令将帮助您为此获取 %[1]strusted_root.jsonl%[1]s 文件。
 
-			您可以不带任何标志(flag)调用该命令，以获取同时覆盖 Sigstore 公共善意实例(Public Good Instance)
-			和 GitHub 的 Sigstore 实例的受信任根(trusted root)文件。
+			您可以不带任何标志调用该命令，以获取同时覆盖 Sigstore Public Good Instance(PGI)
+			和 GitHub 的 Sigstore 实例的受信任根文件。
 
-			此外，您也可以使用 %[1]s--tuf-url%[1]s 指定自定义 TUF 仓库镜像(repository mirror)的 URL，
-			并且 %[1]s--tuf-root%[1]s 应为您通过带外(out-of-band)安全方式获取的
-			%[1]sroot.json%[1]s 文件的路径。
+			此外，您也可以使用 %[1]s--tuf-url%[1]s 指定自定义 TUF 仓库镜像的 URL，并且 %[1]s--tuf-root%[1]s
+			应为您通过带外安全方式获取的 %[1]sroot.json%[1]s 文件的路径。
 
-			如果您只想验证本地 TUF 仓库(repository)的完整性，而不需要 trusted_root.jsonl 文件的内容，
-			请使用 %[1]s--verify-only%[1]s。
+			如果您只想验证本地 TUF 仓库的完整性，而不需要 trusted_root.jsonl 文件的内容，请使用 %[1]s--verify-only%[1]s。
 		`, "`"),
 		Example: heredoc.Doc(`
 			# 获取同时覆盖 Sigstore 公共善意实例(Public Good)和 GitHub 实例的 trusted_root.jsonl
@@ -99,7 +97,7 @@ func NewTrustedRootCmd(f *cmdutil.Factory, runF func(*Options) error) *cobra.Com
 			}
 
 			if err := getTrustedRoot(tuf.New, opts, externalClient); err != nil {
-				return fmt.Errorf("验证 TUF 仓库(repository)失败: %w", err)
+				return fmt.Errorf("验证 TUF 仓库失败: %w", err)
 			}
 
 			return nil
@@ -107,11 +105,11 @@ func NewTrustedRootCmd(f *cmdutil.Factory, runF func(*Options) error) *cobra.Com
 	}
 
 	cmdutil.DisableAuthCheck(&trustedRootCmd)
-	trustedRootCmd.Flags().StringVarP(&opts.TufUrl, "tuf-url", "", "", "TUF 仓库镜像(repository mirror)的 URL")
+	trustedRootCmd.Flags().StringVarP(&opts.TufUrl, "tuf-url", "", "", "TUF 仓库镜像的 URL")
 	trustedRootCmd.Flags().StringVarP(&opts.TufRootPath, "tuf-root", "", "", "磁盘上 TUF root.json 文件的路径")
 	trustedRootCmd.MarkFlagsRequiredTogether("tuf-url", "tuf-root")
 	trustedRootCmd.Flags().BoolVarP(&opts.VerifyOnly, "verify-only", "", false, "不输出 trusted_root.jsonl 的内容")
-	trustedRootCmd.Flags().StringVarP(&opts.Hostname, "hostname", "", "", "配置要使用的主机(host)")
+	trustedRootCmd.Flags().StringVarP(&opts.Hostname, "hostname", "", "", "配置要使用的主机")
 
 	return &trustedRootCmd
 }
@@ -138,7 +136,7 @@ func getTrustedRoot(makeTUF tufClientInstantiator, opts *Options, hc *http.Clien
 	if opts.TufUrl != "" && opts.TufRootPath != "" {
 		tufRoot, err := os.ReadFile(opts.TufRootPath)
 		if err != nil {
-			return fmt.Errorf("读取根文件(root file) %s 失败: %v", opts.TufRootPath, err)
+			return fmt.Errorf("读取根文件 %s 失败: %v", opts.TufRootPath, err)
 		}
 
 		tufOpt.Root = tufRoot
@@ -165,13 +163,13 @@ func getTrustedRoot(makeTUF tufClientInstantiator, opts *Options, hc *http.Clien
 	for _, tufOpt := range tufOptions {
 		tufClient, err := makeTUF(tufOpt.tufOptions)
 		if err != nil {
-			return fmt.Errorf("创建 TUF 客户端(client)失败: %v", err)
+			return fmt.Errorf("创建 TUF 客户端失败: %v", err)
 		}
 
 		for _, target := range tufOpt.targets {
 			t, err := tufClient.GetTarget(target)
 			if err != nil {
-				return fmt.Errorf("通过 TUF 获取受信任根(trusted root) %s 失败: %w",
+				return fmt.Errorf("通过 TUF 获取受信任根 %s 失败: %w",
 					target, err)
 			}
 
@@ -184,7 +182,7 @@ func getTrustedRoot(makeTUF tufClientInstantiator, opts *Options, hc *http.Clien
 			if !opts.VerifyOnly {
 				fmt.Println(output)
 			} else {
-				fmt.Printf("用于 %s 的本地 TUF 仓库(repository)已更新并完成验证\n", tufOpt.tufOptions.RepositoryBaseURL)
+				fmt.Printf("用于 %s 的本地 TUF 仓库已更新并完成验证\n", tufOpt.tufOptions.RepositoryBaseURL)
 			}
 		}
 	}

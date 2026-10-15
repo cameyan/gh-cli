@@ -45,22 +45,22 @@ func TestNewTrustedRootCmd(t *testing.T) {
 		wantsErr bool
 	}{
 		{
-			name:     "正常路径(happy path)",
+			name:     "Happy path",
 			cli:      "",
 			wantsErr: false,
 		},
 		{
-			name:     "正常路径(happy path)",
+			name:     "Happy path",
 			cli:      "--verify-only",
 			wantsErr: false,
 		},
 		{
-			name:     "自定义 TUF 正常路径(happy path)",
+			name:     "Custom TUF happy path",
 			cli:      "--tuf-url https://tuf-repo.github.com --tuf-root ../verification/embed/tuf-repo.github.com/root.json",
 			wantsErr: false,
 		},
 		{
-			name:     "缺少 tuf-root 标志(flag)",
+			name:     "Missing tuf-root flag",
 			cli:      "--tuf-url https://tuf-repo.github.com",
 			wantsErr: true,
 		},
@@ -112,7 +112,7 @@ func TestNewTrustedRootWithTenancy(t *testing.T) {
 
 	cli := "--hostname foo-bar.ghe.com"
 
-	t.Run("主机(host)未配置身份认证", func(t *testing.T) {
+	t.Run("主机未配置身份认证", func(t *testing.T) {
 		f := &cmdutil.Factory{
 			IOStreams: testIO,
 			Config: func() (gh.Config, error) {
@@ -143,7 +143,7 @@ func TestNewTrustedRootWithTenancy(t *testing.T) {
 		assert.ErrorContains(t, err, "身份认证")
 	})
 
-	t.Run("主机(host)已配置身份认证", func(t *testing.T) {
+	t.Run("主机已配置身份认证", func(t *testing.T) {
 		f := &cmdutil.Factory{
 			IOStreams: testIO,
 			Config: func() (gh.Config, error) {
@@ -175,7 +175,7 @@ func TestNewTrustedRootWithTenancy(t *testing.T) {
 }
 
 var newTUFErrClient tufClientInstantiator = func(o *tuf.Options) (*tuf.Client, error) {
-	return nil, fmt.Errorf("创建 TUF 客户端(client)失败")
+	return nil, fmt.Errorf("创建 TUF 客户端失败")
 }
 
 func TestGetTrustedRoot(t *testing.T) {
@@ -191,17 +191,17 @@ func TestGetTrustedRoot(t *testing.T) {
 	client := &http.Client{}
 	httpmock.ReplaceTripper(client, reg)
 
-	t.Run("创建 TUF 根(root)失败", func(t *testing.T) {
+	t.Run("创建 TUF 根失败", func(t *testing.T) {
 		err := getTrustedRoot(newTUFErrClient, opts, client)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "创建 TUF 客户端(client)失败")
+		require.ErrorContains(t, err, "创建 TUF 客户端失败")
 	})
 
-	t.Run("因找不到根(root)而失败", func(t *testing.T) {
+	t.Run("因找不到根而失败", func(t *testing.T) {
 		opts.TufRootPath = test.NormalizeRelativePath("./does/not/exist/root.json")
 		err := getTrustedRoot(tuf.New, opts, client)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "读取根文件(root file)")
+		require.ErrorContains(t, err, "读取根文件")
 	})
 
 }

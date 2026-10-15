@@ -41,7 +41,7 @@ type FetchParams struct {
 
 func (p *FetchParams) Validate() error {
 	if p.Digest == "" {
-		return fmt.Errorf("必须提供摘要(digest)")
+		return fmt.Errorf("必须提供摘要")
 	}
 	if p.Limit <= 0 || p.Limit > maxLimitForFlag {
 		return fmt.Errorf("limit 必须大于 0 且小于等于 %d", maxLimitForFlag)
@@ -86,7 +86,7 @@ func NewLiveClient(hc *http.Client, externalClient *http.Client, host string, l 
 
 // GetByDigest 按摘要(digest)以及 owner 或 repo(取决于实际提供了哪一个)获取证明(attestation)
 func (c *LiveClient) GetByDigest(params FetchParams) ([]*Attestation, error) {
-	c.logger.VerbosePrintf("正在获取制品摘要(artifact digest) %s 对应的证明(attestation)\n\n", params.Digest)
+	c.logger.VerbosePrintf("正在获取制品摘要 %s 的证明\n\n", params.Digest)
 	attestations, err := c.getAttestations(params)
 	if err != nil {
 		return nil, err
@@ -198,7 +198,7 @@ func (c *LiveClient) fetchBundleFromAttestations(attestations []*Attestation) ([
 	for i, a := range attestations {
 		g.Go(func() error {
 			if a.Bundle == nil && a.BundleURL == "" {
-				return fmt.Errorf("证明(attestation)既没有 bundle 也没有 bundle URL")
+				return fmt.Errorf("证明既没有 bundle 也没有 bundle URL")
 			}
 
 			// 目前，如果 bundle URL 为空，则回退到 bundle 字段
@@ -231,7 +231,7 @@ func (c *LiveClient) fetchBundleFromAttestations(attestations []*Attestation) ([
 }
 
 func (c *LiveClient) getBundle(url safeurl.SafeURL) (*bundle.Bundle, error) {
-	c.logger.VerbosePrintf("正在通过 bundle URL 获取证明(attestation)的 bundle\n\n")
+	c.logger.VerbosePrintf("正在通过 bundle URL 获取证明的 bundle\n\n")
 
 	var sgBundle *bundle.Bundle
 	bo := backoff.NewConstantBackOff(getAttestationRetryInterval)
@@ -242,7 +242,7 @@ func (c *LiveClient) getBundle(url safeurl.SafeURL) (*bundle.Bundle, error) {
 		}
 
 		if resp.StatusCode >= 500 && resp.StatusCode <= 599 {
-			return fmt.Errorf("URL 为 %s 的证明(attestation) bundle 返回了状态码 %d", url.String(), resp.StatusCode)
+			return fmt.Errorf("URL 为 %s 的证明 bundle 返回了状态码 %d", url.String(), resp.StatusCode)
 		}
 
 		defer resp.Body.Close()

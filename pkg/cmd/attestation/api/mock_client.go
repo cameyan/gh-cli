@@ -54,9 +54,9 @@ func OnGetByDigestSuccess(params FetchParams) ([]*Attestation, error) {
 
 func OnGetByDigestFailure(params FetchParams) ([]*Attestation, error) {
 	if params.Repo != "" {
-		return nil, fmt.Errorf("从 %s 获取证明(attestation)失败", params.Repo)
+		return nil, fmt.Errorf("从 %s 获取证明失败", params.Repo)
 	}
-	return nil, fmt.Errorf("从 %s 获取证明(attestation)失败", params.Owner)
+	return nil, fmt.Errorf("从 %s 获取证明失败", params.Owner)
 }
 
 func NewTestClient() *MockClient {
