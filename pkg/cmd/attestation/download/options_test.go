@@ -13,11 +13,11 @@ func TestAreFlagsValid(t *testing.T) {
 		limit int
 	}{
 		{
-			name:  "Limit is too low",
+			name:  "limit 过低",
 			limit: 0,
 		},
 		{
-			name:  "Limit is too high",
+			name:  "limit 过高",
 			limit: 1001,
 		},
 	}
@@ -28,7 +28,7 @@ func TestAreFlagsValid(t *testing.T) {
 
 		err := opts.AreFlagsValid()
 		require.Error(t, err)
-		expectedErrMsg := fmt.Sprintf("limit %d not allowed, must be between 1 and 1000", tc.limit)
+		expectedErrMsg := fmt.Sprintf("不允许使用 limit %d，必须介于 1 和 1000 之间", tc.limit)
 		require.ErrorContains(t, err, expectedErrMsg)
 	}
 }

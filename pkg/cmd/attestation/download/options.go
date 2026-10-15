@@ -28,9 +28,9 @@ type Options struct {
 }
 
 func (opts *Options) AreFlagsValid() error {
-	// Check that limit is between 1 and 1000
+	// 检查 limit 是否介于 1 和 1000 之间
 	if opts.Limit < minLimit || opts.Limit > maxLimit {
-		return fmt.Errorf("limit %d not allowed, must be between %d and %d", opts.Limit, minLimit, maxLimit)
+		return fmt.Errorf("不允许使用 limit %d，必须介于 %d 和 %d 之间", opts.Limit, minLimit, maxLimit)
 	}
 
 	return nil

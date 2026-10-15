@@ -24,7 +24,7 @@ func (s *MockStore) createMetadataFile(artifact string, attestationsResp []*api.
 }
 
 func OnCreateMetadataFileFailure(artifactDigest string, attestationsResp []*api.Attestation) (string, error) {
-	return "", fmt.Errorf("failed to create trusted metadata file")
+	return "", fmt.Errorf("创建受信任元数据(trusted metadata)文件失败")
 }
 
 func TestCreateJSONLinesFilePath(t *testing.T) {
@@ -45,22 +45,22 @@ func TestCreateJSONLinesFilePath(t *testing.T) {
 		expected   string
 	}{
 		{
-			name:       "with output path",
+			name:       "提供输出路径(output path)的情况",
 			outputPath: tempDir,
 			expected:   path.Join(tempDir, expectedFileName),
 		},
 		{
-			name:       "with nested output path",
+			name:       "提供嵌套输出路径(output path)的情况",
 			outputPath: path.Join(tempDir, "subdir"),
 			expected:   path.Join(tempDir, "subdir", expectedFileName),
 		},
 		{
-			name:       "with output path with beginning slash",
+			name:       "输出路径(output path)以斜杠开头的情况",
 			outputPath: path.Join("/", tempDir, "subdir"),
 			expected:   path.Join("/", tempDir, "subdir", expectedFileName),
 		},
 		{
-			name:       "without output path",
+			name:       "未提供输出路径(output path)的情况",
 			outputPath: "",
 			expected:   expectedFileName,
 		},

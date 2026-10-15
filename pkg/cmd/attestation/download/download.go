@@ -20,59 +20,53 @@ func NewDownloadCmd(f *cmdutil.Factory, runF func(*Options) error) *cobra.Comman
 	opts := &Options{}
 	downloadCmd := &cobra.Command{
 		Use:   "download [<file-path> | oci://<image-uri>] [--owner | --repo]",
-		Args:  cmdutil.ExactArgs(1, "must specify file path or container image URI, as well as one of --owner or --repo"),
-		Short: "Download an artifact's attestations for offline use",
+		Args:  cmdutil.ExactArgs(1, "必须指定文件路径或容器镜像 URI，以及 --owner 或 --repo 之一"),
+		Short: "下载制品(artifact)的证明(attestation)以供离线使用",
 		Long: heredoc.Docf(`
-			### NOTE: This feature is currently in public preview, and subject to change.
+			### 注意: 该功能目前处于公开预览(public preview)阶段，可能会有所变更。
 
-			Download attestations associated with an artifact for offline use.
+			下载与制品(artifact)关联的证明(attestation)以供离线使用。
 
-			The command requires either:
-			* a file path to an artifact, or
-			* a container image URI (e.g. %[1]soci://<image-uri>%[1]s)
-			  * (note that if you provide an OCI URL, you must already be authenticated with
-			its container registry)
+			该命令需要以下二者之一:
+			* 指向制品(artifact)的文件路径，或
+			* 容器镜像 URI(例如 %[1]soci://<image-uri>%[1]s)
+			  * (注意，如果提供 OCI URL，必须已通过其容器镜像仓库(container registry)的身份认证)
 
-			In addition, the command requires either:
-			* the %[1]s--repo%[1]s flag (e.g. --repo github/example).
-			* the %[1]s--owner%[1]s flag (e.g. --owner github), or
+			此外，该命令还需要以下二者之一:
+			* %[1]s--repo%[1]s 标志(flag)(例如 --repo github/example)。
+			* %[1]s--owner%[1]s 标志(flag)(例如 --owner github)。
 
-			The %[1]s--repo%[1]s flag value must match the name of the GitHub repository
-			that the artifact is linked with.
+			%[1]s--repo%[1]s 标志(flag)的值必须与制品(artifact)所关联的 GitHub 仓库名称一致。
 
-			The %[1]s--owner%[1]s flag value must match the name of the GitHub organization
-			that the artifact's linked repository belongs to.
+			%[1]s--owner%[1]s 标志(flag)的值必须与制品(artifact)所关联仓库所属的 GitHub 组织(organization)名称一致。
 
-			Any associated bundle(s) will be written to a file in the
-			current directory named after the artifact's digest. For example, if the
-			digest is "sha256:1234", the file will be named "sha256:1234.jsonl".
+			所有关联的 bundle 将写入当前目录下以制品(artifact)摘要(digest)命名的文件中。
+			例如，如果摘要(digest)为 "sha256:1234"，文件将被命名为 "sha256:1234.jsonl"。
 
-			Colons are special characters on Windows and cannot be used in
-			file names. To accommodate, a dash will be used to separate the algorithm
-			from the digest in the attestations file name. For example, if the digest
-			is "sha256:1234", the file will be named "sha256-1234.jsonl".
+			冒号在 Windows 上是特殊字符，不能用于文件名。为兼容该限制，
+			证明(attestation)文件名将使用短横线(-)分隔算法与摘要(digest)。
+			例如，如果摘要(digest)为 "sha256:1234"，文件将被命名为 "sha256-1234.jsonl"。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Download attestations for a local artifact linked with an organization
+			# 下载与组织(organization)关联的本地制品(artifact)的证明(attestation)
 			$ gh attestation download example.bin -o github
 
-			# Download attestations for a local artifact linked with a repository
+			# 下载与仓库(repository)关联的本地制品(artifact)的证明(attestation)
 			$ gh attestation download example.bin -R github/example
 
-			# Download attestations for an OCI image linked with an organization
+			# 下载与组织(organization)关联的 OCI 镜像的证明(attestation)
 			$ gh attestation download oci://example.com/foo/bar:latest -o github
 		`),
-		// PreRunE is used to validate flags before the command is run
-		// If an error is returned, its message will be printed to the terminal
-		// along with information about how use the command
+		// PreRunE 用于在命令运行前校验标志(flag)
+		// 如果返回错误，其消息将连同命令使用说明一起打印到终端
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			// Create a logger for use throughout the download command
+			// 创建整个 download 命令通用的日志记录器(logger)
 			opts.Logger = io.NewHandler(f.IOStreams)
 
-			// set the artifact path
+			// 设置制品(artifact)路径
 			opts.ArtifactPath = args[0]
 
-			// check that the provided flags are valid
+			// 检查提供的标志(flag)是否有效
 			if err := opts.AreFlagsValid(); err != nil {
 				return err
 			}
@@ -105,20 +99,20 @@ func NewDownloadCmd(f *cmdutil.Factory, runF func(*Options) error) *cobra.Comman
 			}
 
 			if err := runDownload(opts); err != nil {
-				return fmt.Errorf("Failed to download the artifact's bundle(s): %v", err)
+				return fmt.Errorf("下载制品(artifact)的 bundle 失败: %v", err)
 			}
 			return nil
 		},
 	}
 
-	downloadCmd.Flags().StringVarP(&opts.Owner, "owner", "o", "", "GitHub organization to scope attestation lookup by")
-	downloadCmd.Flags().StringVarP(&opts.Repo, "repo", "R", "", "Repository name in the format <owner>/<repo>")
+	downloadCmd.Flags().StringVarP(&opts.Owner, "owner", "o", "", "用于限定证明(attestation)查询范围的 GitHub 组织(organization)")
+	downloadCmd.Flags().StringVarP(&opts.Repo, "repo", "R", "", "仓库名称，格式为 <owner>/<repo>")
 	downloadCmd.MarkFlagsMutuallyExclusive("owner", "repo")
 	downloadCmd.MarkFlagsOneRequired("owner", "repo")
-	downloadCmd.Flags().StringVarP(&opts.PredicateType, "predicate-type", "", "", "Filter attestations by provided predicate type")
-	cmdutil.StringEnumFlag(downloadCmd, &opts.DigestAlgorithm, "digest-alg", "d", "sha256", []string{"sha256", "sha512"}, "The algorithm used to compute a digest of the artifact")
-	downloadCmd.Flags().IntVarP(&opts.Limit, "limit", "L", api.DefaultLimit, "Maximum number of attestations to fetch")
-	downloadCmd.Flags().StringVarP(&opts.Hostname, "hostname", "", "", "Configure host to use")
+	downloadCmd.Flags().StringVarP(&opts.PredicateType, "predicate-type", "", "", "按提供的谓词类型(predicate type)过滤证明(attestation)")
+	cmdutil.StringEnumFlag(downloadCmd, &opts.DigestAlgorithm, "digest-alg", "d", "sha256", []string{"sha256", "sha512"}, "用于计算制品(artifact)摘要(digest)的算法")
+	downloadCmd.Flags().IntVarP(&opts.Limit, "limit", "L", api.DefaultLimit, "最多获取的证明(attestation)数量")
+	downloadCmd.Flags().StringVarP(&opts.Hostname, "hostname", "", "", "配置要使用的主机(host)")
 
 	return downloadCmd
 }
@@ -126,13 +120,13 @@ func NewDownloadCmd(f *cmdutil.Factory, runF func(*Options) error) *cobra.Comman
 func runDownload(opts *Options) error {
 	artifact, err := artifact.NewDigestedArtifact(opts.OCIClient, opts.ArtifactPath, opts.DigestAlgorithm)
 	if err != nil {
-		return fmt.Errorf("failed to digest artifact: %v", err)
+		return fmt.Errorf("计算制品(artifact)摘要(digest)失败: %v", err)
 	}
 
-	opts.Logger.VerbosePrintf("Downloading trusted metadata for artifact %s\n\n", opts.ArtifactPath)
+	opts.Logger.VerbosePrintf("正在下载制品(artifact) %s 的受信任元数据(trusted metadata)\n\n", opts.ArtifactPath)
 
 	if opts.APIClient == nil {
-		return fmt.Errorf("no APIClient provided")
+		return fmt.Errorf("未提供 APIClient")
 	}
 	params := api.FetchParams{
 		Digest: artifact.DigestWithAlg(),
@@ -143,17 +137,17 @@ func runDownload(opts *Options) error {
 	attestations, err := opts.APIClient.GetByDigest(params)
 	if err != nil {
 		if errors.Is(err, api.ErrNoAttestationsFound) {
-			fmt.Fprintf(opts.Logger.IO.Out, "No attestations found for %s\n", opts.ArtifactPath)
+			fmt.Fprintf(opts.Logger.IO.Out, "未找到 %s 的证明(attestation)\n", opts.ArtifactPath)
 			return nil
 		}
-		return fmt.Errorf("failed to fetch attestations: %v", err)
+		return fmt.Errorf("获取证明(attestation)失败: %v", err)
 	}
 
-	// Apply predicate type filter to returned attestations
+	// 对返回的证明(attestation)应用谓词类型(predicate type)过滤
 	if opts.PredicateType != "" {
 		filteredAttestations, err := api.FilterAttestations(opts.PredicateType, attestations)
 		if err != nil {
-			return fmt.Errorf("failed to filter attestations: %v", err)
+			return fmt.Errorf("过滤证明(attestation)失败: %v", err)
 		}
 
 		attestations = filteredAttestations
@@ -161,13 +155,13 @@ func runDownload(opts *Options) error {
 
 	metadataFilePath, err := opts.Store.createMetadataFile(artifact.DigestWithAlg(), attestations)
 	if err != nil {
-		return fmt.Errorf("failed to write attestation: %v", err)
+		return fmt.Errorf("写入证明(attestation)失败: %v", err)
 	}
-	fmt.Fprintf(opts.Logger.IO.Out, "Wrote attestations to file %s.\nAny previous content has been overwritten\n\n", metadataFilePath)
+	fmt.Fprintf(opts.Logger.IO.Out, "证明(attestation)已写入文件 %s。\n之前的任何内容都已被覆盖\n\n", metadataFilePath)
 
 	fmt.Fprint(opts.Logger.IO.Out,
 		opts.Logger.ColorScheme.Greenf(
-			"The trusted metadata is now available at %s\n", metadataFilePath,
+			"受信任元数据(trusted metadata)现已位于 %s\n", metadataFilePath,
 		),
 	)
 
