@@ -10,7 +10,7 @@ import (
 )
 
 func TestGetOrgAndRepo(t *testing.T) {
-	t.Run("with valid source URL", func(t *testing.T) {
+	t.Run("有效源(source) URL 的情况", func(t *testing.T) {
 		sourceURL := "https://github.com/github/gh-attestation"
 		org, repo, err := getOrgAndRepo("", sourceURL)
 		require.Nil(t, err)
@@ -18,7 +18,7 @@ func TestGetOrgAndRepo(t *testing.T) {
 		require.Equal(t, "gh-attestation", repo)
 	})
 
-	t.Run("with invalid source URL", func(t *testing.T) {
+	t.Run("无效源(source) URL 的情况", func(t *testing.T) {
 		sourceURL := "hub.com/github/gh-attestation"
 		org, repo, err := getOrgAndRepo("", sourceURL)
 		require.Error(t, err)
@@ -26,7 +26,7 @@ func TestGetOrgAndRepo(t *testing.T) {
 		require.Zero(t, repo)
 	})
 
-	t.Run("with valid source tenant URL", func(t *testing.T) {
+	t.Run("有效租户(tenant)源(source) URL 的情况", func(t *testing.T) {
 		sourceURL := "https://foo.ghe.com/github/gh-attestation"
 		org, repo, err := getOrgAndRepo("foo", sourceURL)
 		require.Nil(t, err)
