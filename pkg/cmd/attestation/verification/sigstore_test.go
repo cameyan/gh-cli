@@ -7,24 +7,24 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Note: Tests that require network access and TUF client initialization
-// are in sigstore_integration_test.go with the //go:build integration tag.
-// These unit tests focus on testing the logic without requiring network access.
+// 注意: 需要网络访问和 TUF 客户端初始化的测试
+// 位于带有 //go:build integration 标记的 sigstore_integration_test.go 中。
+// 这些单元测试专注于在不依赖网络访问的情况下测试逻辑。
 
-// TestChooseVerifierWithNilPublicGood tests that chooseVerifier returns an error
-// when a PGI attestation is encountered but the PGI verifier is nil (failed initialization).
+// TestChooseVerifierWithNilPublicGood 测试当遇到 PGI 证明(attestation)但 PGI 验证器(verifier)为 nil(初始化失败)时，
+// chooseVerifier 返回错误。
 func TestChooseVerifierWithNilPublicGood(t *testing.T) {
 	verifier := &LiveSigstoreVerifier{
 		Logger:       io.NewTestHandler(),
 		NoPublicGood: false,
-		PublicGood:   nil, // Simulate failed PGI initialization
-		GitHub:       nil, // Not needed for this test
+		PublicGood:   nil, // 模拟 PGI 初始化失败
+		GitHub:       nil, // 该测试不需要
 	}
 
 	_, err := verifier.chooseVerifier(PublicGoodIssuerOrg)
 
 	require.Error(t, err)
-	require.ErrorContains(t, err, "public good verifier is not available")
+	require.ErrorContains(t, err, "公共善意实例(public good)验证器(verifier)不可用")
 }
 
 func TestChooseVerifierWithNilGitHub(t *testing.T) {
@@ -32,17 +32,17 @@ func TestChooseVerifierWithNilGitHub(t *testing.T) {
 		Logger:       io.NewTestHandler(),
 		NoPublicGood: false,
 		PublicGood:   nil,
-		GitHub:       nil, // Simulate failed GitHub verifier initialization
+		GitHub:       nil, // 模拟 GitHub 验证器(verifier)初始化失败
 	}
 
 	_, err := verifier.chooseVerifier(GitHubIssuerOrg)
 
 	require.Error(t, err)
-	require.ErrorContains(t, err, "GitHub verifier is not available")
+	require.ErrorContains(t, err, "GitHub 验证器(verifier)不可用")
 }
 
-// TestChooseVerifierUnrecognizedIssuer tests that an error is returned
-// for unrecognized issuers.
+// TestChooseVerifierUnrecognizedIssuer 测试对于无法识别的签发者(issuer)
+// 返回错误。
 func TestChooseVerifierUnrecognizedIssuer(t *testing.T) {
 	verifier := &LiveSigstoreVerifier{
 		Logger:       io.NewTestHandler(),
@@ -52,7 +52,7 @@ func TestChooseVerifierUnrecognizedIssuer(t *testing.T) {
 	_, err := verifier.chooseVerifier("unknown-issuer")
 
 	require.Error(t, err)
-	require.ErrorContains(t, err, "leaf certificate issuer is not recognized")
+	require.ErrorContains(t, err, "无法识别叶子证书(leaf certificate)的签发者(issuer)")
 }
 
 func TestLiveSigstoreVerifier_noVerifierSet(t *testing.T) {

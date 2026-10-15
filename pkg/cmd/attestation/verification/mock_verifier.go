@@ -62,7 +62,7 @@ func NewMockSigstoreVerifierWithMockResults(t *testing.T, mockResults []*Attesta
 type FailSigstoreVerifier struct{}
 
 func (v *FailSigstoreVerifier) Verify([]*api.Attestation, verify.PolicyBuilder) ([]*AttestationProcessingResult, error) {
-	return nil, fmt.Errorf("failed to verify attestations")
+	return nil, fmt.Errorf("验证证明(attestation)失败")
 }
 
 func BuildMockResult(b *bundle.Bundle, buildConfigURI, buildSignerURI, sourceRepoOwnerURI, sourceRepoURI, issuer string) AttestationProcessingResult {

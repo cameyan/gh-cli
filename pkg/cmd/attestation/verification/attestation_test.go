@@ -14,15 +14,15 @@ import (
 )
 
 func TestLoadBundlesFromJSONLinesFile(t *testing.T) {
-	t.Run("with original file", func(t *testing.T) {
+	t.Run("原始文件的情况", func(t *testing.T) {
 		path := "../test/data/sigstore-js-2.1.0_with_2_bundles.jsonl"
 		attestations, err := loadBundlesFromJSONLinesFile(path)
 		require.NoError(t, err)
 		require.Len(t, attestations, 2)
 	})
 
-	t.Run("with extra lines", func(t *testing.T) {
-		// Create a temporary file with extra lines
+	t.Run("包含额外行的情况", func(t *testing.T) {
+		// 创建一个包含额外行的临时文件
 		tempDir := t.TempDir()
 		tempFile := filepath.Join(tempDir, "test_with_extra_lines.jsonl")
 
@@ -35,7 +35,7 @@ func TestLoadBundlesFromJSONLinesFile(t *testing.T) {
 		err = os.WriteFile(tempFile, newContent, 0644)
 		require.NoError(t, err)
 
-		// Test the function with the new file
+		// 使用新文件测试该函数
 		attestations, err := loadBundlesFromJSONLinesFile(tempFile)
 		require.NoError(t, err)
 		require.Len(t, attestations, 2, "Should still load 2 valid attestations")
@@ -64,7 +64,7 @@ func TestLoadBundleFromJSONFile(t *testing.T) {
 }
 
 func TestGetLocalAttestations(t *testing.T) {
-	t.Run("with JSON file containing one bundle", func(t *testing.T) {
+	t.Run("包含一个 bundle 的 JSON 文件的情况", func(t *testing.T) {
 		path := "../test/data/sigstore-js-2.1.0-bundle.json"
 		attestations, err := GetLocalAttestations(path)
 
@@ -72,7 +72,7 @@ func TestGetLocalAttestations(t *testing.T) {
 		require.Len(t, attestations, 1)
 	})
 
-	t.Run("with JSON lines file containing multiple bundles", func(t *testing.T) {
+	t.Run("包含多个 bundle 的 JSON lines 文件的情况", func(t *testing.T) {
 		path := "../test/data/sigstore-js-2.1.0_with_2_bundles.jsonl"
 		attestations, err := GetLocalAttestations(path)
 
@@ -80,7 +80,7 @@ func TestGetLocalAttestations(t *testing.T) {
 		require.Len(t, attestations, 2)
 	})
 
-	t.Run("with file with unrecognized extension", func(t *testing.T) {
+	t.Run("扩展名无法识别的文件的情况", func(t *testing.T) {
 		path := "../test/data/sigstore-js-2.1.0-bundles.tgz"
 		attestations, err := GetLocalAttestations(path)
 
@@ -88,29 +88,29 @@ func TestGetLocalAttestations(t *testing.T) {
 		require.Nil(t, attestations)
 	})
 
-	t.Run("with non-existent bundle file and JSON file", func(t *testing.T) {
+	t.Run("不存在的 bundle 文件(JSON 文件)的情况", func(t *testing.T) {
 		path := "../test/data/not-found-bundle.json"
 		attestations, err := GetLocalAttestations(path)
 
-		require.ErrorContains(t, err, "could not load content from file path")
+		require.ErrorContains(t, err, "无法从文件路径")
 		require.Nil(t, attestations)
 	})
 
-	t.Run("with non-existent bundle file and JSON lines file", func(t *testing.T) {
+	t.Run("不存在的 bundle 文件(JSON lines 文件)的情况", func(t *testing.T) {
 		path := "../test/data/not-found-bundle.jsonl"
 		attestations, err := GetLocalAttestations(path)
 
-		require.ErrorContains(t, err, "could not load content from file path")
+		require.ErrorContains(t, err, "无法从文件路径")
 		require.Nil(t, attestations)
 	})
 
-	t.Run("with missing verification material", func(t *testing.T) {
+	t.Run("缺少验证材料(verification material)的情况", func(t *testing.T) {
 		path := "../test/data/github_provenance_demo-0.0.12-py3-none-any-bundle-missing-verification-material.jsonl"
 		_, err := GetLocalAttestations(path)
 		require.ErrorIs(t, err, bundle.ErrMissingVerificationMaterial)
 	})
 
-	t.Run("with missing verification certificate", func(t *testing.T) {
+	t.Run("缺少验证证书(certificate)的情况", func(t *testing.T) {
 		path := "../test/data/github_provenance_demo-0.0.12-py3-none-any-bundle-missing-cert.jsonl"
 		_, err := GetLocalAttestations(path)
 		require.ErrorIs(t, err, bundle.ErrMissingBundleContent)
