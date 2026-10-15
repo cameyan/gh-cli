@@ -33,12 +33,12 @@ func TestFetchImageFailure(t *testing.T) {
 		expectedErr error
 	}{
 		{
-			name:        "Fail to authorize with registry",
+			name:        "向仓库(registry)授权失败",
 			client:      oci.AuthFailClient{},
 			expectedErr: oci.ErrRegistryAuthz,
 		},
 		{
-			name:        "Fail to fetch image due to denial",
+			name:        "因被拒绝而获取镜像(image)失败",
 			client:      oci.DeniedClient{},
 			expectedErr: oci.ErrDenied,
 		},

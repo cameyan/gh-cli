@@ -19,7 +19,7 @@ const (
 	fileArtifactType
 )
 
-// DigestedArtifact abstracts the software artifact being verified
+// DigestedArtifact 对被验证的软件制品(artifact)进行了抽象
 type DigestedArtifact struct {
 	URL       string
 	digest    string
@@ -34,23 +34,23 @@ func normalizeReference(reference string, pathSeparator rune) (normalized string
 	case strings.HasPrefix(reference, "file://"):
 		uri, err := url.ParseRequestURI(reference)
 		if err != nil {
-			return "", 0, fmt.Errorf("failed to parse reference URI: %v", err)
+			return "", 0, fmt.Errorf("解析引用(reference) URI 失败: %v", err)
 		}
 		var path string
 		if pathSeparator == '/' {
-			// Unix paths use forward slashes like URIs, so no need to modify
+			// Unix 路径和 URI 一样使用正斜杠，因此无需修改
 			path = uri.Path
 		} else {
-			// Windows paths should be normalized to use backslashes
+			// Windows 路径应规范化为使用反斜杠
 			path = strings.ReplaceAll(uri.Path, "/", string(pathSeparator))
-			// Remove leading slash from Windows paths if present
+			// 如果 Windows 路径带有前导斜杠，则将其移除
 			if strings.HasPrefix(path, string(pathSeparator)) {
 				path = path[1:]
 			}
 		}
 		return filepath.Clean(path), fileArtifactType, nil
 	}
-	// Treat any other reference as a local file path
+	// 将其他任何引用(reference)都视为本地文件路径
 	return filepath.Clean(reference), fileArtifactType, nil
 }
 
@@ -67,23 +67,23 @@ func NewDigestedArtifact(client oci.Client, reference, digestAlg string) (artifa
 		return nil, err
 	}
 	if artifactType == ociArtifactType {
-		// TODO: should we allow custom digestAlg for OCI artifacts?
+		// TODO: 是否应允许为 OCI 制品(artifact)自定义 digestAlg?
 		return digestContainerImageArtifact(normalized, client)
 	}
 	return digestLocalFileArtifact(normalized, digestAlg)
 }
 
-// Digest returns the artifact's digest
+// Digest 返回制品(artifact)的摘要(digest)
 func (a *DigestedArtifact) Digest() string {
 	return a.digest
 }
 
-// Algorithm returns the artifact's algorithm
+// Algorithm 返回制品(artifact)的算法
 func (a *DigestedArtifact) Algorithm() string {
 	return a.digestAlg
 }
 
-// DigestWithAlg returns the digest:algorithm of the artifact
+// DigestWithAlg 返回制品(artifact)的摘要(digest):算法(algorithm)
 func (a *DigestedArtifact) DigestWithAlg() string {
 	return fmt.Sprintf("%s:%s", a.digestAlg, a.digest)
 }
