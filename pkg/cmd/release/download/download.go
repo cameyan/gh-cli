@@ -37,7 +37,7 @@ type DownloadOptions struct {
 	Destination       string
 	OutputFile        string
 
-	// maximum number of simultaneous downloads
+	// 同时下载的最大数量
 	Concurrency int
 
 	ArchiveType string
@@ -53,25 +53,24 @@ func NewCmdDownload(f *cmdutil.Factory, runF func(*DownloadOptions) error) *cobr
 
 	cmd := &cobra.Command{
 		Use:   "download [<tag>]",
-		Short: "Download release assets",
+		Short: "下载发布(release)资产(asset)",
 		Long: heredoc.Docf(`
-			Download assets from a GitHub release.
+			从 GitHub release 下载资产(asset)。
 
-			Without an explicit tag name argument, assets are downloaded from the
-			latest release in the project. In this case, %[1]s--pattern%[1]s or %[1]s--archive%[1]s
-			is required.
+			若未显式提供标签(tag)名参数，则从项目中的最新发布(release)下载资产。
+			此时必须提供 %[1]s--pattern%[1]s 或 %[1]s--archive%[1]s。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Download all assets from a specific release
+			# 下载指定发布(release)的全部资产
 			$ gh release download v1.2.3
 
-			# Download only Debian packages for the latest release
+			# 只下载最新发布(release)的 Debian 软件包
 			$ gh release download --pattern '*.deb'
 
-			# Specify multiple file patterns
+			# 指定多个文件 glob 模式
 			$ gh release download -p '*.deb' -p '*.rpm'
 
-			# Download the archive of the source code for a release
+			# 下载某个发布(release)的源代码归档(archive)
 			$ gh release download v1.2.3 --archive=zip
 		`),
 		Args: cobra.MaximumNArgs(1),
@@ -81,21 +80,21 @@ func NewCmdDownload(f *cmdutil.Factory, runF func(*DownloadOptions) error) *cobr
 
 			if len(args) == 0 {
 				if len(opts.FilePatterns) == 0 && opts.ArchiveType == "" {
-					return cmdutil.FlagErrorf("`--pattern` or `--archive` is required when downloading the latest release")
+					return cmdutil.FlagErrorf("下载最新发布(release)时必须提供 `--pattern` 或 `--archive`")
 				}
 			} else {
 				opts.TagName = args[0]
 			}
 
-			if err := cmdutil.MutuallyExclusive("specify only one of `--clobber` or `--skip-existing`", opts.OverwriteExisting, opts.SkipExisting); err != nil {
+			if err := cmdutil.MutuallyExclusive("只能指定 `--clobber` 或 `--skip-existing` 之一", opts.OverwriteExisting, opts.SkipExisting); err != nil {
 				return err
 			}
 
-			if err := cmdutil.MutuallyExclusive("specify only one of `--dir` or `--output`", opts.Destination != ".", opts.OutputFile != ""); err != nil {
+			if err := cmdutil.MutuallyExclusive("只能指定 `--dir` 或 `--output` 之一", opts.Destination != ".", opts.OutputFile != ""); err != nil {
 				return err
 			}
 
-			// check archive type option validity
+			// 检查归档类型选项的有效性
 			if err := checkArchiveTypeOption(opts); err != nil {
 				return err
 			}
@@ -109,13 +108,13 @@ func NewCmdDownload(f *cmdutil.Factory, runF func(*DownloadOptions) error) *cobr
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.OutputFile, "output", "O", "", "The `file` to write a single asset to (use \"-\" to write to standard output)")
-	cmd.Flags().StringVarP(&opts.Destination, "dir", "D", ".", "The `directory` to download files into")
-	cmd.Flags().StringArrayVarP(&opts.FilePatterns, "pattern", "p", nil, "Download only assets that match a glob pattern")
-	cmd.Flags().StringVarP(&opts.ArchiveType, "archive", "A", "", "Download the source code archive in the specified `format` (zip or tar.gz)")
-	cmd.Flags().BoolVar(&opts.OverwriteExisting, "clobber", false, "Overwrite existing files of the same name")
-	cmd.Flags().BoolVar(&opts.SkipExisting, "skip-existing", false, "Skip downloading when files of the same name exist")
-	cmd.Flags().BoolVar(&opts.AllowEscapeSequences, "allow-escape-sequences", false, "Allow printing terminal escape sequences when writing an asset to standard output")
+	cmd.Flags().StringVarP(&opts.OutputFile, "output", "O", "", "将单个资产(asset)写入的 `file` (使用 \"-\" 写入标准输出)")
+	cmd.Flags().StringVarP(&opts.Destination, "dir", "D", ".", "下载文件的目标 `directory`")
+	cmd.Flags().StringArrayVarP(&opts.FilePatterns, "pattern", "p", nil, "只下载匹配 glob 模式的资产")
+	cmd.Flags().StringVarP(&opts.ArchiveType, "archive", "A", "", "以指定的 `format` (zip 或 tar.gz)下载源代码归档(archive)")
+	cmd.Flags().BoolVar(&opts.OverwriteExisting, "clobber", false, "覆盖同名已有文件")
+	cmd.Flags().BoolVar(&opts.SkipExisting, "skip-existing", false, "存在同名文件时跳过下载")
+	cmd.Flags().BoolVar(&opts.AllowEscapeSequences, "allow-escape-sequences", false, "将资产(asset)写入标准输出时允许打印终端转义序列")
 
 	cmdutil.DisableAuthCheck(cmd)
 
@@ -128,15 +127,15 @@ func checkArchiveTypeOption(opts *DownloadOptions) error {
 	}
 
 	if err := cmdutil.MutuallyExclusive(
-		"specify only one of '--pattern' or '--archive'",
-		true, // ArchiveType len > 0
+		"只能指定 '--pattern' 或 '--archive' 之一",
+		true, // ArchiveType 长度 > 0
 		len(opts.FilePatterns) > 0,
 	); err != nil {
 		return err
 	}
 
 	if opts.ArchiveType != "zip" && opts.ArchiveType != "tar.gz" {
-		return cmdutil.FlagErrorf("the value for `--archive` must be one of \"zip\" or \"tar.gz\"")
+		return cmdutil.FlagErrorf("`--archive` 的取值必须是 \"zip\" 或 \"tar.gz\"")
 	}
 	return nil
 }
@@ -152,7 +151,7 @@ func downloadRun(opts *DownloadOptions) error {
 		return err
 	}
 
-	opts.IO.StartProgressIndicatorWithLabel("Finding assets to download")
+	opts.IO.StartProgressIndicatorWithLabel("正在查找要下载的资产(asset)")
 	defer opts.IO.StopProgressIndicator()
 
 	ctx := context.Background()
@@ -182,16 +181,16 @@ func downloadRun(opts *DownloadOptions) error {
 
 		if archiveURL == "" {
 			errMessage := fmt.Sprintf(
-				"release %q with tag %q, does not have a %q archive asset.",
+				"标签(tag)为 %q 的发布(release) %q 没有 %q 归档(archive)资产。",
 				release.Name, release.TagName, opts.ArchiveType,
 			)
 			if release.IsDraft {
-				errMessage += " Most likely, this is because it is a draft."
+				errMessage += " 这很可能是因为它还是草稿(draft)。"
 			}
 			return errors.New(errMessage)
 		}
 
-		// create pseudo-Asset with no name and pointing to ZipBallURL or TarBallURL
+		// 创建指向 ZipballURL 或 TarballURL 的无名伪资产(asset)
 		toDownload = append(toDownload, shared.ReleaseAsset{APIURL: archiveURL})
 		isArchive = true
 	} else {
@@ -199,11 +198,10 @@ func downloadRun(opts *DownloadOptions) error {
 			if len(opts.FilePatterns) > 0 && !matchAny(opts.FilePatterns, a.Name) {
 				continue
 			}
-			// Note that if we need to start checking for reserved filenames on
-			// more operating systems we should move to using a build constraints
-			// pattern rather than checking the operating system at runtime.
+			// 注意: 如果将来需要在更多操作系统上检查保留文件名，
+			// 应改用构建约束(build constraints)模式，而不是在运行时检查操作系统。
 			if runtime.GOOS == "windows" && isWindowsReservedFilename(a.Name) {
-				return fmt.Errorf("unable to download release due to asset with reserved filename %q", a.Name)
+				return fmt.Errorf("由于资产(asset)使用了保留文件名 %q，无法下载发布(release)", a.Name)
 			}
 			toDownload = append(toDownload, a)
 		}
@@ -211,19 +209,18 @@ func downloadRun(opts *DownloadOptions) error {
 
 	if len(toDownload) == 0 {
 		if len(release.Assets) > 0 {
-			return errors.New("no assets match the file pattern")
+			return errors.New("没有匹配文件模式的资产(asset)")
 		}
-		return errors.New("no assets to download")
+		return errors.New("没有可下载的资产(asset)")
 	}
 
 	if len(toDownload) > 1 && opts.OutputFile != "" {
-		return fmt.Errorf("unable to write more than one asset with `--output`, got %d assets", len(toDownload))
+		return fmt.Errorf("使用 `--output` 无法写入多个资产(asset)，当前有 %d 个资产", len(toDownload))
 	}
 
-	// An asset written to standard output is external content. It funnels through
-	// ContentOut so the sink is auditable; the safety decision (refuse binary bound
-	// for a terminal or escape sequences in text, unless --allow-escape-sequences)
-	// is made per copy below. Writing to a file keeps the raw bytes.
+	// 写入标准输出的资产(asset)属于外部内容。它经由 ContentOut 流转，以保证输出可审计；
+	// 安全决策(拒绝写入终端的二进制内容或文本中的转义序列，除非使用 --allow-escape-sequences)
+	// 在下方每次复制时单独做出。写入文件时保留原始字节。
 	opts.IO.SetContentSanitization(false)
 
 	dest := &destinationWriter{
@@ -264,7 +261,7 @@ type downloadTarget struct {
 
 func downloadAssets(dest *destinationWriter, httpClient *http.Client, toDownload []downloadTarget, numWorkers int, isArchive bool, io *iostreams.IOStreams) error {
 	if numWorkers == 0 {
-		return errors.New("the number of concurrent workers needs to be greater than 0")
+		return errors.New("并发 worker 数量必须大于 0")
 	}
 
 	jobs := make(chan downloadTarget, len(toDownload))
@@ -277,7 +274,7 @@ func downloadAssets(dest *destinationWriter, httpClient *http.Client, toDownload
 	for w := 1; w <= numWorkers; w++ {
 		go func() {
 			for a := range jobs {
-				io.StartProgressIndicatorWithLabel(fmt.Sprintf("Downloading %s", a.name))
+				io.StartProgressIndicatorWithLabel(fmt.Sprintf("正在下载 %s", a.name))
 				results <- downloadAsset(dest, httpClient, a.url, a.name, isArchive)
 			}
 		}()
@@ -312,12 +309,11 @@ func downloadAsset(dest *destinationWriter, httpClient *http.Client, assetURL sa
 
 	req.Header.Set("Accept", "application/octet-stream")
 	if isArchive {
-		// adding application/json to Accept header due to a bug in the zipball/tarball API endpoint that makes it mandatory
+		// 由于 zipball/tarball API 端点的一个缺陷，必须在 Accept 请求头中加入 application/json
 		req.Header.Set("Accept", "application/octet-stream, application/json")
 
-		// override HTTP redirect logic to avoid "legacy" Codeload resources. This is client
-		// level rather than request level, so the client is copied before being handed over
-		// rather than mutating the one shared with every other caller.
+		// 覆盖 HTTP 重定向逻辑，以避开"遗留(legacy)"的 Codeload 资源。这是客户端层
+		// 而非请求层的设置，因此会先复制 client 再移交，而不是修改与其他所有调用方共享的那个 client。
 		oldClient := *httpClient
 		httpClient = &oldClient
 		httpClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
@@ -328,14 +324,13 @@ func downloadAsset(dest *destinationWriter, httpClient *http.Client, assetURL sa
 		}
 	}
 
-	// The asset URL is supplied by the API, so it is absolute and requested as given. DoRequest
-	// rather than Request because the CheckRedirect above is a property of the client, and
-	// Request delegates to go-gh, which builds a client of its own from the transport alone and
-	// so silently drops it. Without it the "legacy" Codeload path is never rewritten and the
-	// archive is saved under the wrong name.
+	// 资产(asset) URL 由 API 提供，因此它是绝对地址，并按原样请求。使用 DoRequest 而非 Request，
+	// 因为上面的 CheckRedirect 是 client 的属性，而 Request 委托给 go-gh，go-gh 仅凭 transport
+	// 自行构建 client，会静默丢弃该属性。没有它，"遗留(legacy)"的 Codeload 路径永远不会被改写，
+	// 归档(archive)将以错误的名称保存。
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	resp, err := api.NewClientFromHTTP(httpClient).DoRequest(req)
 	if err != nil {
 		return err
@@ -347,12 +342,12 @@ func downloadAsset(dest *destinationWriter, httpClient *http.Client, assetURL sa
 
 		_, params, err := mime.ParseMediaType(contentDisposition)
 		if err != nil {
-			return fmt.Errorf("unable to parse file name of archive: %w", err)
+			return fmt.Errorf("无法解析归档(archive)的文件名: %w", err)
 		}
 		if serverFileName, ok := params["filename"]; ok {
 			fileName = filepath.Base(serverFileName)
 		} else {
-			return errors.New("unable to determine file name of archive")
+			return errors.New("无法确定归档(archive)的文件名")
 		}
 	}
 
@@ -361,20 +356,20 @@ func downloadAsset(dest *destinationWriter, httpClient *http.Client, assetURL sa
 
 var codeloadLegacyRE = regexp.MustCompile(`^(/[^/]+/[^/]+/)legacy\.`)
 
-// removeLegacyFromCodeloadPath converts URLs for "legacy" Codeload archives into ones that match the format
-// when you choose to download "Source code (zip/tar.gz)" from a tagged release on the web. The legacy URLs
-// look like this:
+// removeLegacyFromCodeloadPath 将"遗留(legacy)"Codeload 归档(archive)的 URL 转换为
+// 与在网页上从带标签(tag)的发布(release)下载"Source code (zip/tar.gz)"时相同的格式。
+// 遗留 URL 的形式如下:
 //
 //	https://codeload.github.com/OWNER/REPO/legacy.zip/refs/tags/TAGNAME
 //
-// Removing the "legacy." part results in a valid Codeload URL for our desired archive format.
+// 移除 "legacy." 部分后即得到我们所要归档(archive)格式的有效 Codeload URL。
 func removeLegacyFromCodeloadPath(p string) string {
 	return codeloadLegacyRE.ReplaceAllString(p, "$1")
 }
 
-var errSkipped = errors.New("skipped")
+var errSkipped = errors.New("已跳过")
 
-// destinationWriter handles writing content into destination files
+// destinationWriter 负责将内容写入目标文件
 type destinationWriter struct {
 	file         string
 	dir          string
@@ -412,15 +407,15 @@ func (w *destinationWriter) makePath(name string) string {
 	return w.file
 }
 
-// Check returns an error if a file already exists at destination
+// Check 在目标位置已存在同名文件时返回错误
 func (w *destinationWriter) Check(name string) error {
 	if name == "" {
-		// skip check as file name will only be known after the API request
+		// 跳过检查，因为文件名只有在 API 请求之后才能确定
 		return nil
 	}
 	fp := w.makePath(name)
 	if fp == "-" {
-		// writing to stdout should always proceed
+		// 写入标准输出时应始终继续
 		return nil
 	}
 	if err := w.validateName(name); err != nil {
@@ -444,7 +439,7 @@ func (w *destinationWriter) check(fp string) error {
 		}
 		if !w.overwrite {
 			return fmt.Errorf(
-				"%s already exists (use `--clobber` to overwrite file or `--skip-existing` to skip file)",
+				"%s 已存在(使用 `--clobber` 覆盖文件，或使用 `--skip-existing` 跳过文件)",
 				fp,
 			)
 		}
@@ -454,7 +449,7 @@ func (w *destinationWriter) check(fp string) error {
 	return nil
 }
 
-// Copy writes the data from r into a file specified by name.
+// Copy 将 r 中的数据写入由 name 指定的文件。
 func (w *destinationWriter) Copy(name string, r io.Reader) (copyErr error) {
 	fp := w.makePath(name)
 	if fp == "-" {
@@ -464,9 +459,9 @@ func (w *destinationWriter) Copy(name string, r io.Reader) (copyErr error) {
 		}
 		copyErr = iostreams.CopyGuardedContent(w.stdout, r, w.isTTY)
 		if binErr, ok := errors.AsType[iostreams.BinaryTerminalError](copyErr); ok {
-			copyErr = fmt.Errorf("%w; use `--output` to save it to a file, or pass --allow-escape-sequences to output it anyway", binErr)
+			copyErr = fmt.Errorf("%w; 使用 `--output` 将其保存到文件，或传入 --allow-escape-sequences 仍然输出", binErr)
 		} else if errors.Is(copyErr, iostreams.ErrEscapeSequence) {
-			copyErr = errors.New("the asset contains terminal escape sequences; use `--output` to save it to a file, or pass --allow-escape-sequences to output it anyway")
+			copyErr = errors.New("该资产(asset)包含终端转义序列; 使用 `--output` 将其保存到文件，或传入 --allow-escape-sequences 仍然输出")
 		}
 		return
 	}
@@ -493,7 +488,7 @@ func (w *destinationWriter) Copy(name string, r io.Reader) (copyErr error) {
 			}
 			if !w.overwrite {
 				return fmt.Errorf(
-					"%s already exists (use `--clobber` to overwrite file or `--skip-existing` to skip file)",
+					"%s 已存在(使用 `--clobber` 覆盖文件，或使用 `--skip-existing` 跳过文件)",
 					fp,
 				)
 			}
@@ -512,11 +507,10 @@ func (w *destinationWriter) Copy(name string, r io.Reader) (copyErr error) {
 }
 
 func isWindowsReservedFilename(filename string) bool {
-	// Windows terminals should prevent the creation of these files
-	// but that behavior is not enforced across terminals. Prevent
-	// the user from downloading files with these reserved names as
-	// they represent an exploit vector for bad actors.
-	// Reserved filenames defined at:
+	// Windows 终端应当阻止创建这些文件，
+	// 但该行为并未在所有终端上强制执行。阻止用户下载
+	// 这些保留名称的文件，因为它们是恶意行为者的一种利用向量。
+	// 保留文件名定义于:
 	// https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file#win32-file-namespaces
 	reservedFilenames := []string{"CON", "PRN", "AUX", "NUL", "COM0",
 		"COM1", "COM2", "COM3", "COM4", "COM5",
@@ -525,7 +519,7 @@ func isWindowsReservedFilename(filename string) bool {
 		"LPT3", "LPT4", "LPT5", "LPT6", "LPT7",
 		"LPT8", "LPT9", "LPT¹", "LPT²", "LPT³"}
 
-	// Normalize type case and remove file type extension from filename.
+	// 规范化大小写并移除文件名中的文件类型扩展名。
 	filename = strings.ToUpper(strings.Split(filename, ".")[0])
 
 	return slices.Contains(reservedFilenames, filename)

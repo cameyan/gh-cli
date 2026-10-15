@@ -37,7 +37,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:     "list",
-		Short:   "List releases in a repository",
+		Short:   "列出仓库中的发布(release)",
 		Aliases: []string{"ls"},
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -45,7 +45,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 			opts.BaseRepo = f.BaseRepo
 
 			if opts.LimitResults < 1 {
-				return cmdutil.FlagErrorf("invalid limit: %v", opts.LimitResults)
+				return cmdutil.FlagErrorf("无效的 limit 值: %v", opts.LimitResults)
 			}
 
 			if runF != nil {
@@ -55,10 +55,10 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().IntVarP(&opts.LimitResults, "limit", "L", 30, "Maximum number of items to fetch")
-	cmd.Flags().BoolVar(&opts.ExcludeDrafts, "exclude-drafts", false, "Exclude draft releases")
-	cmd.Flags().BoolVar(&opts.ExcludePreReleases, "exclude-pre-releases", false, "Exclude pre-releases")
-	cmdutil.StringEnumFlag(cmd, &opts.Order, "order", "O", "desc", []string{"asc", "desc"}, "Order of releases returned")
+	cmd.Flags().IntVarP(&opts.LimitResults, "limit", "L", 30, "获取条目的最大数量")
+	cmd.Flags().BoolVar(&opts.ExcludeDrafts, "exclude-drafts", false, "排除草稿(draft)发布")
+	cmd.Flags().BoolVar(&opts.ExcludePreReleases, "exclude-pre-releases", false, "排除预发布(pre-release)")
+	cmdutil.StringEnumFlag(cmd, &opts.Order, "order", "O", "desc", []string{"asc", "desc"}, "返回发布(release)的排序方向")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, releaseFields)
 
 	return cmd
@@ -76,8 +76,8 @@ func listRun(opts *ListOptions) error {
 	}
 
 	// TODO: immutableReleaseFullSupport
-	// The detector is not needed when covered GHES versions fully support
-	// immutable releases (probably when 3.18 goes EOL).
+	// 当所覆盖的 GHES 版本完全支持不可变发布(immutable releases)时
+	// (大概在 3.18 版本 EOL 之后)，将不再需要该探测器。
 	if opts.Detector == nil {
 		cachedClient := api.NewCachedHTTPClient(httpClient, time.Hour*24)
 		opts.Detector = fd.NewDetector(cachedClient, baseRepo.RepoHost())
@@ -94,20 +94,20 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if len(releases) == 0 && opts.Exporter == nil {
-		return cmdutil.NewNoResultsError("no releases found")
+		return cmdutil.NewNoResultsError("未找到发布(release)")
 	}
 
 	if err := opts.IO.StartPager(); err == nil {
 		defer opts.IO.StopPager()
 	} else {
-		fmt.Fprintf(opts.IO.ErrOut, "failed to start pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器(pager)失败: %v\n", err)
 	}
 
 	if opts.Exporter != nil {
 		return opts.Exporter.Write(opts.IO, releases)
 	}
 
-	table := tableprinter.New(opts.IO, tableprinter.WithHeader("Title", "Type", "Tag name", "Published"))
+	table := tableprinter.New(opts.IO, tableprinter.WithHeader("标题", "类型", "标签名", "发布时间"))
 	cs := opts.IO.ColorScheme()
 	for _, rel := range releases {
 		title := text.RemoveExcessiveWhitespace(rel.Name)
@@ -119,13 +119,13 @@ func listRun(opts *ListOptions) error {
 		badge := ""
 		var badgeColor func(string) string
 		if rel.IsLatest {
-			badge = "Latest"
+			badge = "最新"
 			badgeColor = cs.Green
 		} else if rel.IsDraft {
-			badge = "Draft"
+			badge = "草稿"
 			badgeColor = cs.Red
 		} else if rel.IsPrerelease {
-			badge = "Pre-release"
+			badge = "预发布"
 			badgeColor = cs.Yellow
 		}
 		table.AddField(badge, tableprinter.WithColor(badgeColor))

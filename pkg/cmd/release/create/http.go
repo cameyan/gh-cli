@@ -28,14 +28,14 @@ type releaseNotes struct {
 	Body string `json:"body"`
 }
 
-var notImplementedError = errors.New("not implemented")
+var notImplementedError = errors.New("未实现")
 
 type errMissingRequiredWorkflowScope struct {
 	Hostname string
 }
 
 func (e errMissingRequiredWorkflowScope) Error() string {
-	return "workflow scope may be required"
+	return "可能需要 workflow 权限范围(scope)"
 }
 
 func remoteTagExists(httpClient *http.Client, repo ghrepo.Interface, tagName string) (bool, error) {
@@ -66,8 +66,8 @@ func getTags(httpClient *http.Client, repo ghrepo.Interface, limit int) ([]tag, 
 
 	var tags []tag
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	err = api.NewClientFromHTTP(httpClient).REST(repo.RepoHost(), http.MethodGet, u.String(), nil, &tags)
 	return tags, err
 }
@@ -95,8 +95,8 @@ func generateReleaseNotes(httpClient *http.Client, repo ghrepo.Interface, tagNam
 
 	var rn releaseNotes
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	err = api.NewClientFromHTTP(httpClient).REST(repo.RepoHost(), http.MethodPost, path.String(), bytes.NewBuffer(bodyBytes), &rn)
 	if err != nil {
 		if httpErr, ok := errors.AsType[api.HTTPError](err); ok && httpErr.StatusCode == http.StatusNotFound {
@@ -113,11 +113,10 @@ func publishedReleaseExists(httpClient *http.Client, repo ghrepo.Interface, tagN
 		return false, err
 	}
 
-	// A HEAD response has no body, so Request is used rather than REST, which would try to
-	// decode one.
+	// HEAD 响应没有响应体，因此使用 Request 而非 REST，后者会尝试解码响应体。
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	resp, err := api.NewClientFromHTTP(httpClient).Request(repo.RepoHost(), http.MethodHead, path.String(), nil)
 	if err != nil {
 		var httpErr api.HTTPError
@@ -148,21 +147,18 @@ func createRelease(httpClient *http.Client, repo ghrepo.Interface, params map[st
 		return nil, err
 	}
 
-	// Check if we received a 404 while attempting to create a release without
-	// the workflow scope, and if so, return an error message that explains a possible
-	// solution to the user.
+	// 检查是否在未携带 workflow 权限范围(scope)创建发布(release)时收到了 404，
+	// 若是，则向用户返回一条说明可能解决方案的错误信息。
 	//
-	// If the same file (with both the same path and contents) exists
-	// on another branch in the repo, releases with workflow file changes can be
-	// created without the workflow scope. Otherwise, the workflow scope is
-	// required to create the release, but the API does not indicate this criteria
-	// beyond returning a 404.
+	// 如果同样的文件(路径和内容均相同)存在于仓库的另一个分支上，
+	// 则无需 workflow scope 即可创建包含 workflow 文件变更的发布(release)。
+	// 否则，创建该发布需要 workflow scope，但 API 除了返回 404 外并未说明该判定条件。
 	//
 	// https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes
 	var newRelease shared.Release
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	err = api.NewClientFromHTTP(httpClient).REST(repo.RepoHost(), http.MethodPost, path.String(), bytes.NewBuffer(bodyBytes), &newRelease)
 	if err != nil {
 		var httpErr api.HTTPError
@@ -196,8 +192,8 @@ func publishRelease(httpClient *http.Client, host string, releaseURL safeurl.Saf
 
 	var release shared.Release
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	err = api.NewClientFromHTTP(httpClient).REST(host, http.MethodPatch, releaseURL.String(), bytes.NewBuffer(bodyBytes), &release)
 	if err != nil {
 		return nil, err
@@ -207,25 +203,24 @@ func publishRelease(httpClient *http.Client, host string, releaseURL safeurl.Saf
 
 func deleteRelease(httpClient *http.Client, host string, releaseURL safeurl.SafeURL) error {
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	return api.NewClientFromHTTP(httpClient).REST(host, http.MethodDelete, releaseURL.String(), nil, nil)
 }
 
-// tokenHasWorkflowScope checks if the response token has the workflow scope.
-// Tokens that do not have OAuth scopes are assumed to have the workflow scope.
+// tokenHasWorkflowScope 检查响应的 token 是否具有 workflow 权限范围(scope)。
+// 没有 OAuth scopes 的 token 被假定为具有 workflow scope。
 func tokenHasWorkflowScope(headers http.Header) bool {
 	scopes := headers.Get("X-Oauth-Scopes")
 
-	// Return true when no scopes are present - no scopes in this header
-	// means that the user is probably authenticating with a token type other
-	// than an OAuth token, and we don't know what this token's scopes actually are.
+	// 无 scopes 时返回 true - 该请求头中没有 scopes
+	// 意味着用户可能在使用非 OAuth 类型的 token 进行认证，
+	// 我们无法得知该 token 实际具有哪些 scopes。
 	if scopes == "" {
 		return true
 	}
 
-	// The API returns scopes separated by a comma and a space, so each element
-	// must be trimmed before comparison.
+	// API 返回的 scopes 以逗号加空格分隔，因此比较前必须对每个元素做去空格处理。
 	for s := range strings.SplitSeq(scopes, ",") {
 		if strings.TrimSpace(s) == "workflow" {
 			return true
@@ -234,7 +229,7 @@ func tokenHasWorkflowScope(headers http.Header) bool {
 	return false
 }
 
-// isNewRelease checks if there are new commits since the latest release.
+// isNewRelease 检查自最新发布(release)以来是否有新提交。
 func isNewRelease(httpClient *http.Client, repo ghrepo.Interface) (bool, error) {
 	ctx := context.Background()
 	release, err := shared.FetchLatestRelease(ctx, httpClient, repo)

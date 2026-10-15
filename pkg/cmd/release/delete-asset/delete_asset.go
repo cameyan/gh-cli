@@ -38,7 +38,7 @@ func NewCmdDeleteAsset(f *cmdutil.Factory, runF func(*DeleteAssetOptions) error)
 
 	cmd := &cobra.Command{
 		Use:   "delete-asset <tag> <asset-name>",
-		Short: "Delete an asset from a release",
+		Short: "从发布(release)中删除资产(asset)",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// support `-R, --repo` override
@@ -52,7 +52,7 @@ func NewCmdDeleteAsset(f *cmdutil.Factory, runF func(*DeleteAssetOptions) error)
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.SkipConfirm, "yes", "y", false, "Skip the confirmation prompt")
+	cmd.Flags().BoolVarP(&opts.SkipConfirm, "yes", "y", false, "跳过确认提示")
 
 	return cmd
 }
@@ -75,7 +75,7 @@ func deleteAssetRun(opts *DeleteAssetOptions) error {
 
 	if !opts.SkipConfirm && opts.IO.CanPrompt() {
 		confirmed, err := opts.Prompter.Confirm(
-			fmt.Sprintf("Delete asset %s in release %s in %s?", opts.AssetName, release.TagName, ghrepo.FullName(baseRepo)),
+			fmt.Sprintf("删除 %s 中发布 %s 的资产 %s?", ghrepo.FullName(baseRepo), release.TagName, opts.AssetName),
 			true)
 		if err != nil {
 			return err
@@ -94,7 +94,7 @@ func deleteAssetRun(opts *DeleteAssetOptions) error {
 		}
 	}
 	if assetURL == "" {
-		return fmt.Errorf("asset %s not found in release %s", opts.AssetName, release.TagName)
+		return fmt.Errorf("发布 %s 中未找到资产(asset) %s", release.TagName, opts.AssetName)
 	}
 
 	err = deleteAsset(httpClient, baseRepo.RepoHost(), safeurl.NewImmutableSafeURL(assetURL))
@@ -107,14 +107,14 @@ func deleteAssetRun(opts *DeleteAssetOptions) error {
 	}
 
 	cs := opts.IO.ColorScheme()
-	fmt.Fprintf(opts.IO.ErrOut, "%s Deleted asset %s from release %s\n", cs.SuccessIconWithColor(cs.Red), opts.AssetName, release.TagName)
+	fmt.Fprintf(opts.IO.ErrOut, "%s 已从发布 %s 中删除资产(asset) %s\n", cs.SuccessIconWithColor(cs.Red), release.TagName, opts.AssetName)
 
 	return nil
 }
 
 func deleteAsset(httpClient *http.Client, host string, assetURL safeurl.SafeURL) error {
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	return api.NewClientFromHTTP(httpClient).REST(host, http.MethodDelete, assetURL.String(), nil, nil)
 }
