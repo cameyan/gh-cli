@@ -29,7 +29,7 @@ func NewTestHandler() *Handler {
 	return NewHandler(testIO)
 }
 
-// Printf writes the formatted arguments to the stderr writer.
+// Printf 将格式化后的参数写入 stderr 写入器(writer)。
 func (h *Handler) Printf(f string, v ...any) (int, error) {
 	if !h.IO.IsStdoutTTY() {
 		return 0, nil
@@ -41,7 +41,7 @@ func (h *Handler) OutPrintf(f string, v ...any) (int, error) {
 	return fmt.Fprintf(h.IO.Out, f, v...)
 }
 
-// Println writes the arguments to the stderr writer with a newline at the end.
+// Println 将参数写入 stderr 写入器(writer)，并在末尾附加换行符。
 func (h *Handler) Println(v ...any) (int, error) {
 	if !h.IO.IsStdoutTTY() {
 		return 0, nil
