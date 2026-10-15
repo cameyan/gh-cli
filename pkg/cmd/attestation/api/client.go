@@ -26,10 +26,10 @@ const (
 	maxLimitForFetch = 100
 )
 
-// Allow injecting backoff interval in tests.
+// 允许在测试中注入退避(backoff)间隔。
 var getAttestationRetryInterval = time.Millisecond * 200
 
-// FetchParams are the parameters for fetching attestations from the GitHub API
+// FetchParams 是从 GitHub API 获取证明(attestation)时使用的参数
 type FetchParams struct {
 	Digest        string
 	Limit         int
@@ -41,24 +41,24 @@ type FetchParams struct {
 
 func (p *FetchParams) Validate() error {
 	if p.Digest == "" {
-		return fmt.Errorf("digest must be provided")
+		return fmt.Errorf("必须提供摘要(digest)")
 	}
 	if p.Limit <= 0 || p.Limit > maxLimitForFlag {
-		return fmt.Errorf("limit must be greater than 0 and less than or equal to %d", maxLimitForFlag)
+		return fmt.Errorf("limit 必须大于 0 且小于等于 %d", maxLimitForFlag)
 	}
 	if p.Repo == "" && p.Owner == "" {
-		return fmt.Errorf("owner or repo must be provided")
+		return fmt.Errorf("必须提供 owner 或 repo")
 	}
 	return nil
 }
 
-// githubApiClient makes REST calls to the GitHub API
+// githubApiClient 负责向 GitHub API 发起 REST 调用
 type githubApiClient interface {
 	REST(hostname, method, p string, body io.Reader, data any) error
 	RESTWithNext(hostname, method, p string, body io.Reader, data any) (string, error)
 }
 
-// httpClient makes HTTP calls to all non-GitHub API endpoints
+// httpClient 负责向所有非 GitHub API 端点发起 HTTP 调用
 type httpClient interface {
 	Get(url string) (*http.Response, error)
 }
@@ -84,10 +84,9 @@ func NewLiveClient(hc *http.Client, externalClient *http.Client, host string, l 
 	}
 }
 
-// GetByDigest fetches the attestation by digest and either owner or repo
-// depending on which is provided
+// GetByDigest 按摘要(digest)以及 owner 或 repo(取决于实际提供了哪一个)获取证明(attestation)
 func (c *LiveClient) GetByDigest(params FetchParams) ([]*Attestation, error) {
-	c.logger.VerbosePrintf("Fetching attestations for artifact digest %s\n\n", params.Digest)
+	c.logger.VerbosePrintf("正在获取制品摘要(artifact digest) %s 对应的证明(attestation)\n\n", params.Digest)
 	attestations, err := c.getAttestations(params)
 	if err != nil {
 		return nil, err
@@ -95,7 +94,7 @@ func (c *LiveClient) GetByDigest(params FetchParams) ([]*Attestation, error) {
 
 	bundles, err := c.fetchBundleFromAttestations(attestations)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch bundle with URL: %w", err)
+		return nil, fmt.Errorf("通过 URL 获取 bundle 失败: %w", err)
 	}
 
 	return bundles, nil
@@ -108,8 +107,8 @@ func (c *LiveClient) buildRequestURL(params FetchParams) (safeurl.SafeURL, error
 
 	var u *safeurl.MutableSafeURL
 	if params.Repo != "" {
-		// check if Repo is set first because if Repo has been set, Owner will be set using the value of Repo.
-		// If Repo is not set, the field will remain empty. It will not be populated using the value of Owner.
+		// 先检查 Repo 是否已设置，因为如果 Repo 已设置，Owner 将使用 Repo 的值来设置。
+		// 如果 Repo 未设置，该字段将保持为空，不会使用 Owner 的值来填充。
 		owner, name, err := safeurl.RepoPartsFromNWO(params.Repo)
 		if err != nil {
 			return nil, err
@@ -148,7 +147,7 @@ func (c *LiveClient) getAttestations(params FetchParams) ([]*Attestation, error)
 
 	var pageURL safeurl.SafeURL = u
 
-	// if no attestation or less than limit, then keep fetching
+	// 如果没有证明(attestation)或数量未达到 limit，则继续获取
 	for pageURL.String() != "" && len(attestations) < params.Limit {
 		err := backoff.Retry(func() error {
 			newURL, restErr := c.githubAPI.RESTWithNext(c.host, http.MethodGet, pageURL.String(), nil, &resp)
@@ -161,7 +160,7 @@ func (c *LiveClient) getAttestations(params FetchParams) ([]*Attestation, error)
 
 			pageURL = safeurl.NewImmutableSafeURL(newURL)
 
-			// filter by the initiator type
+			// 按发起者(initiator)类型过滤
 			if params.Initiator != "" {
 				filtered := make([]*Attestation, 0, len(resp.Attestations))
 				for _, att := range resp.Attestations {
@@ -176,7 +175,7 @@ func (c *LiveClient) getAttestations(params FetchParams) ([]*Attestation, error)
 			return nil
 		}, backoff.WithMaxRetries(bo, 3))
 
-		// bail if RESTWithNext errored out
+		// 若 RESTWithNext 出错则直接退出
 		if err != nil {
 			return nil, err
 		}
@@ -199,22 +198,22 @@ func (c *LiveClient) fetchBundleFromAttestations(attestations []*Attestation) ([
 	for i, a := range attestations {
 		g.Go(func() error {
 			if a.Bundle == nil && a.BundleURL == "" {
-				return fmt.Errorf("attestation has no bundle or bundle URL")
+				return fmt.Errorf("证明(attestation)既没有 bundle 也没有 bundle URL")
 			}
 
-			// for now, we fall back to the bundle field if the bundle URL is empty
+			// 目前，如果 bundle URL 为空，则回退到 bundle 字段
 			if a.BundleURL == "" {
-				c.logger.VerbosePrintf("Bundle URL is empty. Falling back to bundle field\n\n")
+				c.logger.VerbosePrintf("Bundle URL 为空，回退到 bundle 字段\n\n")
 				fetched[i] = &Attestation{
 					Bundle: a.Bundle,
 				}
 				return nil
 			}
 
-			// otherwise fetch the bundle with the provided URL
+			// 否则通过提供的 URL 获取 bundle
 			b, err := c.getBundle(safeurl.NewImmutableSafeURL(a.BundleURL))
 			if err != nil {
-				return fmt.Errorf("failed to fetch bundle with URL: %w", err)
+				return fmt.Errorf("通过 URL 获取 bundle 失败: %w", err)
 			}
 			fetched[i] = &Attestation{
 				Bundle: b,
@@ -232,42 +231,42 @@ func (c *LiveClient) fetchBundleFromAttestations(attestations []*Attestation) ([
 }
 
 func (c *LiveClient) getBundle(url safeurl.SafeURL) (*bundle.Bundle, error) {
-	c.logger.VerbosePrintf("Fetching attestation bundle with bundle URL\n\n")
+	c.logger.VerbosePrintf("正在通过 bundle URL 获取证明(attestation)的 bundle\n\n")
 
 	var sgBundle *bundle.Bundle
 	bo := backoff.NewConstantBackOff(getAttestationRetryInterval)
 	err := backoff.Retry(func() error {
 		resp, err := c.externalHttpClient.Get(url.String())
 		if err != nil {
-			return fmt.Errorf("request to fetch bundle from URL failed: %w", err)
+			return fmt.Errorf("从 URL 获取 bundle 的请求失败: %w", err)
 		}
 
 		if resp.StatusCode >= 500 && resp.StatusCode <= 599 {
-			return fmt.Errorf("attestation bundle with URL %s returned status code %d", url.String(), resp.StatusCode)
+			return fmt.Errorf("URL 为 %s 的证明(attestation) bundle 返回了状态码 %d", url.String(), resp.StatusCode)
 		}
 
 		defer resp.Body.Close()
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return fmt.Errorf("failed to read blob storage response body: %w", err)
+			return fmt.Errorf("读取 blob 存储响应体失败: %w", err)
 		}
 
 		var out []byte
 		decompressed, err := snappy.Decode(out, body)
 		if err != nil {
-			return backoff.Permanent(fmt.Errorf("failed to decompress with snappy: %w", err))
+			return backoff.Permanent(fmt.Errorf("使用 snappy 解压失败: %w", err))
 		}
 
 		var pbBundle v1.Bundle
 		if err = protojson.Unmarshal(decompressed, &pbBundle); err != nil {
-			return backoff.Permanent(fmt.Errorf("failed to unmarshal to bundle: %w", err))
+			return backoff.Permanent(fmt.Errorf("反序列化为 bundle 失败: %w", err))
 		}
 
-		c.logger.VerbosePrintf("Successfully fetched bundle\n\n")
+		c.logger.VerbosePrintf("成功获取 bundle\n\n")
 
 		sgBundle, err = bundle.NewBundle(&pbBundle)
 		if err != nil {
-			return backoff.Permanent(fmt.Errorf("failed to create new bundle: %w", err))
+			return backoff.Permanent(fmt.Errorf("创建新 bundle 失败: %w", err))
 		}
 
 		return nil
@@ -286,8 +285,8 @@ func shouldRetry(err error) bool {
 	return false
 }
 
-// GetTrustDomain returns the current trust domain. If the default is used
-// the empty string is returned
+// GetTrustDomain 返回当前的信任域(trust domain)。如果使用的是默认值，
+// 则返回空字符串
 func (c *LiveClient) GetTrustDomain() (string, error) {
 	u, err := safeurl.JoinPath(MetaPath)
 	if err != nil {

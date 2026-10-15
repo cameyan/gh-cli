@@ -8,7 +8,7 @@ import (
 	"github.com/sigstore/sigstore-go/pkg/bundle"
 )
 
-var ErrNoAttestationsFound = errors.New("no attestations found")
+var ErrNoAttestationsFound = errors.New("未找到任何证明(attestation)")
 
 type Attestation struct {
 	Bundle    *bundle.Bundle `json:"bundle"`
@@ -31,12 +31,12 @@ func FilterAttestations(predicateType string, attestations []*Attestation) ([]*A
 		dsseEnvelope := each.Bundle.GetDsseEnvelope()
 		if dsseEnvelope != nil {
 			if dsseEnvelope.PayloadType != "application/vnd.in-toto+json" {
-				// Don't fail just because an entry isn't intoto
+				// 不要因为某条记录不是 intoto 格式而失败
 				continue
 			}
 			var intotoStatement IntotoStatement
 			if err := json.Unmarshal([]byte(dsseEnvelope.Payload), &intotoStatement); err != nil {
-				// Don't fail just because a single entry can't be unmarshalled
+				// 不要因为单条记录反序列化失败而失败
 				continue
 			}
 			if intotoStatement.PredicateType == predicateType {
@@ -46,7 +46,7 @@ func FilterAttestations(predicateType string, attestations []*Attestation) ([]*A
 	}
 
 	if len(filteredAttestations) == 0 {
-		return nil, fmt.Errorf("no attestations found with predicate type: %s", predicateType)
+		return nil, fmt.Errorf("未找到谓词类型(predicate type)为 %s 的证明(attestation)", predicateType)
 	}
 
 	return filteredAttestations, nil

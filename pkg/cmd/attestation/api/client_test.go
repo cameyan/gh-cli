@@ -78,36 +78,36 @@ type getByTestCase struct {
 
 var getByTestCases = []getByTestCase{
 	{
-		name:                 "get by digest with owner",
+		name:                 "按摘要(digest)和 owner 获取",
 		params:               testFetchParamsWithOwner,
 		expectedAttestations: 5,
 	},
 	{
-		name:                 "get by digest with repo",
+		name:                 "按摘要(digest)和 repo 获取",
 		params:               testFetchParamsWithRepo,
 		expectedAttestations: 5,
 	},
 	{
-		name:                 "get by digest with attestations greater than limit",
+		name:                 "证明(attestation)数量超过 limit 时获取",
 		params:               testFetchParamsWithRepo,
 		limit:                3,
 		expectedAttestations: 3,
 	},
 	{
-		name:                 "get by digest with next page",
+		name:                 "存在下一页时按摘要(digest)获取",
 		params:               testFetchParamsWithRepo,
 		expectedAttestations: 10,
 		hasNextPage:          true,
 	},
 	{
-		name:                 "greater than limit with next page",
+		name:                 "存在下一页且数量超过 limit",
 		params:               testFetchParamsWithRepo,
 		limit:                7,
 		expectedAttestations: 7,
 		hasNextPage:          true,
 	},
 	{
-		name:                 "get by digest with repo and GitHub initiator",
+		name:                 "按摘要(digest)、repo 和 GitHub 发起者(initiator)获取",
 		params:               testFetchParamsWithRepoWithGitHubInitiator,
 		expectedAttestations: 4,
 	},
@@ -192,20 +192,19 @@ func TestFetchBundleFromAttestations_MissingBundleAndBundleURLFields(t *testing.
 		logger:             io.NewTestHandler(),
 	}
 
-	// If both the BundleURL and Bundle fields are empty, the function should
-	// return an error indicating that
+	// 如果 BundleURL 和 Bundle 字段均为空，函数应返回指示该情况的错误
 	att1 := Attestation{}
 	attestations := []*Attestation{&att1}
 	bundles, err := client.fetchBundleFromAttestations(attestations)
-	require.ErrorContains(t, err, "attestation has no bundle or bundle URL")
+	require.ErrorContains(t, err, "证明(attestation)既没有 bundle 也没有 bundle URL")
 	require.Nil(t, bundles, 2)
 }
 
 func TestFetchBundleFromAttestations_FailOnTheSecondAttestation(t *testing.T) {
 	mockHTTPClient := &failAfterNCallsHttpClient{
-		// the initial HTTP request will succeed, which returns a bundle for the first attestation
-		// all following HTTP requests will fail, which means the function fails to fetch a bundle
-		// for the second attestation and the function returns an error
+		// 第一次 HTTP 请求会成功，为第一个证明(attestation)返回一个 bundle
+		// 之后的所有 HTTP 请求都会失败，这意味着函数无法为第二个证明(attestation)获取 bundle，
+		// 函数将返回错误
 		FailOnCallN:              2,
 		FailOnAllSubsequentCalls: true,
 	}
@@ -247,7 +246,7 @@ func TestFetchBundleFromAttestations_FallbackToBundleField(t *testing.T) {
 		logger:             io.NewTestHandler(),
 	}
 
-	// If the bundle URL is empty, the code will fallback to the bundle field
+	// 如果 bundle URL 为空，代码将回退到 bundle 字段
 	a := Attestation{Bundle: data.SigstoreBundle(t)}
 	attestations := []*Attestation{&a}
 	fetched, err := c.fetchBundleFromAttestations(attestations)
@@ -256,7 +255,7 @@ func TestFetchBundleFromAttestations_FallbackToBundleField(t *testing.T) {
 	mockHTTPClient.AssertNotCalled(t, "OnGetSuccess")
 }
 
-// getBundle successfully fetches a bundle on the first HTTP request attempt
+// getBundle 在第一次 HTTP 请求尝试时就成功获取 bundle
 func TestGetBundle(t *testing.T) {
 	mockHTTPClient := &mockHttpClient{}
 
@@ -271,8 +270,7 @@ func TestGetBundle(t *testing.T) {
 	mockHTTPClient.AssertNumberOfCalls(t, "OnGetSuccess", 1)
 }
 
-// getBundle retries successfully when the initial HTTP request returns
-// a 5XX status code
+// 当第一次 HTTP 请求返回 5XX 状态码时，getBundle 重试并成功获取
 func TestGetBundle_SuccessfulRetry(t *testing.T) {
 	mockHTTPClient := &failAfterNCallsHttpClient{
 		FailOnCallN:              1,
@@ -290,7 +288,7 @@ func TestGetBundle_SuccessfulRetry(t *testing.T) {
 	mockHTTPClient.AssertNumberOfCalls(t, "OnGetFailAfterNCalls", 2)
 }
 
-// getBundle does not retry when the function fails with a permanent backoff error condition
+// 当函数因永久性退避(backoff)错误条件而失败时，getBundle 不会重试
 func TestGetBundle_PermanentBackoffFail(t *testing.T) {
 	mockHTTPClient := &invalidBundleClient{}
 	c := &LiveClient{
@@ -306,7 +304,7 @@ func TestGetBundle_PermanentBackoffFail(t *testing.T) {
 	mockHTTPClient.AssertNumberOfCalls(t, "OnGetInvalidBundle", 1)
 }
 
-// getBundle retries when the HTTP request fails
+// 当 HTTP 请求失败时，getBundle 会重试
 func TestGetBundle_RequestFail(t *testing.T) {
 	mockHTTPClient := &reqFailHttpClient{}
 
@@ -326,7 +324,7 @@ func TestGetTrustDomain(t *testing.T) {
 		TrustDomain: "foo",
 	}
 
-	t.Run("with returned trust domain", func(t *testing.T) {
+	t.Run("返回了信任域(trust domain)的情况", func(t *testing.T) {
 		c := LiveClient{
 			githubAPI: mockAPIClient{
 				OnREST: fetcher.OnREST,
@@ -339,7 +337,7 @@ func TestGetTrustDomain(t *testing.T) {
 
 	})
 
-	t.Run("with error", func(t *testing.T) {
+	t.Run("出错的情况", func(t *testing.T) {
 		c := LiveClient{
 			githubAPI: mockAPIClient{
 				OnREST: fetcher.OnRESTError,
@@ -348,7 +346,7 @@ func TestGetTrustDomain(t *testing.T) {
 		}
 		td, err := c.GetTrustDomain()
 		require.Equal(t, "", td)
-		require.ErrorContains(t, err, "test error")
+		require.ErrorContains(t, err, "测试错误")
 	})
 
 }
@@ -372,11 +370,10 @@ func TestGetAttestationsRetries(t *testing.T) {
 	attestations, err := c.GetByDigest(testFetchParamsWithRepo)
 	require.NoError(t, err)
 
-	// assert the error path was executed; because this is a paged
-	// request, it should have errored twice
+	// 断言错误路径已被执行；由于这是一个分页请求，应该出错了两次
 	fetcher.AssertNumberOfCalls(t, "FlakyOnRESTSuccessWithNextPage:error", 2)
 
-	// but we still successfully got the right data
+	// 但我们仍然成功获取了正确的数据
 	require.Equal(t, len(attestations), 10)
 	bundle := (attestations)[0].Bundle
 	require.Equal(t, bundle.GetMediaType(), "application/vnd.dev.sigstore.bundle.v0.3+json")
@@ -420,7 +417,7 @@ func TestGetAttestationsRetriesRESTWithNextError(t *testing.T) {
 	require.Len(t, reg.Requests, 2)
 }
 
-// test total retries
+// 测试总重试次数
 func TestGetAttestationsMaxRetries(t *testing.T) {
 	getAttestationRetryInterval = 0
 
