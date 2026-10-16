@@ -12,7 +12,7 @@ import (
 func StateTitleWithColor(cs *iostreams.ColorScheme, pr api.PullRequest) string {
 	prStateColorFunc := cs.ColorFromString(ColorForPRState(pr))
 	if pr.State == "OPEN" && pr.IsDraft {
-		return prStateColorFunc("Draft")
+		return prStateColorFunc("草稿")
 	}
 	return prStateColorFunc(text.Title(pr.State))
 }
@@ -65,36 +65,32 @@ func PrintMessage(io *iostreams.IOStreams, s string) {
 
 func ListNoResults(repoName string, itemName string, hasFilters bool) error {
 	if hasFilters {
-		return cmdutil.NewNoResultsError(fmt.Sprintf("no %ss match your search in %s", itemName, repoName))
+		return cmdutil.NewNoResultsError(fmt.Sprintf("%s 中没有匹配您搜索的%s", repoName, itemName))
 	}
-	return cmdutil.NewNoResultsError(fmt.Sprintf("no open %ss in %s", itemName, repoName))
+	return cmdutil.NewNoResultsError(fmt.Sprintf("%s 中没有 open 状态的%s", repoName, itemName))
 }
 
 func ListHeader(repoName string, itemName string, matchCount int, totalMatchCount int, hasFilters bool) string {
 	if hasFilters {
-		matchVerb := "match"
-		if totalMatchCount == 1 {
-			matchVerb = "matches"
-		}
-		return fmt.Sprintf("Showing %d of %s in %s that %s your search", matchCount, text.Pluralize(totalMatchCount, itemName), repoName, matchVerb)
+		return fmt.Sprintf("显示 %s 中匹配您搜索的 %d 条，共 %d 条%s", repoName, matchCount, totalMatchCount, text.Pluralize(totalMatchCount, itemName))
 	}
 
-	return fmt.Sprintf("Showing %d of %s in %s", matchCount, text.Pluralize(totalMatchCount, fmt.Sprintf("open %s", itemName)), repoName)
+	return fmt.Sprintf("显示 %s 中的 %d 条，共 %d 条%s", repoName, matchCount, totalMatchCount, text.Pluralize(totalMatchCount, fmt.Sprintf("open %s", itemName)))
 }
 
 func PrCheckStatusSummaryWithColor(cs *iostreams.ColorScheme, checks api.PullRequestChecksStatus) string {
-	var summary = cs.Muted("No checks")
+	var summary = cs.Muted("没有检查")
 	if checks.Total > 0 {
 		if checks.Failing > 0 {
 			if checks.Failing == checks.Total {
-				summary = cs.Red("× All checks failing")
+				summary = cs.Red("× 所有检查均失败")
 			} else {
-				summary = cs.Redf("× %d/%d checks failing", checks.Failing, checks.Total)
+				summary = cs.Redf("× %d/%d 个检查失败", checks.Failing, checks.Total)
 			}
 		} else if checks.Pending > 0 {
-			summary = cs.Yellow("- Checks pending")
+			summary = cs.Yellow("- 检查等待中")
 		} else if checks.Passing == checks.Total {
-			summary = cs.Green("✓ Checks passing")
+			summary = cs.Green("✓ 检查通过")
 		}
 	}
 	return summary

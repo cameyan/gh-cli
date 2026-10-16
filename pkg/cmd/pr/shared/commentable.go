@@ -20,8 +20,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var errNoUserComments = errors.New("no comments found for current user")
-var errDeleteNotConfirmed = errors.New("deletion not confirmed")
+var errNoUserComments = errors.New("未找到当前用户的任何评论")
+var errDeleteNotConfirmed = errors.New("删除未获确认")
 
 type InputType int
 
@@ -90,7 +90,7 @@ func CommentablePreRun(cmd *cobra.Command, opts *CommentableOptions, telemetry g
 	}
 
 	if err := cmdutil.MutuallyExclusive(
-		"`--attach` is not supported when using `--web`",
+		"`--attach` 不支持与 `--web` 同时使用",
 		opts.AttachFlag.Changed(),
 		web,
 	); err != nil {
@@ -98,7 +98,7 @@ func CommentablePreRun(cmd *cobra.Command, opts *CommentableOptions, telemetry g
 	}
 
 	if err := cmdutil.MutuallyExclusive(
-		"`--attach` is not supported when using `--delete-last`",
+		"`--attach` 不支持与 `--delete-last` 同时使用",
 		opts.AttachFlag.Changed(),
 		opts.DeleteLast,
 	); err != nil {
@@ -112,40 +112,40 @@ func CommentablePreRun(cmd *cobra.Command, opts *CommentableOptions, telemetry g
 		return err
 	}
 
-	// An asset is a body input on its own, so `--attach shot.png` alone
-	// posts an image with no text. It is not part of the mutually exclusive
-	// group above, so it only counts when nothing else has.
+	// 附件本身就是一种正文输入，因此仅使用 `--attach shot.png`
+	// 会发布一张没有文本的图片。它不属于上面的互斥组，
+	// 所以只在其他输入都未提供时才计数。
 	if len(opts.Assets) > 0 && inputFlags == 0 {
 		opts.InputType = InputTypeInline
 		inputFlags++
 	}
 
 	if opts.CreateIfNone && !opts.EditLast {
-		return cmdutil.FlagErrorf("`--create-if-none` can only be used with `--edit-last`")
+		return cmdutil.FlagErrorf("`--create-if-none` 只能与 `--edit-last` 一起使用")
 	}
 
 	if opts.DeleteLastConfirmed && !opts.DeleteLast {
-		return cmdutil.FlagErrorf("`--yes` should only be used with `--delete-last`")
+		return cmdutil.FlagErrorf("`--yes` 只能与 `--delete-last` 一起使用")
 	}
 
 	if opts.DeleteLast {
 		if inputFlags > 0 {
-			return cmdutil.FlagErrorf("should not provide comment body when using `--delete-last`")
+			return cmdutil.FlagErrorf("使用 `--delete-last` 时不应提供评论正文")
 		}
 		if opts.IO.CanPrompt() || opts.DeleteLastConfirmed {
 			opts.Interactive = opts.IO.CanPrompt()
 			return nil
 		}
-		return cmdutil.FlagErrorf("should provide `--yes` to confirm deletion in non-interactive mode")
+		return cmdutil.FlagErrorf("非交互模式下应提供 `--yes` 以确认删除")
 	}
 
 	if inputFlags == 0 {
 		if !opts.IO.CanPrompt() {
-			return cmdutil.FlagErrorf("flags required when not running interactively")
+			return cmdutil.FlagErrorf("非交互式运行时必须提供 flag")
 		}
 		opts.Interactive = true
 	} else if inputFlags > 1 {
-		return cmdutil.FlagErrorf("specify only one of `--body`, `--body-file`, `--editor`, or `--web`")
+		return cmdutil.FlagErrorf("只能指定 `--body`、`--body-file`、`--editor` 或 `--web` 之一")
 	}
 
 	return nil
@@ -161,9 +161,8 @@ func CommentableRun(opts *CommentableOptions) error {
 		return deleteComment(commentable, opts)
 	}
 
-	// Guarded on the assets, because createComment and updateComment return
-	// early on the web path. An unguarded check here would fail a run that
-	// attached nothing.
+	// 以是否提供附件为判断条件，因为 createComment 和 updateComment
+	// 在 web 路径上会提前返回。此处不加保护的检查会让未附加任何文件的运行失败。
 	var uploader *attachments.Uploader
 	if len(opts.Assets) > 0 {
 		httpClient, err := opts.HttpClient()
@@ -174,8 +173,7 @@ func CommentableRun(opts *CommentableOptions) error {
 		if err != nil {
 			return err
 		}
-		// Asked of opts.Host, so the answer is about the host the commentable
-		// was actually fetched from.
+		// 通过 opts.Host 查询，因此答案针对的是实际获取该评论对象的那个主机。
 		tokenType := cfg.Authentication().ActiveTokenType(opts.Host)
 		uploader, err = attachments.NewUploader(httpClient, tokenType, opts.Host, commentable.RepositoryDatabaseID(), commentable.RepositoryViewerPermission())
 		if err != nil {
@@ -183,12 +181,12 @@ func CommentableRun(opts *CommentableOptions) error {
 		}
 	}
 
-	// Create new comment, bail before complexities of updating the last comment
+	// 创建新评论；在处理更新最后一条评论的复杂逻辑之前直接返回
 	if !opts.EditLast {
 		return createComment(commentable, opts, uploader)
 	}
 
-	// Update the last comment, handling success or unexpected errors accordingly
+	// 更新最后一条评论，并相应地处理成功或意外错误
 	err = updateComment(commentable, opts, uploader)
 	if err == nil {
 		return nil
@@ -197,7 +195,7 @@ func CommentableRun(opts *CommentableOptions) error {
 		return err
 	}
 
-	// Determine whether to create new comment, prompt user if interactive and missing option
+	// 判断是否创建新评论；若为交互模式且缺少选项，则提示用户
 	if !opts.CreateIfNone && opts.Interactive {
 		opts.CreateIfNone, err = opts.ConfirmCreateIfNoneSurvey()
 		if err != nil {
@@ -208,9 +206,9 @@ func CommentableRun(opts *CommentableOptions) error {
 		return errNoUserComments
 	}
 
-	// Create new comment because updating the last comment failed due to no user comments
+	// 由于更新最后一条评论因没有该用户评论而失败，因此创建新评论
 	if opts.Interactive {
-		fmt.Fprintln(opts.IO.ErrOut, "No comments found. Creating a new comment.")
+		fmt.Fprintln(opts.IO.ErrOut, "未找到任何评论。正在创建新评论。")
 	}
 
 	return createComment(commentable, opts, uploader)
@@ -221,7 +219,7 @@ func createComment(commentable Commentable, opts *CommentableOptions, uploader *
 	case InputTypeWeb:
 		openURL := commentable.Link() + "#issuecomment-new"
 		if opts.IO.IsStdoutTTY() && !opts.Quiet {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(openURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
 		}
 		return opts.OpenInBrowser(openURL)
 	case InputTypeEditor:
@@ -244,7 +242,7 @@ func createComment(commentable Commentable, opts *CommentableOptions, uploader *
 			return err
 		}
 		if !cont {
-			return errors.New("Discarding...")
+			return errors.New("正在丢弃...")
 		}
 	}
 
@@ -255,15 +253,15 @@ func createComment(commentable Commentable, opts *CommentableOptions, uploader *
 
 	body, write, uploadErr := bodyForWrite(opts, uploader)
 	if !write {
-		return fmt.Errorf("%w\nno comment was posted", uploadErr)
+		return fmt.Errorf("%w\n未发布任何评论", uploadErr)
 	}
 
 	apiClient := api.NewClientFromHTTP(httpClient)
 	params := api.CommentCreateInput{Body: body, SubjectId: commentable.Identifier()}
 	url, err := api.CommentCreate(apiClient, opts.Host, params)
 	if err != nil {
-		// Upload first: an uploaded asset outlives the failed write, and the
-		// user needs to know it exists before hearing the comment did not save.
+		// 先上传: 已上传的资产(asset)比失败的写入存续更久，
+		// 用户需要先知道它存在，再听到评论未保存的消息。
 		return errors.Join(uploadErr, err)
 	}
 
@@ -286,7 +284,7 @@ func updateComment(commentable Commentable, opts *CommentableOptions, uploader *
 	case InputTypeWeb:
 		openURL := lastComment.Link()
 		if opts.IO.IsStdoutTTY() && !opts.Quiet {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(openURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
 		}
 		return opts.OpenInBrowser(openURL)
 	case InputTypeEditor:
@@ -303,8 +301,8 @@ func updateComment(commentable Commentable, opts *CommentableOptions, uploader *
 		}
 		opts.Body = body
 	case InputTypeInline:
-		// An explicit `--body ""` still clears the comment. The editor case
-		// above is seeded with the comment already, so it needs no merge.
+		// 显式的 `--body ""` 仍会清空该评论。上面的编辑器分支已用该评论
+		// 作为初始内容，因此无需合并。
 		if opts.KeepExistingBody && !opts.BodyProvided {
 			opts.Body = lastComment.Content()
 		}
@@ -316,7 +314,7 @@ func updateComment(commentable Commentable, opts *CommentableOptions, uploader *
 			return err
 		}
 		if !cont {
-			return errors.New("Discarding...")
+			return errors.New("正在丢弃...")
 		}
 	}
 
@@ -327,14 +325,14 @@ func updateComment(commentable Commentable, opts *CommentableOptions, uploader *
 
 	body, write, uploadErr := bodyForWrite(opts, uploader)
 	if !write {
-		return fmt.Errorf("%w\nthe comment was not changed", uploadErr)
+		return fmt.Errorf("%w\n评论未被更改", uploadErr)
 	}
 
 	apiClient := api.NewClientFromHTTP(httpClient)
 	params := api.CommentUpdateInput{Body: body, CommentId: lastComment.Identifier()}
 	url, err := api.CommentUpdate(apiClient, opts.Host, params)
 	if err != nil {
-		// Upload first, for the same reason as createComment.
+		// 先上传，原因与 createComment 相同。
 		return errors.Join(uploadErr, err)
 	}
 
@@ -345,13 +343,12 @@ func updateComment(commentable Commentable, opts *CommentableOptions, uploader *
 	return uploadErr
 }
 
-// bodyForWrite uploads the assets and reports whether the body it produced is
-// worth writing. A failed upload that produced nothing writes nothing, since
-// there is nothing to salvage and a comment that promises an attachment it
-// does not have only compounds the failure.
+// bodyForWrite 上传资产(asset)，并报告其产出的正文是否值得写入。
+// 未能产出任何内容的失败上传什么都不写，因为没有东西可以挽救，
+// 而一条声称带有附件实际却没有的评论只会让失败雪上加霜。
 //
-// Callers must call this after every prompt, since nothing that can prompt or
-// cancel may follow an upload.
+// 调用方必须在每次提示之后调用本函数，因为任何可能提示或取消的操作
+// 都不得出现在上传之后。
 func bodyForWrite(opts *CommentableOptions, uploader *attachments.Uploader) (body string, write bool, err error) {
 	if uploader == nil {
 		return opts.Body, true, nil
@@ -375,14 +372,13 @@ func deleteComment(commentable Commentable, opts *CommentableOptions) error {
 	cs := opts.IO.ColorScheme()
 
 	if opts.Interactive && !opts.DeleteLastConfirmed {
-		// This is not an ideal way of truncating a random string that may
-		// contain emojis or other kind of wide chars.
+		// 这并非截断可能包含表情符号或其他宽字符的随机字符串的理想方式。
 		truncated := lastComment.Body
 		if len(lastComment.Body) > 40 {
 			truncated = lastComment.Body[:40] + "..."
 		}
 
-		fmt.Fprintf(opts.IO.Out, "%s Deleted comments cannot be recovered.\n", cs.WarningIcon())
+		fmt.Fprintf(opts.IO.Out, "%s 已删除的评论无法恢复。\n", cs.WarningIcon())
 		ok, err := opts.ConfirmDeleteLastComment(truncated)
 		if err != nil {
 			return err
@@ -405,7 +401,7 @@ func deleteComment(commentable Commentable, opts *CommentableOptions) error {
 	}
 
 	if !opts.Quiet {
-		fmt.Fprintln(opts.IO.ErrOut, "Comment deleted")
+		fmt.Fprintln(opts.IO.ErrOut, "评论已删除")
 	}
 
 	return nil
@@ -413,7 +409,7 @@ func deleteComment(commentable Commentable, opts *CommentableOptions) error {
 
 func CommentableConfirmSubmitSurvey(p Prompt) func() (bool, error) {
 	return func() (bool, error) {
-		return p.Confirm("Submit?", true)
+		return p.Confirm("提交?", true)
 	}
 }
 
@@ -424,7 +420,7 @@ func CommentableInteractiveEditSurvey(cf func() (gh.Config, error), io *iostream
 			return "", err
 		}
 		cs := io.ColorScheme()
-		fmt.Fprintf(io.Out, "- %s to draft your comment in %s... ", cs.Bold("Press Enter"), cs.Bold(surveyext.EditorName(editorCommand)))
+		fmt.Fprintf(io.Out, "- %s 以在 %s 中撰写您的评论... ", cs.Bold("按 Enter"), cs.Bold(surveyext.EditorName(editorCommand)))
 		_ = waitForEnter(io.In)
 		return surveyext.Edit(editorCommand, "*.md", initialValue, io.In, io.Out, io.ErrOut)
 	}
@@ -432,7 +428,7 @@ func CommentableInteractiveEditSurvey(cf func() (gh.Config, error), io *iostream
 
 func CommentableInteractiveCreateIfNoneSurvey(p Prompt) func() (bool, error) {
 	return func() (bool, error) {
-		return p.Confirm("No comments found. Create one?", true)
+		return p.Confirm("未找到任何评论。要创建一条吗?", true)
 	}
 }
 
@@ -448,7 +444,7 @@ func CommentableEditSurvey(cf func() (gh.Config, error), io *iostreams.IOStreams
 
 func CommentableConfirmDeleteLastComment(p Prompt) func(string) (bool, error) {
 	return func(body string) (bool, error) {
-		return p.Confirm(fmt.Sprintf("Delete the comment: %q?", body), true)
+		return p.Confirm(fmt.Sprintf("删除该评论: %q?", body), true)
 	}
 }
 

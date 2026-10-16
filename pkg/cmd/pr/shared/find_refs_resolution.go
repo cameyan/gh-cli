@@ -13,22 +13,20 @@ import (
 	o "github.com/cli/cli/v2/pkg/option"
 )
 
-// QualifiedHeadRef represents a git branch with an optional owner, used
-// for the head of a pull request. For example, within a single repository,
-// we would expect a PR to have a head ref of no owner, and a branch name.
-// However, for cross-repository pull requests, we would expect a head ref
-// with an owner and a branch name. In string form this is represented as
-// <owner>:<branch>. The GitHub API is able to interpret this format in order
-// to discover the correct fork repository.
+// QualifiedHeadRef 表示一个带可选 owner 的 git 分支(branch)，用作拉取请求(PR)的 head。
+// 例如，在单个仓库内，PR 的 head ref 通常没有 owner，只有一个分支名；
+// 而对于跨仓库的拉取请求，head ref 则带 owner 和分支名。
+// 以字符串表示时写作 <owner>:<branch>。GitHub API 能够解析这种格式，
+// 从而找到正确的 fork 仓库。
 //
-// In other parts of the code, you may see this referred to as a HeadLabel.
+// 在代码的其他部分，你可能看到它被称为 HeadLabel。
 type QualifiedHeadRef struct {
 	owner      o.Option[string]
 	branchName string
 }
 
-// NewQualifiedHeadRef creates a QualifiedHeadRef. If the empty string is provided
-// for the owner, it will be treated as None.
+// NewQualifiedHeadRef 创建一个 QualifiedHeadRef。若 owner 提供的是空字符串，
+// 它将被视为 None。
 func NewQualifiedHeadRef(owner string, branchName string) QualifiedHeadRef {
 	return QualifiedHeadRef{
 		owner:      o.SomeIfNonZero(owner),
@@ -43,15 +41,13 @@ func NewQualifiedHeadRefWithoutOwner(branchName string) QualifiedHeadRef {
 	}
 }
 
-// ParseQualifiedHeadRef takes strings of the form <owner>:<branch> or <branch>
-// and returns a QualifiedHeadRef. If the form <owner>:<branch> is used,
-// the owner is set to the value of <owner>, and the branch name is set to
-// the value of <branch>. If the form <branch> is used, the owner is set to
-// None, and the branch name is set to the value of <branch>.
+// ParseQualifiedHeadRef 接受形如 <owner>:<branch> 或 <branch> 的字符串，
+// 并返回一个 QualifiedHeadRef。若使用 <owner>:<branch> 形式，
+// 则 owner 被设置为 <owner> 的值，分支名被设置为 <branch> 的值；
+// 若使用 <branch> 形式，则 owner 被设为 None，分支名被设为 <branch> 的值。
 //
-// This does no further error checking about the validity of a ref, so
-// it is not safe to assume the ref is truly a valid ref, e.g. "my~bad:ref?"
-// is going to result in a nonsense result.
+// 这里不对 ref 的有效性做进一步的错误检查，因此不能假定该 ref
+// 真的是一个有效的 ref，例如 "my~bad:ref?" 会产生一个无意义的结果。
 func ParseQualifiedHeadRef(ref string) (QualifiedHeadRef, error) {
 	if !strings.Contains(ref, ":") {
 		return NewQualifiedHeadRefWithoutOwner(ref), nil
@@ -59,14 +55,14 @@ func ParseQualifiedHeadRef(ref string) (QualifiedHeadRef, error) {
 
 	parts := strings.Split(ref, ":")
 	if len(parts) != 2 {
-		return QualifiedHeadRef{}, fmt.Errorf("invalid qualified head ref format '%s'", ref)
+		return QualifiedHeadRef{}, fmt.Errorf("无效的限定 head ref 格式 '%s'", ref)
 	}
 
 	return NewQualifiedHeadRef(parts[0], parts[1]), nil
 }
 
-// A QualifiedHeadRef without an owner returns <branch>, while a QualifiedHeadRef
-// with an owner returns <owner>:<branch>.
+// 不带 owner 的 QualifiedHeadRef 返回 <branch>，而带 owner 的 QualifiedHeadRef
+// 返回 <owner>:<branch>。
 func (r QualifiedHeadRef) String() string {
 	if owner, present := r.owner.Value(); present {
 		return fmt.Sprintf("%s:%s", owner, r.branchName)
@@ -78,21 +74,19 @@ func (r QualifiedHeadRef) BranchName() string {
 	return r.branchName
 }
 
-// PRFindRefs represents the necessary data to find a pull request from the API.
+// PRFindRefs 表示从 API 查找拉取请求(PR)所需的数据。
 type PRFindRefs struct {
 	qualifiedHeadRef QualifiedHeadRef
 
 	baseRepo ghrepo.Interface
-	// baseBranchName is an optional branch name, because it is not required for
-	// finding a pull request, only for disambiguation if multiple pull requests
-	// contain the same head ref.
+	// baseBranchName 是一个可选的分支名，因为查找拉取请求并不需要它，
+	// 只有在多个拉取请求包含相同 head ref 时才用于消歧。
 	baseBranchName o.Option[string]
 }
 
-// QualifiedHeadRef returns a stringified form of the head ref, varying depending
-// on whether the head ref is in the same repository as the base ref. If they are
-// the same repository, we return the branch name only. If they are different repositories,
-// we return the owner and branch name in the form <owner>:<branch>.
+// QualifiedHeadRef 返回 head ref 的字符串形式，具体取决于 head ref
+// 是否与基础 ref 位于同一仓库。若为同一仓库，则仅返回分支名；
+// 若为不同仓库，则以 <owner>:<branch> 形式返回 owner 和分支名。
 func (r PRFindRefs) QualifiedHeadRef() string {
 	return r.qualifiedHeadRef.String()
 }
@@ -101,8 +95,8 @@ func (r PRFindRefs) UnqualifiedHeadRef() string {
 	return r.qualifiedHeadRef.BranchName()
 }
 
-// Matches checks whether the provided baseBranchName and headRef match the refs.
-// It is used to determine whether Pull Requests returned from the API
+// Matches 检查提供的 baseBranchName 和 headRef 是否与这些 ref 匹配。
+// 它用于判断 API 返回的拉取请求(PR)。
 func (r PRFindRefs) Matches(baseBranchName, qualifiedHeadRef string) bool {
 	headMatches := qualifiedHeadRef == r.QualifiedHeadRef()
 	baseMatches := r.baseBranchName.IsNone() || baseBranchName == r.baseBranchName.Unwrap()
@@ -115,8 +109,8 @@ func (r PRFindRefs) BaseRepo() ghrepo.Interface {
 
 type RemoteNameToRepoFn func(remoteName string) (ghrepo.Interface, error)
 
-// PullRequestFindRefsResolver interrogates git configuration to try and determine
-// a head repository and a remote branch name, from a local branch name.
+// PullRequestFindRefsResolver 询问 git 配置，尝试从本地分支名确定
+// head 仓库和远端分支名。
 type PullRequestFindRefsResolver struct {
 	GitConfigClient    GitConfigClient
 	RemoteNameToRepoFn RemoteNameToRepoFn
@@ -129,16 +123,16 @@ func NewPullRequestFindRefsResolver(gitConfigClient GitConfigClient, remotesFn f
 	}
 }
 
-// ResolvePullRequestRefs takes a base repository, a base branch name and a local branch name and uses the git configuration to
-// determine the head repository and remote branch name. If we were unable to determine this from git, we default the head
-// repository to the base repository.
+// ResolvePullRequestRefs 接受基础仓库、基础分支名和本地分支名，
+// 并使用 git 配置确定 head 仓库和远端分支名。若无法从 git 中确定，
+// 则将 head 仓库默认设为基础仓库。
 func (r *PullRequestFindRefsResolver) ResolvePullRequestRefs(baseRepo ghrepo.Interface, baseBranchName, localBranchName string) (PRFindRefs, error) {
 	if baseRepo == nil {
-		return PRFindRefs{}, fmt.Errorf("find pull request ref resolution cannot be performed without a base repository")
+		return PRFindRefs{}, fmt.Errorf("没有基础仓库则无法执行拉取请求(PR) ref 解析")
 	}
 
 	if localBranchName == "" {
-		return PRFindRefs{}, fmt.Errorf("find pull request ref resolution cannot be performed without a local branch name")
+		return PRFindRefs{}, fmt.Errorf("没有本地分支名则无法执行拉取请求(PR) ref 解析")
 	}
 
 	headPRRef, err := TryDetermineDefaultPRHead(r.GitConfigClient, remoteToRepoResolver{r.RemoteNameToRepoFn}, localBranchName)
@@ -146,8 +140,7 @@ func (r *PullRequestFindRefsResolver) ResolvePullRequestRefs(baseRepo ghrepo.Int
 		return PRFindRefs{}, err
 	}
 
-	// If the headRepo was resolved, we can just convert the response
-	// to refs and return it.
+	// 若 headRepo 已解析，直接把结果转换为 refs 并返回。
 	if headRepo, present := headPRRef.Repo.Value(); present {
 		qualifiedHeadRef := NewQualifiedHeadRefWithoutOwner(headPRRef.BranchName)
 		if !ghrepo.IsSame(headRepo, baseRepo) {
@@ -161,7 +154,7 @@ func (r *PullRequestFindRefsResolver) ResolvePullRequestRefs(baseRepo ghrepo.Int
 		}, nil
 	}
 
-	// If we didn't find a head repo, default to the base repo
+	// 若未找到 head 仓库，则默认为基础仓库
 	return PRFindRefs{
 		qualifiedHeadRef: NewQualifiedHeadRefWithoutOwner(headPRRef.BranchName),
 		baseRepo:         baseRepo,
@@ -169,26 +162,25 @@ func (r *PullRequestFindRefsResolver) ResolvePullRequestRefs(baseRepo ghrepo.Int
 	}, nil
 }
 
-// DefaultPRHead is a neighbour to defaultPushTarget, but instead of holding
-// basic git remote information, it holds a resolved repository in `gh` terms.
+// DefaultPRHead 是 defaultPushTarget 的近亲，但保存的不是基本的 git remote 信息，
+// 而是以 `gh` 术语表示的已解析仓库。
 //
-// Since we may not be able to determine a default remote for a branch, this
-// is also true of the resolved repository.
+// 由于我们可能无法为某个分支确定默认远端，已解析的仓库同样可能缺失。
 type DefaultPRHead struct {
 	Repo       o.Option[ghrepo.Interface]
 	BranchName string
 }
 
-// TryDetermineDefaultPRHead is a thin wrapper around determineDefaultPushTarget, which attempts to convert
-// a present remote into a resolved repository. If the remote is not present, we indicate that to the caller
-// by returning a None value for the repo.
+// TryDetermineDefaultPRHead 是 determineDefaultPushTarget 的轻量包装，
+// 它尝试将存在的远端转换为已解析的仓库。若远端不存在，
+// 则通过为 repo 返回 None 来告知调用方。
 func TryDetermineDefaultPRHead(gitClient GitConfigClient, remoteToRepo remoteToRepoResolver, branch string) (DefaultPRHead, error) {
 	pushTarget, err := tryDetermineDefaultPushTarget(gitClient, branch)
 	if err != nil {
 		return DefaultPRHead{}, err
 	}
 
-	// If we have no remote, let the caller decide what to do by indicating that with a None.
+	// 若没有远端，通过返回 None 让调用方自行决定如何处理。
 	if pushTarget.remote.IsNone() {
 		return DefaultPRHead{
 			Repo:       o.None[ghrepo.Interface](),
@@ -207,10 +199,10 @@ func TryDetermineDefaultPRHead(gitClient GitConfigClient, remoteToRepo remoteToR
 	}, nil
 }
 
-// remote represents the value of the remote key in a branch's git configuration.
-// This value may be a name or a URL, both of which are strings, but are unfortunately
-// parsed by ReadBranchConfig into separate fields, allowing for illegal states to be
-// created by accident. This is an attempt to indicate that they are mutually exclusive.
+// remote 表示某个分支 git 配置中 remote 键的值。
+// 该值可能是名称或 URL，二者都是字符串，但遗憾的是 ReadBranchConfig
+// 将它们解析到不同的字段中，容易意外制造出非法状态。
+// 这是为了表明二者互斥而做的一种尝试。
 type remote interface{ sealedRemote() }
 
 type remoteName struct{ name string }
@@ -221,10 +213,9 @@ type remoteURL struct{ url *url.URL }
 
 func (ru remoteURL) sealedRemote() {}
 
-// newRemoteNameToRepoFn takes a function that returns a list of remotes and
-// returns a function that takes a remote name and returns the corresponding
-// repository. It is a convenience function to call sites having to duplicate
-// the same logic.
+// newRemoteNameToRepoFn 接受一个返回远端列表的函数，
+// 并返回一个接受远端名称、返回对应仓库的函数。
+// 这是一个便捷函数，避免调用方重复编写相同逻辑。
 func newRemoteNameToRepoFn(remotesFn func() (ghContext.Remotes, error)) RemoteNameToRepoFn {
 	return func(remoteName string) (ghrepo.Interface, error) {
 		remotes, err := remotesFn()
@@ -239,8 +230,7 @@ func newRemoteNameToRepoFn(remotesFn func() (ghContext.Remotes, error)) RemoteNa
 	}
 }
 
-// remoteToRepoResolver provides a utility method to resolve a remote (either name or URL)
-// to a repo (ghrepo.Interface).
+// remoteToRepoResolver 提供一个工具方法，将远端(名称或 URL)解析为仓库(ghrepo.Interface)。
 type remoteToRepoResolver struct {
 	remoteNameToRepo RemoteNameToRepoFn
 }
@@ -251,43 +241,40 @@ func NewRemoteToRepoResolver(remotesFn func() (ghContext.Remotes, error)) remote
 	}
 }
 
-// resolve takes a remote and returns a repository representing it.
+// resolve 接受一个远端，返回代表它的仓库。
 func (r remoteToRepoResolver) resolve(remote remote) (ghrepo.Interface, error) {
 	switch v := remote.(type) {
 	case remoteName:
 		repo, err := r.remoteNameToRepo(v.name)
 		if err != nil {
-			return nil, fmt.Errorf("could not resolve remote %q: %w", v.name, err)
+			return nil, fmt.Errorf("无法解析远端 %q: %w", v.name, err)
 		}
 		return repo, nil
 	case remoteURL:
 		repo, err := ghrepo.FromURL(v.url)
 		if err != nil {
-			return nil, fmt.Errorf("could not parse remote URL %q: %w", v.url, err)
+			return nil, fmt.Errorf("无法解析远端 URL %q: %w", v.url, err)
 		}
 		return repo, nil
 	default:
-		return nil, fmt.Errorf("unsupported remote type %T, value: %v", v, remote)
+		return nil, fmt.Errorf("不支持的远端类型 %T，值: %v", v, remote)
 	}
 }
 
-// A defaultPushTarget represents the remote name or URL and a branch name
-// that we would expect a branch to be pushed to if `git push` were run with
-// no further arguments. This is the most likely place for the head of the PR
-// to be, but it's not guaranteed. The user may have pushed to another branch
-// directly via `git push <remote> <local>:<remote>` and not set up tracking information.
-// A branch name is always present.
+// defaultPushTarget 表示远端名称或 URL 与分支名的组合，即不带额外参数运行
+// `git push` 时我们预期该分支被推送到的位置。这是 PR 的 head 最可能出现的地方，
+// 但并不保证如此。用户可能通过 `git push <remote> <local>:<remote>` 直接推送到
+// 另一个分支，而没有设置跟踪(tracking)信息。分支名始终存在。
 //
-// It's possible that we're unable to determine a remote, if the user had pushed directly
-// to a URL for example `git push <url> <branch>`, which is why it is optional. When present,
-// the remote may either be a name or a URL.
+// 我们也可能无法确定远端，例如用户直接推送到某个 URL (`git push <url> <branch>`)，
+// 这就是它可选的原因。远端存在时，可能是名称或 URL。
 type defaultPushTarget struct {
 	remote     o.Option[remote]
 	branchName string
 }
 
-// newDefaultPushTarget is a thin wrapper over defaultPushTarget to help with
-// generic type inference, to reduce verbosity in repeating the parametric type.
+// newDefaultPushTarget 是 defaultPushTarget 的轻量包装，用于辅助泛型类型推断，
+// 减少重复书写参数化类型的冗长。
 func newDefaultPushTarget(remote remote, branchName string) defaultPushTarget {
 	return defaultPushTarget{
 		remote:     o.Some(remote),
@@ -295,33 +282,31 @@ func newDefaultPushTarget(remote remote, branchName string) defaultPushTarget {
 	}
 }
 
-// tryDetermineDefaultPushTarget uses git configuration to make a best guess about where a branch
-// is pushed to, and where it would be pushed to if the user ran `git push` with no additional
-// arguments.
+// tryDetermineDefaultPushTarget 使用 git 配置对分支被推送到的位置、
+// 以及用户不带额外参数运行 `git push` 时将被推送到的位置做出最佳猜测。
 //
-// Firstly, it attempts to resolve the @{push} ref, which is the most reliable method, as this
-// is what git uses to determine the remote tracking branch
+// 首先，它尝试解析 @{push} ref，这是最可靠的方法，
+// 因为 git 正是用它来确定远端跟踪分支的。
 //
-// If this fails, we go through a series of steps to determine the remote:
+// 若失败，我们通过一系列步骤确定远端:
 //
-// 1. check branch configuration for `branch.<name>.pushRemote = <name> | <url>`
-// 2. check remote configuration for `remote.pushDefault = <name>`
-// 3. check branch configuration for `branch.<name>.remote = <name> | <url>`
+// 1. 检查分支配置中的 `branch.<name>.pushRemote = <name> | <url>`
+// 2. 检查远端配置中的 `remote.pushDefault = <name>`
+// 3. 检查分支配置中的 `branch.<name>.remote = <name> | <url>`
 //
-// If none of these are set, we indicate that we were unable to determine the
-// remote by returning a None value for the remote.
+// 若均未设置，则通过为远端返回 None 来表明我们无法确定远端。
 //
-// The branch name is always set. The default configuration for push.default (current) indicates
-// that a git push should use the same remote branch name as the local branch name. If push.default
-// is set to upstream or tracking (deprecated form of upstream), then we use the branch name from the merge ref.
+// 分支名始终会被设置。push.default 的默认配置(current)表明 git push 应使用
+// 与本地分支名相同的远端分支名。若 push.default 被设为 upstream 或 tracking
+// (upstream 的废弃形式)，则使用 merge ref 中的分支名。
 func tryDetermineDefaultPushTarget(gitClient GitConfigClient, localBranchName string) (defaultPushTarget, error) {
-	// If @{push} resolves, then we have the remote tracking branch already, no problem.
+	// 若 @{push} 能解析，则我们已拥有远端跟踪分支，没有问题。
 	if pushRevisionRef, err := gitClient.PushRevision(context.Background(), localBranchName); err == nil {
 		return newDefaultPushTarget(remoteName{pushRevisionRef.Remote}, pushRevisionRef.Branch), nil
 	}
 
-	// But it doesn't always resolve, so we can suppress the error and move on to other means
-	// of determination. We'll first look at branch and remote configuration to make a determination.
+	// 但它并不总能解析，因此我们可以抑制该错误并转用其他确定方式。
+	// 我们先查看分支和远端配置来做判断。
 	branchConfig, err := gitClient.ReadBranchConfig(context.Background(), localBranchName)
 	if err != nil {
 		return defaultPushTarget{}, err
@@ -332,8 +317,8 @@ func tryDetermineDefaultPushTarget(gitClient GitConfigClient, localBranchName st
 		return defaultPushTarget{}, err
 	}
 
-	// We assume the PR's branch name is the same as whatever was provided, unless the user has specified
-	// push.default = upstream or tracking, then we use the branch name from the merge ref if it exists. Otherwise, we fall back to the local branch name
+	// 我们假定 PR 的分支名与提供的一致，除非用户指定了 push.default = upstream
+	// 或 tracking，此时若 merge ref 存在则使用其中的分支名。否则回退到本地分支名。
 	remoteBranch := localBranchName
 	if pushDefault == git.PushDefaultUpstream || pushDefault == git.PushDefaultTracking {
 		mergeRef := strings.TrimPrefix(branchConfig.MergeRef, "refs/heads/")
@@ -342,10 +327,10 @@ func tryDetermineDefaultPushTarget(gitClient GitConfigClient, localBranchName st
 		}
 	}
 
-	// To get the remote, we look to the git config. It comes from one of the following, in order of precedence:
-	// 1. branch.<name>.pushRemote (which may be a name or a URL)
-	// 2. remote.pushDefault (which is a remote name)
-	// 3. branch.<name>.remote (which may be a name or a URL)
+	// 获取远端时，我们查看 git 配置。它按优先级来自以下之一:
+	// 1. branch.<name>.pushRemote (可能是名称或 URL)
+	// 2. remote.pushDefault (是远端名称)
+	// 3. branch.<name>.remote (可能是名称或 URL)
 	if branchConfig.PushRemoteName != "" {
 		return newDefaultPushTarget(
 			remoteName{branchConfig.PushRemoteName},
@@ -386,7 +371,7 @@ func tryDetermineDefaultPushTarget(gitClient GitConfigClient, localBranchName st
 		), nil
 	}
 
-	// If we couldn't find the remote, we'll indicate that to the caller via None.
+	// 若找不到远端，则通过 None 告知调用方。
 	return defaultPushTarget{
 		remote:     o.None[remote](),
 		branchName: remoteBranch,

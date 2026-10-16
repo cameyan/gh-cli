@@ -21,10 +21,10 @@ type IssueMetadataState struct {
 	Draft bool
 
 	// TODO ApiActorsSupported
-	// ApiActorsSupported indicates the host supports actor-based APIs (github.com, ghe.com).
-	// When true, mutations use logins directly instead of resolving node IDs.
-	// Remove this flag (and collapse to actor-only paths) once GHES supports
-	// replaceActorsForAssignable and requestReviewsByLogin mutations.
+	// ApiActorsSupported 表示该主机支持基于 actor 的 API (github.com, ghe.com)。
+	// 为 true 时，mutation 直接使用登录名(login)而不是解析节点 ID。
+	// 待 GHES 支持 replaceActorsForAssignable 与 requestReviewsByLogin mutation 后，
+	// 可移除该 flag(并收敛为仅 actor 路径)。
 	ApiActorsSupported bool
 
 	Body  string
@@ -41,7 +41,7 @@ type IssueMetadataState struct {
 
 	MetadataResult *api.RepoMetadataResult
 
-	dirty bool // whether user i/o has modified this
+	dirty bool // 用户输入/输出是否修改过该状态
 }
 
 func (tb *IssueMetadataState) MarkDirty() {
@@ -65,12 +65,12 @@ func FillFromJSON(io *iostreams.IOStreams, recoverFile string, state *IssueMetad
 	var err error
 	data, err = io.ReadUserFile(recoverFile)
 	if err != nil {
-		return fmt.Errorf("failed to read file %s: %w", recoverFile, err)
+		return fmt.Errorf("读取文件 %s 失败: %w", recoverFile, err)
 	}
 
 	err = json.Unmarshal(data, state)
 	if err != nil {
-		return fmt.Errorf("JSON parsing failure: %w", err)
+		return fmt.Errorf("JSON 解析失败: %w", err)
 	}
 
 	return nil

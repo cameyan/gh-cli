@@ -62,7 +62,7 @@ func CommentList(io *iostreams.IOStreams, comments api.Comments, reviews api.Pul
 	hiddenCount := totalCount - retrievedCount
 
 	if preview && hiddenCount > 0 {
-		fmt.Fprint(&b, cs.Muted(fmt.Sprintf("———————— Not showing %s ————————", text.Pluralize(hiddenCount, "comment"))))
+		fmt.Fprint(&b, cs.Muted(fmt.Sprintf("———————— 未显示 %s ————————", text.Pluralize(hiddenCount, "条评论"))))
 		fmt.Fprintf(&b, "\n\n\n")
 	}
 
@@ -79,7 +79,7 @@ func CommentList(io *iostreams.IOStreams, comments api.Comments, reviews api.Pul
 	}
 
 	if preview && hiddenCount > 0 {
-		fmt.Fprint(&b, cs.Muted("Use --comments to view the full conversation"))
+		fmt.Fprint(&b, cs.Muted("使用 --comments 查看完整对话"))
 		fmt.Fprintln(&b)
 	}
 
@@ -94,7 +94,7 @@ func formatComment(io *iostreams.IOStreams, comment Comment, newest bool) (strin
 		return cs.Bold(formatHiddenComment(comment)), nil
 	}
 
-	// Header
+	// 头部
 	fmt.Fprint(&b, cs.Bold(comment.AuthorLogin()))
 	if comment.Status() != "" {
 		fmt.Fprint(&b, formatCommentStatus(cs, comment.Status()))
@@ -104,25 +104,25 @@ func formatComment(io *iostreams.IOStreams, comment Comment, newest bool) (strin
 	}
 	fmt.Fprint(&b, cs.Boldf(" • %s", text.FuzzyAgoAbbr(time.Now(), comment.Created())))
 	if comment.IsEdited() {
-		fmt.Fprint(&b, cs.Bold(" • Edited"))
+		fmt.Fprint(&b, cs.Bold(" • 已编辑"))
 	}
 	if newest {
 		fmt.Fprint(&b, cs.Bold(" • "))
-		fmt.Fprint(&b, cs.CyanBold("Newest comment"))
+		fmt.Fprint(&b, cs.CyanBold("最新评论"))
 	}
 	fmt.Fprintln(&b)
 
-	// Reactions
+	// 回应(reaction)
 	if reactions := ReactionGroupList(comment.Reactions()); reactions != "" {
 		fmt.Fprint(&b, reactions)
 		fmt.Fprintln(&b)
 	}
 
-	// Body
+	// 正文
 	var md string
 	var err error
 	if comment.Content() == "" {
-		md = fmt.Sprintf("\n  %s\n\n", cs.Muted("No body provided"))
+		md = fmt.Sprintf("\n  %s\n\n", cs.Muted("未提供正文"))
 	} else {
 		md, err = markdown.Render(comment.Content(),
 			markdown.WithTheme(io.TerminalTheme()),
@@ -133,9 +133,9 @@ func formatComment(io *iostreams.IOStreams, comment Comment, newest bool) (strin
 	}
 	fmt.Fprint(&b, md)
 
-	// Footer
+	// 页脚
 	if comment.Link() != "" {
-		fmt.Fprintf(&b, cs.Muted("View the full review: %s\n\n"), comment.Link())
+		fmt.Fprintf(&b, cs.Muted("查看完整审核(review): %s\n\n"), comment.Link())
 	}
 
 	return b.String(), nil
@@ -173,9 +173,9 @@ const (
 func formatCommentStatus(cs *iostreams.ColorScheme, status string) string {
 	switch status {
 	case approvedStatus:
-		return fmt.Sprintf(" %s", cs.Green("approved"))
+		return fmt.Sprintf(" %s", cs.Green("已批准(approved)"))
 	case changesRequestedStatus:
-		return fmt.Sprintf(" %s", cs.Red("requested changes"))
+		return fmt.Sprintf(" %s", cs.Red("已请求变更(requested changes)"))
 	case commentedStatus, dismissedStatus:
 		return fmt.Sprintf(" %s", strings.ToLower(status))
 	}
@@ -191,7 +191,7 @@ func formatRawCommentStatus(status string) string {
 		return strings.ReplaceAll(strings.ToLower(status), "_", " ")
 	}
 
-	return "none"
+	return "无"
 }
 
 func formatHiddenComment(comment Comment) string {
@@ -200,6 +200,6 @@ func formatHiddenComment(comment Comment) string {
 	if comment.Association() != "NONE" {
 		fmt.Fprintf(&b, " (%s)", text.Title(comment.Association()))
 	}
-	fmt.Fprintf(&b, " • This comment has been marked as %s\n\n", comment.HiddenReason())
+	fmt.Fprintf(&b, " • 该评论已被标记为 %s\n\n", comment.HiddenReason())
 	return b.String()
 }
