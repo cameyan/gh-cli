@@ -11,8 +11,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// longPager provides a pager over a commands Long message.
-// It is currently only used for the reference command
+// longPager 为命令的 Long 文档提供分页器(pager)。
+// 它目前仅用于 reference 命令。
 func longPager(io *iostreams.IOStreams) func(*cobra.Command, []string) {
 	return func(cmd *cobra.Command, args []string) {
 		wrapWidth := 0
@@ -52,23 +52,23 @@ func stringifyReference(cmd *cobra.Command) string {
 }
 
 func cmdRef(w io.Writer, cmd *cobra.Command, depth int) {
-	// Name + Description
+	// 名称 + 描述
 	fmt.Fprintf(w, "%s `%s`\n\n", strings.Repeat("#", depth), cmd.UseLine())
 	fmt.Fprintf(w, "%s\n\n", cmd.Short)
 
-	// Flags
-	// TODO: fold in InheritedFlags/PersistentFlags, but omit `--help` due to repetitiveness
+	// Flag
+	// TODO: 合并 InheritedFlags/PersistentFlags，但由于重复性省略 `--help`
 	if flagUsages := cmd.Flags().FlagUsages(); flagUsages != "" {
 		fmt.Fprintf(w, "```\n%s````\n\n", dedent(flagUsages))
 	}
 
-	// Aliases
+	// 别名(alias)
 	if len(cmd.Aliases) > 0 {
-		fmt.Fprintf(w, "%s\n\n", "Aliases")
+		fmt.Fprintf(w, "%s\n\n", "别名(Aliases)")
 		fmt.Fprintf(w, "\n%s\n\n", dedent(strings.Join(BuildAliasList(cmd, cmd.Aliases), ", ")))
 	}
 
-	// Subcommands
+	// 子命令
 	for _, c := range cmd.Commands() {
 		if c.Hidden {
 			continue

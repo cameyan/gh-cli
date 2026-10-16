@@ -12,19 +12,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewCmdOfficialExtensionStub creates a hidden stub command for an official
-// extension that has not yet been installed. When invoked, it suggests
-// installing the extension and, in interactive sessions, offers to do so
-// immediately. After a successful install, the extension is dispatched with
-// the original arguments.
+// NewCmdOfficialExtensionStub 为尚未安装的官方扩展(extension)创建一个隐藏的
+// stub 命令。被调用时，它会建议安装该扩展，并在交互式会话中提供立即安装的选项。
+// 安装成功后，将使用原始参数分发给该扩展。
 func NewCmdOfficialExtensionStub(io *iostreams.IOStreams, p prompter.Prompter, em extensions.ExtensionManager, ext *extensions.OfficialExtension) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     ext.Name,
-		Short:   fmt.Sprintf("Install the official %s extension", ext.Name),
+		Short:   fmt.Sprintf("安装官方 %s 扩展", ext.Name),
 		Hidden:  true,
 		GroupID: "extension",
-		// Accept any args/flags the user may have passed so we don't get
-		// cobra validation errors before reaching RunE.
+		// 接受用户可能传入的任何参数/flag，以免在到达 RunE 之前
+		// 出现 cobra 校验错误。
 		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return officialExtensionStubRun(io, p, em, ext)
@@ -39,12 +37,12 @@ func NewCmdOfficialExtensionStub(io *iostreams.IOStreams, p prompter.Prompter, e
 func officialExtensionStubRun(io *iostreams.IOStreams, p prompter.Prompter, em extensions.ExtensionManager, ext *extensions.OfficialExtension) error {
 	stderr := io.ErrOut
 
-	// In CI, skip the prompt so agents and CI runners don't block on Y/n.
+	// 在 CI 中跳过提示，以免 agent 与 CI 运行器因 Y/n 确认而阻塞。
 	if !ci.IsCI() {
 		if io.CanPrompt() {
 			prompt := heredoc.Docf(`
-				%[1]s is available as an official extension.
-				Would you like to install it now?
+				%[1]s 可作为官方扩展(extension)安装。
+				要现在安装它吗?
 			`, fmt.Sprintf("gh %s", ext.Name))
 			confirmed, err := p.Confirm(prompt, true)
 			if err != nil {
@@ -55,8 +53,8 @@ func officialExtensionStubRun(io *iostreams.IOStreams, p prompter.Prompter, em e
 			}
 		} else {
 			fmt.Fprint(stderr, heredoc.Docf(`
-				%[1]s is available as an official extension.
-				To install it, run:
+				%[1]s 可作为官方扩展(extension)安装。
+				安装命令:
 				  gh extension install %[2]s/%[3]s
 			`, fmt.Sprintf("gh %s", ext.Name), ext.Owner, ext.Repo))
 			return cmdutil.SilentError
@@ -64,13 +62,13 @@ func officialExtensionStubRun(io *iostreams.IOStreams, p prompter.Prompter, em e
 	}
 
 	repo := ext.Repository()
-	io.StartProgressIndicatorWithLabel(fmt.Sprintf("Installing %s/%s...", ext.Owner, ext.Repo))
+	io.StartProgressIndicatorWithLabel(fmt.Sprintf("正在安装 %s/%s...", ext.Owner, ext.Repo))
 	installErr := em.Install(repo, "")
 	io.StopProgressIndicator()
 	if installErr != nil {
-		return fmt.Errorf("failed to install extension: %w", installErr)
+		return fmt.Errorf("安装扩展(extension)失败: %w", installErr)
 	}
 
-	fmt.Fprintf(stderr, "Successfully installed %s/%s\n", ext.Owner, ext.Repo)
+	fmt.Fprintf(stderr, "已成功安装 %s/%s\n", ext.Owner, ext.Repo)
 	return nil
 }

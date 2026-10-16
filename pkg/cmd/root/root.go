@@ -65,13 +65,13 @@ func NewCmdRoot(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ve
 	io := f.IOStreams
 	cfg, err := f.Config()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read configuration: %s\n", err)
+		return nil, fmt.Errorf("读取配置失败: %s\n", err)
 	}
 
 	cmd := &cobra.Command{
 		Use:   "gh <command> <subcommand> [flags]",
 		Short: "GitHub CLI",
-		Long:  `Work seamlessly with GitHub from the command line.`,
+		Long:  `在命令行中与 GitHub 无缝协作。`,
 		Example: heredoc.Doc(`
 			$ gh issue create
 			$ gh repo clone cli/cli
@@ -81,11 +81,11 @@ func NewCmdRoot(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ve
 			"versionInfo": versionCmd.Format(version, buildDate),
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			// require that the user is authenticated before running most commands
+			// 要求用户在运行大多数命令之前已完成身份验证
 			if cmdutil.IsAuthCheckEnabled(cmd) && !cmdutil.CheckAuth(cfg) {
 				parent := cmd.Parent()
 				if parent != nil && parent.Use == "codespace" {
-					fmt.Fprintln(io.ErrOut, "To get started with GitHub CLI, please run:  gh auth login -s codespace")
+					fmt.Fprintln(io.ErrOut, "要开始使用 GitHub CLI，请运行:  gh auth login -s codespace")
 				} else {
 					fmt.Fprint(io.ErrOut, authHelp())
 				}
@@ -96,18 +96,18 @@ func NewCmdRoot(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ve
 		},
 	}
 
-	// cmd.SetOut(f.IOStreams.Out)    // can't use due to https://github.com/spf13/cobra/issues/1708
-	// cmd.SetErr(f.IOStreams.ErrOut) // just let it default to os.Stderr instead
+	// cmd.SetOut(f.IOStreams.Out)    // 由于 https://github.com/spf13/cobra/issues/1708 无法使用
+	// cmd.SetErr(f.IOStreams.ErrOut) // 就让它默认使用 os.Stderr 吧
 
-	cmd.PersistentFlags().Bool("help", false, "Show help for command")
+	cmd.PersistentFlags().Bool("help", false, "显示命令的帮助信息")
 
-	// override Cobra's default behaviors unless an opt-out has been set
+	// 除非设置了退出选项(opt-out)，否则覆盖 Cobra 的默认行为
 	if os.Getenv("GH_COBRA") == "" {
 		cmd.SilenceErrors = true
 		cmd.SilenceUsage = true
 
-		// this --version flag is checked in rootHelpFunc
-		cmd.Flags().Bool("version", false, "Show gh version")
+		// 这个 --version flag 在 rootHelpFunc 中检查
+		cmd.Flags().Bool("version", false, "显示 gh 版本")
 
 		cmd.SetHelpFunc(func(c *cobra.Command, args []string) {
 			rootHelpFunc(f, c, args)
@@ -120,15 +120,15 @@ func NewCmdRoot(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ve
 
 	cmd.AddGroup(&cobra.Group{
 		ID:    "core",
-		Title: "Core commands",
+		Title: "核心命令",
 	})
 	cmd.AddGroup(&cobra.Group{
 		ID:    "actions",
-		Title: "GitHub Actions commands",
+		Title: "GitHub Actions 命令",
 	})
 	cmd.AddGroup(&cobra.Group{
 		ID:    "extension",
-		Title: "Extension commands",
+		Title: "扩展命令",
 	})
 
 	// Child commands
@@ -152,14 +152,14 @@ func NewCmdRoot(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ve
 	cmd.AddCommand(previewCmd.NewCmdPreview(f))
 	cmd.AddCommand(skillsCmd.NewCmdSkills(f, telemetry))
 
-	// Root commands with standalone functionality and no subcommands
+	// 具有独立功能且没有子命令的根级命令
 	cmd.AddCommand(copilotCmd.NewCmdCopilot(f, telemetry, nil))
 	cmd.AddCommand(statusCmd.NewCmdStatus(f, nil))
 	cmd.AddCommand(creditsCmd.NewCmdCredits(f, nil))
 	cmd.AddCommand(licensesCmd.NewCmdLicenses(f))
 	cmd.AddCommand(sendTelemetryCmd.NewCmdSendTelemetry(f))
 
-	// below here at the commands that require the "intelligent" BaseRepo resolver
+	// 从这里往下是那些需要"智能" BaseRepo 解析器的命令
 	repoResolvingCmdFactory := *f
 	repoResolvingCmdFactory.BaseRepo = factory.SmartBaseRepoFunc(f)
 
@@ -178,24 +178,23 @@ func NewCmdRoot(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ve
 	cmd.AddCommand(cacheCmd.NewCmdCache(&repoResolvingCmdFactory))
 	cmd.AddCommand(apiCmd.NewCmdApi(&repoResolvingCmdFactory, nil))
 
-	// Help topics
+	// 帮助主题(help topic)
 	var referenceCmd *cobra.Command
 	for _, ht := range HelpTopics {
 		helpTopicCmd := NewCmdHelpTopic(f.IOStreams, ht)
 		cmd.AddCommand(helpTopicCmd)
 
-		// See bottom of the function for why we explicitly care about the reference cmd
+		// 关于我们为何显式关注 reference 命令，请参见函数底部
 		if ht.name == "reference" {
 			referenceCmd = helpTopicCmd
 		}
 	}
 
-	// Extensions
+	// 扩展(extension)
 	em := f.ExtensionManager
 	for _, e := range em.List() {
 		extensionCmd := NewCmdExtension(io, em, e, nil)
-		// Don't register an extension command if it would
-		// conflict with a core command.
+		// 若会与核心命令冲突，则不注册该扩展命令。
 		_, _, err := cmd.Find([]string{extensionCmd.Name()})
 		if err == nil {
 			continue
@@ -204,7 +203,7 @@ func NewCmdRoot(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ve
 		cmd.AddCommand(extensionCmd)
 	}
 
-	// Aliases
+	// 别名(alias)
 	aliases := cfg.Aliases()
 	validAliasName := shared.ValidAliasNameFunc(cmd)
 	validAliasExpansion := shared.ValidAliasExpansionFunc(cmd)
@@ -217,7 +216,7 @@ func NewCmdRoot(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ve
 			if !parentCmd.ContainsGroup("alias") {
 				parentCmd.AddGroup(&cobra.Group{
 					ID:    "alias",
-					Title: "Alias commands",
+					Title: "别名命令",
 				})
 			}
 			if strings.HasPrefix(aliasValue, "!") {
@@ -238,9 +237,8 @@ func NewCmdRoot(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ve
 		}
 	}
 
-	// Official extension stubs: hidden commands that suggest installing
-	// GitHub-owned extensions when invoked. Registered after real extensions
-	// and aliases so that both take priority over stubs.
+	// 官方扩展(extension)的 stub: 在被调用时建议安装 GitHub 官方扩展的隐藏命令。
+	// 在真实扩展与别名(alias)之后注册，以使二者优先于 stub。
 	for i := range extensions.OfficialExtensions {
 		ext := &extensions.OfficialExtensions[i]
 		if _, _, err := cmd.Find([]string{ext.Name}); err == nil {
@@ -252,11 +250,10 @@ func NewCmdRoot(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ve
 	cmdutil.DisableAuthCheck(cmd)
 	cmdutil.RecordTelemetryForSubcommands(cmd, telemetry)
 
-	// The reference command produces paged output that displays information on every other command.
-	// Therefore, we explicitly set the Long text and HelpFunc here after all other commands are registered.
-	// We experimented with producing the paged output dynamically when the HelpFunc is called but since
-	// doc generation makes use of the Long text, it is simpler to just be explicit here that this command
-	// is special.
+	// reference 命令产生分页的输出，显示所有其他命令的信息。
+	// 因此，在注册完所有其他命令之后，我们在这里显式设置 Long 文本与 HelpFunc。
+	// 我们曾试验过在调用 HelpFunc 时动态生成分页输出，但由于 doc 生成会使用 Long 文本，
+	// 在这里显式声明该命令是特殊的会更简单。
 	referenceCmd.Long = stringifyReference(cmd)
 	referenceCmd.SetHelpFunc(longPager(f.IOStreams))
 	return cmd, nil
