@@ -45,7 +45,7 @@ type listQueryOptions struct {
 }
 
 func (opts listQueryOptions) OrderBy() map[string]string {
-	// Set on copy to keep original intact.
+	// 在副本上设置，以保持原值不变。
 	if opts.Order == "" {
 		opts.Order = defaultOrder
 	}
@@ -63,8 +63,8 @@ func (opts listQueryOptions) OrderBy() map[string]string {
 	}
 }
 
-// listLabels lists the labels in the given repo. Pass -1 for limit to list all labels;
-// otherwise, only that number of labels is returned for any number of pages.
+// listLabels 列出给定仓库中的标签(label)。limit 传 -1 表示列出全部标签；
+// 否则无论有多少页，都只返回该数量的标签。
 func listLabels(client *http.Client, repo ghrepo.Interface, opts listQueryOptions) ([]label, int, error) {
 	if len(opts.fields) == 0 {
 		opts.fields = defaultFields
@@ -127,7 +127,7 @@ loop:
 }
 
 func determinePageSize(numRequestedItems int) int {
-	// If numRequestedItems is -1 then retrieve maxPageSize
+	// 若 numRequestedItems 为 -1，则返回 maxPageSize
 	if numRequestedItems < 0 || numRequestedItems > maxPageSize {
 		return maxPageSize
 	}
