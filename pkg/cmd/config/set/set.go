@@ -30,7 +30,7 @@ func NewCmdConfigSet(f *cmdutil.Factory, runF func(*SetOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "set <key> <value>",
-		Short: "Update configuration with a value for the given key",
+		Short: "用给定键的值更新配置",
 		Example: heredoc.Doc(`
 			$ gh config set editor vim
 			$ gh config set editor "code --wait"
@@ -56,7 +56,7 @@ func NewCmdConfigSet(f *cmdutil.Factory, runF func(*SetOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Hostname, "host", "h", "", "Set per-host setting")
+	cmd.Flags().StringVarP(&opts.Hostname, "host", "h", "", "设置按主机(per-host)划分的配置项")
 
 	return cmd
 }
@@ -69,7 +69,7 @@ func setRun(opts *SetOptions) error {
 	err := ValidateKey(opts.Key)
 	if err != nil {
 		warningIcon := opts.IO.ColorScheme().WarningIcon()
-		fmt.Fprintf(opts.IO.ErrOut, "%s warning: '%s' is not a known configuration key\n", warningIcon, opts.Key)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 警告: '%s' 不是已知的配置键\n", warningIcon, opts.Key)
 	}
 
 	err = ValidateValue(opts.Key, opts.Value)
@@ -79,7 +79,7 @@ func setRun(opts *SetOptions) error {
 			for _, v := range invalidValue.ValidValues {
 				values = append(values, fmt.Sprintf("'%s'", v))
 			}
-			return fmt.Errorf("failed to set %q to %q: valid values are %v", opts.Key, opts.Value, strings.Join(values, ", "))
+			return fmt.Errorf("将 %q 设置为 %q 失败: 有效值为 %v", opts.Key, opts.Value, strings.Join(values, ", "))
 		}
 	}
 
@@ -87,7 +87,7 @@ func setRun(opts *SetOptions) error {
 
 	err = opts.Config.Write()
 	if err != nil {
-		return fmt.Errorf("failed to write config to disk: %w", err)
+		return fmt.Errorf("将配置写入磁盘失败: %w", err)
 	}
 	return nil
 }
@@ -99,7 +99,7 @@ func ValidateKey(key string) error {
 		}
 	}
 
-	return fmt.Errorf("invalid key")
+	return fmt.Errorf("无效的键")
 }
 
 func validateScope(key, hostname string) error {
@@ -107,9 +107,9 @@ func validateScope(key, hostname string) error {
 		if key == configKey.Key {
 			switch {
 			case configKey.Scope == config.ConfigScopeHostOnly && hostname == "":
-				return fmt.Errorf("--host required when setting %s", key)
+				return fmt.Errorf("设置 %s 时必须提供 --host", key)
 			case configKey.Scope == config.ConfigScopeGlobalOnly && hostname != "":
-				return fmt.Errorf("--host cannot be used when setting %s", key)
+				return fmt.Errorf("设置 %s 时不能使用 --host", key)
 			default:
 				return nil
 			}
@@ -124,7 +124,7 @@ type InvalidValueError struct {
 }
 
 func (e InvalidValueError) Error() string {
-	return "invalid value"
+	return "无效的值"
 }
 
 func ValidateValue(key, value string) error {

@@ -25,7 +25,7 @@ func NewCmdConfigList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.
 
 	cmd := &cobra.Command{
 		Use:     "list",
-		Short:   "Print a list of configuration keys and values",
+		Short:   "打印配置键与其值的列表",
 		Aliases: []string{"ls"},
 		Args:    cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -37,7 +37,7 @@ func NewCmdConfigList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Hostname, "host", "h", "", "Get per-host configuration")
+	cmd.Flags().StringVarP(&opts.Hostname, "host", "h", "", "获取按主机(per-host)划分的配置")
 
 	return cmd
 }
