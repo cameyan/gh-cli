@@ -60,7 +60,7 @@ func SearchIssues(opts *IssuesOptions) error {
 	if opts.WebMode {
 		url := opts.Searcher.URL(opts.Query)
 		if io.IsStdoutTTY() {
-			fmt.Fprintf(io.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(url))
+			fmt.Fprintf(io.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(url))
 		}
 		return opts.Browser.Browse(url)
 	}
@@ -74,11 +74,11 @@ func SearchIssues(opts *IssuesOptions) error {
 		var msg string
 		switch opts.Entity {
 		case Both:
-			msg = "没有匹配您搜索的 issue 或拉取请求(PR)"
+			msg = "没有匹配您搜索的 issue 或 PR"
 		case Issues:
 			msg = "没有匹配您搜索的 issue"
 		case PullRequests:
-			msg = "没有匹配您搜索的拉取请求(PR)"
+			msg = "没有匹配您搜索的 PR"
 		}
 		return cmdutil.NewNoResultsError(msg)
 	}
@@ -86,7 +86,7 @@ func SearchIssues(opts *IssuesOptions) error {
 	if err := io.StartPager(); err == nil {
 		defer io.StopPager()
 	} else {
-		fmt.Fprintf(io.ErrOut, "启动分页器(pager)失败: %v\n", err)
+		fmt.Fprintf(io.ErrOut, "启动分页器失败: %v\n", err)
 	}
 
 	if opts.Exporter != nil {
@@ -145,11 +145,11 @@ func displayIssueResults(io *iostreams.IOStreams, now time.Time, et EntityType, 
 		var header string
 		switch et {
 		case Both:
-			header = fmt.Sprintf("显示 %d 条，共 %d 条 issue 和拉取请求(PR)\n\n", len(results.Items), results.Total)
+			header = fmt.Sprintf("显示 %d 条，共 %d 条 issue 和 PR\n\n", len(results.Items), results.Total)
 		case Issues:
 			header = fmt.Sprintf("显示 %d 条，共 %d 条 issue\n\n", len(results.Items), results.Total)
 		case PullRequests:
-			header = fmt.Sprintf("显示 %d 条，共 %d 条拉取请求(PR)\n\n", len(results.Items), results.Total)
+			header = fmt.Sprintf("显示 %d 条，共 %d 条 PR\n\n", len(results.Items), results.Total)
 		}
 		fmt.Fprintf(io.Out, "\n%s", header)
 	}

@@ -28,13 +28,13 @@ func TestNewCmdCreate(t *testing.T) {
 			name:    "no argument",
 			input:   "",
 			wantErr: true,
-			errMsg:  "Cannot create autolink: keyPrefix and urlTemplate arguments are both required",
+			errMsg:  "无法创建自动链接: 必须同时提供 keyPrefix 和 urlTemplate 参数",
 		},
 		{
 			name:    "one argument",
 			input:   "TEST-",
 			wantErr: true,
-			errMsg:  "Cannot create autolink: keyPrefix and urlTemplate arguments are both required",
+			errMsg:  "无法创建自动链接: 必须同时提供 keyPrefix 和 urlTemplate 参数",
 		},
 		{
 			name:  "two argument",
@@ -132,7 +132,7 @@ func TestCreateRun(t *testing.T) {
 				URLTemplate: "https://example.com/TICKET?query=<num>",
 			},
 			stubCreator: stubAutolinkCreator{},
-			wantStdout:  "✓ Created repository autolink 1 on OWNER/REPO\n",
+			wantStdout:  "✓ 已在仓库 OWNER/REPO 创建自动链接 1\n",
 		},
 		{
 			name: "success, numeric",
@@ -142,7 +142,7 @@ func TestCreateRun(t *testing.T) {
 				Numeric:     true,
 			},
 			stubCreator: stubAutolinkCreator{},
-			wantStdout:  "✓ Created repository autolink 1 on OWNER/REPO\n",
+			wantStdout:  "✓ 已在仓库 OWNER/REPO 创建自动链接 1\n",
 		},
 		{
 			name: "client error",
@@ -152,7 +152,7 @@ func TestCreateRun(t *testing.T) {
 			},
 			stubCreator: stubAutolinkCreator{err: testAutolinkClientCreateError{}},
 			expectedErr: testAutolinkClientCreateError{},
-			errMsg:      fmt.Sprint("error creating autolink: ", testAutolinkClientCreateError{}.Error()),
+			errMsg:      fmt.Sprint("创建自动链接时出错: ", testAutolinkClientCreateError{}.Error()),
 		},
 	}
 

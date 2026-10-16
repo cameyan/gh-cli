@@ -61,10 +61,10 @@ func TestListRun(t *testing.T) {
 			},
 			isTTY: true,
 			wantStdout: heredoc.Doc(`
-				TITLE          ID    KEY                  TYPE            ADDED
-				Mac            1234  ssh-rsa AAAABbBB123  authentication  about 1 day ago
-				hubot@Windows  5678  ssh-rsa EEEEEEEK247  authentication  about 1 day ago
-				Mac Signing    321   ssh-rsa AAAABbBB123  signing         about 1 day ago
+        标题           ID    密钥                 类型            添加时间
+        Mac            1234  ssh-rsa AAAABbBB123  authentication  about 1 day ago
+        hubot@Windows  5678  ssh-rsa EEEEEEEK247  authentication  about 1 day ago
+        Mac Signing    321   ssh-rsa AAAABbBB123  signing         about 1 day ago
 			`),
 			wantStderr: "",
 		},
@@ -107,10 +107,10 @@ func TestListRun(t *testing.T) {
 			},
 			isTTY: false,
 			wantStdout: heredoc.Doc(`
-				Mac	ssh-rsa AAAABbBB123	2020-08-31T15:44:24+02:00	1234	authentication
-				hubot@Windows	ssh-rsa EEEEEEEK247	2020-08-31T15:44:24+02:00	5678	authentication
-				Mac Signing	ssh-rsa AAAABbBB123	2020-08-31T15:44:24+02:00	321	signing
-			`),
+	Mac	ssh-rsa AAAABbBB123	2020-08-31T15:44:24+02:00	1234	authentication
+	hubot@Windows	ssh-rsa EEEEEEEK247	2020-08-31T15:44:24+02:00	5678	authentication
+	Mac Signing	ssh-rsa AAAABbBB123	2020-08-31T15:44:24+02:00	321	signing
+	`),
 			wantStderr: "",
 		},
 		{
@@ -138,11 +138,11 @@ func TestListRun(t *testing.T) {
 				},
 			},
 			wantStdout: heredoc.Doc(`
-				TITLE  ID    KEY                  TYPE            ADDED
-				Mac    1234  ssh-rsa AAAABbBB123  authentication  about 1 day ago
+        标题  ID    密钥                 类型            添加时间
+        Mac   1234  ssh-rsa AAAABbBB123  authentication  about 1 day ago
 			`),
 			wantStderr: heredoc.Doc(`
-			warning:  HTTP 404 (https://api.github.com/user/ssh_signing_keys?per_page=100)
+			警告:  HTTP 404 (https://api.github.com/user/ssh_signing_keys?per_page=100)
 			`),
 			wantErr: false,
 			isTTY:   true,
@@ -172,11 +172,11 @@ func TestListRun(t *testing.T) {
 				},
 			},
 			wantStdout: heredoc.Doc(`
-				TITLE  ID    KEY                  TYPE     ADDED
-				Mac    1234  ssh-rsa AAAABbBB123  signing  about 1 day ago
+        标题  ID    密钥                 类型     添加时间
+        Mac   1234  ssh-rsa AAAABbBB123  signing  about 1 day ago
 			`),
 			wantStderr: heredoc.Doc(`
-				warning:  HTTP 404 (https://api.github.com/user/keys?per_page=100)
+				警告:  HTTP 404 (https://api.github.com/user/keys?per_page=100)
 			`),
 			wantErr: false,
 			isTTY:   true,

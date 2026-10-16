@@ -70,7 +70,7 @@ func TestSearchIssues(t *testing.T) {
 				},
 			},
 			tty:        true,
-			wantStdout: "\nShowing 3 of 300 issues\n\nREPO       ID    TITLE             LABELS       UPDATED\ntest/cli   #123  something broken  bug, p1      about 1 year ago\nwhat/what  #456  feature request   enhancement  about 1 year ago\nblah/test  #789  some title                     about 1 year ago\n",
+			wantStdout: "\n显示 3 条，共 300 条 issue\n\n仓库       ID    标题              标签         更新时间\ntest/cli   #123  something broken  bug, p1      about 1 year ago\nwhat/what  #456  feature request   enhancement  about 1 year ago\nblah/test  #789  some title                     about 1 year ago\n",
 		},
 		{
 			name: "displays issues and pull requests tty",
@@ -91,7 +91,7 @@ func TestSearchIssues(t *testing.T) {
 				},
 			},
 			tty:        true,
-			wantStdout: "\nShowing 2 of 300 issues and pull requests\n\nKIND   REPO       ID    TITLE    LABELS   UPDATED\nissue  test/cli   #123  bug      bug, p1  about 1 year ago\npr     what/what  #456  fix bug  fix      about 1 year ago\n",
+			wantStdout: "\n显示 2 条，共 300 条 issue 和 PR\n\n类型   仓库       ID    标题     标签     更新时间\nissue  test/cli   #123  bug      bug, p1  about 1 year ago\npr     what/what  #456  fix bug  fix      about 1 year ago\n",
 		},
 		{
 			name: "displays results notty",
@@ -146,7 +146,7 @@ func TestSearchIssues(t *testing.T) {
 				},
 			},
 			wantErr: true,
-			errMsg:  "no issues matched your search",
+			errMsg:  "没有匹配您搜索的 issue",
 		},
 		{
 			name: "displays search error",
@@ -176,7 +176,7 @@ func TestSearchIssues(t *testing.T) {
 				WebMode: true,
 			},
 			tty:        true,
-			wantStderr: "Opening https://github.com/search in your browser.\n",
+			wantStderr: "正在浏览器中打开 https://github.com/search\n",
 		},
 		{
 			name: "opens browser for web mode notty",

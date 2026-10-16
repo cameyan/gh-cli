@@ -51,11 +51,12 @@ func NewCmdClone(f *cmdutil.Factory, runF func(*CloneOptions) error) *cobra.Comm
 
 			若 %[1]sOWNER/REPO%[1]s 仓库参数中的 %[1]sOWNER/%[1]s 部分被省略，则默认为当前认证用户的名称。
 
-			当仓库参数中未提供协议方案(scheme)时, 将从您的配置中选择 %[1]sgit_protocol%[1]s，可通过 %[1]sgh config get git_protocol%[1]s 查看。
+			当仓库参数中未提供协议方案时, 将从您的配置中选择 %[1]sgit_protocol%[1]s，可通过 %[1]sgh config get git_protocol%[1]s 查看。
 			若提供了协议方案，则将使用指定的协议克隆仓库。
 
-			若该仓库是一个派生(fork)仓库，其父仓库将被添加为一个额外的名为 %[1]supstream%[1]s 的 git 远程。远程名称可通过 %[1]s--upstream-remote-name%[1]s 配置。
-			%[1]s--upstream-remote-name%[1]s 选项支持 %[1]s@owner%[1]s 值，它将以父仓库的所有者命名该远程。
+			若该仓库是一个派生(fork)仓库，其父仓库将被添加为一个额外的名为 %[1]supstream%[1]s 的 git 远程。远程名称
+			可通过 %[1]s--upstream-remote-name%[1]s 配置。%[1]s--upstream-remote-name%[1]s 选项支持 %[1]s@owner%[1]s 值，
+			它将以父仓库的所有者命名该远程。
 
 			若该仓库是一个派生(fork)仓库，其父仓库将被设为默认远程仓库。若要跳过此行为，请使用 %[1]s--no-upstream%[1]s。
 		`, "`"),

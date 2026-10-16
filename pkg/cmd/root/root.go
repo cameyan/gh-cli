@@ -69,7 +69,7 @@ func NewCmdRoot(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ve
 	}
 
 	cmd := &cobra.Command{
-		Use:   "gh <命令> <子命令> [选项]",
+		Use:   "gh <command> <subcommand> [flags]",
 		Short: "GitHub CLI",
 		Long:  `在命令行中与 GitHub 无缝协作`,
 		Example: heredoc.Doc(`

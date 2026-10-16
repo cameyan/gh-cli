@@ -36,7 +36,7 @@ func TestAutolinkDeleter_Delete(t *testing.T) {
 			id:             "123",
 			stubStatus:     http.StatusNotFound,
 			expectErr:      true,
-			expectedErrMsg: "error deleting autolink: HTTP 404: Perhaps you are missing admin rights to the repository? (https://api.github.com/repos/OWNER/REPO/autolinks/123)",
+			expectedErrMsg: "删除自动链接时出错: HTTP 404: 可能缺少仓库的管理员权限？(https://api.github.com/repos/OWNER/REPO/autolinks/123)",
 		},
 		{
 			name: "500 unexpected error",

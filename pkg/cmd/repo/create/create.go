@@ -91,16 +91,19 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 
 			若 %[1]sOWNER/REPO%[1]s 名称参数中的 %[1]sOWNER/%[1]s 部分被省略，则默认为当前认证用户的名称。
 
-			若要从现有的本地仓库创建远程仓库，请通过 %[1]s--source%[1]s 指定源目录。
-			默认情况下，远程仓库名称将与源目录名称相同。
+			若要从现有的本地仓库创建远程仓库，请通过 %[1]s--source%[1]s 指定源目录。默认情况下，远程仓库名称将与源目录名称相同。
 
-			传入 %[1]s--push%[1]s 可将本地提交推送到新仓库。若仓库是裸仓库(bare)，则会镜像所有引用(refs)。
+			传入 %[1]s--push%[1]s 可将本地提交推送到新仓库。若仓库是裸仓库，则会镜像所有引用。
 
 			可与 %[1]s--gitignore%[1]s 搭配使用的语言或平台 .gitignore 模板，请见 <https://github.com/github/gitignore>。
 
-			可与 %[1]s--license%[1]s 搭配使用的许可证关键字，请运行 %[1]sgh repo license list%[1]s 或访问 <https://choosealicense.com>。
+			可与 %[1]s--license%[1]s 搭配使用的许可证关键字，请运行:
+			%[1]sgh repo license list%[1]s
+			或访问:
+			<https://choosealicense.com>。
 
-			仓库将使用已配置的仓库默认分支创建，参见 <https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-user-account-settings/managing-the-default-branch-name-for-your-repositories>。
+			仓库将使用已配置的仓库默认分支创建，参见:
+			<https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-user-account-settings/managing-the-default-branch-name-for-your-repositories>。
 		`, "`"),
 		Example: heredoc.Doc(`
 			# 以交互方式创建仓库

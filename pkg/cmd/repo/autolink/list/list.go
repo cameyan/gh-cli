@@ -40,7 +40,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*listOptions) error) *cobra.Comman
 		Long: heredoc.Doc(`
 			获取为仓库配置的所有自动链接引用。
 
-			自动链接信息仅对仓库管理员(admin)可见。
+			自动链接信息仅对仓库管理员可见。
 		`),
 		Aliases: []string{"ls"},
 		Args:    cobra.NoArgs,
@@ -77,7 +77,7 @@ func listRun(opts *listOptions) error {
 		autolinksListURL := ghrepo.GenerateRepoURL(repo, "settings/key_links")
 
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", autolinksListURL)
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", autolinksListURL)
 		}
 
 		return opts.Browser.Browse(autolinksListURL)
@@ -104,8 +104,9 @@ func listRun(opts *listOptions) error {
 
 	if opts.IO.IsStdoutTTY() {
 		title := fmt.Sprintf(
-			"显示 %s 中的 %d 个自动链接引用",
-			cs.Bold(ghrepo.FullName(repo)),
+			"正在显示仓库 %s 中的 %d 个自动链接引用",
+	        cs.Bold(ghrepo.FullName(repo)),
+	        len(autolinks),
 		)
 		fmt.Fprintf(opts.IO.Out, "\n%s\n\n", title)
 	}

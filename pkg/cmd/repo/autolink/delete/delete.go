@@ -38,7 +38,7 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*deleteOptions) error) *cobra.Co
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
 		Short: "删除自动链接引用",
-		Long:  "删除仓库的自动链接引用。",
+		Long:  "删除仓库的自动链接引用",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.BaseRepo = f.BaseRepo
@@ -53,7 +53,7 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*deleteOptions) error) *cobra.Co
 			opts.ID = args[0]
 
 			if !opts.IO.CanPrompt() && !opts.Confirmed {
-				return cmdutil.FlagErrorf("非交互式运行时必须提供 --yes 标志")
+				return cmdutil.FlagErrorf("非交互式运行必须提供 --yes 选项")
 			}
 
 			if runF != nil {
@@ -85,7 +85,7 @@ func deleteRun(opts *deleteOptions) error {
 	}
 
 	if opts.IO.CanPrompt() && !opts.Confirmed {
-		fmt.Fprintf(out, "自动链接 %s 的键前缀为 %s。\n", cs.Cyan(opts.ID), autolink.KeyPrefix)
+		fmt.Fprintf(out, "自动链接 %s 的键前缀为 %s\n", cs.Cyan(opts.ID), autolink.KeyPrefix)
 
 		err := opts.Prompter.ConfirmDeletion(autolink.KeyPrefix)
 
@@ -100,7 +100,7 @@ func deleteRun(opts *deleteOptions) error {
 	}
 
 	if opts.IO.IsStdoutTTY() {
-		fmt.Fprintf(out, "%s 已从 %s 中删除自动链接 %s\n", cs.SuccessIcon(), cs.Cyan(opts.ID), cs.Bold(ghrepo.FullName(repo)))
+		fmt.Fprintf(out, "%s 已从仓库 %s 中删除自动链接 %s\n", cs.SuccessIcon(), cs.Bold(ghrepo.FullName(repo)), cs.Cyan(opts.ID))
 	}
 
 	return nil

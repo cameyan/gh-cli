@@ -57,7 +57,7 @@ func TestNewCmdDelete(t *testing.T) {
 			input:   "123",
 			isTTY:   false,
 			wantErr: true,
-			errMsg:  "--yes required when not running interactively",
+			errMsg:  "非交互式运行必须提供 --yes 选项",
 		},
 	}
 	for _, tt := range tests {
@@ -158,8 +158,8 @@ func TestDeleteRun(t *testing.T) {
 				}
 			},
 			wantStdout: heredoc.Doc(`
-				Autolink 123 has key prefix TICKET-.
-				✓ Autolink 123 deleted from OWNER/REPO
+				自动链接 123 的键前缀为 TICKET-
+				✓ 已从仓库 OWNER/REPO 中删除自动链接 123
 			`),
 		},
 		{
@@ -178,7 +178,7 @@ func TestDeleteRun(t *testing.T) {
 				},
 			},
 			stubDeleter: stubAutolinkDeleter{},
-			wantStdout:  "✓ Autolink 123 deleted from OWNER/REPO\n",
+			wantStdout:  "✓ 已从仓库 OWNER/REPO 中删除自动链接 123\n",
 		},
 		{
 			name: "confirmation fails",
@@ -202,7 +202,7 @@ func TestDeleteRun(t *testing.T) {
 			},
 			expectedErr:    errTestPrompt,
 			expectedErrMsg: errTestPrompt.Error(),
-			wantStdout:     "Autolink 123 has key prefix TICKET-.\n",
+			wantStdout:     "自动链接 123 的键前缀为 TICKET-\n",
 		},
 		{
 			name: "view error",
@@ -215,7 +215,7 @@ func TestDeleteRun(t *testing.T) {
 			},
 			stubDeleter:    stubAutolinkDeleter{},
 			expectedErr:    errTestAutolinkClientView,
-			expectedErrMsg: "error deleting autolink: autolink client view error",
+			expectedErrMsg: "删除自动链接时出错: autolink client view error",
 		},
 		{
 			name: "delete error",
@@ -241,7 +241,7 @@ func TestDeleteRun(t *testing.T) {
 			},
 			expectedErr:    errTestAutolinkClientDelete,
 			expectedErrMsg: errTestAutolinkClientDelete.Error(),
-			wantStdout:     "Autolink 123 has key prefix TICKET-.\n",
+			wantStdout:     "自动链接 123 的键前缀为 TICKET-\n",
 		},
 		{
 			name: "no TTY",
@@ -271,7 +271,7 @@ func TestDeleteRun(t *testing.T) {
 			},
 			stubDeleter:    stubAutolinkDeleter{},
 			expectedErr:    errTestAutolinkClientView,
-			expectedErrMsg: "error deleting autolink: autolink client view error",
+			expectedErrMsg: "删除自动链接时出错: autolink client view error",
 		},
 		{
 			name: "no TTY delete error",

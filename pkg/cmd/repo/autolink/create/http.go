@@ -42,7 +42,7 @@ func (a *AutolinkCreator) Create(repo ghrepo.Interface, request AutolinkCreateRe
 	if err != nil {
 		var httpErr api.HTTPError
 		if errors.As(err, &httpErr) && httpErr.StatusCode == http.StatusNotFound {
-			httpErr.Message = "必须拥有仓库的管理员(admin)权限。"
+			httpErr.Message = "必须拥有仓库的管理员权限"
 			return nil, httpErr
 		}
 		return nil, err

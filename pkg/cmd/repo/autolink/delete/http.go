@@ -27,7 +27,7 @@ func (a *AutolinkDeleter) Delete(repo ghrepo.Interface, id string) error {
 	if err != nil {
 		var httpErr api.HTTPError
 		if errors.As(err, &httpErr) && httpErr.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("删除自动链接时出错: HTTP 404: 可能缺少仓库的管理员(admin)权限？(%s)", httpErr.RequestURL)
+			return fmt.Errorf("删除自动链接时出错: HTTP 404: 可能缺少仓库的管理员权限？(%s)", httpErr.RequestURL)
 		}
 		return err
 	}

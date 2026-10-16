@@ -42,8 +42,8 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*createOptions) error) *cobra.Co
 
 			%[1]skeyPrefix%[1]s 参数指定前缀，当该前缀后追加特定字符时将生成链接。
 
-			%[1]surlTemplate%[1]s 参数指定找到 keyPrefix 时生成的目标 URL，
-			其中必须包含表示引用编号的 %[1]s<num>%[1]s 变量。
+			%[1]surlTemplate%[1]s 参数指定找到 keyPrefix 时生成的目标 URL，其中必须包含表示引用编号
+			的 %[1]s<num>%[1]s 变量。
 
 			默认情况下，自动链接为字母数字类型，可使用 %[1]s--numeric%[1]s 标志创建数字类型的自动链接。
 
@@ -55,12 +55,12 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*createOptions) error) *cobra.Co
 			如果模板中包含多个 %[1]s<num>%[1]s 实例，仅第一个会被替换。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# 为键前缀 "TICKET-" 创建指向 example.com 的字母数字类型自动链接。
-			# 从 "TICKET-123abc" 生成 https://example.com/TICKET?query=123abc。
+			# 为键前缀 "TICKET-" 创建指向 example.com 的字母数字类型自动链接
+			# 从 "TICKET-123abc" 生成 https://example.com/TICKET?query=123abc
 			$ gh repo autolink create TICKET- "https://example.com/TICKET?query=<num>"
 
-			# 为键前缀 "STORY-" 创建指向 example.com 的数字类型自动链接。
-			# 从 "STORY-123" 生成 https://example.com/STORY?id=123。
+			# 为键前缀 "STORY-" 创建指向 example.com 的数字类型自动链接
+			# 从 "STORY-123" 生成 https://example.com/STORY?id=123
 			$ gh repo autolink create STORY- "https://example.com/STORY?id=<num>" --numeric
 		`),
 		Args:    cmdutil.ExactArgs(2, "无法创建自动链接: 必须同时提供 keyPrefix 和 urlTemplate 参数"),
@@ -109,10 +109,10 @@ func createRun(opts *createOptions) error {
 
 	cs := opts.IO.ColorScheme()
 	fmt.Fprintf(opts.IO.Out,
-		"%s 已在 %s 上创建仓库自动链接 %s\n",
+		"%s 已在仓库 %s 创建自动链接 %s\n",
 		cs.SuccessIconWithColor(cs.Green),
-		cs.Cyanf("%d", autolink.ID),
-		cs.Bold(ghrepo.FullName(repo)))
+		cs.Bold(ghrepo.FullName(repo)),
+		cs.Cyanf("%d", autolink.ID))
 
 	return nil
 }

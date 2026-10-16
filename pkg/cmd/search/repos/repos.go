@@ -41,7 +41,7 @@ func NewCmdRepos(f *cmdutil.Factory, runF func(*ReposOptions) error) *cobra.Comm
 		Long: heredoc.Docf(`
 			在 GitHub 上搜索仓库。
 
-			该命令支持使用 GitHub 搜索语法、参数与限定符(qualifier) flags，或两者的组合来构造查询。
+			该命令支持使用 GitHub 搜索语法、参数与限定符 flags，或两者的组合来构造查询。
 
 			GitHub 搜索语法文档见:
 			<https://docs.github.com/search-github/searching-on-github/searching-for-repositories>
@@ -58,16 +58,16 @@ func NewCmdRepos(f *cmdutil.Factory, runF func(*ReposOptions) error) *cobra.Comm
 			# 以独立参数的形式使用原始搜索限定符搜索仓库
 			$ gh search repos topic:github 'stars:>5000'
 
-			# 搜索 microsoft 组织中的公开(public)仓库
+			# 搜索 microsoft 组织中的公开仓库
 			$ gh search repos --owner=microsoft --visibility=public
 
-			# 搜索具有一组主题(topic)的仓库
+			# 搜索具有一组主题的仓库
 			$ gh search repos --topic=unix,terminal
 
 			# 按编程语言和 "good first issue" 数量搜索仓库
 			$ gh search repos --language=go --good-first-issues=">=10"
 
-			# 搜索没有 "linux" 主题(topic)的仓库
+			# 搜索没有 "linux" 主题的仓库
 			$ gh search repos -- -topic:linux
 
 			# 搜索时排除已归档的仓库
@@ -78,7 +78,7 @@ func NewCmdRepos(f *cmdutil.Factory, runF func(*ReposOptions) error) *cobra.Comm
 				return cmdutil.FlagErrorf("请指定搜索关键字或 flag")
 			}
 			if opts.Query.Limit < 1 || opts.Query.Limit > shared.SearchMaxResults {
-				return cmdutil.FlagErrorf("`--limit` must be between 1 and 1000")
+				return cmdutil.FlagErrorf("`--limit` 必须在 1 到 1000 之间")
 			}
 			if c.Flags().Changed("order") {
 				opts.Query.Order = order
@@ -105,13 +105,13 @@ func NewCmdRepos(f *cmdutil.Factory, runF func(*ReposOptions) error) *cobra.Comm
 
 	// 查询参数 flags
 	cmd.Flags().IntVarP(&opts.Query.Limit, "limit", "L", 30, "获取仓库的最大数量")
-	cmdutil.StringEnumFlag(cmd, &order, "order", "", "desc", []string{"asc", "desc"}, "返回仓库的排序方向，除非指定 '--sort' flag，否则将被忽略")
+	cmdutil.StringEnumFlag(cmd, &order, "order", "", "desc", []string{"asc", "desc"}, "返回仓库的排序方向，除非指定 '--sort' 选项，否则将被忽略")
 	cmdutil.StringEnumFlag(cmd, &sort, "sort", "", "best-match", []string{"forks", "help-wanted-issues", "stars", "updated"}, "对获取的仓库排序")
 
 	// 查询限定符(qualifier) flags
 	cmdutil.NilBoolFlag(cmd, &opts.Query.Qualifiers.Archived, "archived", "", "按仓库归档状态过滤 {true|false}")
 	cmd.Flags().StringVar(&opts.Query.Qualifiers.Created, "created", "", "按创建的 `date` 过滤")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Followers, "followers", "", "按关注者(follower) `number` 过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Followers, "followers", "", "按关注者 `number` 过滤")
 	cmdutil.StringEnumFlag(cmd, &opts.Query.Qualifiers.Fork, "include-forks", "", "", []string{"false", "true", "only"}, "在获取的仓库中包含 fork 仓库")
 	cmd.Flags().StringVar(&opts.Query.Qualifiers.Forks, "forks", "", "按 fork 的 `number` 过滤")
 	cmd.Flags().StringVar(&opts.Query.Qualifiers.GoodFirstIssues, "good-first-issues", "", "按带有 'good first issue' 标签的 issue `number` 过滤")
@@ -119,13 +119,13 @@ func NewCmdRepos(f *cmdutil.Factory, runF func(*ReposOptions) error) *cobra.Comm
 	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.In, "match", "", nil, []string{"name", "description", "readme"}, "将搜索限制在仓库的特定字段")
 	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.Is, "visibility", "", nil, []string{"public", "private", "internal"}, "按可见性过滤")
 	cmd.Flags().StringVar(&opts.Query.Qualifiers.Language, "language", "", "按编程语言过滤")
-	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.License, "license", nil, "按许可证(license)类型过滤")
+	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.License, "license", nil, "按许可证类型过滤")
 	cmd.Flags().StringVar(&opts.Query.Qualifiers.Pushed, "updated", "", "按最后更新的 `date` 过滤")
 	cmd.Flags().StringVar(&opts.Query.Qualifiers.Size, "size", "", "按大小范围过滤，单位为千字节(KB)")
 	cmd.Flags().StringVar(&opts.Query.Qualifiers.Stars, "stars", "", "按 star 的 `number` 过滤")
-	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.Topic, "topic", nil, "按主题(topic)过滤")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Topics, "number-topics", "", "按主题(topic)的 `number` 过滤")
-	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.User, "owner", nil, "按所有者(owner)过滤")
+	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.Topic, "topic", nil, "按主题过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Topics, "number-topics", "", "按主题的 `number` 过滤")
+	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.User, "owner", nil, "按所有者过滤")
 
 	return cmd
 }
@@ -135,7 +135,7 @@ func reposRun(opts *ReposOptions) error {
 	if opts.WebMode {
 		url := opts.Searcher.URL(opts.Query)
 		if io.IsStdoutTTY() {
-			fmt.Fprintf(io.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(url))
+			fmt.Fprintf(io.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(url))
 		}
 		return opts.Browser.Browse(url)
 	}
@@ -151,7 +151,7 @@ func reposRun(opts *ReposOptions) error {
 	if err := io.StartPager(); err == nil {
 		defer io.StopPager()
 	} else {
-		fmt.Fprintf(io.ErrOut, "启动分页器(pager)失败: %v\n", err)
+		fmt.Fprintf(io.ErrOut, "启动分页器失败: %v\n", err)
 	}
 	if opts.Exporter != nil {
 		return opts.Exporter.Write(io, result.Items)

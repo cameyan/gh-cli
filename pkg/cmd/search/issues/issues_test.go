@@ -25,7 +25,7 @@ func TestNewCmdIssues(t *testing.T) {
 			name:    "no arguments",
 			input:   "",
 			wantErr: true,
-			errMsg:  "specify search keywords or flags",
+			errMsg:  "请指定搜索关键字或 flag",
 		},
 		{
 			name:  "keyword arguments",
@@ -68,7 +68,7 @@ func TestNewCmdIssues(t *testing.T) {
 			name:    "invalid limit flag",
 			input:   "--limit 1001",
 			wantErr: true,
-			errMsg:  "`--limit` must be between 1 and 1000",
+			errMsg:  "`--limit` 必须在 1 到 1000 之间",
 		},
 		{
 			name:  "order flag",
@@ -117,7 +117,7 @@ func TestNewCmdIssues(t *testing.T) {
 			name:    "invalid author and app flags",
 			input:   "--author test --app dependabot",
 			wantErr: true,
-			errMsg:  "specify only `--author` or `--app`",
+			errMsg:  "只能指定 `--author` 或 `--app` 之一",
 		},
 		{
 			name: "qualifier flags",
@@ -209,25 +209,25 @@ func TestNewCmdIssues(t *testing.T) {
 			name:    "search-type semantic with include-prs flag",
 			input:   "test --search-type semantic --include-prs",
 			wantErr: true,
-			errMsg:  "semantic search is scoped to issues and cannot be combined with `--include-prs`",
+			errMsg:  "semantic 搜索仅限于 issue，不能与 `--include-prs` 组合使用",
 		},
 		{
 			name:    "search-type semantic with web flag",
 			input:   "test --search-type semantic --web",
 			wantErr: true,
-			errMsg:  "`--web` is not supported with semantic search",
+			errMsg:  "`--web` 不支持与 semantic 搜索同时使用",
 		},
 		{
 			name:    "search-type semantic with sort flag",
 			input:   "test --search-type semantic --sort comments",
 			wantErr: true,
-			errMsg:  "`--sort` and `--order` are not supported with semantic search",
+			errMsg:  "`--sort` 和 `--order` 不支持与 semantic 搜索同时使用",
 		},
 		{
 			name:    "search-type semantic with order flag",
 			input:   "test --search-type semantic --order asc",
 			wantErr: true,
-			errMsg:  "`--sort` and `--order` are not supported with semantic search",
+			errMsg:  "`--sort` 和 `--order` 不支持与 semantic 搜索同时使用",
 		},
 	}
 	for _, tt := range tests {

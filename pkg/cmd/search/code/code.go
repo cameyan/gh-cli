@@ -43,9 +43,8 @@ func NewCmdCode(f *cmdutil.Factory, runF func(*CodeOptions) error) *cobra.Comman
 			搜索语法文档见:
 			<https://docs.github.com/search-github/searching-on-github/searching-code>
 
-			注意: 这些搜索结果由现已属于遗留(legacy)的 GitHub 代码搜索引擎提供。
-			结果可能与 %[1]sgithub.com%[1]s 上看到的不一致，且正则搜索等新功能
-			尚未通过 GitHub API 提供。
+			注意: 这些搜索结果由现已属于遗留的 GitHub 代码搜索引擎提供。
+			结果可能与 %[1]sgithub.com%[1]s 上看到的不一致，且正则搜索等新功能尚未通过 GitHub API 提供。
 
 			有关处理包含连字符的搜索查询的更多信息，请运行 %[1]sgh search --help%[1]s。
 		`, "`"),
@@ -76,7 +75,7 @@ func NewCmdCode(f *cmdutil.Factory, runF func(*CodeOptions) error) *cobra.Comman
 				return cmdutil.FlagErrorf("请指定搜索关键字或 flag")
 			}
 			if opts.Query.Limit < 1 || opts.Query.Limit > shared.SearchMaxResults {
-				return cmdutil.FlagErrorf("`--limit` must be between 1 and 1000")
+				return cmdutil.FlagErrorf("`--limit` 必须在 1 到 1000 之间")
 			}
 			opts.Query.Keywords = args
 			if runF != nil {
@@ -102,10 +101,10 @@ func NewCmdCode(f *cmdutil.Factory, runF func(*CodeOptions) error) *cobra.Comman
 	cmd.Flags().StringVar(&opts.Query.Qualifiers.Extension, "extension", "", "按文件扩展名过滤")
 	cmd.Flags().StringVar(&opts.Query.Qualifiers.Filename, "filename", "", "按文件名过滤")
 	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.In, "match", "", nil, []string{"file", "path"}, "将搜索限制在文件内容或文件路径")
-	cmd.Flags().StringVarP(&opts.Query.Qualifiers.Language, "language", "", "", "按语言过滤结果")
+	cmd.Flags().StringVarP(&opts.Query.Qualifiers.Language, "language", "", "", "按编程语言过滤结果")
 	cmd.Flags().StringSliceVarP(&opts.Query.Qualifiers.Repo, "repo", "R", nil, "按仓库过滤，格式为 `OWNER/REPO`")
 	cmd.Flags().StringVar(&opts.Query.Qualifiers.Size, "size", "", "按大小范围过滤，单位为千字节(KB)")
-	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.User, "owner", nil, "按所有者(owner)过滤")
+	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.User, "owner", nil, "按仓库所有者过滤")
 
 	return cmd
 }
@@ -135,7 +134,7 @@ func codeRun(opts *CodeOptions) error {
 		}
 		url := opts.Searcher.URL(opts.Query)
 		if io.IsStdoutTTY() {
-			fmt.Fprintf(io.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(url))
+			fmt.Fprintf(io.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(url))
 		}
 		return opts.Browser.Browse(url)
 	}
@@ -151,7 +150,7 @@ func codeRun(opts *CodeOptions) error {
 	if err := io.StartPager(); err == nil {
 		defer io.StopPager()
 	} else {
-		fmt.Fprintf(io.ErrOut, "启动分页器(pager)失败: %v\n", err)
+		fmt.Fprintf(io.ErrOut, "启动分页器失败: %v\n", err)
 	}
 	if opts.Exporter != nil {
 		return opts.Exporter.Write(io, results.Items)

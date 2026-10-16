@@ -34,7 +34,7 @@ func NewCmdView(f *cmdutil.Factory, runF func(*viewOptions) error) *cobra.Comman
 	cmd := &cobra.Command{
 		Use:   "view <id>",
 		Short: "查看自动链接引用",
-		Long:  "查看仓库的自动链接引用。",
+		Long:  "查看仓库的自动链接引用",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			httpClient, err := f.HttpClient()
@@ -83,13 +83,13 @@ func viewRun(opts *viewOptions) error {
 	fmt.Fprint(out, cs.Bold("ID: "))
 	fmt.Fprintln(out, cs.Cyanf("%d", autolink.ID))
 
-	fmt.Fprint(out, cs.Bold("键前缀(keyPrefix): "))
+	fmt.Fprint(out, cs.Bold("键前缀: "))
 	fmt.Fprintln(out, autolink.KeyPrefix)
 
-	fmt.Fprint(out, cs.Bold("URL 模板(urlTemplate): "))
+	fmt.Fprint(out, cs.Bold("URL 模板: "))
 	fmt.Fprintln(out, autolink.URLTemplate)
 
-	fmt.Fprint(out, cs.Bold("字母数字(alphanumeric): "))
+	fmt.Fprint(out, cs.Bold("字母数字: "))
 	fmt.Fprintln(out, autolink.IsAlphanumeric)
 
 	return nil

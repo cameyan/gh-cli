@@ -29,7 +29,7 @@ func (a *AutolinkLister) List(repo ghrepo.Interface) ([]shared.Autolink, error) 
 	if err != nil {
 		var httpErr api.HTTPError
 		if errors.As(err, &httpErr) && httpErr.StatusCode == http.StatusNotFound {
-			return nil, fmt.Errorf("获取自动链接时出错: HTTP 404: 可能缺少仓库的管理员(admin)权限？(%s)", httpErr.RequestURL)
+			return nil, fmt.Errorf("获取自动链接时出错: HTTP 404: 可能缺少仓库的管理员权限？(%s)", httpErr.RequestURL)
 		}
 		return nil, err
 	}

@@ -27,7 +27,7 @@ func TestNewCmdCommits(t *testing.T) {
 			name:    "no arguments",
 			input:   "",
 			wantErr: true,
-			errMsg:  "specify search keywords or flags",
+			errMsg:  "请指定搜索关键字或 flag",
 		},
 		{
 			name:  "keyword arguments",
@@ -53,7 +53,7 @@ func TestNewCmdCommits(t *testing.T) {
 			name:    "invalid limit flag",
 			input:   "--limit 1001",
 			wantErr: true,
-			errMsg:  "`--limit` must be between 1 and 1000",
+			errMsg:  "`--limit` 必须在 1 到 1000 之间",
 		},
 		{
 			name:  "order flag",
@@ -197,7 +197,7 @@ func TestCommitsRun(t *testing.T) {
 				},
 			},
 			tty:        true,
-			wantStdout: "\nShowing 3 of 300 commits\n\nREPO         SHA       MESSAGE    AUTHOR      CREATED\ntest/cli     aaaaaaaa  hello      monalisa    about 21 days ago\ntest/cliing  bbbbbbbb  hi         johnnytest  about 21 days ago\ncli/cli      cccccccc  greetings  hubot       about 21 days ago\n",
+			wantStdout: "\n显示 3 条，共 300 条提交\n\n仓库         SHA       消息       作者        创建时间\ntest/cli     aaaaaaaa  hello      monalisa    about 21 days ago\ntest/cliing  bbbbbbbb  hi         johnnytest  about 21 days ago\ncli/cli      cccccccc  greetings  hubot       about 21 days ago\n",
 		},
 		{
 			name: "displays results notty",
@@ -245,7 +245,7 @@ func TestCommitsRun(t *testing.T) {
 				},
 			},
 			wantErr: true,
-			errMsg:  "no commits matched your search",
+			errMsg:  "没有匹配您搜索的提交",
 		},
 		{
 			name: "displays search error",
@@ -273,7 +273,7 @@ func TestCommitsRun(t *testing.T) {
 				WebMode: true,
 			},
 			tty:        true,
-			wantStderr: "Opening https://github.com/search in your browser.\n",
+			wantStderr: "正在浏览器中打开 https://github.com/search\n",
 		},
 		{
 			name: "opens browser for web mode notty",
