@@ -60,45 +60,44 @@ func NewCmdChecks(f *cmdutil.Factory, runF func(*ChecksOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "checks [<number> | <url> | <branch>]",
-		Short: "Show CI status for a single pull request",
+		Short: "显示单个拉取请求(PR)的 CI 状态",
 		Long: heredoc.Docf(`
-			Show CI status for a single pull request.
+			显示单个拉取请求(PR)的 CI 状态。
 
-			Without an argument, the pull request that belongs to the current branch
-			is selected.
+			若未提供参数，将选择属于当前分支的拉取请求(PR)。
 
-			When the %[1]s--json%[1]s flag is used, it includes a %[1]sbucket%[1]s field, which categorizes
-			the %[1]sstate%[1]s field into %[1]spass%[1]s, %[1]sfail%[1]s, %[1]spending%[1]s, %[1]sskipping%[1]s, or %[1]scancel%[1]s.
+			使用 %[1]s--json%[1]s flag 时，结果包含 %[1]sbucket%[1]s 字段，它将 %[1]sstate%[1]s 字段
+			归类为 %[1]spass%[1]s、%[1]sfail%[1]s、%[1]spending%[1]s、%[1]sskipping%[1]s 或 %[1]scancel%[1]s。
 
-			Additional exit codes:
-				8: Checks pending
+			附加的退出码:
+				8: 检查仍在等待中
 		`, "`"),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Finder = shared.NewFinder(f)
 
 			if opts.Exporter != nil && opts.Watch {
-				return cmdutil.FlagErrorf("cannot use `--watch` with `--json` flag")
+				return cmdutil.FlagErrorf("`--watch` 不能与 `--json` flag 同时使用")
 			}
 
 			if repoOverride, _ := cmd.Flags().GetString("repo"); repoOverride != "" && len(args) == 0 {
-				return cmdutil.FlagErrorf("argument required when using the `--repo` flag")
+				return cmdutil.FlagErrorf("使用 `--repo` flag 时必须提供位置参数")
 			}
 
 			if opts.FailFast && !opts.Watch {
-				return cmdutil.FlagErrorf("cannot use `--fail-fast` flag without `--watch` flag")
+				return cmdutil.FlagErrorf("`--fail-fast` flag 不能在没有 `--watch` flag 的情况下使用")
 			}
 
 			intervalChanged := cmd.Flags().Changed("interval")
 			if !opts.Watch && intervalChanged {
-				return cmdutil.FlagErrorf("cannot use `--interval` flag without `--watch` flag")
+				return cmdutil.FlagErrorf("`--interval` flag 不能在没有 `--watch` flag 的情况下使用")
 			}
 
 			if intervalChanged {
 				var err error
 				opts.Interval, err = time.ParseDuration(fmt.Sprintf("%ds", interval))
 				if err != nil {
-					return cmdutil.FlagErrorf("could not parse `--interval` flag: %w", err)
+					return cmdutil.FlagErrorf("无法解析 `--interval` flag: %w", err)
 				}
 			}
 
@@ -114,11 +113,11 @@ func NewCmdChecks(f *cmdutil.Factory, runF func(*ChecksOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "Open the web browser to show details about checks")
-	cmd.Flags().BoolVarP(&opts.Watch, "watch", "", false, "Watch checks until they finish")
-	cmd.Flags().BoolVarP(&opts.FailFast, "fail-fast", "", false, "Exit watch mode on first check failure")
-	cmd.Flags().IntVarP(&interval, "interval", "i", 10, "Refresh interval in seconds in watch mode")
-	cmd.Flags().BoolVar(&opts.Required, "required", false, "Only show checks that are required")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "打开 web 浏览器查看检查的详细信息")
+	cmd.Flags().BoolVarP(&opts.Watch, "watch", "", false, "持续监视检查直到它们完成")
+	cmd.Flags().BoolVarP(&opts.FailFast, "fail-fast", "", false, "首次检查失败时退出监视模式")
+	cmd.Flags().IntVarP(&interval, "interval", "i", 10, "监视模式下的刷新间隔(秒)")
+	cmd.Flags().BoolVar(&opts.Required, "required", false, "只显示必须(required)的检查")
 
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, prCheckFields)
 
@@ -139,7 +138,7 @@ func checksRunWebMode(opts *ChecksOptions) error {
 	openURL := ghrepo.GenerateRepoURL(baseRepo, "pull/%d/checks", pr.Number)
 
 	if isTerminal {
-		fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(openURL))
+		fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
 	}
 
 	return opts.Browser.Browse(openURL)
@@ -193,20 +192,20 @@ func checksRun(opts *ChecksOptions) error {
 	if opts.Watch {
 		opts.IO.StartAlternateScreenBuffer()
 	} else {
-		// Only start pager in non-watch mode
+		// 仅在非监视模式下启动分页器(pager)
 		if err := opts.IO.StartPager(); err == nil {
 			defer opts.IO.StopPager()
 		} else {
-			fmt.Fprintf(opts.IO.ErrOut, "failed to start pager: %v\n", err)
+			fmt.Fprintf(opts.IO.ErrOut, "启动分页器(pager)失败: %v\n", err)
 		}
 	}
 
-	// Do not return err until we can StopAlternateScreenBuffer()
+	// 在可以 StopAlternateScreenBuffer() 之前不要返回 err
 	for {
 		if counts.Pending != 0 && opts.Watch {
 			opts.IO.RefreshScreen()
 			cs := opts.IO.ColorScheme()
-			fmt.Fprintln(opts.IO.Out, cs.Boldf("Refreshing checks status every %v seconds. Press Ctrl+C to quit.\n", opts.Interval.Seconds()))
+			fmt.Fprintln(opts.IO.Out, cs.Boldf("每 %v 秒刷新一次检查状态。按 Ctrl+C 退出。\n", opts.Interval.Seconds()))
 		}
 
 		printSummary(opts.IO, counts)
@@ -237,7 +236,7 @@ func checksRun(opts *ChecksOptions) error {
 	}
 
 	if opts.Watch {
-		// Print final summary to original screen buffer
+		// 将最终汇总打印到原始屏幕缓冲区
 		printSummary(opts.IO, counts)
 		err = printTable(opts.IO, checks)
 		if err != nil {
@@ -284,7 +283,7 @@ func populateStatusChecks(client *http.Client, repo ghrepo.Interface, pr *api.Pu
 		}
 
 		if len(resp.Node.StatusCheckRollup.Nodes) == 0 {
-			return nil, checkCounts{}, errors.New("no commit found on the pull request")
+			return nil, checkCounts{}, errors.New("拉取请求(PR)上未找到提交")
 		}
 
 		result := resp.Node.StatusCheckRollup.Nodes[0].Commit.StatusCheckRollup.Contexts
@@ -300,12 +299,12 @@ func populateStatusChecks(client *http.Client, repo ghrepo.Interface, pr *api.Pu
 	}
 
 	if len(statusCheckRollup.Nodes) == 0 {
-		return nil, checkCounts{}, fmt.Errorf("no checks reported on the '%s' branch", pr.HeadRefName)
+		return nil, checkCounts{}, fmt.Errorf("'%s' 分支上没有任何检查报告", pr.HeadRefName)
 	}
 
 	checks, counts := aggregateChecks(statusCheckRollup.Nodes, requiredChecks)
 	if len(checks) == 0 && requiredChecks {
-		return checks, counts, fmt.Errorf("no required checks reported on the '%s' branch", pr.HeadRefName)
+		return checks, counts, fmt.Errorf("'%s' 分支上没有任何必须(required)检查报告", pr.HeadRefName)
 	}
 	return checks, counts, nil
 }

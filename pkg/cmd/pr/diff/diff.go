@@ -54,34 +54,32 @@ func NewCmdDiff(f *cmdutil.Factory, runF func(*DiffOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "diff [<number> | <url> | <branch>]",
-		Short: "View changes in a pull request",
+		Short: "查看拉取请求(PR)中的变更",
 		Long: heredoc.Docf(`
-			View changes in a pull request.
+			查看拉取请求(PR)中的变更。
 
-			Without an argument, the pull request that belongs to the current branch
-			is selected.
+			若未提供参数，将选择属于当前分支的拉取请求(PR)。
 
-			With %[1]s--web%[1]s flag, open the pull request diff in a web browser instead.
+			使用 %[1]s--web%[1]s flag 时，改为在 web 浏览器中打开拉取请求(PR)的差异(diff)。
 
-			Use %[1]s--exclude%[1]s to filter out files matching a glob pattern. The pattern
-			uses forward slashes as path separators on all platforms. You can repeat
-			the flag to exclude multiple patterns.
+			使用 %[1]s--exclude%[1]s 可过滤掉匹配 glob 模式的文件。该模式在所有平台上
+			均使用正斜杠作为路径分隔符。可以重复使用该 flag 以排除多个模式。
 
-			By default, terminal escape sequences in the diff are neutralized, since
-			they could manipulate your terminal. Pass %[1]s--allow-escape-sequences%[1]s to
-			print the diff verbatim, for example when piping a patch to another program.
+			默认情况下，差异(diff)中的终端转义序列会被中和，因为它们可能操纵您的终端。
+			传入 %[1]s--allow-escape-sequences%[1]s 可原样打印差异(diff)，
+			例如将补丁(patch)通过管道传给其他程序时。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# See diff for current branch
+			# 查看当前分支的差异(diff)
 			$ gh pr diff
 
-			# See diff for a specific PR
+			# 查看指定 PR 的差异(diff)
 			$ gh pr diff 123
 
-			# Exclude files from diff output
+			# 从差异(diff)输出中排除文件
 			$ gh pr diff --exclude '*.yml' --exclude 'generated/*'
 
-			# Exclude matching files by name
+			# 按文件名排除匹配的文件
 			$ gh pr diff --name-only --exclude '*.generated.*'
 		`),
 		Args: cobra.MaximumNArgs(1),
@@ -89,7 +87,7 @@ func NewCmdDiff(f *cmdutil.Factory, runF func(*DiffOptions) error) *cobra.Comman
 			opts.Finder = shared.NewFinder(f)
 
 			if repoOverride, _ := cmd.Flags().GetString("repo"); repoOverride != "" && len(args) == 0 {
-				return cmdutil.FlagErrorf("argument required when using the `--repo` flag")
+				return cmdutil.FlagErrorf("使用 `--repo` flag 时必须提供位置参数")
 			}
 
 			if len(args) > 0 {
@@ -104,7 +102,7 @@ func NewCmdDiff(f *cmdutil.Factory, runF func(*DiffOptions) error) *cobra.Comman
 			case "never":
 				opts.UseColor = false
 			default:
-				return fmt.Errorf("unsupported color %q", colorFlag)
+				return fmt.Errorf("不支持的颜色选项 %q", colorFlag)
 			}
 
 			if runF != nil {
@@ -114,12 +112,12 @@ func NewCmdDiff(f *cmdutil.Factory, runF func(*DiffOptions) error) *cobra.Comman
 		},
 	}
 
-	cmdutil.StringEnumFlag(cmd, &colorFlag, "color", "", "auto", []string{"always", "never", "auto"}, "Use color in diff output")
-	cmd.Flags().BoolVar(&opts.Patch, "patch", false, "Display diff in patch format")
-	cmd.Flags().BoolVar(&opts.NameOnly, "name-only", false, "Display only names of changed files")
-	cmd.Flags().BoolVarP(&opts.BrowserMode, "web", "w", false, "Open the pull request diff in the browser")
-	cmd.Flags().StringSliceVarP(&opts.Exclude, "exclude", "e", nil, "Exclude files matching glob `patterns` from the diff")
-	cmd.Flags().BoolVar(&opts.AllowEscapeSequences, "allow-escape-sequences", false, "Allow printing terminal escape sequences")
+	cmdutil.StringEnumFlag(cmd, &colorFlag, "color", "", "auto", []string{"always", "never", "auto"}, "在差异(diff)输出中使用颜色")
+	cmd.Flags().BoolVar(&opts.Patch, "patch", false, "以补丁(patch)格式显示差异(diff)")
+	cmd.Flags().BoolVar(&opts.NameOnly, "name-only", false, "仅显示变更文件的名称")
+	cmd.Flags().BoolVarP(&opts.BrowserMode, "web", "w", false, "在浏览器中打开拉取请求(PR)的差异(diff)")
+	cmd.Flags().StringSliceVarP(&opts.Exclude, "exclude", "e", nil, "从差异(diff)中排除匹配 glob `patterns` 的文件")
+	cmd.Flags().BoolVar(&opts.AllowEscapeSequences, "allow-escape-sequences", false, "允许打印终端转义序列")
 
 	return cmd
 }
@@ -142,7 +140,7 @@ func diffRun(opts *DiffOptions) error {
 	if opts.BrowserMode {
 		openUrl := fmt.Sprintf("%s/files", pr.URL)
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(openUrl))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openUrl))
 		}
 		return opts.Browser.Browse(openUrl)
 	}
@@ -158,7 +156,7 @@ func diffRun(opts *DiffOptions) error {
 
 	diffReadCloser, err := fetchDiff(httpClient, baseRepo, pr.Number, opts.Patch)
 	if err != nil {
-		return fmt.Errorf("could not find pull request diff: %w", err)
+		return fmt.Errorf("无法找到拉取请求(PR)的差异(diff): %w", err)
 	}
 	defer diffReadCloser.Close()
 
@@ -170,10 +168,10 @@ func diffRun(opts *DiffOptions) error {
 		}
 		diff = filtered
 	}
-	// A terminal shows escape sequences inert through ContentOut; piped output is
-	// faithful, so a diff carrying escape sequences is refused rather than silently
-	// altered. --allow-escape-sequences streams raw on both. The colored path
-	// always neutralizes, since it is terminal-bound.
+	// 终端通过 ContentOut 将转义序列以惰性形式显示；管道输出则是忠实的，
+	// 因此携带转义序列的差异(diff)会被拒绝，而不是被静默更改。
+	// --allow-escape-sequences 在两种情况下都以原始形式输出。
+	// 带颜色的路径始终进行中和，因为它面向终端。
 	if opts.AllowEscapeSequences {
 		opts.IO.SetContentSanitization(false)
 	}
@@ -181,7 +179,7 @@ func diffRun(opts *DiffOptions) error {
 	if err := opts.IO.StartPager(); err == nil {
 		defer opts.IO.StopPager()
 	} else {
-		fmt.Fprintf(opts.IO.ErrOut, "failed to start pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器(pager)失败: %v\n", err)
 	}
 
 	if opts.NameOnly {
@@ -198,7 +196,7 @@ func diffRun(opts *DiffOptions) error {
 			return err
 		}
 		if iostreams.ContainsEscapeSequence(data) {
-			return errors.New("the diff contains terminal escape sequences; pass --allow-escape-sequences to output it anyway")
+			return errors.New("该差异(diff)包含终端转义序列; 传入 --allow-escape-sequences 仍然输出")
 		}
 		opts.IO.SetContentSanitization(false)
 		_, err = opts.IO.ContentOut.Write(data)
@@ -220,8 +218,8 @@ func fetchDiff(httpClient *http.Client, baseRepo ghrepo.Interface, prNumber int,
 	}
 
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	resp, err := api.NewClientFromHTTP(httpClient).Request(baseRepo.RepoHost(), http.MethodGet, path.String(), nil,
 		api.WithHeader("Accept", acceptType))
 	if err != nil {
@@ -255,7 +253,7 @@ func colorDiffLines(w io.Writer, r io.Reader) error {
 			if errors.Is(err, io.EOF) {
 				break
 			}
-			return fmt.Errorf("error reading pull request diff: %w", err)
+			return fmt.Errorf("读取拉取请求(PR)差异(diff)出错: %w", err)
 		}
 
 		var color []byte
@@ -322,24 +320,24 @@ func changedFilesNames(w io.Writer, r io.Reader) error {
 		return err
 	}
 
-	// This is kind of a gnarly regex. We're looking lines of the format:
+	// 这个正则表达式有点复杂。我们要查找的是如下格式的行:
 	// diff --git a/9114-triage b/9114-triage
 	// diff --git "a/hello-\360\237\230\200-world" "b/hello-\360\237\230\200-world"
 	//
-	// From these lines we would look to extract:
+	// 从这些行中我们要提取:
 	// 9114-triage
 	// "hello-\360\237\230\200-world"
 	//
-	// Note that the b/ is removed but in the second case the preceding quote remains.
-	// This is important for how git handles filenames that would be quoted with core.quotePath.
+	// 注意 b/ 会被移除，但在第二种情况下前面的引号会保留。
+	// 这对 git 处理会被 core.quotePath 加引号的文件名非常重要。
 	// https://git-scm.com/docs/git-config#Documentation/git-config.txt-corequotePath
 	//
-	// Thus we capture the quote if it exists, and everything that follows the b/
-	// We then concatenate those two capture groups together which for the examples above would be:
+	// 因此我们捕获引号(如果存在)，以及 b/ 之后的所有内容。
+	// 然后我们将这两个捕获组拼接在一起，对于上面的示例，结果为:
 	// `` + 9114-triage
 	// `"`` + hello-\360\237\230\200-world"
 	//
-	// Where I'm using the `` to indicate a string to avoid confusion with the " character.
+	// 这里我用 `` 表示字符串，以避免与 " 字符混淆。
 	matches := diffHeaderRegexp.FindAllStringSubmatch(string(diff), -1)
 
 	for _, val := range matches {
@@ -358,8 +356,8 @@ func sanitizedReader(r io.Reader) io.Reader {
 
 var diffHeaderRegexp = regexp.MustCompile(`(?:^|\n)diff\s--git.*\s("?)b/(.*)`)
 
-// filterDiff reads a unified diff and returns a new reader with file entries
-// matching any of the exclude patterns removed.
+// filterDiff 读取统一格式(unified)的差异(diff)，返回移除了匹配任一排除模式的
+// 文件条目后的新 reader。
 func filterDiff(r io.Reader, excludePatterns []string) (io.Reader, error) {
 	data, err := io.ReadAll(r)
 	if err != nil {
@@ -377,9 +375,8 @@ func filterDiff(r io.Reader, excludePatterns []string) (io.Reader, error) {
 	return &result, nil
 }
 
-// splitDiffSections splits a unified diff string into per-file sections.
-// Each section starts with "diff --git" and includes all content up to (but
-// not including) the next "diff --git" line.
+// splitDiffSections 将统一格式(unified)的差异(diff)字符串按文件拆分为多个部分。
+// 每个部分以 "diff --git" 开头，包含直到(但不包括)下一个 "diff --git" 行之前的全部内容。
 func splitDiffSections(diff string) []string {
 	marker := "\ndiff --git "
 	parts := strings.Split(diff, marker)
@@ -412,7 +409,7 @@ func matchesAny(name string, excludePatterns []string) bool {
 		if matched, _ := path.Match(p, name); matched {
 			return true
 		}
-		// Also match against the basename so "*.yml" matches "dir/file.yml"
+		// 同时对基名(basename)进行匹配，使 "*.yml" 能匹配 "dir/file.yml"
 		if matched, _ := path.Match(p, path.Base(name)); matched {
 			return true
 		}
