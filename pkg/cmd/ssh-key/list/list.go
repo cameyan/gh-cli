@@ -32,7 +32,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:     "list",
-		Short:   "Lists SSH keys in your GitHub account",
+		Short:   "列出您 GitHub 账户中的 SSH 密钥",
 		Aliases: []string{"ls"},
 		Args:    cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -75,10 +75,10 @@ func listRun(opts *ListOptions) error {
 	sshKeys := append(sshAuthKeys, sshSigningKeys...)
 
 	if len(sshKeys) == 0 {
-		return cmdutil.NewNoResultsError("no SSH keys present in the GitHub account")
+		return cmdutil.NewNoResultsError("GitHub 账户中没有任何 SSH 密钥")
 	}
 
-	t := tableprinter.New(opts.IO, tableprinter.WithHeader("TITLE", "ID", "KEY", "TYPE", "ADDED"))
+	t := tableprinter.New(opts.IO, tableprinter.WithHeader("标题", "ID", "密钥", "类型", "添加时间"))
 	cs := opts.IO.ColorScheme()
 	now := time.Now()
 
@@ -119,7 +119,7 @@ func truncateMiddle(maxWidth int, t string) string {
 }
 
 func printError(w io.Writer, err error) {
-	fmt.Fprintln(w, "warning: ", err)
+	fmt.Fprintln(w, "警告: ", err)
 	if httpErr, ok := errors.AsType[api.HTTPError](err); ok {
 		if msg := httpErr.ScopesSuggestion(); msg != "" {
 			fmt.Fprintln(w, msg)
