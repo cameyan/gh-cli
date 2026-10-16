@@ -20,7 +20,7 @@ import (
 func NewCmdShellAlias(io *iostreams.IOStreams, aliasName, aliasValue string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   aliasName,
-		Short: fmt.Sprintf("%q 的 shell 别名(alias)", text.Truncate(80, aliasValue)),
+		Short: fmt.Sprintf("%q 的 shell 别名", text.Truncate(80, aliasValue)),
 		RunE: func(c *cobra.Command, args []string) error {
 			expandedArgs, err := expandShellAlias(aliasValue, args, nil)
 			if err != nil {
@@ -52,7 +52,7 @@ func NewCmdShellAlias(io *iostreams.IOStreams, aliasName, aliasValue string) *co
 func NewCmdAlias(io *iostreams.IOStreams, aliasName, aliasValue string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   aliasName,
-		Short: fmt.Sprintf("%q 的别名(alias)", text.Truncate(80, aliasValue)),
+		Short: fmt.Sprintf("%q 的别名", text.Truncate(80, aliasValue)),
 		RunE: func(c *cobra.Command, args []string) error {
 			expandedArgs, err := expandAlias(aliasValue, args)
 			if err != nil {
@@ -88,7 +88,7 @@ func expandAlias(expansion string, args []string) ([]string, error) {
 
 	lingeringRE := regexp.MustCompile(`\$\d`)
 	if lingeringRE.MatchString(expansion) {
-		return nil, fmt.Errorf("别名(alias)的参数不足: %s", expansion)
+		return nil, fmt.Errorf("别名参数不足: %s", expansion)
 	}
 
 	newArgs, err := shlex.Split(expansion)
@@ -127,9 +127,9 @@ func findSh() (string, error) {
 	if err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
 			if runtime.GOOS == "windows" {
-				return "", errors.New("无法找到用于执行 shell 别名(alias)的 sh。sh.exe 解释器通常随 Git for Windows 一起分发。")
+				return "", errors.New("无法找到用于执行 shell 别名的 sh，sh.exe 解释器通常随 Git for Windows 一起分发。")
 			}
-			return "", errors.New("无法找到用于执行 shell 别名(alias)的 sh")
+			return "", errors.New("无法找到用于执行 shell 别名的 sh")
 		}
 		return "", err
 	}

@@ -29,7 +29,7 @@ func NewCmdExtension(io *iostreams.IOStreams, em extensions.ExtensionManager, ex
 
 	cmd := &cobra.Command{
 		Use:   ext.Name(),
-		Short: fmt.Sprintf("扩展(extension) %s", ext.Name()),
+		Short: fmt.Sprintf("扩展 %s", ext.Name()),
 		// 仅在命令运行时，PreRun 才负责查询该扩展是否有最新版本。
 		PreRun: func(c *cobra.Command, args []string) {
 			go func() {
@@ -46,7 +46,7 @@ func NewCmdExtension(io *iostreams.IOStreams, em extensions.ExtensionManager, ex
 				if execError, ok := errors.AsType[*exec.ExitError](err); ok {
 					return &ExternalCommandExitError{execError}
 				}
-				return fmt.Errorf("运行扩展(extension)失败: %w\n", err)
+				return fmt.Errorf("运行扩展失败: %w\n", err)
 			}
 			return nil
 		},

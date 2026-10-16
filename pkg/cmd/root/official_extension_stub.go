@@ -41,7 +41,7 @@ func officialExtensionStubRun(io *iostreams.IOStreams, p prompter.Prompter, em e
 	if !ci.IsCI() {
 		if io.CanPrompt() {
 			prompt := heredoc.Docf(`
-				%[1]s 可作为官方扩展(extension)安装。
+				%[1]s 可作为官方扩展安装，
 				要现在安装它吗?
 			`, fmt.Sprintf("gh %s", ext.Name))
 			confirmed, err := p.Confirm(prompt, true)
@@ -53,7 +53,7 @@ func officialExtensionStubRun(io *iostreams.IOStreams, p prompter.Prompter, em e
 			}
 		} else {
 			fmt.Fprint(stderr, heredoc.Docf(`
-				%[1]s 可作为官方扩展(extension)安装。
+				%[1]s 可作为官方扩展安装，
 				安装命令:
 				  gh extension install %[2]s/%[3]s
 			`, fmt.Sprintf("gh %s", ext.Name), ext.Owner, ext.Repo))
@@ -66,7 +66,7 @@ func officialExtensionStubRun(io *iostreams.IOStreams, p prompter.Prompter, em e
 	installErr := em.Install(repo, "")
 	io.StopProgressIndicator()
 	if installErr != nil {
-		return fmt.Errorf("安装扩展(extension)失败: %w", installErr)
+		return fmt.Errorf("安装扩展失败: %w", installErr)
 	}
 
 	fmt.Fprintf(stderr, "已成功安装 %s/%s\n", ext.Owner, ext.Repo)

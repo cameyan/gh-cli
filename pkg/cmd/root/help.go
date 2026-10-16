@@ -18,7 +18,7 @@ import (
 )
 
 func rootUsageFunc(w io.Writer, command *cobra.Command) error {
-	fmt.Fprintf(w, "用法(Usage):  %s", command.UseLine())
+	fmt.Fprintf(w, "用法:  %s", command.UseLine())
 
 	var subcommands []*cobra.Command
 	for _, c := range command.Commands() {
@@ -38,7 +38,7 @@ func rootUsageFunc(w io.Writer, command *cobra.Command) error {
 
 	flagUsages := command.LocalFlags().FlagUsages()
 	if flagUsages != "" {
-		fmt.Fprintln(w, "\n\nFlag:")
+		fmt.Fprintln(w, "\n\n选项:")
 		fmt.Fprint(w, text.Indent(dedent(flagUsages), "  "))
 	}
 	return nil
@@ -141,10 +141,10 @@ func WriteHelp(w io.Writer, cs *iostreams.ColorScheme, command *cobra.Command) {
 	if longText != "" {
 		helpEntries = append(helpEntries, helpEntry{"", longText})
 	}
-	helpEntries = append(helpEntries, helpEntry{"用法(USAGE)", command.UseLine()})
+	helpEntries = append(helpEntries, helpEntry{"用法:", command.UseLine()})
 
 	if len(command.Aliases) > 0 {
-		helpEntries = append(helpEntries, helpEntry{"别名(ALIASES)", strings.Join(BuildAliasList(command, command.Aliases), ", ") + "\n"})
+		helpEntries = append(helpEntries, helpEntry{"别名:", strings.Join(BuildAliasList(command, command.Aliases), ", ") + "\n"})
 	}
 
 	// 为非扩展命令静态计算的填充宽度，
@@ -176,36 +176,36 @@ func WriteHelp(w io.Writer, cs *iostreams.ColorScheme, command *cobra.Command) {
 			helpTopics = append(helpTopics, rpad(helpTopic.name+":", namePadding)+helpTopic.short)
 		}
 		sort.Strings(helpTopics)
-		helpEntries = append(helpEntries, helpEntry{"帮助主题(HELP TOPICS)", strings.Join(helpTopics, "\n")})
+		helpEntries = append(helpEntries, helpEntry{"帮助主题:", strings.Join(helpTopics, "\n")})
 	}
 
 	flagUsages := command.LocalFlags().FlagUsages()
 	if flagUsages != "" {
-		helpEntries = append(helpEntries, helpEntry{"Flag(FLAGS)", dedent(flagUsages)})
+		helpEntries = append(helpEntries, helpEntry{"选项:", dedent(flagUsages)})
 	}
 	inheritedFlagUsages := command.InheritedFlags().FlagUsages()
 	if inheritedFlagUsages != "" {
-		helpEntries = append(helpEntries, helpEntry{"继承的 Flag(INHERITED FLAGS)", dedent(inheritedFlagUsages)})
+		helpEntries = append(helpEntries, helpEntry{"继承的选项:", dedent(inheritedFlagUsages)})
 	}
 	if _, ok := command.Annotations["help:json-fields"]; ok {
 		fields := strings.Split(command.Annotations["help:json-fields"], ",")
-		helpEntries = append(helpEntries, helpEntry{"JSON 字段(JSON FIELDS)", text.FormatSlice(fields, 80, 0, "", "", true)})
+		helpEntries = append(helpEntries, helpEntry{"JSON 字段:", text.FormatSlice(fields, 80, 0, "", "", true)})
 	}
 	if _, ok := command.Annotations["help:arguments"]; ok {
-		helpEntries = append(helpEntries, helpEntry{"参数(ARGUMENTS)", command.Annotations["help:arguments"]})
+		helpEntries = append(helpEntries, helpEntry{"参数:", command.Annotations["help:arguments"]})
 	}
 	if command.Example != "" {
-		helpEntries = append(helpEntries, helpEntry{"示例(EXAMPLES)", command.Example})
+		helpEntries = append(helpEntries, helpEntry{"示例:", command.Example})
 	}
 	if _, ok := command.Annotations["help:environment"]; ok {
-		helpEntries = append(helpEntries, helpEntry{"环境变量(ENVIRONMENT VARIABLES)", command.Annotations["help:environment"]})
+		helpEntries = append(helpEntries, helpEntry{"环境变量:", command.Annotations["help:environment"]})
 	}
-	helpEntries = append(helpEntries, helpEntry{"了解更多(LEARN MORE)", heredoc.Docf(`
-		使用 %[1]sgh <command> <subcommand> --help%[1]s 获取某个命令的更多信息。
-		在 https://cli.github.com/manual 阅读手册
-		使用 %[1]sgh help exit-codes%[1]s 了解退出码(exit code)
+	helpEntries = append(helpEntries, helpEntry{"了解更多:", heredoc.Docf(`
+		使用 %[1]sgh <command> <subcommand> --help%[1]s 获取某个命令的更多信息
+		在 https://cli.github.com/manual 中阅读手册
+		使用 %[1]sgh help exit-codes%[1]s 了解退出码
 		使用 %[1]sgh help accessibility%[1]s 了解无障碍体验
-	`, "`)"})
+	`, "`")})
 
 	for _, e := range helpEntries {
 		if e.Title != "" {
@@ -231,7 +231,7 @@ func authHelp() string {
 
 	if os.Getenv("CI") != "" {
 		return heredoc.Doc(`
-			gh: 要在自动化(automation)中使用 GitHub CLI，请设置 GH_TOKEN 环境变量。
+			gh: 要在自动化中使用 GitHub CLI，请设置 GH_TOKEN 环境变量。
 		`)
 	}
 
@@ -280,9 +280,9 @@ func GroupedCommands(cmd *cobra.Command) []CommandGroup {
 		}
 	}
 	if len(cmds) > 0 {
-		defaultGroupTitle := "其他命令"
+		defaultGroupTitle := "其他命令:"
 		if len(cmd.Groups()) == 0 {
-			defaultGroupTitle = "可用命令"
+			defaultGroupTitle = "可用命令:"
 		}
 		res = append(res, CommandGroup{
 			Title:    defaultGroupTitle,
