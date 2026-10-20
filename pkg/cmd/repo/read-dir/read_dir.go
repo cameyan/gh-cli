@@ -56,8 +56,7 @@ func NewCmdReadDir(f *cmdutil.Factory, runF func(*ReadDirOptions) error) *cobra.
 
 			此命令处于预览阶段，可能会随时变更，恕不另行通知。
 
-			默认情况下，从默认分支列出目录。使用 %[1]s--ref%[1]s 标志可以从特定的分支、标签或提交列出。
-			未指定路径时，将列出仓库根目录。
+			默认情况下，从默认分支列出目录。使用 %[1]s--ref%[1]s 选项可以从特定的分支、标签或提交列出。未指定路径时，将列出仓库根目录。
 		`, "`"),
 		Example: heredoc.Doc(`
 			# 列出默认分支的根目录
@@ -105,7 +104,7 @@ func readDirRun(opts *ReadDirOptions) error {
 
 	repo, err := opts.BaseRepo()
 	if err != nil {
-		return fmt.Errorf("%w。请在 git 仓库内运行此命令，或使用 `--repo` 标志指定仓库", err)
+		return fmt.Errorf("%w。请在 git 仓库内运行此命令，或使用 `--repo` 标志指定仓库。", err)
 	}
 
 	dir, err := fetchTree(httpClient, repo, opts.Path, opts.Ref)
@@ -131,7 +130,7 @@ func readDirRun(opts *ReadDirOptions) error {
 	}
 
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "启动分页器(pager)时出错: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器时出错: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 

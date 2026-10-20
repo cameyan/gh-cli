@@ -41,7 +41,7 @@ func TestNewCmdEdit(t *testing.T) {
 				Repository: ghrepo.NewWithHost("OWNER", "REPO", "github.com"),
 				Edits:      EditRepositoryInput{},
 			},
-			wantErr: "使用 --visibility 旗标时需要 --accept-visibility-change-consequences 旗标",
+			wantErr: "使用 --visibility 选项时需要 --accept-visibility-change-consequences 选项",
 		},
 		{
 			name: "allow public visibility change with accepting consequences",
@@ -60,7 +60,7 @@ func TestNewCmdEdit(t *testing.T) {
 				Repository: ghrepo.NewWithHost("OWNER", "REPO", "github.com"),
 				Edits:      EditRepositoryInput{},
 			},
-			wantErr: "使用 --visibility 旗标时需要 --accept-visibility-change-consequences 旗标",
+			wantErr: "使用 --visibility 选项时需要 --accept-visibility-change-consequences 选项",
 		},
 		{
 			name: "allow private visibility change with accepting consequences",
@@ -79,7 +79,7 @@ func TestNewCmdEdit(t *testing.T) {
 				Repository: ghrepo.NewWithHost("OWNER", "REPO", "github.com"),
 				Edits:      EditRepositoryInput{},
 			},
-			wantErr: "使用 --visibility 旗标时需要 --accept-visibility-change-consequences 旗标",
+			wantErr: "使用 --visibility 选项时需要 --accept-visibility-change-consequences 选项",
 		},
 		{
 			name: "allow internal visibility change with accepting consequences",
@@ -112,7 +112,7 @@ func TestNewCmdEdit(t *testing.T) {
 		{
 			name:    "squash merge commit message with invalid value",
 			args:    "--enable-squash-merge --squash-merge-commit-message blah",
-			wantErr: `--squash-merge-commit-message 的值无效: "blah"。有效值为: default, pr-title, pr-title-commits, pr-title-description`,
+			wantErr: `--squash-merge-commit-message 的值无效: "blah"，有效值为: default, pr-title, pr-title-commits, pr-title-description`,
 		},
 		{
 			name:    "squash merge commit message with enable-squash-merge=false",
@@ -370,7 +370,7 @@ func Test_editRun_interactive(t *testing.T) {
 					func(_ string, _, opts []string) ([]int, error) {
 						return []int{10}, nil
 					})
-				pm.RegisterConfirm("是否允许派生(fork)(组织仓库)?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否允许 fork(组织仓库)?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
 			},
@@ -451,7 +451,7 @@ func Test_editRun_interactive(t *testing.T) {
 					}`))
 				reg.Exclude(t, httpmock.REST("PATCH", "repos/OWNER/REPO"))
 			},
-			wantsStderr: "将仓库可见性更改为 private 将导致永久失去 10 stars 和 0 watchers。",
+			wantsStderr: "将仓库可见性更改为 private 将导致永久失去 10 stars 和 0 watchers",
 		},
 		{
 			name: "changing visibility with confirmation",
@@ -525,16 +525,16 @@ func Test_editRun_interactive(t *testing.T) {
 				pm.RegisterInput("仓库主页 URL", func(_, _ string) (string, error) {
 					return "https://zombo.com", nil
 				})
-				pm.RegisterConfirm("是否启用议题(issues)?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否启用 issue ?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
-				pm.RegisterConfirm("是否启用项目(projects)?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否启用项目?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
 				pm.RegisterConfirm("是否转换为模板仓库?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
-				pm.RegisterConfirm("是否启用维基(wiki)?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否启用 wiki ?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
 			},

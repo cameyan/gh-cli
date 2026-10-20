@@ -30,7 +30,7 @@ func TestViewRun(t *testing.T) {
 			name:    "No template",
 			opts:    &ViewOptions{},
 			wantErr: true,
-			errMsg:  "no template provided",
+			errMsg:  "未提供模板",
 		},
 		{
 			name:    "happy path with template",
@@ -76,7 +76,7 @@ func TestViewRun(t *testing.T) {
 			name:    "non-existent template",
 			opts:    &ViewOptions{Template: "non-existent"},
 			wantErr: true,
-			errMsg:  "'non-existent' is not a valid gitignore template. Run `gh repo gitignore list` for options",
+			errMsg:  "'non-existent' 不是有效的 gitignore 模板名称，请运行 `gh repo gitignore list` 以查看可用列表。",
 			httpStubs: func(t *testing.T, reg *httpmock.Registry) {
 				reg.Register(
 					httpmock.REST("GET", "gitignore/templates/non-existent"),

@@ -181,7 +181,7 @@ func Test_RepoView_Web(t *testing.T) {
 		{
 			name:       "tty",
 			stdoutTTY:  true,
-			wantStderr: "Opening https://github.com/OWNER/REPO in your browser.\n",
+			wantStderr: "正在浏览器中打开 https://github.com/OWNER/REPO\n",
 			wantBrowse: "https://github.com/OWNER/REPO",
 		},
 		{
@@ -242,8 +242,8 @@ func Test_ViewRun(t *testing.T) {
 		{
 			name: "nontty",
 			wantOut: heredoc.Doc(`
-				name:	OWNER/REPO
-				description:	social distancing
+				仓库名称:	OWNER/REPO
+				仓库描述:	social distancing
 				--
 				# truly cool readme check it out
 				`),
@@ -264,7 +264,7 @@ func Test_ViewRun(t *testing.T) {
 
 
 
-				View this repository on GitHub: https://github.com/jill/valentine
+				在 GitHub 上查看此仓库: https://github.com/jill/valentine
 			`),
 		},
 		{
@@ -283,7 +283,7 @@ func Test_ViewRun(t *testing.T) {
 
 
 
-				View this repository on GitHub: https://github.com/jill/valentine
+				在 GitHub 上查看此仓库: https://github.com/jill/valentine
 			`),
 		},
 		{
@@ -301,7 +301,7 @@ func Test_ViewRun(t *testing.T) {
 
 
 
-				View this repository on GitHub: https://github.com/OWNER/REPO/tree/feat%2Fawesome
+				在 GitHub 上查看此仓库: https://github.com/OWNER/REPO/tree/feat%2Fawesome
 			`),
 		},
 		{
@@ -316,7 +316,7 @@ func Test_ViewRun(t *testing.T) {
 
 
 
-				View this repository on GitHub: https://github.com/OWNER/REPO
+				在 GitHub 上查看此仓库: https://github.com/OWNER/REPO
 			`),
 		},
 	}
@@ -382,15 +382,15 @@ func Test_ViewRun_NonMarkdownReadme(t *testing.T) {
 
 			# truly cool readme check it out
 
-			View this repository on GitHub: https://github.com/OWNER/REPO
+			在 GitHub 上查看此仓库: https://github.com/OWNER/REPO
 			`),
 			stdoutTTY: true,
 		},
 		{
 			name: "nontty",
 			wantOut: heredoc.Doc(`
-			name:	OWNER/REPO
-			description:	social distancing
+			仓库名称:	OWNER/REPO
+			仓库描述:	social distancing
 			--
 			# truly cool readme check it out
 			`),
@@ -450,17 +450,17 @@ func Test_ViewRun_NoReadme(t *testing.T) {
 			OWNER/REPO
 			social distancing
 
-			This repository does not have a README
+			该仓库没有 README
 
-			View this repository on GitHub: https://github.com/OWNER/REPO
+			在 GitHub 上查看此仓库: https://github.com/OWNER/REPO
 			`),
 			stdoutTTY: true,
 		},
 		{
 			name: "nontty",
 			wantOut: heredoc.Doc(`
-			name:	OWNER/REPO
-			description:	social distancing
+			仓库名称:	OWNER/REPO
+			仓库描述:	social distancing
 			`),
 		},
 	}
@@ -514,19 +514,19 @@ func Test_ViewRun_NoDescription(t *testing.T) {
 			name: "tty",
 			wantOut: heredoc.Doc(`
 			OWNER/REPO
-			No description provided
+			未提供描述
 
 			# truly cool readme check it out
 
-			View this repository on GitHub: https://github.com/OWNER/REPO
+			在 GitHub 上查看此仓库: https://github.com/OWNER/REPO
 			`),
 			stdoutTTY: true,
 		},
 		{
 			name: "nontty",
 			wantOut: heredoc.Doc(`
-			name:	OWNER/REPO
-			description:	
+			仓库名称:	OWNER/REPO
+			仓库描述:	
 			--
 			# truly cool readme check it out
 			`),
@@ -614,8 +614,8 @@ func Test_ViewRun_WithoutUsername(t *testing.T) {
 	}
 
 	assert.Equal(t, heredoc.Doc(`
-			name:	OWNER/REPO
-			description:	social distancing
+			仓库名称:	OWNER/REPO
+			仓库描述:	social distancing
 			--
 			# truly cool readme check it out
 			`), stdout.String())
@@ -636,8 +636,8 @@ func Test_ViewRun_HandlesSpecialCharacters(t *testing.T) {
 		{
 			name: "nontty",
 			wantOut: heredoc.Doc(`
-				name:	OWNER/REPO
-				description:	Some basic special characters " & / < > '
+				仓库名称:	OWNER/REPO
+				仓库描述:	Some basic special characters " & / < > '
 				--
 				# < is always > than & ' and "
 				`),
@@ -654,7 +654,7 @@ func Test_ViewRun_HandlesSpecialCharacters(t *testing.T) {
 
 
 
-				View this repository on GitHub: https://github.com/OWNER/REPO
+				在 GitHub 上查看此仓库: https://github.com/OWNER/REPO
 			`),
 		},
 	}

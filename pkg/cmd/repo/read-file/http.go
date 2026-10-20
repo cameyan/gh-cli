@@ -132,7 +132,7 @@ func fetchFile(httpClient *http.Client, repo ghrepo.Interface, filePath, ref str
 		case "symlink":
 			return nil, fmt.Errorf("路径 %q 是指向 %q 的符号链接，而该目标不存在", content.Path, content.Target)
 		case "submodule":
-			return nil, fmt.Errorf("路径 %q 是子模块(submodule)(%s 位于 %s)", content.Path, content.SubmoduleGitURL, content.SHA)
+			return nil, fmt.Errorf("路径 %q 是子模块(%s 位于 %s)", content.Path, content.SubmoduleGitURL, content.SHA)
 		default:
 			return nil, fmt.Errorf("路径 %q 不是普通文件(类型: %s)", content.Path, content.Type)
 		}

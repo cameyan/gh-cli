@@ -35,26 +35,27 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view {<license-key> | <spdx-id>}",
-		Short: "View a specific repository license",
+		Short: "查看特定仓库许可证",
 		Long: heredoc.Docf(`
-			View a specific repository license by license key or SPDX ID.
+			通过许可证密钥或 SPDX ID 查看特定仓库的许可证。
 
-			Run %[1]sgh repo license list%[1]s to see available commonly used licenses. For even more licenses, visit <https://choosealicense.com/appendix>.
+			运行 %[1]sgh repo license list%[1]s 查看可用的常用许可证。如需更多许可证，请访问:
+			<https://choosealicense.com/appendix>
 		`, "`"),
 		Example: heredoc.Doc(`
-			# View the MIT license from SPDX ID
+			# 查看来自 SPDX ID 的 MIT 许可证
 			$ gh repo license view MIT
 
-			# View the MIT license from license key
+			# 查看来自许可证密钥的 MIT 许可证
 			$ gh repo license view mit
 
-			# View the GNU AGPL-3.0 license from SPDX ID
+			# 查看来自 SPDX ID 的 GNU AGPL-3.0 许可证
 			$ gh repo license view AGPL-3.0
 
-			# View the GNU AGPL-3.0 license from license key
+			# 查看来自许可证密钥的 GNU AGPL-3.0 许可证
 			$ gh repo license view agpl-3.0
 
-			# Create a LICENSE.md with the MIT license
+			# 创建一个包含 MIT 许可证的 LICENSE.md 文件
 			$ gh repo license view MIT > LICENSE.md
 		`),
 		Args: cobra.ExactArgs(1),
@@ -67,14 +68,14 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "Open https://choosealicense.com/ in the browser")
+	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "在浏览器中打开 https://choosealicense.com/")
 
 	return cmd
 }
 
 func viewRun(opts *ViewOptions) error {
 	if opts.License == "" {
-		return errors.New("no license provided")
+		return errors.New("未提供许可证")
 	}
 
 	client, err := opts.HTTPClient()
@@ -88,7 +89,7 @@ func viewRun(opts *ViewOptions) error {
 	}
 
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "starting pager failed: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -97,7 +98,7 @@ func viewRun(opts *ViewOptions) error {
 	if err != nil {
 		if httpErr, ok := errors.AsType[api.HTTPError](err); ok {
 			if httpErr.StatusCode == 404 {
-				return fmt.Errorf("'%s' is not a valid license name or SPDX ID.\n\nRun `gh repo license list` to see available commonly used licenses. For even more licenses, visit %s", opts.License, text.DisplayURL("https://choosealicense.com/appendix"))
+				return fmt.Errorf("'%s' 不是有效的许可证名称或 SPDX 标识符。\n\n运行 `gh repo license list` 查看可用的常用许可证。如需更多许可证，请访问 %s", opts.License, text.DisplayURL("https://choosealicense.com/appendix"))
 			}
 		}
 		return err
@@ -106,7 +107,7 @@ func viewRun(opts *ViewOptions) error {
 	if opts.Web {
 		url := fmt.Sprintf("https://choosealicense.com/licenses/%s", license.Key)
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.Out, "Opening %s in your browser.\n", text.DisplayURL(url))
+			fmt.Fprintf(opts.IO.Out, "正在浏览器中打开 %s\n", text.DisplayURL(url))
 		}
 		return opts.Browser.Browse(url)
 	}
@@ -119,8 +120,8 @@ func renderLicense(license *api.License, opts *ViewOptions) error {
 	var out strings.Builder
 	if opts.IO.IsStdoutTTY() {
 		out.WriteString(fmt.Sprintf("\n%s\n", cs.Muted(license.Description)))
-		out.WriteString(fmt.Sprintf("\n%s\n", cs.Mutedf("To implement: %s", license.Implementation)))
-		out.WriteString(fmt.Sprintf("\n%s\n\n", cs.Mutedf("For more information, see: %s", license.HTMLURL)))
+		out.WriteString(fmt.Sprintf("\n%s\n", cs.Mutedf("待实现: %s", license.Implementation)))
+		out.WriteString(fmt.Sprintf("\n%s\n\n", cs.Mutedf("如需更多信息，请参阅: %s", license.HTMLURL)))
 	}
 	out.WriteString(license.Body)
 	_, err := opts.IO.Out.Write([]byte(out.String()))

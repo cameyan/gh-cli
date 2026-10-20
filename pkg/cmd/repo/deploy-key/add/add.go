@@ -31,12 +31,11 @@ func NewCmdAdd(f *cmdutil.Factory, runF func(*AddOptions) error) *cobra.Command 
 
 	cmd := &cobra.Command{
 		Use:   "add <key-file>",
-		Short: "向 GitHub 仓库添加部署密钥(deploy key)",
+		Short: "向 GitHub 仓库添加部署密钥",
 		Long: heredoc.Doc(`
-			向 GitHub 仓库添加部署密钥(deploy key)。
+			向 GitHub 仓库添加部署密钥。
 
-			注意: 由 gh 添加的密钥将与当前身份验证令牌(token)关联。
-			如果您从账户中取消授权 GitHub CLI 应用或身份验证令牌，
+			注意: 由 gh 添加的密钥将与当前身份验证令牌关联。如果您从账户中取消授权 GitHub CLI 应用或身份验证令牌，
 			由 GitHub CLI 添加的部署密钥也将被一并移除。
 		`),
 		Example: heredoc.Doc(`

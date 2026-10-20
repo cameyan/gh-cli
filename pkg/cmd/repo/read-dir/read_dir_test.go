@@ -177,7 +177,7 @@ func Test_readDirRun(t *testing.T) {
 					return nil, errors.New("some error")
 				},
 			},
-			wantErrMsg: "some error. Run this command from within a git repository, or use the `--repo` flag to specify one",
+			wantErrMsg: "some error。请在 git 仓库内运行此命令，或使用 `--repo` 标志指定仓库。",
 		},
 		{
 			name: "root listing (tty)",
@@ -203,9 +203,9 @@ func Test_readDirRun(t *testing.T) {
 				)
 			},
 			wantOut: heredoc.Doc(`
-				Showing 5 entries in OWNER/REPO
+				显示 OWNER/REPO 中的 5 个条目
 
-				TYPE       NAME       SIZE
+				类型       名称       大小
 				dir        .github    -
 				file       README.md  2.0 KB
 				file*      build.sh   512 B
@@ -233,9 +233,9 @@ func Test_readDirRun(t *testing.T) {
 				)
 			},
 			wantOut: heredoc.Doc(`
-				Showing 1 entry in OWNER/REPO
+				显示 OWNER/REPO 中的 1 个条目
 
-				TYPE  NAME      SIZE
+				类型  名称      大小
 				file  only.txt  3 B
 			`),
 		},
@@ -267,9 +267,9 @@ func Test_readDirRun(t *testing.T) {
 				)
 			},
 			wantOut: heredoc.Doc(`
-				Showing 1 entry in OWNER/REPO/foo/bar
+				显示 OWNER/REPO/foo/bar 中的 1 个条目
 
-				TYPE  NAME     SIZE
+				类型  名称     大小
 				file  baz.txt  10 B
 			`),
 		},
@@ -396,7 +396,7 @@ func Test_readDirRun(t *testing.T) {
 					httpmock.StringResponse(`{"data":{"repository":{"object":{"__typename":"Tree","oid":"tree-sha","id":"tree-id","entries":[]}}}}`),
 				)
 			},
-			wantStderr: "No entries found in OWNER/REPO/empty\n",
+			wantStderr: "OWNER/REPO/empty 中未找到任何条目\n",
 		},
 		{
 			name: "empty root includes repo name in warning",
@@ -406,7 +406,7 @@ func Test_readDirRun(t *testing.T) {
 					httpmock.StringResponse(`{"data":{"repository":{"object":{"__typename":"Tree","oid":"tree-sha","id":"tree-id","entries":[]}}}}`),
 				)
 			},
-			wantStderr: "No entries found in OWNER/REPO\n",
+			wantStderr: "OWNER/REPO 中未找到任何条目\n",
 		},
 		{
 			name: "path not found",
@@ -419,7 +419,7 @@ func Test_readDirRun(t *testing.T) {
 					httpmock.StringResponse(`{"data":{"repository":{"object":null}}}`),
 				)
 			},
-			wantErrMsg: `could not find "missing" in OWNER/REPO`,
+			wantErrMsg: `在 OWNER/REPO 中找不到 "missing"`,
 		},
 		{
 			name: "path or ref not found with ref",
@@ -433,7 +433,7 @@ func Test_readDirRun(t *testing.T) {
 					httpmock.StringResponse(`{"data":{"repository":{"object":null}}}`),
 				)
 			},
-			wantErrMsg: `could not find "docs" at "nope" in OWNER/REPO (the path or ref may not exist)`,
+			wantErrMsg: `在 OWNER/REPO 的 "nope" 中找不到 "docs"(路径或 ref 可能不存在)`,
 		},
 		{
 			name: "repository not found surfaces the graphql error",
@@ -454,7 +454,7 @@ func Test_readDirRun(t *testing.T) {
 					httpmock.StringResponse(`{"data":{"repository":{"object":{"__typename":"Blob"}}}}`),
 				)
 			},
-			wantErrMsg: "\"README.md\" is a file, not a directory; use `gh repo read-file` instead",
+			wantErrMsg: "\"README.md\" 是文件而非目录；请改用 `gh repo read-file`",
 		},
 		{
 			name: "path points to a submodule",
@@ -465,7 +465,7 @@ func Test_readDirRun(t *testing.T) {
 					httpmock.StringResponse(`{"data":{"repository":{"object":{"__typename":"Commit"}}}}`),
 				)
 			},
-			wantErrMsg: `"vendor-lib" is not a directory`,
+			wantErrMsg: `"vendor-lib" 不是目录`,
 		},
 		{
 			name: "path points to a tag object",
@@ -476,7 +476,7 @@ func Test_readDirRun(t *testing.T) {
 					httpmock.StringResponse(`{"data":{"repository":{"object":{"__typename":"Tag"}}}}`),
 				)
 			},
-			wantErrMsg: `"some-tag" is not a directory`,
+			wantErrMsg: `"some-tag" 不是目录`,
 		},
 	}
 

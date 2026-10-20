@@ -41,8 +41,8 @@ func NewCmdCredits(f *cmdutil.Factory, runF func(*CreditsOptions) error) *cobra.
 
 	cmd := &cobra.Command{
 		Use:   "credits",
-		Short: "查看本工具的制作人员名单",
-		Long:  `查看 gh(您当前正在使用的工具)的动画制作人员名单 :)`,
+		Short: "查看 gh 工具的制作人员名单",
+		Long:  `查看 gh 工具的制作人员名单`,
 		Example: heredoc.Doc(`
 			# 查看本项目的制作人员名单动画
 			$ gh credits
@@ -192,7 +192,7 @@ func creditsRun(opts *CreditsOptions) error {
 	}
 	lines = append(lines, "")
 	lines = append(lines, logins...)
-	lines = append(lines, "( <3 press ctrl-c to quit <3 )")
+	lines = append(lines, "( <3 按 Ctrl-C 退出 <3 )")
 
 	termWidth, termHeight, err := utils.TerminalSize(out)
 	if err != nil {

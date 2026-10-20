@@ -132,7 +132,7 @@ func viewRun(opts *ViewOptions) error {
 	openURL := generateBranchURL(toView, opts.Branch)
 	if opts.Web {
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(openURL))
 		}
 		return opts.Browser.Browse(openURL)
 	}
@@ -141,7 +141,7 @@ func viewRun(opts *ViewOptions) error {
 	if err := opts.IO.StartPager(); err == nil {
 		defer opts.IO.StopPager()
 	} else {
-		fmt.Fprintf(opts.IO.ErrOut, "启动分页器(pager)失败: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 
 	if opts.Exporter != nil {
@@ -152,8 +152,8 @@ func viewRun(opts *ViewOptions) error {
 	stdout := opts.IO.Out
 
 	if !opts.IO.IsStdoutTTY() {
-		fmt.Fprintf(stdout, "名称(name):\t%s\n", fullName)
-		fmt.Fprintf(stdout, "描述(description):\t%s\n", repo.Description)
+		fmt.Fprintf(stdout, "仓库名称:\t%s\n", fullName)
+		fmt.Fprintf(stdout, "仓库描述:\t%s\n", repo.Description)
 		if readme != nil {
 			fmt.Fprintln(stdout, "--")
 			fmt.Fprint(stdout, readme.Content)

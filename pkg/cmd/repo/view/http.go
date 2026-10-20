@@ -15,7 +15,7 @@ import (
 	"golang.org/x/text/transform"
 )
 
-var NotFoundError = errors.New("not found")
+var NotFoundError = errors.New("未找到")
 
 type RepoReadme struct {
 	Filename string

@@ -66,12 +66,11 @@ func NewCmdReadFile(f *cmdutil.Factory, runF func(*ReadFileOptions) error) *cobr
 
 			默认情况下，从默认分支读取文件。使用 %[1]s--ref%[1]s 标志可以从特定的分支、标签或提交读取。
 
-			在 TTY 模式下运行时，内容通过分页器(pager)显示。当 stdout 被管道传输或重定向时，
-			原始内容会被直接写出。若要将文件保存到磁盘，请使用 %[1]s--output%[1]s 标志。
+			在 TTY 模式下运行时，内容通过分页器显示。当 stdout 被管道传输或重定向时，原始内容会被直接写出。
+			若要将文件保存到磁盘，请使用 %[1]s--output%[1]s 选项。
 
-			默认情况下，该命令拒绝输出包含终端转义序列的文件，因为它们可能操纵您的终端。
-			传入 %[1]s--allow-escape-sequences%[1]s 可以强制读取文件。
-			此检查仅适用于终端和管道输出；使用 %[1]s--output%[1]s 写入磁盘时始终包含原始字节，
+			默认情况下，该命令拒绝输出包含终端转义序列的文件，因为它们可能操纵您的终端。传入 %[1]s--allow-escape-sequences%[1]s
+			可以强制读取文件。此检查仅适用于终端和管道输出；使用 %[1]s--output%[1]s 写入磁盘时始终包含原始字节，
 			就如同传入了 %[1]s--allow-escape-sequences%[1]s 一样。
 		`, "`"),
 		Example: heredoc.Doc(`
@@ -199,7 +198,7 @@ func readFileRun(opts *ReadFileOptions) error {
 
 	if opts.IO.IsStdoutTTY() {
 		if err := opts.IO.StartPager(); err != nil {
-			fmt.Fprintf(opts.IO.ErrOut, "启动分页器(pager)时出错: %v\n", err)
+			fmt.Fprintf(opts.IO.ErrOut, "启动分页器时出错: %v\n", err)
 		}
 		defer opts.IO.StopPager()
 	}
@@ -277,7 +276,7 @@ func writeToOutput(file *repoFile, output string, clobber bool) (string, error) 
 	if asDir {
 		name = filepath.Base(file.Name)
 		if name == "." || !filepath.IsLocal(name) {
-			return "", fmt.Errorf("invalid output filename %q", file.Name)
+			return "", fmt.Errorf("无效的输出文件名 %q", file.Name)
 		}
 		outputDir = dest
 		dest = filepath.Join(dest, name)
@@ -296,7 +295,7 @@ func writeToOutput(file *repoFile, output string, clobber bool) (string, error) 
 
 	if err := writeOutputFile(outputDir, name, file.Content, 0o644, clobber); err != nil {
 		if os.IsExist(err) && !clobber {
-			return "", fmt.Errorf("output path already exists: %q (use --clobber to overwrite)", dest)
+			return "", fmt.Errorf("输出路径已存在: %q (使用 --clobber 覆盖)", dest)
 		}
 		return "", err
 	}

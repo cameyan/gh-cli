@@ -59,9 +59,8 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		Long: heredoc.Docf(`
 			列出某个用户或组织拥有的仓库。
 
-			请注意, 列表将仅包含由所提供参数拥有的仓库,
-			且 %[1]s--fork%[1]s 或 %[1]s--source%[1]s 旗标不会跨越所有权边界。例如,
-			在列出组织中的派生仓库时, 输出将不包含个人用户拥有的仓库。
+			请注意，列表将仅包含由所提供参数拥有的仓库，且 %[1]s--fork%[1]s 或 %[1]s--source%[1]s 选项不会跨越所有权边界。
+			例如，在列出组织中的派生仓库时，输出将不包含个人用户拥有的仓库。
 		`, "`"),
 		Aliases: []string{"ls"},
 		RunE: func(c *cobra.Command, args []string) error {
@@ -97,10 +96,10 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 	}
 
 	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", 30, "要列出的仓库数量上限")
-	cmd.Flags().BoolVar(&opts.Source, "source", false, "仅显示非派生仓库")
-	cmd.Flags().BoolVar(&opts.Fork, "fork", false, "仅显示派生仓库")
+	cmd.Flags().BoolVar(&opts.Source, "source", false, "仅显示非 fork 仓库")
+	cmd.Flags().BoolVar(&opts.Fork, "fork", false, "仅显示 fork 仓库")
 	cmd.Flags().StringVarP(&opts.Language, "language", "l", "", "按主要编码语言过滤")
-	cmd.Flags().StringSliceVarP(&opts.Topic, "topic", "", nil, "按主题(topic)过滤")
+	cmd.Flags().StringSliceVarP(&opts.Topic, "topic", "", nil, "按主题过滤")
 	cmdutil.StringEnumFlag(cmd, &opts.Visibility, "visibility", "", "", []string{"public", "private", "internal"}, "按仓库可见性过滤")
 	cmd.Flags().BoolVar(&opts.Archived, "archived", false, "仅显示已归档的仓库")
 	cmd.Flags().BoolVar(&opts.NonArchived, "no-archived", false, "省略已归档的仓库")

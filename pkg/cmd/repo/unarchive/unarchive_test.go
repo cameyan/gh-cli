@@ -78,10 +78,10 @@ func Test_UnarchiveRun(t *testing.T) {
 	}{
 		{
 			name:       "archived repo tty",
-			wantStdout: "✓ Unarchived repository OWNER/REPO\n",
+			wantStdout: "✓ 已取消归档仓库 OWNER/REPO\n",
 			prompterStubs: func(pm *prompter.PrompterMock) {
 				pm.ConfirmFunc = func(p string, d bool) (bool, error) {
-					if p == "Unarchive OWNER/REPO?" {
+					if p == "取消归档 OWNER/REPO？" {
 						return true, nil
 					}
 					return false, prompter.NoSuchPromptErr(p)
@@ -100,11 +100,11 @@ func Test_UnarchiveRun(t *testing.T) {
 		},
 		{
 			name:       "infer base repo",
-			wantStdout: "✓ Unarchived repository OWNER/REPO\n",
+			wantStdout: "✓ 已取消归档仓库 OWNER/REPO\n",
 			opts:       UnarchiveOptions{},
 			prompterStubs: func(pm *prompter.PrompterMock) {
 				pm.ConfirmFunc = func(p string, d bool) (bool, error) {
-					if p == "Unarchive OWNER/REPO?" {
+					if p == "取消归档 OWNER/REPO？" {
 						return true, nil
 					}
 					return false, prompter.NoSuchPromptErr(p)
@@ -122,7 +122,7 @@ func Test_UnarchiveRun(t *testing.T) {
 		},
 		{
 			name:       "unarchived repo tty",
-			wantStderr: "! Repository OWNER/REPO is not archived\n",
+			wantStderr: "! 仓库 OWNER/REPO 未被归档\n",
 			opts:       UnarchiveOptions{RepoArg: "OWNER/REPO"},
 			httpStubs: func(reg *httpmock.Registry) {
 				reg.Register(

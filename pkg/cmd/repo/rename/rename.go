@@ -158,12 +158,12 @@ func renameRun(opts *RenameOptions) error {
 	remote, err := updateRemote(currRepo, newRepo, opts)
 	if err != nil {
 		if remote != nil {
-			fmt.Fprintf(opts.IO.ErrOut, "%s 警告: 无法更新远程(remote) %q: %v\n", cs.WarningIcon(), remote.Name, err)
+			fmt.Fprintf(opts.IO.ErrOut, "%s 警告: 无法更新远程 %q: %v\n", cs.WarningIcon(), remote.Name, err)
 		} else {
-			fmt.Fprintf(opts.IO.ErrOut, "%s 警告: 无法更新远程(remote): %v\n", cs.WarningIcon(), err)
+			fmt.Fprintf(opts.IO.ErrOut, "%s 警告: 无法更新远程: %v\n", cs.WarningIcon(), err)
 		}
 	} else if opts.IO.IsStdoutTTY() {
-		fmt.Fprintf(opts.IO.Out, "%s 已更新 %q 远程(remote)\n", cs.SuccessIcon(), remote.Name)
+		fmt.Fprintf(opts.IO.Out, "%s 已更新 %q 远程\n", cs.SuccessIcon(), remote.Name)
 	}
 
 	return nil

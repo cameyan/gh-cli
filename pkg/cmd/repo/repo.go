@@ -46,12 +46,12 @@ func NewCmdRepo(f *cmdutil.Factory) *cobra.Command {
 		GroupID: "core",
 	}
 
-	cmdutil.AddGroup(cmd, "General commands",
+	cmdutil.AddGroup(cmd, "通用命令",
 		repoListCmd.NewCmdList(f, nil),
 		repoCreateCmd.NewCmdCreate(f, nil),
 	)
 
-	cmdutil.AddGroup(cmd, "Targeted commands",
+	cmdutil.AddGroup(cmd, "定向命令",
 		repoViewCmd.NewCmdView(f, nil),
 		repoCloneCmd.NewCmdClone(f, nil),
 		repoForkCmd.NewCmdFork(f, nil),

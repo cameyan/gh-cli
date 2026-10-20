@@ -47,7 +47,7 @@ func NewCmdUnarchive(f *cmdutil.Factory, runF func(*UnarchiveOptions) error) *co
 			}
 
 			if !opts.Confirmed && !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("非交互式运行时必须提供 --yes 标志")
+				return cmdutil.FlagErrorf("非交互式运行必须提供 --yes 选项")
 			}
 
 			if runF != nil {

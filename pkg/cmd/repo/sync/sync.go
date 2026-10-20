@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	notFastForwardErrorMessage     = "Update is not a fast forward"
-	branchDoesNotExistErrorMessage = "Reference does not exist"
+	notFastForwardErrorMessage     = "更新不等于快进"
+	branchDoesNotExistErrorMessage = "参考项不存在"
 )
 
 type SyncOptions struct {
@@ -46,14 +46,14 @@ func NewCmdSync(f *cmdutil.Factory, runF func(*SyncOptions) error) *cobra.Comman
 		Use:   "sync [<destination-repository>]",
 		Short: "同步仓库",
 		Long: heredoc.Docf(`
-			从源仓库同步目标仓库。同步使用源仓库的默认分支更新目标仓库上匹配的分支，
-			使两者一致。除指定 %[1]s--force%[1]s 标志外，将使用快进(fast forward)更新；
-			指定该标志时，将使用硬重置(hard reset)同步两个分支。
+			从源仓库同步目标仓库。
+
+			同步使用源仓库的默认分支更新目标仓库上匹配的分支，使两者一致。除指定 %[1]s--force%[1]s 选项外，
+			将使用快进(fast forward)更新；指定该选项时，将使用硬重置(hard reset)同步两个分支。
 
 			未提供参数时，本地仓库将被选为目标仓库。
 
-			默认情况下，源仓库是目标仓库的父仓库。
-			可以使用 %[1]s--source%[1]s 标志覆盖此行为。
+			默认情况下，源仓库是目标仓库的父仓库。可以使用 %[1]s--source%[1]s 选项覆盖此行为。
 		`, "`"),
 		Example: heredoc.Doc(`
 			# 从远程父仓库同步本地仓库
@@ -62,7 +62,7 @@ func NewCmdSync(f *cmdutil.Factory, runF func(*SyncOptions) error) *cobra.Comman
 			# 在特定分支上从远程父仓库同步本地仓库
 			$ gh repo sync --branch v1
 
-			# 从其父仓库同步远程复刻(fork)
+			# 从其父仓库同步远程 fork 仓库
 			$ gh repo sync owner/cli-fork
 
 			# 从另一个远程仓库同步远程仓库
@@ -81,7 +81,7 @@ func NewCmdSync(f *cmdutil.Factory, runF func(*SyncOptions) error) *cobra.Comman
 	}
 
 	cmd.Flags().StringVarP(&opts.SrcArg, "source", "s", "", "源仓库")
-	cmd.Flags().StringVarP(&opts.Branch, "branch", "b", "", "要同步的分支(默认为 [默认分支])")
+	cmd.Flags().StringVarP(&opts.Branch, "branch", "b", "", "待同步的分支(默认为 [默认分支])")
 	cmd.Flags().BoolVarP(&opts.Force, "force", "", false, "硬重置目标仓库的分支以匹配源仓库")
 	return cmd
 }
@@ -120,7 +120,7 @@ func syncLocalRepo(opts *SyncOptions) error {
 	if r, err := remotes.FindByRepo(srcRepo.RepoOwner(), srcRepo.RepoName()); err == nil {
 		remote = r.Name
 	} else {
-		return fmt.Errorf("找不到 %s 对应的远程(remote)", ghrepo.FullName(srcRepo))
+		return fmt.Errorf("找不到 %s 对应的远程", ghrepo.FullName(srcRepo))
 	}
 
 	if opts.Branch == "" {
@@ -259,13 +259,13 @@ func executeLocalRepoSync(srcRepo ghrepo.Interface, remote string, opts *SyncOpt
 			if err := git.UpdateBranch(branch, "FETCH_HEAD"); err != nil {
 				worktrees, worktreeErr := git.Worktrees()
 				if worktreeErr != nil {
-					return fmt.Errorf("无法更新分支 %q: %w；同时也无法获取工作树(worktree): %w", branch, err, worktreeErr)
+					return fmt.Errorf("无法更新分支 %q: %w；同时也无法获取工作树: %w", branch, err, worktreeErr)
 				}
 				if worktree := gitpkg.WorktreeForBranch(worktrees, branch); worktree != nil {
 					if worktree.Prunable {
-						return fmt.Errorf("无法同步 %q，因为过期的工作树(worktree)元数据仍将其关联到 %s\n提示: 运行 `git worktree prune` 后重试", branch, worktree.Path)
+						return fmt.Errorf("无法同步 %q，因为过期的工作树元数据仍将其关联到 %s\n提示: 运行 `git worktree prune` 后重试", branch, worktree.Path)
 					}
-					return fmt.Errorf("无法同步 %q，因为它已在 %s 处的另一个工作树(worktree)中检出\n提示: 请改为在该工作树中运行 `gh repo sync`", branch, worktree.Path)
+					return fmt.Errorf("无法同步 %q，因为它已在 %s 处的另一个工作树中检出\n提示: 请改为在该工作树中运行 `gh repo sync`", branch, worktree.Path)
 				}
 				return err
 			}
@@ -309,7 +309,7 @@ func executeRemoteRepoSync(client *api.Client, destRepo, srcRepo ghrepo.Interfac
 			return "", err
 		}
 		if srcRepo == nil {
-			return "", fmt.Errorf("无法确定 %s 的源仓库，因为该仓库不是复刻(fork)", ghrepo.FullName(destRepo))
+			return "", fmt.Errorf("无法确定 %s 的源仓库，因为该仓库不是 fork 仓库", ghrepo.FullName(destRepo))
 		}
 	}
 

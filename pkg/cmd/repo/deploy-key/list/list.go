@@ -36,7 +36,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:     "list",
-		Short:   "列出 GitHub 仓库中的部署密钥(deploy key)",
+		Short:   "列出 GitHub 仓库中的部署密钥",
 		Aliases: []string{"ls"},
 		Args:    cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {

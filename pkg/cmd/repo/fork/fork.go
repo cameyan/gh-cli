@@ -78,33 +78,31 @@ func NewCmdFork(f *cmdutil.Factory, runF func(*ForkOptions) error) *cobra.Comman
 		Use: "fork [<repository>] [-- <gitflags>...]",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if cmd.ArgsLenAtDash() == 0 && len(args[1:]) > 0 {
-				return cmdutil.FlagErrorf("传入 git clone 旗标时需要提供仓库参数")
+				return cmdutil.FlagErrorf("传入 git clone 选项时需要提供仓库参数")
 			}
 			return nil
 		},
-		Short: "创建仓库的派生(fork)",
+		Short: "创建一个派生(fork)仓库",
 		Long: heredoc.Docf(`
-			创建仓库的派生(fork)。
+			创建一个派生(fork)仓库。
 
-			不带参数时, 为当前仓库创建派生; 否则, 为指定的
-			仓库创建派生。
+			不带参数时，为当前仓库创建派生(fork)仓库。否则，为指定的仓库创建派生(fork)仓库。
 
-			默认情况下, 新的派生会被设为您的 %[1]sorigin%[1]s 远程, 并且任何现有的
-			origin 远程会被重命名为 %[1]supstream%[1]s。若要更改此行为, 可以通过
-			%[1]s--remote-name%[1]s 为新派生的远程设置名称。
+			默认情况下, 新的派生(fork)仓库会被设为您的 %[1]sorigin%[1]s 远程，并且任何现有的 origin 远程会被重命名为 %[1]supstream%[1]s。
+			若要更改此行为, 可以通过 %[1]s--remote-name%[1]s 为新派生(fork)仓库的远程设置名称。
 
 			%[1]supstream%[1]s 远程将被设为默认远程仓库。
 
-			可在 %[1]s--%[1]s 之后传入额外的 %[1]sgit clone%[1]s 旗标。
+			可在 %[1]s--%[1]s 之后传入额外的 %[1]sgit clone%[1]s 选项。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# 派生一个仓库
+			# 派生(fork)一个仓库
 			$ gh repo fork owner/repo
 
-			# 派生一个仓库并在本地克隆
+			# 派生(fork)一个仓库并在本地克隆
 			$ gh repo fork owner/repo --clone
 
-			# 派生一个仓库但不克隆, 并跳过提示
+			# 派生(fork)一个仓库但不克隆, 并跳过提示
 			$ gh repo fork owner/repo --clone=false
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -125,7 +123,7 @@ func NewCmdFork(f *cmdutil.Factory, runF func(*ForkOptions) error) *cobra.Comman
 			}
 
 			if opts.Repository != "" && cmd.Flags().Changed("remote") {
-				return cmdutil.FlagErrorf("提供了仓库参数时, 不支持 `--remote` 旗标")
+				return cmdutil.FlagErrorf("提供了仓库参数时，不支持 `--remote` 选项")
 			}
 
 			if promptOk {
@@ -144,15 +142,15 @@ func NewCmdFork(f *cmdutil.Factory, runF func(*ForkOptions) error) *cobra.Comman
 		if err == pflag.ErrHelp {
 			return err
 		}
-		return cmdutil.FlagErrorf("%w\n请使用 `--` 分隔 git clone 旗标", err)
+		return cmdutil.FlagErrorf("%w\n请使用 `--` 分隔 git clone 选项", err)
 	})
 
-	cmd.Flags().BoolVar(&opts.Clone, "clone", false, "克隆派生仓库")
-	cmd.Flags().BoolVar(&opts.Remote, "remote", false, "为派生仓库添加 git 远程")
+	cmd.Flags().BoolVar(&opts.Clone, "clone", false, "克隆 fork 仓库")
+	cmd.Flags().BoolVar(&opts.Remote, "remote", false, "为 fork 仓库添加 git 远程")
 	cmd.Flags().StringVar(&opts.RemoteName, "remote-name", defaultRemoteName, "指定新远程的名称")
-	cmd.Flags().StringVar(&opts.Organization, "org", "", "在组织中创建派生")
-	cmd.Flags().StringVar(&opts.ForkName, "fork-name", "", "重命名派生仓库")
-	cmd.Flags().BoolVar(&opts.DefaultBranchOnly, "default-branch-only", false, "派生中仅包含默认分支")
+	cmd.Flags().StringVar(&opts.Organization, "org", "", "在组织中创建 fork 仓库")
+	cmd.Flags().StringVar(&opts.ForkName, "fork-name", "", "重命名 fork 仓库")
+	cmd.Flags().BoolVar(&opts.DefaultBranchOnly, "default-branch-only", false, "fork 时仅包含默认分支")
 
 	return cmd
 }
@@ -215,7 +213,7 @@ func forkRun(opts *ForkOptions) error {
 	forkedRepo, err := api.ForkRepo(apiClient, repoToFork, opts.Organization, opts.ForkName, opts.DefaultBranchOnly)
 	opts.IO.StopProgressIndicator()
 	if err != nil {
-		return fmt.Errorf("派生失败: %w", err)
+		return fmt.Errorf("fork 失败: %w", err)
 	}
 
 	// 这有点奇怪。通过 GitHub API 无法高效地判断给定用户是否已经派生过给定仓库。我们还注意到,
@@ -233,7 +231,7 @@ func forkRun(opts *ForkOptions) error {
 		}
 	} else {
 		if connectedToTerminal {
-			fmt.Fprintf(stderr, "%s 已创建派生 %s\n", cs.SuccessIconWithColor(cs.Green), cs.Bold(ghrepo.FullName(forkedRepo)))
+			fmt.Fprintf(stderr, "%s 已创建 fork 仓库 %s\n", cs.SuccessIconWithColor(cs.Green), cs.Bold(ghrepo.FullName(forkedRepo)))
 		} else {
 			fmt.Fprintln(opts.IO.Out, ghrepo.GenerateRepoURL(forkedRepo, ""))
 		}
@@ -243,10 +241,10 @@ func forkRun(opts *ForkOptions) error {
 	if opts.ForkName != "" && !strings.EqualFold(forkedRepo.RepoName(), shared.NormalizeRepoName(opts.ForkName)) {
 		forkedRepo, err = api.RenameRepo(apiClient, forkedRepo, opts.ForkName)
 		if err != nil {
-			return fmt.Errorf("重命名派生失败: %w", err)
+			return fmt.Errorf("重命名 fork 仓库失败: %w", err)
 		}
 		if connectedToTerminal {
-			fmt.Fprintf(stderr, "%s 已将派生重命名为 %s\n", cs.SuccessIconWithColor(cs.Green), cs.Bold(ghrepo.FullName(forkedRepo)))
+			fmt.Fprintf(stderr, "%s 已将 fork 仓库重命名为 %s\n", cs.SuccessIconWithColor(cs.Green), cs.Bold(ghrepo.FullName(forkedRepo)))
 		}
 	}
 
@@ -297,7 +295,7 @@ func forkRun(opts *ForkOptions) error {
 
 		remoteDesired := opts.Remote
 		if opts.PromptRemote {
-			remoteDesired, err = opts.Prompter.Confirm("是否要为派生仓库添加远程?", false)
+			remoteDesired, err = opts.Prompter.Confirm("是否要为 fork 仓库添加远程?", false)
 			if err != nil {
 				return err
 			}
@@ -344,7 +342,7 @@ func forkRun(opts *ForkOptions) error {
 	} else {
 		cloneDesired := opts.Clone
 		if opts.PromptClone {
-			cloneDesired, err = opts.Prompter.Confirm("是否要克隆派生仓库?", false)
+			cloneDesired, err = opts.Prompter.Confirm("是否要克隆 fork 仓库?", false)
 			if err != nil {
 				return err
 			}
@@ -370,7 +368,7 @@ func forkRun(opts *ForkOptions) error {
 			}, backoff.WithContext(backoff.WithMaxRetries(opts.BackOff, 3), ctx))
 
 			if err != nil {
-				return fmt.Errorf("克隆派生仓库失败: %w", err)
+				return fmt.Errorf("克隆 fork 仓库失败: %w", err)
 			}
 
 			gc := gitClient.Copy()
@@ -391,8 +389,8 @@ func forkRun(opts *ForkOptions) error {
 			}
 
 			if connectedToTerminal {
-				fmt.Fprintf(stderr, "%s 已克隆派生仓库\n", cs.SuccessIcon())
-				fmt.Fprintf(stderr, "%s 仓库 %s 已被设为默认仓库。要了解默认仓库的更多信息, 请运行: gh repo set-default --help\n", cs.WarningIcon(), cs.Bold(ghrepo.FullName(repoToFork)))
+				fmt.Fprintf(stderr, "%s 已克隆 fork 仓库\n", cs.SuccessIcon())
+				fmt.Fprintf(stderr, "%s 仓库 %s 已被设为默认仓库。要了解默认仓库的更多信息，请运行: gh repo set-default --help\n", cs.WarningIcon(), cs.Bold(ghrepo.FullName(repoToFork)))
 			}
 		}
 	}

@@ -43,7 +43,7 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 			删除一个 GitHub 仓库。
 
 			不带参数时，删除当前仓库。否则，删除指定的仓库。
-			
+
 			出于安全考虑，当未提供仓库参数时，%[1]s--yes%[1]s 旗标将被忽略，并且系统会提示您进行确认。
 
 			若要以非交互方式删除当前仓库，请显式指定仓库名称(例如: %[1]sgh repo delete owner/repo --yes%[1]s)。

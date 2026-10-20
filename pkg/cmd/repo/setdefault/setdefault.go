@@ -25,12 +25,12 @@ func explainer() string {
 
 		gh 在以下场景使用默认仓库:
 
-		 - 查看和创建拉取请求(pull request)
-		 - 查看和创建议题(issue)
-		 - 查看和创建发布(release)
+		 - 查看和创建 PR
+		 - 查看和创建 issue
+		 - 查看和创建 release
 		 - 使用 GitHub Actions
 
-		### 注意: gh 在管理仓库和环境密钥(secrets)时不使用默认仓库。`)
+		### 注意: gh 在管理仓库和环境密钥时不使用默认仓库。`)
 }
 
 type iprompter interface {
@@ -98,7 +98,7 @@ func NewCmdSetDefault(f *cmdutil.Factory, runF func(*SetDefaultOptions) error) *
 
 					remote, findErr := remotes.FindByName(args[0])
 					if findErr != nil {
-						return fmt.Errorf("给定参数不是有效的仓库或 git 远程(remote): %w", err)
+						return fmt.Errorf("给定参数不是有效的仓库或 git 远程: %w", err)
 					}
 					opts.Repo = remote.Repo
 				}
@@ -179,7 +179,7 @@ func setDefaultRun(opts *SetDefaultOptions) error {
 		return err
 	}
 	if len(knownRepos) == 0 {
-		return errors.New("没有任何 git 远程(remote)对应有效的远程仓库")
+		return errors.New("没有任何 git 远程对应有效的远程仓库")
 	}
 
 	var selectedRepo ghrepo.Interface
@@ -192,7 +192,7 @@ func setDefaultRun(opts *SetDefaultOptions) error {
 			}
 		}
 		if selectedRepo == nil {
-			return fmt.Errorf("%s 不对应任何 git 远程(remote)", ghrepo.FullName(opts.Repo))
+			return fmt.Errorf("%s 不对应任何 git 远程", ghrepo.FullName(opts.Repo))
 		}
 	}
 

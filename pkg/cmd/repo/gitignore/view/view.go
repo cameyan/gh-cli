@@ -31,25 +31,25 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view <template>",
-		Short: "View an available repository gitignore template",
+		Short: "查看可用的 gitignore 模板仓库",
 		Long: heredoc.Docf(`
-			View an available repository %[1]s.gitignore%[1]s template.
+			查看可用的仓库 %[1]s.gitignore%[1]s 模板。
 
-			%[1]s<template>%[1]s is a case-sensitive %[1]s.gitignore%[1]s template name.
+			%[1]s<template>%[1]s 是一个区分大小写的 %[1]s.gitignore%[1]s 模板名称。
 
-			For a list of available templates, run %[1]sgh repo gitignore list%[1]s.
+			要查看可用模板列表，请运行 %[1]sgh repo gitignore list%[1]s。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# View the Go gitignore template
+			# 查看 Go gitignore 模板
 			$ gh repo gitignore view Go
 
-			# View the Python gitignore template
+			# 查看 Python 的 gitignore 模板
 			$ gh repo gitignore view Python
 
-			# Create a new .gitignore file using the Go template
+			# 使用 Go 模板创建一个新的 .gitignore 文件
 			$ gh repo gitignore view Go > .gitignore
 
-			# Create a new .gitignore file using the Python template
+			# 使用 Python 模板创建一个新的 .gitignore 文件
 			$ gh repo gitignore view Python > .gitignore
 		`),
 		Args: cobra.ExactArgs(1),
@@ -66,7 +66,7 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 func viewRun(opts *ViewOptions) error {
 	if opts.Template == "" {
-		return errors.New("no template provided")
+		return errors.New("未提供模板")
 	}
 
 	client, err := opts.HTTPClient()
@@ -80,7 +80,7 @@ func viewRun(opts *ViewOptions) error {
 	}
 
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "starting pager failed: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -89,7 +89,7 @@ func viewRun(opts *ViewOptions) error {
 	if err != nil {
 		if httpErr, ok := errors.AsType[api.HTTPError](err); ok {
 			if httpErr.StatusCode == 404 {
-				return fmt.Errorf("'%s' is not a valid gitignore template. Run `gh repo gitignore list` for options", opts.Template)
+				return fmt.Errorf("'%s' 不是有效的 gitignore 模板名称，请运行 `gh repo gitignore list` 以查看可用列表。", opts.Template)
 			}
 		}
 		return err
