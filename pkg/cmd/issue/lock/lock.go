@@ -63,8 +63,8 @@ type command struct {
 
 // `FullName` 应像句子开头一样首字母大写，因为它用于打印和错误信息中。
 // 手动将其首字母大写，并在需要时调用 `ToLower`，比反过来更容易。
-var aliasIssue = command{"issue", "议题", api.TypeIssue}
-var aliasPr = command{"pr", "拉取请求", api.TypePullRequest}
+var aliasIssue = command{"issue", "issue", api.TypeIssue}
+var aliasPr = command{"pr", "PR", api.TypePullRequest}
 
 var alias map[string]*command = map[string]*command{
 	"issue":             &aliasIssue,
@@ -165,7 +165,7 @@ func NewCmdLock(f *cmdutil.Factory, parentName string, runF func(string, *LockOp
 		},
 	}
 
-	msg := fmt.Sprintf("锁定对话的可选原因 (%v)。", reasonsString)
+	msg := fmt.Sprintf("锁定对话的可选原因 (%v)", reasonsString)
 
 	cmd.Flags().StringVarP(&opts.Reason, "reason", "r", "", msg)
 	return cmd
@@ -274,7 +274,7 @@ func lockRun(state string, opts *LockOptions) error {
 			relocked, err = relockLockable(httpClient, baseRepo, issuePr, opts)
 
 			if !relocked {
-				successMsg = fmt.Sprintf("%s %s#%d 已锁定%s。未做任何更改。\n",
+				successMsg = fmt.Sprintf("%s %s#%d 已锁定%s，未做任何更改\n",
 					parent.FullName, ghrepo.FullName(baseRepo), issuePr.Number, reason(issuePr.ActiveLockReason))
 			}
 		}
@@ -283,7 +283,7 @@ func lockRun(state string, opts *LockOptions) error {
 		if issuePr.Locked {
 			err = unlockLockable(httpClient, baseRepo, issuePr)
 		} else {
-			successMsg = fmt.Sprintf("%s %s#%d 已解除锁定。未做任何更改。\n",
+			successMsg = fmt.Sprintf("%s %s#%d 已解除锁定，未做任何更改\n",
 				parent.FullName, ghrepo.FullName(baseRepo), issuePr.Number)
 		}
 	default:

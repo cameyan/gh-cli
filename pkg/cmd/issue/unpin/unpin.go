@@ -34,20 +34,20 @@ func NewCmdUnpin(f *cmdutil.Factory, runF func(*UnpinOptions) error) *cobra.Comm
 
 	cmd := &cobra.Command{
 		Use:   "unpin {<number> | <url>}",
-		Short: "取消置顶议题",
+		Short: "取消置顶 issue",
 		Long: heredoc.Doc(`
-			从仓库取消置顶议题。
+			从仓库取消置顶 issue。
 
-			可以通过议题编号或 URL 指定议题。
+			可以通过 issue 编号或 URL 指定 issue。
 		`),
 		Example: heredoc.Doc(`
-			# 从当前仓库取消置顶议题
+			# 从当前仓库取消置顶 issue
 			$ gh issue unpin 23
 
-			# 通过 URL 取消置顶议题
+			# 通过 URL 取消置顶 issue
 			$ gh issue unpin https://github.com/owner/repo/issues/23
 
-			# 从指定仓库取消置顶议题
+			# 从指定仓库取消置顶 issue
 			$ gh issue unpin 23 --repo owner/repo
 		`),
 		Args: cobra.ExactArgs(1),
@@ -99,7 +99,7 @@ func unpinRun(opts *UnpinOptions) error {
 	}
 
 	if !issue.IsPinned {
-		fmt.Fprintf(opts.IO.ErrOut, "%s 议题 %s#%d (%s) 未置顶\n", cs.Yellow("!"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
+		fmt.Fprintf(opts.IO.ErrOut, "%s issue %s#%d (%s) 未置顶\n", cs.Yellow("!"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
 		return nil
 	}
 
@@ -108,7 +108,7 @@ func unpinRun(opts *UnpinOptions) error {
 		return err
 	}
 
-	fmt.Fprintf(opts.IO.ErrOut, "%s 已取消置顶议题 %s#%d (%s)\n", cs.SuccessIconWithColor(cs.Red), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
+	fmt.Fprintf(opts.IO.ErrOut, "%s 已取消置顶 issue %s#%d (%s)\n", cs.SuccessIconWithColor(cs.Red), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
 
 	return nil
 }

@@ -33,7 +33,7 @@ func NewCmdStatus(f *cmdutil.Factory, runF func(*StatusOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "status",
-		Short: "显示相关议题的状态",
+		Short: "显示相关 issue 的状态",
 		Args:  cmdutil.NoArgsQuoteReminder,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// 支持 `-R, --repo` 覆盖
@@ -107,31 +107,31 @@ func statusRun(opts *StatusOptions) error {
 	out := opts.IO.Out
 
 	fmt.Fprintln(out, "")
-	fmt.Fprintf(out, "位于 %s 的相关议题\n", ghrepo.FullName(baseRepo))
+	fmt.Fprintf(out, "位于 %s 的相关 issue\n", ghrepo.FullName(baseRepo))
 	fmt.Fprintln(out, "")
 
-	prShared.PrintHeader(opts.IO, "分配给您的议题")
+	prShared.PrintHeader(opts.IO, "分配给您的 issue")
 	if issuePayload.Assigned.TotalCount > 0 {
 		issueShared.PrintIssues(opts.IO, time.Now(), "  ", issuePayload.Assigned.TotalCount, issuePayload.Assigned.Issues)
 	} else {
-		message := "  没有分配给您的议题"
+		message := "  没有分配给您的 issue"
 		prShared.PrintMessage(opts.IO, message)
 	}
 	fmt.Fprintln(out)
 
-	prShared.PrintHeader(opts.IO, "提及您的议题")
+	prShared.PrintHeader(opts.IO, "提及您的 issue")
 	if issuePayload.Mentioned.TotalCount > 0 {
 		issueShared.PrintIssues(opts.IO, time.Now(), "  ", issuePayload.Mentioned.TotalCount, issuePayload.Mentioned.Issues)
 	} else {
-		prShared.PrintMessage(opts.IO, "  没有提及您的议题")
+		prShared.PrintMessage(opts.IO, "  没有提及您的 issue")
 	}
 	fmt.Fprintln(out)
 
-	prShared.PrintHeader(opts.IO, "由您打开的议题")
+	prShared.PrintHeader(opts.IO, "由您打开的 issue")
 	if issuePayload.Authored.TotalCount > 0 {
 		issueShared.PrintIssues(opts.IO, time.Now(), "  ", issuePayload.Authored.TotalCount, issuePayload.Authored.Issues)
 	} else {
-		prShared.PrintMessage(opts.IO, "  没有由您打开的议题")
+		prShared.PrintMessage(opts.IO, "  没有由您打开的 issue")
 	}
 	fmt.Fprintln(out)
 

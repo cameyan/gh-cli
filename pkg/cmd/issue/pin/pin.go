@@ -33,20 +33,20 @@ func NewCmdPin(f *cmdutil.Factory, runF func(*PinOptions) error) *cobra.Command 
 
 	cmd := &cobra.Command{
 		Use:   "pin {<number> | <url>}",
-		Short: "置顶议题",
+		Short: "置顶 issue",
 		Long: heredoc.Doc(`
-			将议题置顶到仓库。
+			将 issue 置顶到仓库。
 
-			可以通过议题编号或 URL 指定议题。
+			可以通过 issue 编号或 URL 指定 issue。
 		`),
 		Example: heredoc.Doc(`
-			# 将议题置顶到当前仓库
+			# 将 issue 置顶到当前仓库
 			$ gh issue pin 23
 
-			# 通过 URL 置顶议题
+			# 通过 URL 置顶 issue
 			$ gh issue pin https://github.com/owner/repo/issues/23
 
-			# 将议题置顶到指定仓库
+			# 将 issue 置顶到指定仓库
 			$ gh issue pin 23 --repo owner/repo
 		`),
 		Args: cobra.ExactArgs(1),
@@ -98,7 +98,7 @@ func pinRun(opts *PinOptions) error {
 	}
 
 	if issue.IsPinned {
-		fmt.Fprintf(opts.IO.ErrOut, "%s 议题 %s#%d (%s) 已置顶\n", cs.Yellow("!"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 已置顶 issue %s#%d (%s)\n", cs.Yellow("!"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
 		return nil
 	}
 
@@ -107,7 +107,7 @@ func pinRun(opts *PinOptions) error {
 		return err
 	}
 
-	fmt.Fprintf(opts.IO.ErrOut, "%s 已置顶议题 %s#%d (%s)\n", cs.SuccessIcon(), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
+	fmt.Fprintf(opts.IO.ErrOut, "%s 已置顶 issue %s#%d (%s)\n", cs.SuccessIcon(), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
 
 	return nil
 }

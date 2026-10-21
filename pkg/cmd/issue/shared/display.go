@@ -44,7 +44,7 @@ func PrintIssues(io *iostreams.IOStreams, now time.Time, prefix string, totalCou
 	_ = table.Render()
 	remaining := totalCount - len(issues)
 	if remaining > 0 {
-		fmt.Fprintf(io.Out, cs.Muted("%s还有 %d 条未显示\n"), prefix, remaining)
+		fmt.Fprintf(io.Out, cs.Muted("%s 还有 %d 条未显示\n"), prefix, remaining)
 	}
 }
 

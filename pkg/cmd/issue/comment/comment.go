@@ -29,32 +29,26 @@ func NewCmdComment(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder,
 
 	cmd := &cobra.Command{
 		Use:   "comment {<number> | <url>}",
-		Short: "为议题添加评论",
+		Short: "为 issue 添加评论",
 		Long: heredoc.Docf(`
-			为 GitHub 议题添加评论。
+			为 GitHub issue 添加评论。
 
-			如果未通过旗标提供正文文本或附件，命令将
-			以交互方式提示输入评论文本。
+			如果未通过选项提供正文文本或附件，命令将以交互方式提示输入评论文本。
 
-			使用 %[1]s--attach%[1]s 上传图片或视频。如果正文中已经引用了
-			某个已附加文件，例如 %[1]s![alt](./login.png)%[1]s，该引用会被重写为指向
-			已上传的资源。正文未引用的任何已附加文件都会被追加
-			到评论末尾。
-			每条命令最多可附加 50 个文件。
+			使用 %[1]s--attach%[1]s 上传图片或视频。如果正文中已经引用了某个已附加文件，例如 %[1]s![alt](./login.png)%[1]s，
+			该引用会被重写为指向已上传的资源。正文未引用的任何已附加文件都会被追加到评论末尾。每条命令最多可附加 50 个文件。
 
-			图片的替代文本会跟在 %[1]s#%[1]s 之后的路径中，如
-			%[1]s--attach './login.png#The login error state'%[1]s。若不提供，则使用文件名。
-			正文中已有的引用会保留写在其处的替代文本。视频会渲染
-			为播放器且没有替代文本，因此无法为其指定。
+			图片的替代文本会跟在 %[1]s#%[1]s 之后的路径中，如 %[1]s--attach './login.png#The login error state'%[1]s。
+			若不提供，则使用文件名。正文中已有的引用会保留写在其处的替代文本。视频会渲染为播放器且没有替代文本，因此无法为其指定。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# 为议题添加评论
+			# 为 issue 添加评论
 			$ gh issue comment 12 --body "Hi from GitHub CLI"
 
 			# 附加截图，替代文本位于 "#" 之后
 			$ gh issue comment 12 --attach './login.png#The login error state'
 
-			# 通过重复该旗标附加多个文件
+			# 通过重复该选项附加多个文件
 			$ gh issue comment 12 --attach ./before.png --attach ./after.png
 		`),
 		Args: cobra.ExactArgs(1),

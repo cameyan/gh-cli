@@ -48,34 +48,33 @@ func NewCmdDevelop(f *cmdutil.Factory, runF func(*DevelopOptions) error) *cobra.
 
 	cmd := &cobra.Command{
 		Use:   "develop {<number> | <url>}",
-		Short: "管理议题的关联分支",
+		Short: "管理 issue 的关联分支",
 		Long: heredoc.Docf(`
-			管理议题的关联分支。
+			管理 issue 的关联分支。
 
-			使用 %[1]s--base%[1]s 旗标时，新的开发分支将基于指定的远程
-			分支创建。新分支会被配置为使用 %[1]sgh pr create%[1]s 创建的拉取请求的
-			基础分支。
+			使用 %[1]s--base%[1]s 选项时，新的开发分支将基于指定的远程分支创建。新分支会被配置为使用
+			%[1]sgh pr create%[1]s 创建的 PR 的基础分支。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# 列出议题 123 的分支
+			# 列出 issue 123 的分支
 			$ gh issue develop --list 123
 
-			# 列出仓库 cli/cli 中议题 123 的分支
+			# 列出仓库 cli/cli 中 issue 123 的分支
 			$ gh issue develop --list --repo cli/cli 123
 
-			# 基于 my-feature 分支为议题 123 创建分支
+			# 基于 my-feature 分支为 issue 123 创建分支
 			$ gh issue develop 123 --base my-feature
 
-			# 为议题 123 创建分支并检出
+			# 为 issue 123 创建分支并检出
 			$ gh issue develop 123 --checkout
 
-			# 为议题 123 创建分支并在工作树中检出
+			# 为 issue 123 创建分支并在工作树中检出
 			$ gh issue develop 123 --checkout --worktree /path/to/wt-feature
 
-			# 在仓库 monalisa/cli 中为仓库 cli/cli 的议题 123 创建分支
+			# 在仓库 monalisa/cli 中为仓库 cli/cli 的 issue 123 创建分支
 			$ gh issue develop 123 --repo cli/cli --branch-repo monalisa/cli
 		`),
-		Args: cmdutil.ExactArgs(1, "需要议题编号或 URL"),
+		Args: cmdutil.ExactArgs(1, "需要 issue 编号或 URL"),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// 这完全是为了不破坏已弃用的 issue-repo 旗标的临时方案。
 			// 它将在不久的将来被移除，届时此临时方案也可一并移除。
@@ -150,15 +149,15 @@ func NewCmdDevelop(f *cmdutil.Factory, runF func(*DevelopOptions) error) *cobra.
 	}
 
 	fl := cmd.Flags()
-	fl.StringVar(&opts.BranchRepo, "branch-repo", "", "你想在其中创建新分支的仓库的名称或 URL")
-	fl.StringVarP(&opts.BaseBranch, "base", "b", "", "你想作为新分支基础的远程分支的名称")
+	fl.StringVar(&opts.BranchRepo, "branch-repo", "", "创建新分支的仓库的名称或 URL")
+	fl.StringVarP(&opts.BaseBranch, "base", "b", "", "新分支基础的远程分支名称")
 	fl.BoolVarP(&opts.Checkout, "checkout", "c", false, "创建分支后检出它")
-	fl.BoolVarP(&opts.List, "list", "l", false, "列出议题的关联分支")
-	fl.StringVarP(&opts.Name, "name", "n", "", "要创建的分支名称")
+	fl.BoolVarP(&opts.List, "list", "l", false, "列出 issue 的关联分支")
+	fl.StringVarP(&opts.Name, "name", "n", "", "待创建的分支名称")
 	fl.StringVar(&opts.Worktree, "worktree", "", "将分支检出到给定 `path` 处的工作树")
 
 	var issueRepoSelector string
-	fl.StringVarP(&issueRepoSelector, "issue-repo", "i", "", "议题所属仓库的名称或 URL")
+	fl.StringVarP(&issueRepoSelector, "issue-repo", "i", "", "issue 所属仓库的名称或 URL")
 	_ = cmd.Flags().MarkDeprecated("issue-repo", "请改用 `--repo`")
 
 	return cmd
@@ -175,7 +174,7 @@ func developRun(opts *DevelopOptions) error {
 		return err
 	}
 
-	opts.IO.StartProgressIndicatorWithLabel(fmt.Sprintf("正在获取议题 #%d", opts.IssueNumber))
+	opts.IO.StartProgressIndicatorWithLabel(fmt.Sprintf("正在获取 issue #%d", opts.IssueNumber))
 	defer opts.IO.StopProgressIndicator()
 
 	issue, err := shared.FindIssueOrPR(httpClient, baseRepo, opts.IssueNumber, []string{"id", "number"})

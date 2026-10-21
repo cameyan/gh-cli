@@ -409,7 +409,7 @@ func Test_createRun(t *testing.T) {
 				WebMode:  true,
 			},
 			wantsBrowse: "https://github.com/OWNER/REPO/issues/new",
-			wantsStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/issues/new。\n",
+			wantsStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/issues/new\n",
 		},
 		{
 			name: "title and body",
@@ -420,7 +420,7 @@ func Test_createRun(t *testing.T) {
 				Body:     "hello cli",
 			},
 			wantsBrowse: "https://github.com/OWNER/REPO/issues/new?body=hello+cli&title=myissue",
-			wantsStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/issues/new。\n",
+			wantsStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/issues/new\n",
 		},
 		{
 			name: "assignee",
@@ -430,7 +430,7 @@ func Test_createRun(t *testing.T) {
 				Assignees: []string{"monalisa"},
 			},
 			wantsBrowse: "https://github.com/OWNER/REPO/issues/new?assignees=monalisa&body=",
-			wantsStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/issues/new。\n",
+			wantsStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/issues/new\n",
 		},
 		{
 			name: "@me",
@@ -448,7 +448,7 @@ func Test_createRun(t *testing.T) {
 					} }`))
 			},
 			wantsBrowse: "https://github.com/OWNER/REPO/issues/new?assignees=MonaLisa&body=",
-			wantsStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/issues/new。\n",
+			wantsStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/issues/new\n",
 		},
 		{
 			name: "@copilot",
@@ -458,7 +458,7 @@ func Test_createRun(t *testing.T) {
 				Assignees: []string{"@copilot"},
 			},
 			wantsBrowse: "https://github.com/OWNER/REPO/issues/new?assignees=Copilot&body=",
-			wantsStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/issues/new。\n",
+			wantsStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/issues/new\n",
 		},
 		{
 			name: "project",
@@ -515,7 +515,7 @@ func Test_createRun(t *testing.T) {
 					} } } }`))
 			},
 			wantsBrowse: "https://github.com/OWNER/REPO/issues/new?body=&projects=OWNER%2FREPO%2F1",
-			wantsStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/issues/new。\n",
+			wantsStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/issues/new\n",
 		},
 		{
 			name: "has templates",
@@ -536,7 +536,7 @@ func Test_createRun(t *testing.T) {
 				)
 			},
 			wantsBrowse: "https://github.com/OWNER/REPO/issues/new/choose",
-			wantsStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/issues/new/choose。\n",
+			wantsStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/issues/new/choose\n",
 		},
 		{
 			name: "too long body",
@@ -574,7 +574,7 @@ func Test_createRun(t *testing.T) {
 				TitledEditSurvey: func(string, string) (string, string, error) { return "title", "body", nil },
 			},
 			wantsStdout: "https://github.com/OWNER/REPO/issues/12\n",
-			wantsStderr: "\n正在 OWNER/REPO 中创建议题\n\n",
+			wantsStderr: "\n正在 OWNER/REPO 中创建 issue\n\n",
 		},
 		{
 			name: "editor attachment reference is rewritten",
@@ -609,7 +609,7 @@ func Test_createRun(t *testing.T) {
 			},
 			attach:         []string{"shot.png"},
 			wantsStdout:    "https://github.com/OWNER/REPO/issues/12\n",
-			wantsStderr:    "\n正在 OWNER/REPO 中创建议题\n\n",
+			wantsStderr:    "\n正在 OWNER/REPO 中创建 issue\n\n",
 			wantOperations: &attachments.UploadResult{ReplaceOperations: 1},
 		},
 		{
@@ -649,7 +649,7 @@ func Test_createRun(t *testing.T) {
 				TitledEditSurvey: func(title string, body string) (string, string, error) { return title, body, nil },
 			},
 			wantsStdout: "https://github.com/OWNER/REPO/issues/12\n",
-			wantsStderr: "\n正在 OWNER/REPO 中创建议题\n\n",
+			wantsStderr: "\n正在 OWNER/REPO 中创建 issue\n\n",
 		},
 		{
 			name: "interactive prompts with actor assignee display names when actors available",
@@ -669,15 +669,15 @@ func Test_createRun(t *testing.T) {
 				}
 				pm.MultiSelectFunc = func(message string, defaults []string, options []string) ([]int, error) {
 					switch message {
-					case "What would you like to add?":
-						return prompter.IndexesFor(options, "Assignees")
+					case "您想添加哪些内容?":
+						return prompter.IndexesFor(options, "被指派人")
 					default:
 						return nil, fmt.Errorf("unexpected multi-select prompt: %s", message)
 					}
 				}
 				pm.MultiSelectWithSearchFunc = func(message, searchPrompt string, defaults, persistentOptions []string, searchFunc func(string) prompter.MultiSelectSearchResult) ([]string, error) {
 					switch message {
-					case "Assignees":
+					case "被指派人":
 						return []string{"copilot-swe-agent", "MonaLisa"}, nil
 					default:
 						return nil, fmt.Errorf("unexpected multi-select-with-search prompt: %s", message)
@@ -685,12 +685,12 @@ func Test_createRun(t *testing.T) {
 				}
 				pm.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "What's next?":
+					case "下一步做什么?":
 						if firstConfirmSubmission {
 							firstConfirmSubmission = false
-							return prompter.IndexFor(options, "Add metadata")
+							return prompter.IndexFor(options, "添加元数据")
 						}
-						return prompter.IndexFor(options, "Submit")
+						return prompter.IndexFor(options, "提交")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
 					}
@@ -728,7 +728,7 @@ func Test_createRun(t *testing.T) {
 					}))
 			},
 			wantsStdout: "https://github.com/OWNER/REPO/issues/12\n",
-			wantsStderr: "\n正在 OWNER/REPO 中创建议题\n\n",
+			wantsStderr: "\n正在 OWNER/REPO 中创建 issue\n\n",
 		},
 		{
 			name: "interactive prompts with user assignee logins when actors unavailable",
@@ -748,9 +748,9 @@ func Test_createRun(t *testing.T) {
 				}
 				pm.MultiSelectFunc = func(message string, defaults []string, options []string) ([]int, error) {
 					switch message {
-					case "What would you like to add?":
-						return prompter.IndexesFor(options, "Assignees")
-					case "Assignees":
+					case "您想添加哪些内容?":
+						return prompter.IndexesFor(options, "被指派人")
+					case "被指派人":
 						return prompter.IndexesFor(options, "hubot", "MonaLisa (Mona Display Name)")
 					default:
 						return nil, fmt.Errorf("unexpected multi-select prompt: %s", message)
@@ -758,12 +758,12 @@ func Test_createRun(t *testing.T) {
 				}
 				pm.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "What's next?":
+					case "下一步做什么?":
 						if firstConfirmSubmission {
 							firstConfirmSubmission = false
-							return prompter.IndexFor(options, "Add metadata")
+							return prompter.IndexFor(options, "添加元数据")
 						}
-						return prompter.IndexFor(options, "Submit")
+						return prompter.IndexFor(options, "提交")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
 					}
@@ -801,7 +801,7 @@ func Test_createRun(t *testing.T) {
 					}))
 			},
 			wantsStdout: "https://github.com/OWNER/REPO/issues/12\n",
-			wantsStderr: "\n正在 OWNER/REPO 中创建议题\n\n",
+			wantsStderr: "\n正在 OWNER/REPO 中创建 issue\n\n",
 		},
 		{
 			name: "create with type",
@@ -844,7 +844,7 @@ func Test_createRun(t *testing.T) {
 						}))
 			},
 			wantsStdout: "https://github.com/OWNER/REPO/issues/123\n",
-			wantsStderr: "\n正在 OWNER/REPO 中创建议题\n\n",
+			wantsStderr: "\n正在 OWNER/REPO 中创建 issue\n\n",
 		},
 		{
 			name: "interactive prompts for type",
@@ -857,10 +857,10 @@ func Test_createRun(t *testing.T) {
 			promptStubs: func(_ *testing.T, pm *prompter.PrompterMock) {
 				pm.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "议题类型":
+					case "issue 类型":
 						return prompter.IndexFor(options, "Feature")
-					case "What's next?":
-						return prompter.IndexFor(options, "Submit")
+					case "下一步做什么?":
+						return prompter.IndexFor(options, "提交")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
 					}
@@ -902,7 +902,7 @@ func Test_createRun(t *testing.T) {
 						}))
 			},
 			wantsStdout: "https://github.com/OWNER/REPO/issues/123\n",
-			wantsStderr: "\n正在 OWNER/REPO 中创建议题\n\n",
+			wantsStderr: "\n正在 OWNER/REPO 中创建 issue\n\n",
 		},
 		{
 			name: "create with type not found",
@@ -976,7 +976,7 @@ func Test_createRun(t *testing.T) {
 						}))
 			},
 			wantsStdout: "https://github.com/OWNER/REPO/issues/123\n",
-			wantsStderr: "\n正在 OWNER/REPO 中创建议题\n\n",
+			wantsStderr: "\n正在 OWNER/REPO 中创建 issue\n\n",
 		},
 		{
 			name: "create with blocked-by and blocking",
@@ -1042,7 +1042,7 @@ func Test_createRun(t *testing.T) {
 					httpmock.StringResponse(`{ "data": { "addBlockedBy": { "issue": { "id": "BLOCKED_ID_301" } } } }`))
 			},
 			wantsStdout: "https://github.com/OWNER/REPO/issues/123\n",
-			wantsStderr: "\n正在 OWNER/REPO 中创建议题\n\n",
+			wantsStderr: "\n正在 OWNER/REPO 中创建 issue\n\n",
 		},
 		{
 			name: "attaching writes the body the upload produced",
@@ -1074,7 +1074,7 @@ func Test_createRun(t *testing.T) {
 						}))
 			},
 			wantsStdout: "https://github.com/OWNER/REPO/issues/12\n",
-			wantsStderr: "\n正在 OWNER/REPO 中创建议题\n\n",
+			wantsStderr: "\n正在 OWNER/REPO 中创建 issue\n\n",
 		},
 		{
 			name: "attaching sends the repository id the lookup returned",
@@ -1103,7 +1103,7 @@ func Test_createRun(t *testing.T) {
 						} } } }`))
 			},
 			wantsStdout: "https://github.com/OWNER/REPO/issues/12\n",
-			wantsStderr: "\n正在 OWNER/REPO 中创建议题\n\n",
+			wantsStderr: "\n正在 OWNER/REPO 中创建 issue\n\n",
 		},
 		{
 			name: "attaching without write access stops before any prompt or write",
@@ -1296,7 +1296,7 @@ func Test_createRun(t *testing.T) {
 						}))
 			},
 			wantsStdout: "https://acme.ghe.com/OWNER/REPO/issues/12\n",
-			wantsStderr: "\n正在 OWNER/REPO 中创建议题\n\n",
+			wantsStderr: "\n正在 OWNER/REPO 中创建 issue\n\n",
 		},
 		{
 			name: "attaching leaves the browser preview off the menu",
@@ -1310,9 +1310,9 @@ func Test_createRun(t *testing.T) {
 			promptStubs: func(t *testing.T, pm *prompter.PrompterMock) {
 				pm.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "What's next?":
+					case "下一步做什么?":
 						assert.NotContains(t, options, "Continue in browser")
-						return prompter.IndexFor(options, "Submit")
+						return prompter.IndexFor(options, "提交")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
 					}
@@ -1337,7 +1337,7 @@ func Test_createRun(t *testing.T) {
 						} } } }`))
 			},
 			wantsStdout: "https://github.com/OWNER/REPO/issues/12\n",
-			wantsStderr: "\n正在 OWNER/REPO 中创建议题\n\n",
+			wantsStderr: "\n正在 OWNER/REPO 中创建 issue\n\n",
 		},
 		{
 			name: "attaching leaves the browser preview off the menu shown after the metadata survey",
@@ -1354,7 +1354,7 @@ func Test_createRun(t *testing.T) {
 					switch message {
 					// HasMetadata stays false, the only state where the second
 					// menu could offer a preview.
-					case "What would you like to add?":
+					case "您想添加哪些内容?":
 						return nil, nil
 					default:
 						return nil, fmt.Errorf("unexpected multi-select prompt: %s", message)
@@ -1362,13 +1362,13 @@ func Test_createRun(t *testing.T) {
 				}
 				pm.SelectFunc = func(message, defaultValue string, options []string) (int, error) {
 					switch message {
-					case "What's next?":
+					case "下一步做什么?":
 						if firstConfirmSubmission {
 							firstConfirmSubmission = false
-							return prompter.IndexFor(options, "Add metadata")
+							return prompter.IndexFor(options, "添加元数据")
 						}
 						assert.NotContains(t, options, "Continue in browser")
-						return prompter.IndexFor(options, "Submit")
+						return prompter.IndexFor(options, "提交")
 					default:
 						return 0, fmt.Errorf("unexpected select prompt: %s", message)
 					}
@@ -1393,7 +1393,7 @@ func Test_createRun(t *testing.T) {
 						} } } }`))
 			},
 			wantsStdout: "https://github.com/OWNER/REPO/issues/12\n",
-			wantsStderr: "\n正在 OWNER/REPO 中创建议题\n\n",
+			wantsStderr: "\n正在 OWNER/REPO 中创建 issue\n\n",
 		},
 	}
 	for _, tt := range tests {
@@ -1586,22 +1586,22 @@ func TestIssueCreate_recover(t *testing.T) {
 
 	pm := &prompter.PrompterMock{}
 	pm.InputFunc = func(p, d string) (string, error) {
-		if p == "Title (required)" {
+		if p == "标题(必填)" {
 			return d, nil
 		} else {
 			return "", prompter.NoSuchPromptErr(p)
 		}
 	}
 	pm.MarkdownEditorFunc = func(p, d string, ba bool) (string, error) {
-		if p == "Body" {
+		if p == "正文" {
 			return d, nil
 		} else {
 			return "", prompter.NoSuchPromptErr(p)
 		}
 	}
 	pm.SelectFunc = func(p, _ string, opts []string) (int, error) {
-		if p == "What's next?" {
-			return prompter.IndexFor(opts, "Submit")
+		if p == "下一步做什么?" {
+			return prompter.IndexFor(opts, "提交")
 		} else {
 			return -1, prompter.NoSuchPromptErr(p)
 		}
@@ -1670,7 +1670,7 @@ func TestIssueCreate_nonLegacyTemplate(t *testing.T) {
 
 	pm := &prompter.PrompterMock{}
 	pm.MarkdownEditorFunc = func(p, d string, ba bool) (string, error) {
-		if p == "Body" {
+		if p == "正文" {
 			return d, nil
 		} else {
 			return "", prompter.NoSuchPromptErr(p)
@@ -1678,9 +1678,9 @@ func TestIssueCreate_nonLegacyTemplate(t *testing.T) {
 	}
 	pm.SelectFunc = func(p, _ string, opts []string) (int, error) {
 		switch p {
-		case "What's next?":
-			return prompter.IndexFor(opts, "Submit")
-		case "Choose a template":
+		case "下一步做什么?":
+			return prompter.IndexFor(opts, "提交")
+		case "选择一个模板":
 			return prompter.IndexFor(opts, "Submit a request")
 		default:
 			return -1, prompter.NoSuchPromptErr(p)
@@ -1711,15 +1711,15 @@ func TestIssueCreate_continueInBrowser(t *testing.T) {
 
 	pm := &prompter.PrompterMock{}
 	pm.InputFunc = func(p, d string) (string, error) {
-		if p == "Title (required)" {
+		if p == "标题(必填)" {
 			return "hello", nil
 		} else {
 			return "", prompter.NoSuchPromptErr(p)
 		}
 	}
 	pm.SelectFunc = func(p, _ string, opts []string) (int, error) {
-		if p == "What's next?" {
-			return prompter.IndexFor(opts, "Continue in browser")
+		if p == "下一步做什么?" {
+			return prompter.IndexFor(opts, "在浏览器中继续")
 		} else {
 			return -1, prompter.NoSuchPromptErr(p)
 		}
@@ -1736,9 +1736,9 @@ func TestIssueCreate_continueInBrowser(t *testing.T) {
 	assert.Equal(t, "", output.String())
 	assert.Equal(t, heredoc.Doc(`
 
-		正在 OWNER/REPO 中创建议题
+		正在 OWNER/REPO 中创建 issue
 
-		正在浏览器中打开 https://github.com/OWNER/REPO/issues/new。
+		正在浏览器中打开 https://github.com/OWNER/REPO/issues/new
 	`), output.Stderr())
 	assert.Equal(t, "https://github.com/OWNER/REPO/issues/new?body=body&title=hello", output.BrowsedURL)
 }
@@ -1867,7 +1867,7 @@ func TestIssueCreate_disabledIssues(t *testing.T) {
 	)
 
 	_, err := runCommand(http, true, `-t heres -b johnny`, nil)
-	if err == nil || err.Error() != "仓库 'OWNER/REPO' 已禁用议题" {
+	if err == nil || err.Error() != "仓库 'OWNER/REPO' 已禁用 issue" {
 		t.Errorf("error running command `issue create`: %v", err)
 	}
 }

@@ -93,7 +93,7 @@ loop:
 			return nil, err
 		}
 		if !response.Repository.HasIssuesEnabled {
-			return nil, fmt.Errorf("仓库 '%s' 已禁用议题", ghrepo.FullName(repo))
+			return nil, fmt.Errorf("仓库 '%s' 已禁用 issue", ghrepo.FullName(repo))
 		}
 		totalCount = response.Repository.Issues.TotalCount
 
@@ -118,7 +118,7 @@ loop:
 
 func searchIssues(client *api.Client, detector fd.Detector, repo ghrepo.Interface, filters prShared.FilterOptions, limit int) (*api.IssuesAndTotalCount, error) {
 	if pullRequestSearchQualifierRE.MatchString(filters.Search) {
-		return nil, fmt.Errorf("不能在 `gh issue list` 中使用拉取请求搜索限定符; 请改用 `gh pr list`")
+		return nil, fmt.Errorf("不能在 `gh issue list` 中使用 PR 搜索限定符，请改用 `gh pr list`")
 	}
 
 	// TODO advancedIssueSearchCleanup
@@ -195,7 +195,7 @@ loop:
 		}
 
 		if !resp.Repository.HasIssuesEnabled {
-			return nil, fmt.Errorf("仓库 '%s' 已禁用议题", ghrepo.FullName(repo))
+			return nil, fmt.Errorf("仓库 '%s' 已禁用 issue", ghrepo.FullName(repo))
 		}
 
 		ic.TotalCount = resp.Search.IssueCount

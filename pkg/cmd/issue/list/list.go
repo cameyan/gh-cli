@@ -58,17 +58,17 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "列出仓库中的议题",
+		Short: "列出仓库中的 issue",
 		// TODO advancedIssueSearchCleanup
 		// 更新链接，并在 GHES 3.17 版本中移除该提及。
 		Long: heredoc.Docf(`
-			列出 GitHub 仓库中的议题。默认情况下，仅列出打开状态的议题。
+			列出 GitHub 仓库中的 issue。默认情况下，仅列出打开状态的 issue。
 
 			搜索查询语法记录于此:
 			<https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests>
 
-			在受支持的 GitHub 主机上，可以在 %[1]s--search%[1]s 查询中
-			使用高级议题搜索语法。有关高级议题搜索的更多信息，请参阅:
+			在受支持的 GitHub 主机上，可以在 %[1]s--search%[1]s 查询中使用 issue 高级搜索语法。
+			有关 issue 高级搜索的更多信息，请参阅:
 			<https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/filtering-and-searching-issues-and-pull-requests#building-advanced-filters-for-issues>
 		`, "`"),
 		Example: heredoc.Doc(`
@@ -88,11 +88,11 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 			opts.BaseRepo = f.BaseRepo
 
 			if opts.LimitResults < 1 {
-				return cmdutil.FlagErrorf("无效的 limit: %v", opts.LimitResults)
+				return cmdutil.FlagErrorf("无效的限制值: %v", opts.LimitResults)
 			}
 
 			if cmd.Flags().Changed("author") && cmd.Flags().Changed("app") {
-				return cmdutil.FlagErrorf("`--author` 或 `--app` 中只能指定一个")
+				return cmdutil.FlagErrorf("`--author` 和 `--app` 只能指定一个")
 			}
 
 			if cmd.Flags().Changed("app") {
@@ -106,17 +106,17 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在网页浏览器中列出议题")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在网页浏览器中列出 issue")
 	cmd.Flags().StringVarP(&opts.Assignee, "assignee", "a", "", "按负责人过滤")
 	cmd.Flags().StringSliceVarP(&opts.Labels, "label", "l", nil, "按标签过滤")
 	cmdutil.StringEnumFlag(cmd, &opts.State, "state", "s", "open", []string{"open", "closed", "all"}, "按状态过滤")
-	cmd.Flags().IntVarP(&opts.LimitResults, "limit", "L", 30, "要获取的议题数量上限")
+	cmd.Flags().IntVarP(&opts.LimitResults, "limit", "L", 30, "要获取的 issue 数量上限")
 	cmd.Flags().StringVarP(&opts.Author, "author", "A", "", "按作者过滤(使用 --app 按 GitHub App 过滤)")
 	cmd.Flags().StringVar(&appAuthor, "app", "", "按 GitHub App 作者过滤")
 	cmd.Flags().StringVar(&opts.Mention, "mention", "", "按提及过滤")
 	cmd.Flags().StringVarP(&opts.Milestone, "milestone", "m", "", "按里程碑编号或标题过滤")
-	cmd.Flags().StringVarP(&opts.Search, "search", "S", "", "使用 `query` 搜索议题")
-	cmd.Flags().StringVar(&opts.IssueType, "type", "", "按议题类型 `name` 过滤")
+	cmd.Flags().StringVarP(&opts.Search, "search", "S", "", "使用 `query` 搜索 issue")
+	cmd.Flags().StringVar(&opts.IssueType, "type", "", "按 issue 类型 `name` 过滤")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, api.IssueFields)
 
 	return cmd
@@ -171,7 +171,7 @@ func listRun(opts *ListOptions) error {
 	if opts.WebMode {
 		// TODO advancedIssueSearchCleanup
 		// 当 GHES 3.17 支持终止后，我们将不再需要功能检测，因为
-		// 高级议题搜索是议题唯一可用的搜索后端，并且 GUI
+		// 高级issue搜索是issue唯一可用的搜索后端，并且 GUI
 		// (即仓库的 Issues 标签页) 已支持该高级语法。
 		searchFeatures, err := opts.Detector.SearchFeatures()
 		if err != nil {
@@ -180,7 +180,7 @@ func listRun(opts *ListOptions) error {
 
 		issueListURL := ghrepo.GenerateRepoURL(baseRepo, "issues")
 
-		// 请注意，如果高级议题搜索 API 可用，则 Issues 标签页也
+		// 请注意，如果高级issue搜索 API 可用，则 Issues 标签页也
 		// 支持该语法。
 		openURL, err := prShared.ListURLWithQuery(issueListURL, filterOptions, searchFeatures.AdvancedIssueSearchAPI)
 		if err != nil {
@@ -188,7 +188,7 @@ func listRun(opts *ListOptions) error {
 		}
 
 		if isTerminal {
-			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(openURL))
 		}
 		return opts.Browser.Browse(openURL)
 	}

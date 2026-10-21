@@ -39,7 +39,7 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "delete {<number> | <url>}",
-		Short: "删除议题",
+		Short: "删除 issue",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			issueNumber, baseRepo, err := shared.ParseIssueFromArg(args[0])
@@ -91,14 +91,14 @@ func deleteRun(opts *DeleteOptions) error {
 		return err
 	}
 	if issue.IsPullRequest() {
-		return fmt.Errorf("议题 %s#%d 是一个拉取请求，无法删除", ghrepo.FullName(baseRepo), issue.Number)
+		return fmt.Errorf("issue %s#%d 是一个 PR，无法删除", ghrepo.FullName(baseRepo), issue.Number)
 	}
 
 	// 在交互式 shell 中执行时需要确认，
 	// 除非已提供。否则跳过确认。
 	if opts.IO.CanPrompt() && !opts.Confirmed {
 		cs := opts.IO.ColorScheme()
-		fmt.Printf("%s 已删除的议题无法恢复。\n", cs.WarningIcon())
+		fmt.Printf("%s 已删除的 issue 无法恢复\n", cs.WarningIcon())
 		err := opts.Prompter.ConfirmDeletion(fmt.Sprintf("%d", issue.Number))
 		if err != nil {
 			return err
@@ -110,7 +110,7 @@ func deleteRun(opts *DeleteOptions) error {
 	}
 
 	if opts.IO.IsStdoutTTY() {
-		fmt.Fprintf(opts.IO.ErrOut, "%s 已删除议题 %s#%d (%s)。\n", cs.Red("✔"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 已删除 issue %s#%d (%s)\n", cs.Red("✔"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
 	}
 
 	return nil

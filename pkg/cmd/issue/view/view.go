@@ -49,11 +49,11 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view {<number> | <url>}",
-		Short: "查看议题",
+		Short: "查看 issue",
 		Long: heredoc.Docf(`
-			显示议题的标题、正文及其他信息。
+			显示 issue 的标题、正文及其他信息。
 
-			使用 %[1]s--web%[1]s 旗标时，改为在网页浏览器中打开该议题。
+			使用 %[1]s--web%[1]s 选项时，改为在网页浏览器中打开该 issue。
 		`, "`"),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -86,8 +86,8 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在浏览器中打开议题")
-	cmd.Flags().BoolVarP(&opts.Comments, "comments", "c", false, "查看议题评论")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在浏览器中打开 issue")
+	cmd.Flags().BoolVarP(&opts.Comments, "comments", "c", false, "查看 issue 评论")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, api.IssueFields)
 
 	return cmd
@@ -173,7 +173,7 @@ func viewRun(opts *ViewOptions) error {
 	if opts.WebMode {
 		openURL := issue.URL
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(openURL))
 		}
 		return opts.Browser.Browse(openURL)
 	}
@@ -205,7 +205,7 @@ func printRawIssuePreview(out io.Writer, issue *api.Issue) error {
 	projects := issueProjectList(*issue)
 
 	// 为空值打印空字符串，使得在使用 head 和 grep
-	// 处理大量议题时元数据行数保持一致。
+	// 处理大量issue时元数据行数保持一致。
 	fmt.Fprintf(out, "title:\t%s\n", issue.Title)
 	fmt.Fprintf(out, "state:\t%s\n", issue.State)
 	fmt.Fprintf(out, "author:\t%s\n", issue.Author.DisplayName())
@@ -249,7 +249,7 @@ func printHumanIssuePreview(opts *ViewOptions, baseRepo ghrepo.Interface, issue 
 	// 头部 (标题和状态)
 	fmt.Fprintf(out, "%s %s#%d\n", cs.Bold(issue.Title), ghrepo.FullName(baseRepo), issue.Number)
 
-	// 状态行 - 存在议题类型前缀时包含它
+	// 状态行 - 存在issue类型前缀时包含它
 	stateLine := issueStateTitleWithColor(cs, issue)
 	if issue.IssueType != nil {
 		stateLine = cs.Muted(issue.IssueType.Name) + " · " + stateLine
@@ -282,7 +282,7 @@ func printHumanIssuePreview(opts *ViewOptions, baseRepo ghrepo.Interface, issue 
 		fmt.Fprintln(out, issue.IssueType.Name)
 	}
 	if issue.Parent != nil {
-		fmt.Fprint(out, cs.Bold("父议题: "))
+		fmt.Fprint(out, cs.Bold("父 issue: "))
 		fmt.Fprintln(out, formatLinkedIssueRef(issue.Parent)+" "+issue.Parent.Title)
 	}
 	if blockedBy := formatLinkedIssueListWithTitle(issue.BlockedBy.Nodes); blockedBy != "" {
@@ -317,10 +317,10 @@ func printHumanIssuePreview(opts *ViewOptions, baseRepo ghrepo.Interface, issue 
 	}
 	fmt.Fprintf(out, "\n%s\n", md)
 
-	// 子议题部分
+	// 子issue部分
 	if issue.SubIssuesSummary.Total > 0 {
 		fmt.Fprintf(out, "%s · %d/%d (%d%%)\n",
-			cs.Bold("子议题"),
+			cs.Bold("子 issue"),
 			issue.SubIssuesSummary.Completed,
 			issue.SubIssuesSummary.Total,
 			int(issue.SubIssuesSummary.PercentCompleted),
@@ -352,24 +352,24 @@ func printHumanIssuePreview(opts *ViewOptions, baseRepo ghrepo.Interface, issue 
 	}
 
 	// 页脚
-	fmt.Fprintf(out, cs.Muted("在 GitHub 上查看此议题: %s\n"), issue.URL)
+	fmt.Fprintf(out, cs.Muted("在 GitHub 上查看此 issue: %s\n"), issue.URL)
 
 	return nil
 }
 
-// formatLinkedIssueRef 将议题引用格式化为 owner/repo#N。
+// formatLinkedIssueRef 将issue引用格式化为 owner/repo#N。
 func formatLinkedIssueRef(issue *api.LinkedIssue) string {
 	return fmt.Sprintf("%s#%d", issue.Repository.NameWithOwner, issue.Number)
 }
 
-// formatLinkedIssueRefs 格式化一个以逗号分隔的关联议题
+// formatLinkedIssueRefs 格式化一个以逗号分隔的关联issue
 // 引用列表，不含标题。
 func formatLinkedIssueRefs(issues []api.LinkedIssue) string {
 	return joinLinkedIssues(issues, false)
 }
 
 // formatLinkedIssueListWithTitle 格式化一个以逗号分隔的关联
-// 议题引用列表，每个标题追加在引用之后。
+// issue引用列表，每个标题追加在引用之后。
 func formatLinkedIssueListWithTitle(issues []api.LinkedIssue) string {
 	return joinLinkedIssues(issues, true)
 }

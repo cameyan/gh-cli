@@ -65,17 +65,22 @@ func PrintMessage(io *iostreams.IOStreams, s string) {
 
 func ListNoResults(repoName string, itemName string, hasFilters bool) error {
 	if hasFilters {
-		return cmdutil.NewNoResultsError(fmt.Sprintf("%s 中没有匹配您搜索的%s", repoName, itemName))
+		return cmdutil.NewNoResultsError(fmt.Sprintf("%s 仓库中不含您搜索的 %s", repoName, itemName))
 	}
-	return cmdutil.NewNoResultsError(fmt.Sprintf("%s 中没有 open 状态的%s", repoName, itemName))
+	return cmdutil.NewNoResultsError(fmt.Sprintf("%s 仓库中没有开启状态的 %s", repoName, itemName))
 }
 
 func ListHeader(repoName string, itemName string, matchCount int, totalMatchCount int, hasFilters bool) string {
-	if hasFilters {
-		return fmt.Sprintf("显示 %s 中匹配您搜索的 %d 条，共 %d 条%s", repoName, matchCount, totalMatchCount, text.Pluralize(totalMatchCount, itemName))
+    if hasFilters {
+		matchVerb := "匹配"
+		if totalMatchCount == 1 {
+			matchVerb = "匹配"
+		}
+		return fmt.Sprintf("正在显示 %s 仓库中，%d / %d 个%s您的搜索", repoName, matchCount, totalMatchCount, matchVerb)
 	}
 
-	return fmt.Sprintf("显示 %s 中的 %d 条，共 %d 条%s", repoName, matchCount, totalMatchCount, text.Pluralize(totalMatchCount, fmt.Sprintf("open %s", itemName)))
+	return fmt.Sprintf("正在显示 %s 仓库中，%d / %d 个开启状态的 %s", repoName, matchCount, totalMatchCount, itemName)
+
 }
 
 func PrCheckStatusSummaryWithColor(cs *iostreams.ColorScheme, checks api.PullRequestChecksStatus) string {

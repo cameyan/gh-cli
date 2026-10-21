@@ -448,7 +448,7 @@ func TestNewCmdEdit(t *testing.T) {
 			name:           "attach flag with more than one issue",
 			input:          fmt.Sprintf("23 34 --attach '%s'", tmpImage),
 			wantsErr:       true,
-			wantsErrMsg:    "编辑多个议题时无法使用 `--attach`",
+			wantsErrMsg:    "编辑多个 issue 时无法使用 `--attach`",
 			wantEvents:     attachmentEvent,
 			wantSampleRate: ghtelemetry.SAMPLE_ALL,
 		},
@@ -1705,7 +1705,7 @@ func Test_editRun(t *testing.T) {
 			},
 			stderr:          `更新 https://github\.com/OWNER/REPO/issue/123 失败`,
 			wantErr:         true,
-			wantErrContains: []string{"./shot.png", "更新 1 个议题失败"},
+			wantErrContains: []string{"./shot.png", "更新 1 个 issue 失败"},
 		},
 	}
 	for _, tt := range tests {

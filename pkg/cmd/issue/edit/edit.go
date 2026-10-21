@@ -75,32 +75,26 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 
 	cmd := &cobra.Command{
 		Use:   "edit {<numbers> | <urls>}",
-		Short: "编辑议题",
+		Short: "编辑 issue",
 		Long: heredoc.Docf(`
-			编辑同一仓库中的一个或多个议题。
+			编辑同一仓库中的一个或多个 issue。
 
-			编辑议题的项目需要 %[1]sproject%[1]s 范围的授权。
-			如需授权，请运行 %[1]sgh auth refresh -s project%[1]s。
+			编辑 issue 的项目需要 %[1]sproject%[1]s 范围的授权。如需授权，请运行 %[1]sgh auth refresh -s project%[1]s。
 
-			使用 %[1]s--attach%[1]s 将图片或视频上传到单个议题。如果未提供正文
-			旗标，议题会保留其已有的正文，并将附件追加到正文末尾。
-			如果正文引用了某个已附加文件，例如 %[1]s![alt](./login.png)%[1]s，该引用会被
+			使用 %[1]s--attach%[1]s 将图片或视频上传到单个 issue。如果未提供正文选项，issue 会保留其已有的正文，
+			并将附件追加到正文末尾。如果正文引用了某个已附加文件，例如 %[1]s![alt](./login.png)%[1]s，该引用会被
 			重写为指向已上传的资源。
 			每条命令最多可附加 50 个文件。
 
-			图片的替代文本会跟在 %[1]s#%[1]s 之后的路径中，如
-			%[1]s--attach './login.png#The login error state'%[1]s。若不提供，则使用文件名。
-			正文中已有的引用会保留写在其处的替代文本。视频会渲染
-			为播放器且没有替代文本，因此无法为其指定。
+			图片的替代文本会跟在 %[1]s#%[1]s 之后的路径中，如 %[1]s--attach './login.png#The login error state'%[1]s。
+			若不提供，则使用文件名。正文中已有的引用会保留写在其处的替代文本。视频会渲染为播放器且没有替代文本，因此无法为其指定。
 
-			如果部分附件上传成功而其他附件失败，议题仍会使用成功的附件进行更新。
-			随后命令会以非零状态退出，但已编辑议题的 URL 仍会打印到
-			标准输出。
+			如果部分附件上传成功而其他附件失败，issue 仍会使用成功的附件进行更新。随后命令会以非零状态退出，但已编辑 issue
+			的 URL 仍会打印到标准输出。
 
-			%[1]s--add-assignee%[1]s 和 %[1]s--remove-assignee%[1]s 旗标均支持
-			以下特殊值:
+			%[1]s--add-assignee%[1]s 和 %[1]s--remove-assignee%[1]s 选项均支持以下特殊值:
 			- %[1]s@me%[1]s: 将自己设为负责人或取消自己的负责人身份
-			- %[1]s@copilot%[1]s: 将 Copilot 设为负责人或取消其负责人身份(在 GitHub Enterprise Server 上不受支持)
+			- %[1]s@copilot%[1]s: 将 Copilot 设为负责人或取消其负责人身份(在 GitHub 企业版服务器上不受支持)
 		`, "`"),
 		Example: heredoc.Doc(`
 			$ gh issue edit 23 --title "I found a bug" --body "Nothing works"
@@ -227,19 +221,19 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 			}
 
 			if opts.Interactive && !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("非交互式运行时必须指定要编辑的字段旗标")
+				return cmdutil.FlagErrorf("非交互式运行时必须指定要编辑的字段选项")
 			}
 
 			if opts.Interactive && len(opts.IssueNumbers) > 1 {
-				return cmdutil.FlagErrorf("无法以交互方式编辑多个议题")
+				return cmdutil.FlagErrorf("无法以交互方式编辑多个 issue")
 			}
 
 			if len(opts.IssueNumbers) > 1 && len(opts.AddSubIssues) > 0 {
-				return cmdutil.FlagErrorf("编辑多个议题时无法使用 `--add-sub-issue`")
+				return cmdutil.FlagErrorf("编辑多个 issue 时无法使用 `--add-sub-issue`")
 			}
 
 			if len(opts.IssueNumbers) > 1 && len(opts.Assets) > 0 {
-				return cmdutil.FlagErrorf("编辑多个议题时无法使用 `--attach`")
+				return cmdutil.FlagErrorf("编辑多个 issue 时无法使用 `--attach`")
 			}
 
 			if runF != nil {
@@ -250,27 +244,27 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Editable.Title.Value, "title", "t", "", "设置新标题。")
-	cmd.Flags().StringVarP(&opts.Editable.Body.Value, "body", "b", "", "设置新正文。")
+	cmd.Flags().StringVarP(&opts.Editable.Title.Value, "title", "t", "", "设置新标题")
+	cmd.Flags().StringVarP(&opts.Editable.Body.Value, "body", "b", "", "设置新正文")
 	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "从 `file` 读取正文文本(使用 \"-\" 从标准输入读取)")
-	cmd.Flags().StringSliceVar(&opts.Editable.Assignees.Add, "add-assignee", nil, "按 `login` 添加负责人。使用 \"@me\" 将自己设为负责人，或使用 \"@copilot\" 将 Copilot 设为负责人。")
-	cmd.Flags().StringSliceVar(&opts.Editable.Assignees.Remove, "remove-assignee", nil, "按 `login` 移除负责人。使用 \"@me\" 取消自己的负责人身份，或使用 \"@copilot\" 取消 Copilot 的负责人身份。")
+	cmd.Flags().StringSliceVar(&opts.Editable.Assignees.Add, "add-assignee", nil, "按 `login` 添加负责人。使用 \"@me\" 将自己设为负责人，或使用 \"@copilot\" 将 Copilot 设为负责人")
+	cmd.Flags().StringSliceVar(&opts.Editable.Assignees.Remove, "remove-assignee", nil, "按 `login` 移除负责人。使用 \"@me\" 取消自己的负责人身份，或使用 \"@copilot\" 取消 Copilot 的负责人身份")
 	cmd.Flags().StringSliceVar(&opts.Editable.Labels.Add, "add-label", nil, "按 `name` 添加标签")
 	cmd.Flags().StringSliceVar(&opts.Editable.Labels.Remove, "remove-label", nil, "按 `name` 移除标签")
-	cmd.Flags().StringSliceVar(&opts.Editable.Projects.Add, "add-project", nil, "按 `title` 将议题添加到项目")
-	cmd.Flags().StringSliceVar(&opts.Editable.Projects.Remove, "remove-project", nil, "按 `title` 将议题从项目中移除")
-	cmd.Flags().StringVarP(&opts.Editable.Milestone.Value, "milestone", "m", "", "按 `name` 编辑议题所属的里程碑")
-	cmd.Flags().BoolVar(&removeMilestone, "remove-milestone", false, "移除议题的里程碑关联")
-	cmd.Flags().StringVar(&opts.Editable.IssueType.Value, "type", "", "按 `name` 设置议题类型")
-	cmd.Flags().BoolVar(&opts.RemoveIssueType, "remove-type", false, "移除议题的类型")
-	cmd.Flags().StringVar(&opts.Parent, "parent", "", "按 `number` 或 URL 设置父议题")
-	cmd.Flags().BoolVar(&opts.RemoveParent, "remove-parent", false, "移除父议题")
-	cmd.Flags().StringSliceVar(&opts.AddSubIssues, "add-sub-issue", nil, "按 `number` 或 URL 添加子议题")
-	cmd.Flags().StringSliceVar(&opts.RemoveSubIssues, "remove-sub-issue", nil, "按 `number` 或 URL 移除子议题")
-	cmd.Flags().StringSliceVar(&opts.AddBlockedBy, "add-blocked-by", nil, "按议题 `number` 或 URL 添加 'blocked by' 关系")
-	cmd.Flags().StringSliceVar(&opts.RemoveBlockedBy, "remove-blocked-by", nil, "按议题 `number` 或 URL 移除 'blocked by' 关系")
-	cmd.Flags().StringSliceVar(&opts.AddBlocking, "add-blocking", nil, "按议题 `number` 或 URL 添加 'blocking' 关系")
-	cmd.Flags().StringSliceVar(&opts.RemoveBlocking, "remove-blocking", nil, "按议题 `number` 或 URL 移除 'blocking' 关系")
+	cmd.Flags().StringSliceVar(&opts.Editable.Projects.Add, "add-project", nil, "按 `title` 将 issue 添加到项目")
+	cmd.Flags().StringSliceVar(&opts.Editable.Projects.Remove, "remove-project", nil, "按 `title` 将 issue 从项目中移除")
+	cmd.Flags().StringVarP(&opts.Editable.Milestone.Value, "milestone", "m", "", "按 `name` 编辑 issue 所属的里程碑")
+	cmd.Flags().BoolVar(&removeMilestone, "remove-milestone", false, "移除 issue 的里程碑关联")
+	cmd.Flags().StringVar(&opts.Editable.IssueType.Value, "type", "", "按 `name` 设置 issue 类型")
+	cmd.Flags().BoolVar(&opts.RemoveIssueType, "remove-type", false, "移除 issue 的类型")
+	cmd.Flags().StringVar(&opts.Parent, "parent", "", "按 `number` 或 URL 设置父issue")
+	cmd.Flags().BoolVar(&opts.RemoveParent, "remove-parent", false, "移除父 issue")
+	cmd.Flags().StringSliceVar(&opts.AddSubIssues, "add-sub-issue", nil, "按 `number` 或 URL 添加子 issue")
+	cmd.Flags().StringSliceVar(&opts.RemoveSubIssues, "remove-sub-issue", nil, "按 `number` 或 URL 移除子 issue")
+	cmd.Flags().StringSliceVar(&opts.AddBlockedBy, "add-blocked-by", nil, "按 issue `number` 或 URL 添加 'blocked by' 关系")
+	cmd.Flags().StringSliceVar(&opts.RemoveBlockedBy, "remove-blocked-by", nil, "按issue `number` 或 URL 移除 'blocked by' 关系")
+	cmd.Flags().StringSliceVar(&opts.AddBlocking, "add-blocking", nil, "按issue `number` 或 URL 添加 'blocking' 关系")
+	cmd.Flags().StringSliceVar(&opts.RemoveBlocking, "remove-blocking", nil, "按 issue `number` 或 URL 移除 'blocking' 关系")
 	opts.AttachFlag = attachments.AddFlag(cmd)
 
 	return cmd
@@ -355,14 +349,14 @@ func editRun(opts *EditOptions) error {
 		lookupFields = append(lookupFields, "repository")
 	}
 
-	// 获取所有指定的议题，并确保它们位于同一仓库中。
+	// 获取所有指定的issue，并确保它们位于同一仓库中。
 	issues, err := issueShared.FindIssuesOrPRs(httpClient, baseRepo, opts.IssueNumbers, lookupFields)
 	if err != nil {
 		return err
 	}
 
-	// NewCmdEdit 会拒绝针对多个议题的 --attach，因此 issues[0] 是
-	// 唯一的议题。这是其仓库 id 和权限最早存在的地方，
+	// NewCmdEdit 会拒绝针对多个issue的 --attach，因此 issues[0] 是
+	// 唯一的issue。这是其仓库 id 和权限最早存在的地方，
 	// 因此无法上传的运行会在任何写入之前停止。
 	var uploader *attachments.Uploader
 	if len(opts.Assets) > 0 {
@@ -378,11 +372,11 @@ func editRun(opts *EditOptions) error {
 		}
 	}
 
-	// 为所有议题一次性获取可编辑的共享字段。
+	// 为所有issue一次性获取可编辑的共享字段。
 	apiClient := api.NewClientFromHTTP(httpClient)
 
 	// 当 ApiActorsSupported 可用时，为负责人接入搜索函数。
-	// 交互模式仅支持单个议题，因此我们使用其 ID 作为搜索查询。
+	// 交互模式仅支持单个issue，因此我们使用其 ID 作为搜索查询。
 	if issueFeatures.ApiActorsSupported && opts.Interactive && len(issues) == 1 {
 		editable.AssigneeSearchFunc = prShared.AssigneeSearchFunc(apiClient, baseRepo, issues[0].ID)
 	}
@@ -394,7 +388,7 @@ func editRun(opts *EditOptions) error {
 		return err
 	}
 
-	// 在非交互模式下上传之前先解析议题类型 ID。
+	// 在非交互模式下上传之前先解析issue类型 ID。
 	// 交互模式会在问卷设置该值之后再解析。
 	var issueTypeID string
 	if !opts.Interactive {
@@ -406,14 +400,14 @@ func editRun(opts *EditOptions) error {
 
 	var uploadErr error
 	if uploader != nil {
-		// 调用方提供的正文会替换议题的正文，包括空正文。
+		// 调用方提供的正文会替换issue的正文，包括空正文。
 		body := editable.Body.Value
 		if !editable.Body.Edited {
 			body = issues[0].Body
 		}
 
 		// 此部分位于下方循环之外，因此每个文件只上传一次，而
-		// Clone 会将合并后的正文带入议题。上传之后不得再有任何
+		// Clone 会将合并后的正文带入issue。上传之后不得再有任何
 		// 可能提示或取消的操作。
 		var uploadResult attachments.UploadResult
 		body, uploadResult, uploadErr = uploader.UploadAndAttach(context.Background(), body, opts.Assets)
@@ -424,20 +418,20 @@ func editRun(opts *EditOptions) error {
 			editable.Body.Edited = true
 		} else {
 			// 调用方的正文原本是为了携带一个从未到达的附件，
-			// 因此它不会替换议题已有的正文。调用方要求的其他
+			// 因此它不会替换issue已有的正文。调用方要求的其他
 			// 每个字段仍然适用。
 			editable.Body.Edited = false
 		}
 	}
 
-	// 并行更新所有议题。
+	// 并行更新所有issue。
 	editedIssueChan := make(chan string, len(issues))
 	failedIssueChan := make(chan string, len(issues))
 	g := sync.WaitGroup{}
 
 	// 仅在我们下方不会提示或问卷不会打断进度指示器时显示进度。
 	if !opts.Interactive {
-		opts.IO.StartProgressIndicatorWithLabel(fmt.Sprintf("正在更新 %d 个议题", len(issues)))
+		opts.IO.StartProgressIndicatorWithLabel(fmt.Sprintf("正在更新 %d 个 issue", len(issues)))
 	}
 
 	for _, issue := range issues {
@@ -469,7 +463,7 @@ func editRun(opts *EditOptions) error {
 			editable.IssueType.Default = issue.IssueType.Name
 		}
 
-		// 允许对单个议题进行交互式提示；如果指定了多个议题，则前面已失败。
+		// 允许对单个issue进行交互式提示；如果指定了多个issue，则前面已失败。
 		if opts.Interactive {
 			editorCommand, err := opts.DetermineEditor()
 			if err != nil {
@@ -515,7 +509,7 @@ func editRun(opts *EditOptions) error {
 	// 如果上方未启动进度，则不执行任何操作。
 	opts.IO.StopProgressIndicator()
 
-	// 将成功编辑的议题 URL 排序后打印到标准输出。
+	// 将成功编辑的issue URL 排序后打印到标准输出。
 	editedIssueURLs := make([]string, 0, len(issues))
 	for editedIssueURL := range editedIssueChan {
 		editedIssueURLs = append(editedIssueURLs, editedIssueURL)
@@ -546,14 +540,14 @@ func editRun(opts *EditOptions) error {
 	if len(failedIssueErrors) > 0 {
 		// 上传失败和写入失败有不同的补救措施，因此写入失败
 		// 不能同时代表两者。
-		return errors.Join(uploadErr, fmt.Errorf("更新 %d 个议题失败", len(failedIssueErrors)))
+		return errors.Join(uploadErr, fmt.Errorf("更新 %d 个 issue 失败", len(failedIssueErrors)))
 	}
 
 	return uploadErr
 }
 
 // lookupIssueTypeID 使用 FetchOptions 填充的映射，
-// 将选定的议题类型解析为其节点 ID。
+// 将选定的issue类型解析为其节点 ID。
 func lookupIssueTypeID(editable *prShared.Editable) (string, error) {
 	if !editable.IssueType.Edited || editable.IssueType.Value == "" {
 		return "", nil

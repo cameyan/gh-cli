@@ -92,7 +92,7 @@ func TestIssueDelete(t *testing.T) {
 		t.Fatalf("error running command `issue delete`: %v", err)
 	}
 
-	r := regexp.MustCompile(`已删除议题 OWNER/REPO#13 \(The title of the issue\)`)
+	r := regexp.MustCompile(`已删除 issue OWNER/REPO#13 \(The title of the issue\)`)
 
 	if !r.MatchString(output.Stderr()) {
 		t.Fatalf("output did not match regexp /%s/\n> output\n%q\n", r, output.Stderr())
@@ -124,7 +124,7 @@ func TestIssueDelete_confirm(t *testing.T) {
 		t.Fatalf("error running command `issue delete`: %v", err)
 	}
 
-	r := regexp.MustCompile(`已删除议题 OWNER/REPO#13 \(The title of the issue\)`)
+	r := regexp.MustCompile(`已删除 issue OWNER/REPO#13 \(The title of the issue\)`)
 
 	if !r.MatchString(output.Stderr()) {
 		t.Fatalf("output did not match regexp /%s/\n> output\n%q\n", r, output.Stderr())
@@ -205,7 +205,7 @@ func TestIssueDelete_issuesDisabled(t *testing.T) {
 	)
 
 	_, err := runCommand(httpRegistry, nil, true, "13")
-	if err == nil || err.Error() != "'OWNER/REPO' 仓库已禁用议题" {
+	if err == nil || err.Error() != "'OWNER/REPO' 仓库已禁用 issue" {
 		t.Fatalf("got error: %v", err)
 	}
 }

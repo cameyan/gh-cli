@@ -34,7 +34,7 @@ func NewCmdReopen(f *cmdutil.Factory, runF func(*ReopenOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "reopen {<number> | <url>}",
-		Short: "重新打开议题",
+		Short: "重新打开 issue",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			issueNumber, baseRepo, err := shared.ParseIssueFromArg(args[0])
@@ -61,7 +61,7 @@ func NewCmdReopen(f *cmdutil.Factory, runF func(*ReopenOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Comment, "comment", "c", "", "添加一条重新打开评论")
+	cmd.Flags().StringVarP(&opts.Comment, "comment", "c", "", "添加一条重新打开的评论")
 
 	return cmd
 }
@@ -85,7 +85,7 @@ func reopenRun(opts *ReopenOptions) error {
 	}
 
 	if issue.State == "OPEN" {
-		fmt.Fprintf(opts.IO.ErrOut, "%s 议题 %s#%d (%s) 已打开\n", cs.Yellow("!"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 已打开 issue %s#%d (%s)\n", cs.Yellow("!"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
 		return nil
 	}
 
@@ -110,7 +110,7 @@ func reopenRun(opts *ReopenOptions) error {
 		return err
 	}
 
-	fmt.Fprintf(opts.IO.ErrOut, "%s 已重新打开议题 %s#%d (%s)\n", cs.SuccessIconWithColor(cs.Green), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
+	fmt.Fprintf(opts.IO.ErrOut, "%s 已重新打开 issue %s#%d (%s)\n", cs.SuccessIconWithColor(cs.Green), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
 
 	return nil
 }

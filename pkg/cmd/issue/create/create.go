@@ -78,30 +78,25 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "创建新议题",
+		Short: "创建新 issue",
 		Long: heredoc.Docf(`
-			在 GitHub 上创建议题。
+			在 GitHub 上创建 issue。
 
-			使用 %[1]s--attach%[1]s 上传图片或视频。附件会被追加到
-			正文。如果正文引用了某个已附加文件，例如 %[1]s![alt](./login.png)%[1]s，该
-			引用会被重写为指向已上传的资源。
+			使用 %[1]s--attach%[1]s 上传图片或视频。附件会被追加到正文。如果正文引用了某个已附加文件，
+			例如 %[1]s![alt](./login.png)%[1]s，该引用会被重写为指向已上传的资源。
 			每条命令最多可附加 50 个文件。
 
-			图片的替代文本会跟在 %[1]s#%[1]s 之后的路径中，如
-			%[1]s--attach './login.png#The login error state'%[1]s。若不提供，则使用文件名。
-			正文中已有的引用会保留写在其处的替代文本。视频会渲染
-			为播放器且没有替代文本，因此无法为其指定。
+			图片的替代文本会跟在 %[1]s#%[1]s 之后的路径中，如 %[1]s--attach './login.png#The login error state'%[1]s。
+			若不提供，则使用文件名。正文中已有的引用会保留写在其处的替代文本。视频会渲染为播放器且没有替代文本，因此无法为其指定。
 
-			如果部分附件上传成功、部分失败，仍会用成功的附件创建
-			议题。命令随后会以非零状态退出，但新议题的 URL 仍会
-			打印到标准输出。
+			如果部分附件上传成功、部分失败，仍会用成功的附件创建 issue。命令随后会以非零状态退出，但新 issue 的 URL 仍会打印到
+			标准输出。
 
-			将议题添加到项目需要具备 %[1]sproject%[1]s 范围的授权。
-			如需授权，请运行 %[1]sgh auth refresh -s project%[1]s。
+			将 issue 添加到项目需要具备 %[1]sproject%[1]s 范围的授权。如需授权，请运行 %[1]sgh auth refresh -s project%[1]s。
 
-			%[1]s--assignee%[1]s 旗标支持以下特殊值:
+			%[1]s--assignee%[1]s 选项支持以下特殊值:
 			- %[1]s@me%[1]s: 将自己指派为负责人
-			- %[1]s@copilot%[1]s: 指派 Copilot(在 GitHub Enterprise Server 上不受支持)
+			- %[1]s@copilot%[1]s: 指派 Copilot(在 GitHub 企业版服务器上不受支持)
 		`, "`"),
 		Example: heredoc.Doc(`
 			$ gh issue create --title "I found a bug" --body "Nothing works"
@@ -178,21 +173,21 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Title, "title", "t", "", "提供标题。否则会提示输入一个。")
-	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "提供正文。否则会提示输入一个。")
+	cmd.Flags().StringVarP(&opts.Title, "title", "t", "", "提供标题，否则会提示输入一个")
+	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "提供正文，否则会提示输入一个")
 	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "从 `file` 读取正文文本(使用 \"-\" 从标准输入读取)")
-	cmd.Flags().BoolVarP(&opts.EditorMode, "editor", "e", false, "跳过提示并打开文本编辑器编写标题和正文。第一行是标题，其余文本是正文。")
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "打开浏览器创建议题")
-	cmd.Flags().StringSliceVarP(&opts.Assignees, "assignee", "a", nil, "按 `login` 指派负责人。使用 \"@me\" 指派自己。")
+	cmd.Flags().BoolVarP(&opts.EditorMode, "editor", "e", false, "跳过提示并打开文本编辑器编写标题和正文。第一行是标题，其余文本是正文")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "打开浏览器创建 issue")
+	cmd.Flags().StringSliceVarP(&opts.Assignees, "assignee", "a", nil, "按 `login` 指派负责人，使用 \"@me\" 指派自己")
 	cmd.Flags().StringSliceVarP(&opts.Labels, "label", "l", nil, "按 `name` 添加标签")
-	cmd.Flags().StringSliceVarP(&opts.Projects, "project", "p", nil, "按 `title` 将议题添加到项目")
-	cmd.Flags().StringVarP(&opts.Milestone, "milestone", "m", "", "按 `name` 将议题添加到里程碑")
+	cmd.Flags().StringSliceVarP(&opts.Projects, "project", "p", nil, "按 `title` 将 issue 添加到项目")
+	cmd.Flags().StringVarP(&opts.Milestone, "milestone", "m", "", "按 `name` 将 issue 添加到里程碑")
 	cmd.Flags().StringVar(&opts.RecoverFile, "recover", "", "从创建命令的失败运行中恢复输入")
 	cmd.Flags().StringVarP(&opts.Template, "template", "T", "", "用作起始正文的模板 `name`")
-	cmd.Flags().StringVar(&opts.IssueType, "type", "", "按 `name` 设置议题类型")
-	cmd.Flags().StringVar(&opts.Parent, "parent", "", "将新议题添加为指定父议题 `number` 或 URL 的子议题")
-	cmd.Flags().StringSliceVar(&opts.BlockedBy, "blocked-by", nil, "将新议题标记为被这些议题 `numbers` 或 URL 阻塞")
-	cmd.Flags().StringSliceVar(&opts.Blocking, "blocking", nil, "将新议题标记为阻塞这些议题 `numbers` 或 URL")
+	cmd.Flags().StringVar(&opts.IssueType, "type", "", "按 `name` 设置 issue 类型")
+	cmd.Flags().StringVar(&opts.Parent, "parent", "", "将新 issue 添加为指定父 issue `number` 或 URL 的子议题")
+	cmd.Flags().StringSliceVar(&opts.BlockedBy, "blocked-by", nil, "将新 issue 标记为被这些 issue `numbers` 或 URL 阻塞")
+	cmd.Flags().StringSliceVar(&opts.Blocking, "blocking", nil, "将新 issue 标记为阻塞这些 issue `numbers` 或 URL")
 	opts.AttachFlag = attachments.AddFlag(cmd)
 
 	return cmd
@@ -278,13 +273,13 @@ func createRun(opts *CreateOptions) (err error) {
 			openURL = ghrepo.GenerateRepoURL(baseRepo, "issues/new")
 		}
 		if isTerminal {
-			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(openURL))
 		}
 		return opts.Browser.Browse(openURL)
 	}
 
 	if isTerminal {
-		fmt.Fprintf(opts.IO.ErrOut, "\n正在 %s 中创建议题\n\n", ghrepo.FullName(baseRepo))
+		fmt.Fprintf(opts.IO.ErrOut, "\n正在 %s 中创建 issue\n\n", ghrepo.FullName(baseRepo))
 	}
 
 	repo, err := api.IssueRepoInfo(apiClient, baseRepo)
@@ -292,7 +287,7 @@ func createRun(opts *CreateOptions) (err error) {
 		return
 	}
 	if !repo.HasIssuesEnabled {
-		err = fmt.Errorf("仓库 '%s' 已禁用议题", ghrepo.FullName(baseRepo))
+		err = fmt.Errorf("仓库 '%s' 已禁用 issue", ghrepo.FullName(baseRepo))
 		return
 	}
 
@@ -368,7 +363,7 @@ func createRun(opts *CreateOptions) (err error) {
 					typeNames[i] = t.Name
 				}
 				var selected int
-				selected, err = opts.Prompter.Select("议题类型", "", typeNames)
+				selected, err = opts.Prompter.Select("issue 类型", "", typeNames)
 				if err != nil {
 					return
 				}
@@ -413,7 +408,7 @@ func createRun(opts *CreateOptions) (err error) {
 		}
 
 		if action == prShared.CancelAction {
-			fmt.Fprintln(opts.IO.ErrOut, "已丢弃。")
+			fmt.Fprintln(opts.IO.ErrOut, "已丢弃")
 			err = cmdutil.CancelError
 			return
 		}
@@ -445,7 +440,7 @@ func createRun(opts *CreateOptions) (err error) {
 
 	if action == prShared.PreviewAction {
 		if isTerminal {
-			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(openURL))
 		}
 		return opts.Browser.Browse(openURL)
 	} else if action == prShared.SubmitAction {
