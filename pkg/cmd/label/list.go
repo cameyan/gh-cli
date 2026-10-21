@@ -34,12 +34,12 @@ func newCmdList(f *cmdutil.Factory, runF func(*listOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "列出仓库中的标签(label)",
+		Short: "列出仓库中的标签",
 		Long: heredoc.Docf(`
-			显示 GitHub 仓库中的标签(label)。
+			列出 GitHub 仓库中的标签。
 
-			使用 %[1]s--search%[1]s flag 时，结果按与查询的最佳匹配度排序。
-			该行为无法通过 %[1]s--order%[1]s 或 %[1]s--sort%[1]s flag 配置。
+			使用 %[1]s--search%[1]s 选项时，结果按与查询的最佳匹配度排序。
+			该行为无法通过 %[1]s--order%[1]s 或 %[1]s--sort%[1]s 选项配置。
 		`, "`"),
 		Example: heredoc.Doc(`
 			# 按名称排序标签
@@ -55,7 +55,7 @@ func newCmdList(f *cmdutil.Factory, runF func(*listOptions) error) *cobra.Comman
 			opts.BaseRepo = f.BaseRepo
 
 			if opts.Query.Limit < 1 {
-				return cmdutil.FlagErrorf("无效的 limit: %v", opts.Query.Limit)
+				return cmdutil.FlagErrorf("无效的限制值: %v", opts.Query.Limit)
 			}
 
 			if opts.Query.Query != "" &&
@@ -70,8 +70,8 @@ func newCmdList(f *cmdutil.Factory, runF func(*listOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在 web 浏览器中列出标签(label)")
-	cmd.Flags().IntVarP(&opts.Query.Limit, "limit", "L", 30, "最多获取的标签数量")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在 web 浏览器中列出标签")
+	cmd.Flags().IntVarP(&opts.Query.Limit, "limit", "L", 30, "获取的最大标签数量")
 	cmd.Flags().StringVarP(&opts.Query.Query, "search", "S", "", "搜索标签名称与描述")
 	cmdutil.StringEnumFlag(cmd, &opts.Query.Order, "order", "", defaultOrder, []string{"asc", "desc"}, "返回标签的顺序")
 	cmdutil.StringEnumFlag(cmd, &opts.Query.Sort, "sort", "", defaultSort, []string{"created", "name"}, "对获取的标签排序")
@@ -96,7 +96,7 @@ func listRun(opts *listOptions) error {
 		labelListURL := ghrepo.GenerateRepoURL(baseRepo, "labels")
 
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(labelListURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(labelListURL))
 		}
 
 		return opts.Browser.Browse(labelListURL)
@@ -115,9 +115,9 @@ func listRun(opts *listOptions) error {
 
 	if len(labels) == 0 {
 		if opts.Query.Query != "" {
-			return cmdutil.NewNoResultsError(fmt.Sprintf("%s 中没有匹配您搜索的标签(label)", ghrepo.FullName(baseRepo)))
+			return cmdutil.NewNoResultsError(fmt.Sprintf("%s 中没有匹配您搜索的标签", ghrepo.FullName(baseRepo)))
 		}
-		return cmdutil.NewNoResultsError(fmt.Sprintf("%s 中未找到任何标签(label)", ghrepo.FullName(baseRepo)))
+		return cmdutil.NewNoResultsError(fmt.Sprintf("%s 中未找到任何标签", ghrepo.FullName(baseRepo)))
 	}
 
 	if opts.Exporter != nil {
@@ -153,5 +153,5 @@ func printLabels(io *iostreams.IOStreams, labels []label) error {
 }
 
 func listHeader(repoName string, count int, totalCount int) string {
-	return fmt.Sprintf("显示 %s 中的 %d 条，共 %d 条标签(label)", repoName, count, totalCount)
+	return fmt.Sprintf("列出 %s 中的 %d 个标签，共 %d 条", repoName, count, totalCount)
 }

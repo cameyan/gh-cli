@@ -47,7 +47,7 @@ func NewCmdConfigGet(f *cmdutil.Factory, runF func(*GetOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Hostname, "host", "h", "", "获取按主机(per-host)划分的配置项")
+	cmd.Flags().StringVarP(&opts.Hostname, "host", "h", "", "获取按主机划分的配置项")
 
 	return cmd
 }

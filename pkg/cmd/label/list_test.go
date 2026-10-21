@@ -37,7 +37,7 @@ func TestNewCmdList(t *testing.T) {
 			name:    "invalid limit flag",
 			input:   "--limit 0",
 			wantErr: true,
-			errMsg:  "invalid limit: 0",
+			errMsg:  "无效的限制值: 0",
 		},
 		{
 			name:   "web flag",
@@ -85,19 +85,19 @@ func TestNewCmdList(t *testing.T) {
 			name:    "search flag with sort flag",
 			input:   "--search test --sort name",
 			wantErr: true,
-			errMsg:  "cannot specify `--order` or `--sort` with `--search`",
+			errMsg:  "`--order` 或 `--sort` 不能与 `--search` 同时指定",
 		},
 		{
 			name:    "search flag with order flag",
 			input:   "--search test --order asc",
 			wantErr: true,
-			errMsg:  "cannot specify `--order` or `--sort` with `--search`",
+			errMsg:  "`--order` 或 `--sort` 不能与 `--search` 同时指定",
 		},
 		{
 			name:    "search flag with order and sort flags",
 			input:   "--search test --order asc --sort name",
 			wantErr: true,
-			errMsg:  "cannot specify `--order` or `--sort` with `--search`",
+			errMsg:  "`--order` 或 `--sort` 不能与 `--search` 同时指定",
 		},
 		{
 			name:  "json flag",
@@ -217,9 +217,9 @@ func TestListRun(t *testing.T) {
 			},
 			wantStdout: heredoc.Doc(`
 
-				Showing 2 of 2 labels in OWNER/REPO
+				列出 OWNER/REPO 中的 2 个标签，共 2 条
 
-				NAME  DESCRIPTION           COLOR
+				名称  描述                  颜色
 				bug   This is a bug label   #d73a4a
 				docs  This is a docs label  #ffa8da
 			`),
@@ -275,7 +275,7 @@ func TestListRun(t *testing.T) {
 				)
 			},
 			wantErr:    true,
-			wantErrMsg: "no labels found in OWNER/REPO",
+			wantErrMsg: "OWNER/REPO 中未找到任何标签",
 		},
 		{
 			name: "empty label list search",
@@ -290,13 +290,13 @@ func TestListRun(t *testing.T) {
 				)
 			},
 			wantErr:    true,
-			wantErrMsg: "no labels in OWNER/REPO matched your search",
+			wantErrMsg: "OWNER/REPO 中没有匹配您搜索的标签",
 		},
 		{
 			name:       "web mode",
 			tty:        true,
 			opts:       &listOptions{WebMode: true},
-			wantStderr: "Opening https://github.com/OWNER/REPO/labels in your browser.\n",
+			wantStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/labels\n",
 		},
 		{
 			name: "order by name ascending",
@@ -348,9 +348,9 @@ func TestListRun(t *testing.T) {
 			},
 			wantStdout: heredoc.Doc(`
 
-			Showing 2 of 2 labels in OWNER/REPO
+			列出 OWNER/REPO 中的 2 个标签，共 2 条
 
-			NAME  DESCRIPTION           COLOR
+			名称  描述                  颜色
 			bug   This is a bug label   #d73a4a
 			docs  This is a docs label  #ffa8da
 			`),

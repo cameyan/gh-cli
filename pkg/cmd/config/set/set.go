@@ -30,7 +30,7 @@ func NewCmdConfigSet(f *cmdutil.Factory, runF func(*SetOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "set <key> <value>",
-		Short: "用给定键的值更新配置",
+		Short: "用给定的键值对更新配置",
 		Example: heredoc.Doc(`
 			$ gh config set editor vim
 			$ gh config set editor "code --wait"
@@ -56,7 +56,7 @@ func NewCmdConfigSet(f *cmdutil.Factory, runF func(*SetOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Hostname, "host", "h", "", "设置按主机(per-host)划分的配置项")
+	cmd.Flags().StringVarP(&opts.Hostname, "host", "h", "", "设置按主机划分的配置项")
 
 	return cmd
 }

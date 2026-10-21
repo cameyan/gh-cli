@@ -33,16 +33,13 @@ func newCmdClone(f *cmdutil.Factory, runF func(*cloneOptions) error) *cobra.Comm
 
 	cmd := &cobra.Command{
 		Use:   "clone <source-repository>",
-		Short: "将标签(label)从一个仓库克隆到另一个仓库",
+		Short: "将标签从一个仓库克隆到另一个仓库",
 		Long: heredoc.Docf(`
-			将标签(label)从 GitHub 上的源仓库克隆到目标仓库。
-			默认情况下，目标仓库为当前仓库。
+			将标签从 GitHub 上的源仓库克隆到目标仓库。默认情况下，目标仓库为当前仓库。
 
-			源仓库中的所有标签都会被复制到目标仓库。
-			目标仓库中不在源仓库里的标签不会被删除或修改。
+			源仓库中的所有标签都会被复制到目标仓库。目标仓库中不在源仓库里的标签不会被删除或修改。
 
-			源仓库中已存在于目标仓库的标签将被跳过。
-			可以使用 %[1]s--force%[1]s flag 覆盖目标仓库中的已有标签。
+			源仓库中已存在于目标仓库的标签将被跳过。可以使用 %[1]s--force%[1]s flag 覆盖目标仓库中的已有标签。
 		`, "`"),
 		Example: heredoc.Doc(`
 			# 从 cli/cli 仓库克隆并覆盖标签到当前仓库
@@ -100,7 +97,7 @@ func cloneRun(opts *cloneOptions) error {
 		case successCount == totalCount:
 			fmt.Fprintf(opts.IO.Out, "%s 已将 %s 从 %s 克隆到 %s\n", cs.SuccessIcon(), pluralize(successCount), ghrepo.FullName(opts.SourceRepo), ghrepo.FullName(baseRepo))
 		default:
-			fmt.Fprintf(opts.IO.Out, "%s 已将 %s 中的 %d 条从 %s 克隆到 %s\n", cs.WarningIcon(), pluralize(successCount), totalCount, ghrepo.FullName(opts.SourceRepo), ghrepo.FullName(baseRepo))
+			fmt.Fprintf(opts.IO.Out, "%s 已将 %d 个标签中的 %s 从 %s 克隆到 %s\n", cs.WarningIcon(), totalCount, pluralize(successCount), ghrepo.FullName(opts.SourceRepo), ghrepo.FullName(baseRepo))
 		}
 	}
 

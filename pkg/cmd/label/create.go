@@ -57,12 +57,11 @@ func newCmdCreate(f *cmdutil.Factory, runF func(*createOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "create <name>",
-		Short: "创建一个新标签(label)",
+		Short: "创建一个新标签",
 		Long: heredoc.Docf(`
-			在 GitHub 上创建一个新标签(label)，或使用 %[1]s--force%[1]s 更新已有标签。
+			在 GitHub 上创建一个新标签，或使用 %[1]s--force%[1]s 更新已有标签。
 
-			必须指定标签名称。描述与颜色是可选的。
-			若未提供颜色，将随机选择一个。
+			必须指定标签名称，描述与颜色是可选的。若未提供颜色，将随机选择一个。
 
 			标签颜色必须是 6 位十六进制值。
 		`, "`"),
@@ -112,14 +111,14 @@ func createRun(opts *createOptions) error {
 	opts.IO.StopProgressIndicator()
 	if err != nil {
 		if errors.Is(err, errLabelAlreadyExists) {
-			return fmt.Errorf("名为 %q 的标签已存在; 使用 `--force` 更新其颜色与描述", opts.Name)
+			return fmt.Errorf("名为 %q 的标签已存在，使用 `--force` 更新其颜色与描述", opts.Name)
 		}
 		return err
 	}
 
 	if opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
-		successMsg := fmt.Sprintf("%s 已在 %s 中创建标签(label) %q\n", cs.SuccessIcon(), opts.Name, ghrepo.FullName(baseRepo))
+		successMsg := fmt.Sprintf("%s 已在 %s 中创建标签 %q\n", cs.SuccessIcon(), opts.Name, ghrepo.FullName(baseRepo))
 		fmt.Fprint(opts.IO.Out, successMsg)
 	}
 

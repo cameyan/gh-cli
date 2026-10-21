@@ -33,11 +33,11 @@ func newCmdEdit(f *cmdutil.Factory, runF func(*editOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "edit <name>",
-		Short: "编辑一个标签(label)",
+		Short: "编辑一个标签",
 		Long: heredoc.Docf(`
-			更新 GitHub 上的标签(label)。
+			更新 GitHub 上的标签。
 
-			可以使用 %[1]s--name%[1]s flag 重命名标签。
+			可以使用 %[1]s--name%[1]s 选项重命名标签。
 
 			标签颜色必须是 6 位十六进制值。
 		`, "`"),
@@ -96,7 +96,7 @@ func editRun(opts *editOptions) error {
 
 	if opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
-		successMsg := fmt.Sprintf("%s 已更新 %s 中的标签(label) %q\n", cs.SuccessIcon(), opts.Name, ghrepo.FullName(baseRepo))
+		successMsg := fmt.Sprintf("%s 已更新 %s 中的标签 %q\n", cs.SuccessIcon(), opts.Name, ghrepo.FullName(baseRepo))
 		fmt.Fprint(opts.IO.Out, successMsg)
 	}
 

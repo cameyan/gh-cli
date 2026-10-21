@@ -27,6 +27,6 @@ func TestClearCacheRun(t *testing.T) {
 	}
 
 	assert.NoDirExistsf(t, opts.CacheDir, fmt.Sprintf("Cache dir: %s still exists", opts.CacheDir))
-	assert.Equal(t, "✓ Cleared the cache\n", stdout.String())
+	assert.Equal(t, "✓ 已清除缓存\n", stdout.String())
 	assert.Equal(t, "", stderr.String())
 }

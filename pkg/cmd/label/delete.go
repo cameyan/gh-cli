@@ -35,7 +35,7 @@ func newCmdDelete(f *cmdutil.Factory, runF func(*deleteOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "delete <name>",
-		Short: "从仓库中删除一个标签(label)",
+		Short: "从仓库中删除一个标签",
 		Args:  cmdutil.ExactArgs(1, "无法删除标签: 需要提供 name 参数"),
 		RunE: func(c *cobra.Command, args []string) error {
 			// 支持 `-R, --repo` 覆盖
@@ -86,7 +86,7 @@ func deleteRun(opts *deleteOptions) error {
 
 	if opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
-		successMsg := fmt.Sprintf("%s 已从 %s 中删除标签(label) %q\n", cs.SuccessIcon(), opts.Name, ghrepo.FullName(baseRepo))
+		successMsg := fmt.Sprintf("%s 已从 %s 中删除标签 %q\n", cs.SuccessIcon(), opts.Name, ghrepo.FullName(baseRepo))
 		fmt.Fprint(opts.IO.Out, successMsg)
 	}
 
