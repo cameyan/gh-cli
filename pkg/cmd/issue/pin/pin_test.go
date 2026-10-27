@@ -49,7 +49,7 @@ func TestPinRun(t *testing.T) {
 				)
 			},
 			wantStdout: "",
-			wantStderr: "✓ 已置顶议题 OWNER/REPO#20 (Issue Title)\n",
+			wantStderr: "✓ 已置顶 issue OWNER/REPO#20 (Issue Title)\n",
 		},
 		{
 			name: "issue already pinned",
@@ -64,7 +64,7 @@ func TestPinRun(t *testing.T) {
             } } }`),
 				)
 			},
-			wantStderr: "! 议题 OWNER/REPO#20 (Issue Title) 已置顶\n",
+			wantStderr: "! 已置顶 issue OWNER/REPO#20 (Issue Title)\n",
 		},
 	}
 	for _, tt := range tests {
