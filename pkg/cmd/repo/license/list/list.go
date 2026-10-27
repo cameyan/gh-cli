@@ -28,11 +28,11 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List common repository licenses",
+		Short: "列出常见的仓库许可证",
 		Long: heredoc.Doc(`
-			List common repository licenses.
+			列出常见的仓库许可证。
 
-			For even more licenses, visit <https://choosealicense.com/appendix>
+			如需更多许可证，请访问 <https://choosealicense.com/appendix>
 		`),
 		Aliases: []string{"ls"},
 		Args:    cobra.ExactArgs(0),
@@ -59,7 +59,7 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "starting pager failed: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -70,7 +70,7 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if len(licenses) == 0 {
-		return cmdutil.NewNoResultsError("No repository licenses found")
+		return cmdutil.NewNoResultsError("未找到存储库许可证")
 	}
 
 	return renderLicensesTable(licenses, opts)

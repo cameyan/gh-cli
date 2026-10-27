@@ -42,7 +42,7 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "delete <tag>",
-		Short: "Delete a release",
+		Short: "删除发布(release)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// support `-R, --repo` override
@@ -58,8 +58,8 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.SkipConfirm, "yes", "y", false, "Skip the confirmation prompt")
-	cmd.Flags().BoolVar(&opts.CleanupTag, "cleanup-tag", false, "Delete the specified tag in addition to its release")
+	cmd.Flags().BoolVarP(&opts.SkipConfirm, "yes", "y", false, "跳过确认提示")
+	cmd.Flags().BoolVar(&opts.CleanupTag, "cleanup-tag", false, "除发布(release)外，同时删除指定的标签(tag)")
 
 	return cmd
 }
@@ -82,7 +82,7 @@ func deleteRun(opts *DeleteOptions) error {
 
 	if !opts.SkipConfirm && opts.IO.CanPrompt() {
 		confirmed, err := opts.Prompter.Confirm(
-			fmt.Sprintf("Delete release %s in %s?", release.TagName, ghrepo.FullName(baseRepo)), true)
+			fmt.Sprintf("删除 %s 中的发布(release) %s?", ghrepo.FullName(baseRepo), release.TagName), true)
 		if err != nil {
 			return err
 		}
@@ -105,7 +105,7 @@ func deleteRun(opts *DeleteOptions) error {
 		if opts.RepoOverride == "" {
 			_ = opts.GitClient.DeleteLocalTag(context.Background(), release.TagName)
 		}
-		cleanupMessage = " and tag"
+		cleanupMessage = " 和标签(tag)"
 	}
 
 	if !opts.IO.IsStdoutTTY() || !opts.IO.IsStderrTTY() {
@@ -113,9 +113,9 @@ func deleteRun(opts *DeleteOptions) error {
 	}
 
 	iofmt := opts.IO.ColorScheme()
-	fmt.Fprintf(opts.IO.ErrOut, "%s Deleted release%s %s\n", iofmt.SuccessIconWithColor(iofmt.Red), cleanupMessage, release.TagName)
+	fmt.Fprintf(opts.IO.ErrOut, "%s 已删除发布(release)%s %s\n", iofmt.SuccessIconWithColor(iofmt.Red), cleanupMessage, release.TagName)
 	if !release.IsDraft && !opts.CleanupTag {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Note that the %s git tag still remains in the repository\n", iofmt.WarningIcon(), release.TagName)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 注意: git 标签(tag) %s 仍保留在仓库中\n", iofmt.WarningIcon(), release.TagName)
 	}
 
 	return nil
@@ -123,8 +123,8 @@ func deleteRun(opts *DeleteOptions) error {
 
 func deleteRelease(httpClient *http.Client, host string, releaseURL safeurl.SafeURL) error {
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	return api.NewClientFromHTTP(httpClient).REST(host, http.MethodDelete, releaseURL.String(), nil, nil)
 }
 
@@ -134,7 +134,7 @@ func deleteTag(httpClient *http.Client, baseRepo ghrepo.Interface, tagName strin
 		return err
 	}
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	return api.NewClientFromHTTP(httpClient).REST(baseRepo.RepoHost(), http.MethodDelete, path.String(), nil, nil)
 }

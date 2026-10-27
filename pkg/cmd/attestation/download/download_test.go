@@ -207,7 +207,7 @@ func TestRunDownload(t *testing.T) {
 		Logger:          io.NewTestHandler(),
 	}
 
-	t.Run("fetch and store attestations successfully with owner", func(t *testing.T) {
+	t.Run("使用 owner 成功获取并存储证明", func(t *testing.T) {
 		err := runDownload(&baseOpts)
 		require.NoError(t, err)
 
@@ -224,7 +224,7 @@ func TestRunDownload(t *testing.T) {
 		require.Equal(t, expectedLineCount, actualLineCount)
 	})
 
-	t.Run("fetch and store attestations successfully with repo", func(t *testing.T) {
+	t.Run("使用 repo 成功获取并存储证明", func(t *testing.T) {
 		opts := baseOpts
 		opts.Owner = ""
 		opts.Repo = "sigstore/sigstore-js"
@@ -245,7 +245,7 @@ func TestRunDownload(t *testing.T) {
 		require.Equal(t, expectedLineCount, actualLineCount)
 	})
 
-	t.Run("download OCI image attestations successfully", func(t *testing.T) {
+	t.Run("成功下载 OCI 镜像的证明", func(t *testing.T) {
 		opts := baseOpts
 		opts.ArtifactPath = "oci://ghcr.io/github/test"
 
@@ -265,7 +265,7 @@ func TestRunDownload(t *testing.T) {
 		require.Equal(t, expectedLineCount, actualLineCount)
 	})
 
-	t.Run("cannot find artifact", func(t *testing.T) {
+	t.Run("找不到制品", func(t *testing.T) {
 		opts := baseOpts
 		opts.ArtifactPath = "../test/data/not-real.zip"
 
@@ -273,7 +273,7 @@ func TestRunDownload(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("no attestations found", func(t *testing.T) {
+	t.Run("未找到证明", func(t *testing.T) {
 		opts := baseOpts
 		opts.APIClient = api.MockClient{
 			OnGetByDigest: func(params api.FetchParams) ([]*api.Attestation, error) {
@@ -289,11 +289,11 @@ func TestRunDownload(t *testing.T) {
 		require.NoFileExists(t, artifact.DigestWithAlg())
 	})
 
-	t.Run("failed to fetch attestations", func(t *testing.T) {
+	t.Run("获取证明失败", func(t *testing.T) {
 		opts := baseOpts
 		opts.APIClient = api.MockClient{
 			OnGetByDigest: func(params api.FetchParams) ([]*api.Attestation, error) {
-				return nil, fmt.Errorf("failed to fetch attestations")
+				return nil, fmt.Errorf("获取证明失败")
 			},
 		}
 
@@ -301,23 +301,23 @@ func TestRunDownload(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("cannot download OCI artifact", func(t *testing.T) {
+	t.Run("无法下载 OCI 制品", func(t *testing.T) {
 		opts := baseOpts
 		opts.ArtifactPath = "oci://ghcr.io/github/test"
 		opts.OCIClient = oci.ReferenceFailClient{}
 
 		err := runDownload(&opts)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "failed to digest artifact")
+		require.ErrorContains(t, err, "计算制品摘要失败")
 	})
 
-	t.Run("with missing API client", func(t *testing.T) {
+	t.Run("缺少 API 客户端的情况", func(t *testing.T) {
 		customOpts := baseOpts
 		customOpts.APIClient = nil
 		require.Error(t, runDownload(&customOpts))
 	})
 
-	t.Run("fail to write attestations to metadata file", func(t *testing.T) {
+	t.Run("将证明写入元数据文件失败", func(t *testing.T) {
 		opts := baseOpts
 		opts.Store = &MockStore{
 			OnCreateMetadataFile: OnCreateMetadataFileFailure,
@@ -328,7 +328,7 @@ func TestRunDownload(t *testing.T) {
 		require.ErrorAs(t, err, &ErrAttestationFileCreation)
 	})
 
-	t.Run("replaces destination symlink without following it", func(t *testing.T) {
+	t.Run("替换目标符号链接而不追踪它", func(t *testing.T) {
 		opts := baseOpts
 		outputDir := t.TempDir()
 		opts.Store = NewLiveStore(outputDir)

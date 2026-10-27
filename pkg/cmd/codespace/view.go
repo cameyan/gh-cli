@@ -27,18 +27,18 @@ func newViewCmd(app *App) *cobra.Command {
 
 	viewCmd := &cobra.Command{
 		Use:   "view",
-		Short: "View details about a codespace",
+		Short: "查看 codespace 详情",
 		Example: heredoc.Doc(`
-			# Select a codespace from a list of all codespaces you own
+			# 从你拥有的所有 codespace 列表中选择一个
 			$ gh cs view
 
-			# View the details of a specific codespace
+			# 查看指定 codespace 的详情
 			$ gh cs view -c codespace-name-12345
 
-			# View the list of all available fields for a codespace
+			# 查看 codespace 所有可用字段的列表
 			$ gh cs view --json
 
-			# View specific fields for a codespace
+			# 查看 codespace 的指定字段
 			$ gh cs view --json displayName,machineDisplayName,state
 		`),
 		Args: noArgsConstraint,
@@ -53,7 +53,7 @@ func newViewCmd(app *App) *cobra.Command {
 }
 
 func (a *App) ViewCodespace(ctx context.Context, opts *viewOptions) error {
-	// If we are in a codespace and a codespace name wasn't provided, show the details for the codespace we are connected to
+	// 如果当前在 codespace 内且未提供 codespace 名称，则显示当前连接的 codespace 详情
 	if (os.Getenv("CODESPACES") == "true") && opts.selector.codespaceName == "" {
 		codespaceName := os.Getenv("CODESPACE_NAME")
 		opts.selector.codespaceName = codespaceName
@@ -65,7 +65,7 @@ func (a *App) ViewCodespace(ctx context.Context, opts *viewOptions) error {
 	}
 
 	if err := a.io.StartPager(); err != nil {
-		a.errLogger.Printf("error starting pager: %v", err)
+		a.errLogger.Printf("启动分页器出错: %v", err)
 	}
 	defer a.io.StopPager()
 
@@ -73,29 +73,29 @@ func (a *App) ViewCodespace(ctx context.Context, opts *viewOptions) error {
 		return opts.exporter.Write(a.io, selectedCodespace)
 	}
 
-	//nolint:staticcheck // SA1019: Showing NAME|VALUE headers adds nothing to table.
+	//nolint:staticcheck // SA1019: 显示 NAME|VALUE 表头对表格没有帮助。
 	tp := tableprinter.New(a.io, tableprinter.NoHeader)
 	c := codespace{selectedCodespace}
 	formattedName := formatNameForVSCSTarget(c.Name, c.VSCSTarget)
 
-	// Create an array of fields to display in the table with their values
+	// 创建要在表格中显示的字段及其值的数组
 	fields := []struct {
 		name  string
 		value string
 	}{
-		{"Name", formattedName},
-		{"State", c.State},
-		{"Repository", c.Repository.FullName},
-		{"Git Status", formatGitStatus(c)},
-		{"Devcontainer Path", c.DevContainerPath},
-		{"Machine Display Name", c.Machine.DisplayName},
-		{"Idle Timeout", fmt.Sprintf("%d minutes", c.IdleTimeoutMinutes)},
-		{"Created At", c.CreatedAt},
-		{"Retention Period", formatRetentionPeriodDays(c)},
+		{"名称 (Name)", formattedName},
+		{"状态 (State)", c.State},
+		{"仓库 (Repository)", c.Repository.FullName},
+		{"Git 状态 (Git Status)", formatGitStatus(c)},
+		{"Devcontainer 路径 (Devcontainer Path)", c.DevContainerPath},
+		{"机器显示名称 (Machine Display Name)", c.Machine.DisplayName},
+		{"闲置超时 (Idle Timeout)", fmt.Sprintf("%d 分钟", c.IdleTimeoutMinutes)},
+		{"创建时间 (Created At)", c.CreatedAt},
+		{"保留期 (Retention Period)", formatRetentionPeriodDays(c)},
 	}
 
 	for _, field := range fields {
-		// Don't display the field if it is empty and we are printing to a TTY
+		// 输出到 TTY 时，值为空的字段不显示
 		if !a.io.IsStdoutTTY() || field.value != "" {
 			tp.AddField(field.name)
 			tp.AddField(field.value)
@@ -114,21 +114,21 @@ func (a *App) ViewCodespace(ctx context.Context, opts *viewOptions) error {
 func formatGitStatus(codespace codespace) string {
 	branchWithGitStatus := codespace.branchWithGitStatus()
 
-	// Format the commits ahead/behind with proper pluralization
+	// 按正确复数格式化领先/落后提交数
 	commitsAhead := text.Pluralize(codespace.GitStatus.Ahead, "commit")
 	commitsBehind := text.Pluralize(codespace.GitStatus.Behind, "commit")
 
-	return fmt.Sprintf("%s - %s ahead, %s behind", branchWithGitStatus, commitsAhead, commitsBehind)
+	return fmt.Sprintf("%s - 领先 %s，落后 %s", branchWithGitStatus, commitsAhead, commitsBehind)
 }
 
 func formatRetentionPeriodDays(codespace codespace) string {
 	days := codespace.RetentionPeriodMinutes / minutesInDay
-	// Don't display the retention period if it is 0 days
+	// 保留期为 0 天时不显示
 	if days == 0 {
 		return ""
 	} else if days == 1 {
-		return "1 day"
+		return "1 天"
 	}
 
-	return fmt.Sprintf("%d days", days)
+	return fmt.Sprintf("%d 天", days)
 }

@@ -81,7 +81,7 @@ type listedSkill struct {
 	path         string
 }
 
-// ExportData implements cmdutil.exportable for --json output.
+// ExportData 实现 cmdutil.exportable，用于 --json 输出。
 func (s listedSkill) ExportData(fields []string) map[string]any {
 	data := map[string]any{}
 	for _, f := range fields {
@@ -105,7 +105,7 @@ func (s listedSkill) ExportData(fields []string) map[string]any {
 	return data
 }
 
-// NewCmdList creates the "skills list" command.
+// NewCmdList 创建 "skills list" 命令。
 func NewCmdList(f *cmdutil.Factory, telemetry ghtelemetry.EventRecorder, runF func(*ListOptions) error) *cobra.Command {
 	opts := &ListOptions{
 		IO:        f.IOStreams,
@@ -115,39 +115,39 @@ func NewCmdList(f *cmdutil.Factory, telemetry ghtelemetry.EventRecorder, runF fu
 
 	cmd := &cobra.Command{
 		Use:     "list [flags]",
-		Short:   "List installed skills (preview)",
+		Short:   "列出已安装的技能 (预览版)",
 		Aliases: []string{"ls"},
 		Long: heredoc.Docf(`
-			List installed agent skills across known agent host directories.
+			列出已知 agent 宿主目录中已安装的 agent 技能。
 
-			By default, scans all supported agent hosts in both project and user scope.
-			Use %[1]s--agent%[1]s to scan one host, %[1]s--scope%[1]s to scan only project or user
-			scope, or %[1]s--dir%[1]s to scan a custom skills directory.
+			默认扫描项目作用域与用户作用域下所有受支持的 agent 宿主。
+			使用 %[1]s--agent%[1]s 扫描单个宿主，%[1]s--scope%[1]s 仅扫描项目或
+			用户作用域，或使用 %[1]s--dir%[1]s 扫描自定义技能目录。
 
-			Project-scope skills are discovered relative to the current git repository
-			root. User-scope skills are discovered relative to your home directory.
+			项目作用域技能相对于当前 git 仓库根目录发现。
+			用户作用域技能相对于主目录发现。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# List all installed skills
+			# 列出所有已安装的技能
 			$ gh skill list
 
-			# List skills installed for GitHub Copilot
+			# 列出为 GitHub Copilot 安装的技能
 			$ gh skill list --agent github-copilot
 
-			# List user-scope skills
+			# 列出用户作用域的技能
 			$ gh skill list --scope user
 
-			# List skills as JSON
+			# 以 JSON 格式列出技能
 			$ gh skill list --json skillName,sourceURL,scope,version,pinned,path
 		`),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.ScopeChanged = cmd.Flags().Changed("scope")
 
-			if err := cmdutil.MutuallyExclusive("--dir and --agent cannot be used together", opts.Dir != "", opts.Agent != ""); err != nil {
+			if err := cmdutil.MutuallyExclusive("--dir 和 --agent 不能同时使用", opts.Dir != "", opts.Agent != ""); err != nil {
 				return err
 			}
-			if err := cmdutil.MutuallyExclusive("--dir and --scope cannot be used together", opts.Dir != "", opts.ScopeChanged); err != nil {
+			if err := cmdutil.MutuallyExclusive("--dir 和 --scope 不能同时使用", opts.Dir != "", opts.ScopeChanged); err != nil {
 				return err
 			}
 
@@ -158,9 +158,9 @@ func NewCmdList(f *cmdutil.Factory, telemetry ghtelemetry.EventRecorder, runF fu
 		},
 	}
 
-	cmdutil.StringEnumFlag(cmd, &opts.Agent, "agent", "", "", registry.AgentIDs(), "Filter by target agent")
-	cmdutil.StringEnumFlag(cmd, &opts.Scope, "scope", "", "", []string{string(registry.ScopeProject), string(registry.ScopeUser)}, "Filter by installation scope")
-	cmd.Flags().StringVar(&opts.Dir, "dir", "", "Scan a custom directory for installed skills")
+	cmdutil.StringEnumFlag(cmd, &opts.Agent, "agent", "", "", registry.AgentIDs(), "按目标 agent 筛选")
+	cmdutil.StringEnumFlag(cmd, &opts.Scope, "scope", "", "", []string{string(registry.ScopeProject), string(registry.ScopeUser)}, "按安装作用域筛选")
+	cmd.Flags().StringVar(&opts.Dir, "dir", "", "扫描自定义目录中的已安装技能")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, skillListFields)
 
 	return cmd
@@ -179,7 +179,7 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if len(skills) == 0 {
-		return cmdutil.NewNoResultsError("no installed skills found")
+		return cmdutil.NewNoResultsError("未找到已安装的技能")
 	}
 
 	return renderTable(opts.IO, skills)
@@ -196,7 +196,7 @@ func listInstalledSkills(opts *ListOptions) ([]listedSkill, error) {
 		skills, scanErr := scanInstalledSkills(target.dir, target.agentHostIDs, target.scope, target.filter)
 		if scanErr != nil {
 			if opts.Dir != "" {
-				return nil, fmt.Errorf("could not scan directory: %w", scanErr)
+				return nil, fmt.Errorf("无法扫描目录: %w", scanErr)
 			}
 			continue
 		}
@@ -210,10 +210,10 @@ func buildScanTargets(opts *ListOptions) ([]scanTarget, error) {
 	if opts.Dir != "" {
 		dir, err := filepath.Abs(opts.Dir)
 		if err != nil {
-			return nil, fmt.Errorf("could not resolve path: %w", err)
+			return nil, fmt.Errorf("无法解析路径: %w", err)
 		}
 		if _, err := os.Stat(dir); err != nil {
-			return nil, fmt.Errorf("could not access directory: %w", err)
+			return nil, fmt.Errorf("无法访问目录: %w", err)
 		}
 		return []scanTarget{{dir: dir, scope: scopeCustom}}, nil
 	}
@@ -320,7 +320,7 @@ func scanInstalledSkills(skillsDir string, agentHostIDs []string, scope string, 
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("could not read skills directory: %w", err)
+		return nil, fmt.Errorf("无法读取技能目录: %w", err)
 	}
 
 	var skills []listedSkill
@@ -329,10 +329,10 @@ func scanInstalledSkills(skillsDir string, agentHostIDs []string, scope string, 
 			continue
 		}
 
-		// Flat layout: {dir}/{name}/SKILL.md.
+		// 扁平布局: {dir}/{name}/SKILL.md。
 		skillDir := filepath.Join(skillsDir, e.Name())
 		skillFile := filepath.Join(skillDir, "SKILL.md")
-		// TODO: maybe we should surface this error instead of a silent skip
+		// TODO: 也许应该暴露此错误，而不是静默跳过
 		if data, readErr := readSkillFile(skillFile); readErr == nil {
 			skill, hasInstallMetadata := parseInstalledSkill(data, e.Name(), skillDir, agentHostIDs, scope)
 			if shouldIncludeSkill(filter, hasInstallMetadata) {
@@ -341,7 +341,7 @@ func scanInstalledSkills(skillsDir string, agentHostIDs []string, scope string, 
 			continue
 		}
 
-		// Namespaced layout: {dir}/{namespace}/{name}/SKILL.md.
+		// 命名空间布局: {dir}/{namespace}/{name}/SKILL.md。
 		subEntries, subErr := os.ReadDir(skillDir)
 		if subErr != nil {
 			continue
@@ -365,14 +365,14 @@ func scanInstalledSkills(skillsDir string, agentHostIDs []string, scope string, 
 	return skills, nil
 }
 
-// readSkillFile reads a SKILL.md file only if it resolves to a regular file.
+// readSkillFile 仅在 SKILL.md 解析为普通文件时读取它。
 func readSkillFile(path string) ([]byte, error) {
 	info, err := os.Stat(path)
 	if err != nil {
 		return nil, err
 	}
 	if !info.Mode().IsRegular() {
-		return nil, fmt.Errorf("SKILL.md is not a regular file: %s", path)
+		return nil, fmt.Errorf("SKILL.md 不是普通文件: %s", path)
 	}
 	return os.ReadFile(path)
 }
@@ -511,8 +511,8 @@ func renderTable(io *iostreams.IOStreams, skills []listedSkill) error {
 	return table.Render()
 }
 
-// sanitizeForTerminal replaces ASCII control characters in s with inert
-// caret-style stand-ins so frontmatter values cannot inject terminal escapes.
+// sanitizeForTerminal 将 s 中的 ASCII 控制字符替换为无害的插入符式
+// 替代符号，防止 frontmatter 值注入终端转义序列。
 func sanitizeForTerminal(s string) string {
 	var buf bytes.Buffer
 	r := transform.NewReader(bytes.NewReader([]byte(s)), &asciisanitizer.Sanitizer{})

@@ -38,8 +38,8 @@ func NewCmdClose(f *cmdutil.Factory, runF func(*CloseOptions) error) *cobra.Comm
 
 	cmd := &cobra.Command{
 		Use:   "close {<number> | <url> | <branch>}",
-		Short: "Close a pull request",
-		Args:  cmdutil.ExactArgs(1, "cannot close pull request: number, url, or branch required"),
+		Short: "关闭拉取请求(PR)",
+		Args:  cmdutil.ExactArgs(1, "无法关闭拉取请求(PR): 需要编号(number)、URL 或分支(branch)"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Finder = shared.NewFinder(f)
 
@@ -56,8 +56,8 @@ func NewCmdClose(f *cmdutil.Factory, runF func(*CloseOptions) error) *cobra.Comm
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Comment, "comment", "c", "", "Leave a closing comment")
-	cmd.Flags().BoolVarP(&opts.DeleteBranch, "delete-branch", "d", false, "Delete the local and remote branch after close")
+	cmd.Flags().StringVarP(&opts.Comment, "comment", "c", "", "留一条关闭评论")
+	cmd.Flags().BoolVarP(&opts.DeleteBranch, "delete-branch", "d", false, "关闭后删除本地与远端分支(branch)")
 
 	return cmd
 }
@@ -75,10 +75,10 @@ func closeRun(opts *CloseOptions) error {
 	}
 
 	if pr.State == "MERGED" {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Pull request %s#%d (%s) can't be closed because it was already merged\n", cs.FailureIcon(), ghrepo.FullName(baseRepo), pr.Number, pr.Title)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 拉取请求(PR) %s#%d (%s) 已被合并，无法关闭\n", cs.FailureIcon(), ghrepo.FullName(baseRepo), pr.Number, pr.Title)
 		return cmdutil.SilentError
 	} else if !pr.IsOpen() {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Pull request %s#%d (%s) is already closed\n", cs.WarningIcon(), ghrepo.FullName(baseRepo), pr.Number, pr.Title)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 拉取请求(PR) %s#%d (%s) 已处于关闭状态\n", cs.WarningIcon(), ghrepo.FullName(baseRepo), pr.Number, pr.Title)
 		return nil
 	}
 
@@ -105,10 +105,10 @@ func closeRun(opts *CloseOptions) error {
 
 	err = api.PullRequestClose(httpClient, baseRepo, pr.ID)
 	if err != nil {
-		return fmt.Errorf("API call failed: %w", err)
+		return fmt.Errorf("API 调用失败: %w", err)
 	}
 
-	fmt.Fprintf(opts.IO.ErrOut, "%s Closed pull request %s#%d (%s)\n", cs.SuccessIconWithColor(cs.Red), ghrepo.FullName(baseRepo), pr.Number, pr.Title)
+	fmt.Fprintf(opts.IO.ErrOut, "%s 已关闭拉取请求(PR) %s#%d (%s)\n", cs.SuccessIconWithColor(cs.Red), ghrepo.FullName(baseRepo), pr.Number, pr.Title)
 
 	if opts.DeleteBranch {
 		ctx := context.Background()
@@ -136,28 +136,28 @@ func closeRun(opts *CloseOptions) error {
 				}
 
 				if err := opts.GitClient.DeleteLocalBranch(ctx, pr.HeadRefName); err != nil {
-					return fmt.Errorf("failed to delete local branch %s: %w", cs.Cyan(pr.HeadRefName), err)
+					return fmt.Errorf("删除本地分支(branch) %s 失败: %w", cs.Cyan(pr.HeadRefName), err)
 				}
 
 				if branchToSwitchTo != "" {
-					branchSwitchString = fmt.Sprintf(" and switched to branch %s", cs.Cyan(branchToSwitchTo))
+					branchSwitchString = fmt.Sprintf(" 并已切换到分支(branch) %s", cs.Cyan(branchToSwitchTo))
 				}
 			} else {
-				fmt.Fprintf(opts.IO.ErrOut, "%s Skipped deleting the local branch since current directory is not a git repository\n", cs.WarningIcon())
+				fmt.Fprintf(opts.IO.ErrOut, "%s 当前目录不是 git 仓库，已跳过删除本地分支(branch)\n", cs.WarningIcon())
 			}
 		}
 
 		if pr.IsCrossRepository {
-			fmt.Fprintf(opts.IO.ErrOut, "%s Skipped deleting the remote branch of a pull request from fork\n", cs.WarningIcon())
+			fmt.Fprintf(opts.IO.ErrOut, "%s 来自 fork 的拉取请求(PR)，已跳过删除其远端分支(branch)\n", cs.WarningIcon())
 			if !opts.DeleteLocalBranch {
 				return nil
 			}
 		} else {
 			if err := api.BranchDeleteRemote(apiClient, baseRepo, pr.HeadRefName); err != nil {
-				return fmt.Errorf("failed to delete remote branch %s: %w", cs.Cyan(pr.HeadRefName), err)
+				return fmt.Errorf("删除远端分支(branch) %s 失败: %w", cs.Cyan(pr.HeadRefName), err)
 			}
 		}
-		fmt.Fprintf(opts.IO.ErrOut, "%s Deleted branch %s%s\n", cs.SuccessIconWithColor(cs.Red), cs.Cyan(pr.HeadRefName), branchSwitchString)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 已删除分支(branch) %s%s\n", cs.SuccessIconWithColor(cs.Red), cs.Cyan(pr.HeadRefName), branchSwitchString)
 	}
 
 	return nil

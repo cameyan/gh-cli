@@ -187,9 +187,9 @@ func TestViewRun(t *testing.T) {
 
 				A short and simple permissive license with conditions only requiring preservation of copyright and license notices. Licensed works, modifications, and larger works may be distributed under different terms and without source code.
 
-				To implement: Create a text file (typically named LICENSE or LICENSE.txt) in the root of your source code and copy the text of the license into the file. Replace [year] with the current year and [fullname] with the name (or names) of the copyright holders.
+				待实现: Create a text file (typically named LICENSE or LICENSE.txt) in the root of your source code and copy the text of the license into the file. Replace [year] with the current year and [fullname] with the name (or names) of the copyright holders.
 
-				For more information, see: http://choosealicense.com/licenses/mit/
+				如需更多信息，请参阅: http://choosealicense.com/licenses/mit/
 
 				MIT License
 
@@ -219,9 +219,9 @@ func TestViewRun(t *testing.T) {
 			opts:    &ViewOptions{License: "404"},
 			wantErr: true,
 			errMsg: heredoc.Docf(`
-				'404' is not a valid license name or SPDX ID.
+			    '404' 不是有效的许可证名称或 SPDX 标识符。
 
-				Run %[1]sgh repo license list%[1]s to see available commonly used licenses. For even more licenses, visit https://choosealicense.com/appendix`, "`"),
+			    运行 %[1]sgh repo license list%[1]s 查看可用的常用许可证。如需更多许可证，请访问 https://choosealicense.com/appendix`, "`"),
 			httpStubs: func(reg *httpmock.Registry) {
 				reg.Register(
 					httpmock.REST("GET", "licenses/404"),
@@ -271,7 +271,7 @@ func TestViewRun(t *testing.T) {
 						}`))
 			},
 			wantBrowsedURL: "https://choosealicense.com/licenses/mit",
-			wantStdout:     "Opening https://choosealicense.com/licenses/mit in your browser.\n",
+			wantStdout:     "正在浏览器中打开 https://choosealicense.com/licenses/mit\n",
 		},
 	}
 	for _, tt := range tests {

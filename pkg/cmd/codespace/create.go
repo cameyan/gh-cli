@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	DEVCONTAINER_PROMPT_DEFAULT = "Default Codespaces configuration"
+	DEVCONTAINER_PROMPT_DEFAULT = "默认 Codespaces 配置"
 )
 
 const (
@@ -26,7 +26,7 @@ const (
 )
 
 const (
-	displayNameMaxLength = 48 // 48 is the max length of the display name in the API
+	displayNameMaxLength = 48 // 48 是 API 中显示名称的最大长度
 )
 
 var (
@@ -48,7 +48,7 @@ func (d *NullableDuration) String() string {
 func (d *NullableDuration) Set(str string) error {
 	duration, err := time.ParseDuration(str)
 	if err != nil {
-		return fmt.Errorf("error parsing duration: %w", err)
+		return fmt.Errorf("解析时长出错: %w", err)
 	}
 	d.Duration = &duration
 	return nil
@@ -86,16 +86,16 @@ func newCreateCmd(app *App) *cobra.Command {
 
 	createCmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create a codespace",
+		Short: "创建 codespace",
 		Args:  noArgsConstraint,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if opts.repo != "" {
 				if err := validateNWO(opts.repo); err != nil {
-					return cmdutil.FlagErrorf("invalid value for --repo: %v", err)
+					return cmdutil.FlagErrorf("--repo 的值无效: %v", err)
 				}
 			}
 			return cmdutil.MutuallyExclusive(
-				"using --web with --display-name, --idle-timeout, or --retention-period is not supported",
+				"--web 不能与 --display-name、--idle-timeout 或 --retention-period 同时使用",
 				opts.useWeb,
 				opts.displayName != "" || opts.idleTimeout != 0 || opts.retentionPeriod.Duration != nil,
 			)
@@ -105,27 +105,27 @@ func newCreateCmd(app *App) *cobra.Command {
 		},
 	}
 
-	createCmd.Flags().BoolVarP(&opts.useWeb, "web", "w", false, "Create codespace from browser, cannot be used with --display-name, --idle-timeout, or --retention-period")
+	createCmd.Flags().BoolVarP(&opts.useWeb, "web", "w", false, "从浏览器创建 codespace，不能与 --display-name、--idle-timeout 或 --retention-period 同时使用")
 
-	createCmd.Flags().StringVarP(&opts.repo, "repo", "R", "", "Repository name with owner: user/repo")
+	createCmd.Flags().StringVarP(&opts.repo, "repo", "R", "", "带所有者的仓库名称: user/repo")
 	if err := addDeprecatedRepoShorthand(createCmd, &opts.repo); err != nil {
 		fmt.Fprintf(app.io.ErrOut, "%v\n", err)
 	}
 
-	createCmd.Flags().StringVarP(&opts.branch, "branch", "b", "", "Repository branch")
-	createCmd.Flags().StringVarP(&opts.location, "location", "l", "", "Location: {EastUs|SouthEastAsia|WestEurope|WestUs2} (determined automatically if not provided)")
-	createCmd.Flags().StringVarP(&opts.machine, "machine", "m", "", "Hardware specifications for the VM")
-	createCmd.Flags().BoolVarP(&opts.permissionsOptOut, "default-permissions", "", false, "Do not prompt to accept additional permissions requested by the codespace")
-	createCmd.Flags().BoolVarP(&opts.showStatus, "status", "s", false, "Show status of post-create command and dotfiles")
-	createCmd.Flags().DurationVar(&opts.idleTimeout, "idle-timeout", 0, "Allowed inactivity before codespace is stopped, e.g. \"10m\", \"1h\"")
-	createCmd.Flags().Var(&opts.retentionPeriod, "retention-period", "Allowed time after shutting down before the codespace is automatically deleted (maximum 30 days), e.g. \"1h\", \"72h\"")
-	createCmd.Flags().StringVar(&opts.devContainerPath, "devcontainer-path", "", "Path to the devcontainer.json file to use when creating codespace")
-	createCmd.Flags().StringVarP(&opts.displayName, "display-name", "d", "", fmt.Sprintf("Display name for the codespace (%d characters or less)", displayNameMaxLength))
+	createCmd.Flags().StringVarP(&opts.branch, "branch", "b", "", "仓库分支")
+	createCmd.Flags().StringVarP(&opts.location, "location", "l", "", "位置: {EastUs|SouthEastAsia|WestEurope|WestUs2} (未提供时自动确定)")
+	createCmd.Flags().StringVarP(&opts.machine, "machine", "m", "", "虚拟机的硬件规格")
+	createCmd.Flags().BoolVarP(&opts.permissionsOptOut, "default-permissions", "", false, "不提示接受 codespace 请求的额外权限")
+	createCmd.Flags().BoolVarP(&opts.showStatus, "status", "s", false, "显示创建后命令和 dotfiles 的状态")
+	createCmd.Flags().DurationVar(&opts.idleTimeout, "idle-timeout", 0, "codespace 停止前允许的闲置时间，如 \"10m\"、\"1h\"")
+	createCmd.Flags().Var(&opts.retentionPeriod, "retention-period", "codespace 关闭后到被自动删除前允许保留的时间 (最长 30 天)，如 \"1h\"、\"72h\"")
+	createCmd.Flags().StringVar(&opts.devContainerPath, "devcontainer-path", "", "创建 codespace 时使用的 devcontainer.json 文件路径")
+	createCmd.Flags().StringVarP(&opts.displayName, "display-name", "d", "", fmt.Sprintf("codespace 的显示名称 (不超过 %d 个字符)", displayNameMaxLength))
 
 	return createCmd
 }
 
-// Create creates a new Codespace
+// Create 创建一个新的 codespace
 func (a *App) Create(ctx context.Context, opts createOptions) error {
 	// Overrides for Codespace developers to target test environments
 	vscsLocation := os.Getenv("VSCS_LOCATION")
@@ -156,6 +156,7 @@ func (a *App) Create(ctx context.Context, opts createOptions) error {
 				defaultRepo = ghrepo.FullName(defaultRemote)
 			} else if len(remotes) > 0 {
 				// as a fallback, just pick the first remote
+				// 兜底方案: 选择第一个远程
 				defaultRepo = ghrepo.FullName(remotes[0])
 			}
 		}
@@ -164,8 +165,8 @@ func (a *App) Create(ctx context.Context, opts createOptions) error {
 			{
 				Name: "repository",
 				Prompt: &survey.Input{
-					Message: "Repository:",
-					Help:    "Search for repos by name. To search within an org or user, or to see private repos, enter at least ':user/'.",
+					Message: "仓库:",
+					Help:    "按名称搜索仓库。要在组织或用户内搜索，或查看私有仓库，请输入至少 ':user/'。",
 					Default: defaultRepo,
 					Suggest: func(toComplete string) []string {
 						return getRepoSuggestions(ctx, a.apiClient, toComplete)
@@ -175,7 +176,7 @@ func (a *App) Create(ctx context.Context, opts createOptions) error {
 			},
 		}
 		if err := prompter.Ask(repoQuestions, &userInputs); err != nil {
-			return fmt.Errorf("failed to prompt: %w", err)
+			return fmt.Errorf("提示输入失败: %w", err)
 		}
 	}
 
@@ -184,30 +185,30 @@ func (a *App) Create(ctx context.Context, opts createOptions) error {
 	}
 
 	var repository *api.Repository
-	err := a.RunWithProgress("Fetching repository", func() (err error) {
+	err := a.RunWithProgress("正在获取仓库", func() (err error) {
 		repository, err = a.apiClient.GetRepository(ctx, userInputs.Repository)
 		return
 	})
 	if err != nil {
-		return fmt.Errorf("error getting repository: %w", err)
+		return fmt.Errorf("获取仓库时出错: %w", err)
 	}
 
 	var billableOwner *api.User
-	err = a.RunWithProgress("Validating repository for codespaces", func() (err error) {
+	err = a.RunWithProgress("正在校验仓库是否支持 codespaces", func() (err error) {
 		billableOwner, err = a.apiClient.GetCodespaceBillableOwner(ctx, userInputs.Repository)
 		return
 	})
 	if err != nil {
-		return fmt.Errorf("error checking codespace ownership: %w", err)
+		return fmt.Errorf("检查 codespace 归属时出错: %w", err)
 	} else if billableOwner != nil && (billableOwner.Type == "Organization" || billableOwner.Type == "User") {
 		cs := a.io.ColorScheme()
-		fmt.Fprintln(a.io.ErrOut, cs.Blue("  ✓ Codespaces usage for this repository is paid for by "+billableOwner.Login))
+		fmt.Fprintln(a.io.ErrOut, cs.Blue("  ✓ 该仓库的 Codespaces 用量由 "+billableOwner.Login+" 付费"))
 	}
 
 	if promptForRepoAndBranch {
-		branchPrompt := "Branch (leave blank for default branch):"
+		branchPrompt := "分支 (留空使用默认分支):"
 		if userInputs.Branch != "" {
-			branchPrompt = "Branch:"
+			branchPrompt = "分支:"
 		}
 		branchQuestions := []*survey.Question{
 			{
@@ -220,7 +221,7 @@ func (a *App) Create(ctx context.Context, opts createOptions) error {
 		}
 
 		if err := prompter.Ask(branchQuestions, &userInputs); err != nil {
-			return fmt.Errorf("failed to prompt: %w", err)
+			return fmt.Errorf("提示输入失败: %w", err)
 		}
 	}
 
@@ -234,17 +235,18 @@ func (a *App) Create(ctx context.Context, opts createOptions) error {
 	// now that we have repo+branch, we can list available devcontainer.json files (if any)
 	if opts.devContainerPath == "" {
 		var devcontainers []api.DevContainerEntry
-		err = a.RunWithProgress("Fetching devcontainer.json files", func() (err error) {
+		err = a.RunWithProgress("正在获取 devcontainer.json 文件", func() (err error) {
 			devcontainers, err = a.apiClient.ListDevContainers(ctx, repository.ID, branch, 100)
 			return
 		})
 		if err != nil {
-			return fmt.Errorf("error getting devcontainer.json paths: %w", err)
+			return fmt.Errorf("获取 devcontainer.json 路径时出错: %w", err)
 		}
 
 		if len(devcontainers) > 0 {
 
 			// if there is only one devcontainer.json file and it is one of the default paths we can auto-select it
+			// 若只有一个 devcontainer.json 文件且属于默认路径之一，可以自动选中它
 			if len(devcontainers) == 1 && slices.Contains(DEFAULT_DEVCONTAINER_DEFINITIONS, devcontainers[0].Path) {
 				devContainerPath = devcontainers[0].Path
 			} else {
@@ -261,13 +263,13 @@ func (a *App) Create(ctx context.Context, opts createOptions) error {
 				devContainerPathQuestion := &survey.Question{
 					Name: "devContainerPath",
 					Prompt: &survey.Select{
-						Message: "Devcontainer definition file:",
+						Message: "Devcontainer 定义文件:",
 						Options: promptOptions,
 					},
 				}
 
 				if err := prompter.Ask([]*survey.Question{devContainerPathQuestion}, &devContainerPath); err != nil {
-					return fmt.Errorf("failed to prompt: %w", err)
+					return fmt.Errorf("提示输入失败: %w", err)
 				}
 			}
 		}
@@ -283,18 +285,22 @@ func (a *App) Create(ctx context.Context, opts createOptions) error {
 	// because web UI will select default machine type if none is provided
 	// web UI also provide a way to select machine type
 	// therefore we let the user choose from the web UI instead of prompting from CLI
+	// 若使用 --web 且未提供机器名则跳过此步，
+	// 因为未提供时网页界面会选择默认机器类型，
+	// 网页界面也提供选择机器类型的方式，
+	// 因此让用户在网页界面选择，而不是由 CLI 提示。
 	if !(opts.useWeb && opts.machine == "") {
 		machine, err = getMachineName(ctx, a.apiClient, prompter, repository.ID, opts.machine, branch, userInputs.Location, devContainerPath)
 		if err != nil {
-			return fmt.Errorf("error getting machine type: %w", err)
+			return fmt.Errorf("获取机器类型时出错: %w", err)
 		}
 		if machine == "" {
-			return errors.New("there are no available machine types for this repository")
+			return errors.New("该仓库没有可用的机器类型")
 		}
 	}
 
 	if len(opts.displayName) > displayNameMaxLength {
-		return fmt.Errorf("error creating codespace: display name should contain a maximum of %d characters", displayNameMaxLength)
+		return fmt.Errorf("创建 codespace 出错: 显示名称最多包含 %d 个字符", displayNameMaxLength)
 	}
 
 	createParams := &api.CreateCodespaceParams{
@@ -316,7 +322,7 @@ func (a *App) Create(ctx context.Context, opts createOptions) error {
 	}
 
 	var codespace *api.Codespace
-	err = a.RunWithProgress("Creating codespace", func() (err error) {
+	err = a.RunWithProgress("正在创建 codespace", func() (err error) {
 		codespace, err = a.apiClient.CreateCodespace(ctx, createParams)
 		return
 	})
@@ -336,7 +342,7 @@ func (a *App) Create(ctx context.Context, opts createOptions) error {
 
 	if opts.showStatus {
 		if err := a.showStatus(ctx, codespace); err != nil {
-			return fmt.Errorf("show status: %w", err)
+			return fmt.Errorf("显示状态失败: %w", err)
 		}
 	}
 
@@ -345,7 +351,7 @@ func (a *App) Create(ctx context.Context, opts createOptions) error {
 	fmt.Fprintln(a.io.Out, codespace.Name)
 
 	if a.io.IsStderrTTY() && codespace.IdleTimeoutNotice != "" {
-		fmt.Fprintln(a.io.ErrOut, cs.Yellow("Notice:"), codespace.IdleTimeoutNotice)
+		fmt.Fprintln(a.io.ErrOut, cs.Yellow("提示:"), codespace.IdleTimeoutNotice)
 	}
 
 	return nil
@@ -357,24 +363,24 @@ func (a *App) handleAdditionalPermissions(ctx context.Context, prompter SurveyPr
 		cs            = a.io.ColorScheme()
 	)
 
-	fmt.Fprintf(a.io.ErrOut, "You must authorize or deny additional permissions requested by this codespace before continuing.\n")
+	fmt.Fprintf(a.io.ErrOut, "继续之前必须授权或拒绝该 codespace 请求的额外权限。\n")
 
 	if !isInteractive {
-		fmt.Fprintf(a.io.ErrOut, "%s in your browser to review and authorize additional permissions: %s\n", cs.Bold("Open this URL"), allowPermissionsURL)
-		fmt.Fprintf(a.io.ErrOut, "Alternatively, you can run %q with the %q option to continue without authorizing additional permissions.\n", a.io.ColorScheme().Bold("create"), cs.Bold("--default-permissions"))
+		fmt.Fprintf(a.io.ErrOut, "在浏览器中%s以检查并授权额外权限: %s\n", cs.Bold("打开此 URL"), allowPermissionsURL)
+		fmt.Fprintf(a.io.ErrOut, "也可以运行 %q 并加上 %q 选项，在不授权额外权限的情况下继续。\n", a.io.ColorScheme().Bold("create"), cs.Bold("--default-permissions"))
 		return nil, cmdutil.SilentError
 	}
 
 	choices := []string{
-		"Continue in browser to review and authorize additional permissions (Recommended)",
-		"Continue without authorizing additional permissions",
+		"在浏览器中继续，检查并授权额外权限 (推荐)",
+		"不授权额外权限，继续创建",
 	}
 
 	permsSurvey := []*survey.Question{
 		{
 			Name: "accept",
 			Prompt: &survey.Select{
-				Message: "What would you like to do?",
+				Message: "你想怎么做？",
 				Options: choices,
 				Default: choices[0],
 			},
@@ -387,40 +393,44 @@ func (a *App) handleAdditionalPermissions(ctx context.Context, prompter SurveyPr
 	}
 
 	if err := prompter.Ask(permsSurvey, &answers); err != nil {
-		return nil, fmt.Errorf("error getting answers: %w", err)
+		return nil, fmt.Errorf("获取回答时出错: %w", err)
 	}
 
 	// if the user chose to continue in the browser, open the URL
+	// 若用户选择在浏览器中继续，则打开该 URL
 	if answers.Accept == choices[0] {
 		if err := a.browser.Browse(allowPermissionsURL); err != nil {
-			return nil, fmt.Errorf("error opening browser: %w", err)
+			return nil, fmt.Errorf("打开浏览器时出错: %w", err)
 		}
 
 		// Poll until the user has accepted the permissions or timeout
+		// 轮询直到用户接受权限或超时
 		if err := a.pollForPermissions(ctx, createParams); err != nil {
-			return nil, fmt.Errorf("error polling for permissions: %w", err)
+			return nil, fmt.Errorf("轮询权限时出错: %w", err)
 		}
 	} else {
 		// If the user chose to create the codespace without the permissions,
 		// we can continue with the create opting out of the additional permissions
+		// 若用户选择不授权权限创建 codespace，
+		// 则跳过额外权限继续创建
 		createParams.PermissionsOptOut = true
 	}
 
 	var codespace *api.Codespace
-	err := a.RunWithProgress("Creating codespace", func() (err error) {
+	err := a.RunWithProgress("正在创建 codespace", func() (err error) {
 		codespace, err = a.apiClient.CreateCodespace(ctx, createParams)
 		return
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("error creating codespace: %w", err)
+		return nil, fmt.Errorf("创建 codespace 时出错: %w", err)
 	}
 
 	return codespace, nil
 }
 
 func (a *App) pollForPermissions(ctx context.Context, createParams *api.CreateCodespaceParams) error {
-	return a.RunWithProgress("Waiting for permissions to be accepted in the browser", func() (err error) {
+	return a.RunWithProgress("等待在浏览器中接受权限", func() (err error) {
 		ctx, cancel := context.WithTimeout(ctx, permissionsPollingTimeout)
 		defer cancel()
 
@@ -439,6 +449,7 @@ func (a *App) pollForPermissions(ctx context.Context, createParams *api.CreateCo
 				}
 
 				// Wait before polling again
+				// 等待后再次轮询
 				time.Sleep(permissionsPollingInterval)
 			}
 		}()
@@ -447,14 +458,13 @@ func (a *App) pollForPermissions(ctx context.Context, createParams *api.CreateCo
 		case err := <-done:
 			return err
 		case <-ctx.Done():
-			return fmt.Errorf("timed out waiting for permissions to be accepted in the browser")
+			return fmt.Errorf("等待在浏览器中接受权限超时")
 		}
 	})
 }
 
-// showStatus polls the codespace for a list of post create states and their status. It will keep polling
-// until all states have finished. Once all states have finished, we poll once more to check if any new
-// states have been introduced and stop polling otherwise.
+// showStatus 轮询 codespace 的创建后状态及其状态信息，持续轮询直到所有状态完成。
+// 所有状态完成后，再轮询一次检查是否有新状态出现，否则停止轮询。
 func (a *App) showStatus(ctx context.Context, codespace *api.Codespace) error {
 	var (
 		lastState      codespaces.PostCreateState
@@ -469,7 +479,7 @@ func (a *App) showStatus(ctx context.Context, codespace *api.Codespace) error {
 		var inProgress bool
 		for _, state := range states {
 			if _, found := finishedStates[state.Name]; found {
-				continue // skip this state as we've processed it already
+				continue // 跳过已处理过的状态
 			}
 
 			if state.Name != lastState.Name {
@@ -491,7 +501,7 @@ func (a *App) showStatus(ctx context.Context, codespace *api.Codespace) error {
 
 				finishedStates[state.Name] = true
 				a.StopProgressIndicator()
-				lastState = codespaces.PostCreateState{} // reset the value
+				lastState = codespaces.PostCreateState{} // 重置该值
 			}
 		}
 
@@ -507,24 +517,26 @@ func (a *App) showStatus(ctx context.Context, codespace *api.Codespace) error {
 	err := codespaces.PollPostCreateStates(ctx, a, a.apiClient, codespace, poller)
 	if err != nil {
 		if errors.Is(err, context.Canceled) && breakNextState {
-			return nil // we cancelled the context to stop polling, we can ignore the error
+			return nil // 我们通过取消 context 来停止轮询，可以忽略该错误
 		}
 
-		return fmt.Errorf("failed to poll state changes from codespace: %w", err)
+		return fmt.Errorf("轮询 codespace 状态变更失败: %w", err)
 	}
 
 	return nil
 }
 
-// getMachineName prompts the user to select the machine type, or validates the machine if non-empty.
+// getMachineName 提示用户选择机器类型，machine 非空时校验该机器。
 func getMachineName(ctx context.Context, apiClient apiClient, prompter SurveyPrompter, repoID int64, machine, branch, location string, devcontainerPath string) (string, error) {
 	machines, err := apiClient.GetCodespacesMachines(ctx, repoID, branch, location, devcontainerPath)
 	if err != nil {
-		return "", fmt.Errorf("error requesting machine instance types: %w", err)
+		return "", fmt.Errorf("请求机器实例类型时出错: %w", err)
 	}
 
 	// if user supplied a machine type, it must be valid
 	// if no machine type was supplied, we don't error if there are no machine types for the current repo
+	// 若用户提供了机器类型，则必须有效
+	// 若未提供机器类型，则当前仓库没有机器类型时不报错
 	if machine != "" {
 		for _, m := range machines {
 			if machine == m.Name {
@@ -537,13 +549,14 @@ func getMachineName(ctx context.Context, apiClient apiClient, prompter SurveyPro
 			availableMachines[i] = machines[i].Name
 		}
 
-		return "", fmt.Errorf("there is no such machine for the repository: %s\nAvailable machines: %v", machine, availableMachines)
+		return "", fmt.Errorf("该仓库没有这样的机器: %s\n可用机器: %v", machine, availableMachines)
 	} else if len(machines) == 0 {
 		return "", nil
 	}
 
 	if len(machines) == 1 {
 		// VS Code does not prompt for machine if there is only one, this makes us consistent with that behavior
+		// 只有一个机器时 VS Code 不提示选择，我们与此行为保持一致
 		return machines[0].Name, nil
 	}
 
@@ -559,7 +572,7 @@ func getMachineName(ctx context.Context, apiClient apiClient, prompter SurveyPro
 		{
 			Name: "machine",
 			Prompt: &survey.Select{
-				Message: "Choose Machine Type:",
+				Message: "选择机器类型:",
 				Options: machineNames,
 				Default: machineNames[0],
 			},
@@ -569,7 +582,7 @@ func getMachineName(ctx context.Context, apiClient apiClient, prompter SurveyPro
 
 	var machineAnswers struct{ Machine string }
 	if err := prompter.Ask(machineSurvey, &machineAnswers); err != nil {
-		return "", fmt.Errorf("error getting machine: %w", err)
+		return "", fmt.Errorf("获取机器时出错: %w", err)
 	}
 
 	selectedMachine := machineByName[machineAnswers.Machine]
@@ -580,6 +593,7 @@ func getMachineName(ctx context.Context, apiClient apiClient, prompter SurveyPro
 func getRepoSuggestions(ctx context.Context, apiClient apiClient, partialSearch string) []string {
 	searchParams := api.RepoSearchParameters{
 		// The prompt shows 7 items so 7 effectively turns off scrolling which is similar behavior to other clients
+		// 提示界面显示 7 项，因此 7 实际上关闭了滚动，与其他客户端行为一致
 		MaxRepos: 7,
 		Sort:     "repo",
 	}
@@ -592,14 +606,14 @@ func getRepoSuggestions(ctx context.Context, apiClient apiClient, partialSearch 
 	return repos
 }
 
-// buildDisplayName returns display name to be used in the machine survey prompt.
-// prebuildAvailability will be migrated to use enum values: "none", "ready", "in_progress" before Prebuild GA
+// buildDisplayName 返回用于机器选择提示的显示名称。
+// prebuildAvailability 将在 Prebuild GA 前迁移为枚举值: "none"、"ready"、"in_progress"
 func buildDisplayName(displayName string, prebuildAvailability string) string {
 	switch prebuildAvailability {
 	case "ready":
-		return displayName + " (Prebuild ready)"
+		return displayName + " (预构建就绪)"
 	case "in_progress":
-		return displayName + " (Prebuild in progress)"
+		return displayName + " (预构建进行中)"
 	default:
 		return displayName
 	}

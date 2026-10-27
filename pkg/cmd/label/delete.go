@@ -35,15 +35,15 @@ func newCmdDelete(f *cmdutil.Factory, runF func(*deleteOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "delete <name>",
-		Short: "Delete a label from a repository",
-		Args:  cmdutil.ExactArgs(1, "cannot delete label: name argument required"),
+		Short: "从仓库中删除一个标签",
+		Args:  cmdutil.ExactArgs(1, "无法删除标签: 需要提供 name 参数"),
 		RunE: func(c *cobra.Command, args []string) error {
-			// support `-R, --repo` override
+			// 支持 `-R, --repo` 覆盖
 			opts.BaseRepo = f.BaseRepo
 			opts.Name = args[0]
 
 			if !opts.IO.CanPrompt() && !opts.Confirmed {
-				return cmdutil.FlagErrorf("--yes required when not running interactively")
+				return cmdutil.FlagErrorf("非交互模式下必须提供 --yes")
 			}
 
 			if runF != nil {
@@ -53,9 +53,9 @@ func newCmdDelete(f *cmdutil.Factory, runF func(*deleteOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.Confirmed, "confirm", false, "Confirm deletion without prompting")
-	_ = cmd.Flags().MarkDeprecated("confirm", "use `--yes` instead")
-	cmd.Flags().BoolVar(&opts.Confirmed, "yes", false, "Confirm deletion without prompting")
+	cmd.Flags().BoolVar(&opts.Confirmed, "confirm", false, "不提示直接确认删除")
+	_ = cmd.Flags().MarkDeprecated("confirm", "请改用 `--yes`")
+	cmd.Flags().BoolVar(&opts.Confirmed, "yes", false, "不提示直接确认删除")
 
 	return cmd
 }
@@ -86,7 +86,7 @@ func deleteRun(opts *deleteOptions) error {
 
 	if opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
-		successMsg := fmt.Sprintf("%s Label %q deleted from %s\n", cs.SuccessIcon(), opts.Name, ghrepo.FullName(baseRepo))
+		successMsg := fmt.Sprintf("%s 已从 %s 中删除标签 %q\n", cs.SuccessIcon(), opts.Name, ghrepo.FullName(baseRepo))
 		fmt.Fprint(opts.IO.Out, successMsg)
 	}
 

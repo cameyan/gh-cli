@@ -24,7 +24,7 @@ func (s *MockStore) createMetadataFile(artifact string, attestationsResp []*api.
 }
 
 func OnCreateMetadataFileFailure(artifactDigest string, attestationsResp []*api.Attestation) (string, error) {
-	return "", fmt.Errorf("failed to create trusted metadata file")
+	return "", fmt.Errorf("创建受信任元数据(trusted metadata)文件失败")
 }
 
 func TestCreateJSONLinesFilePath(t *testing.T) {

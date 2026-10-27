@@ -26,13 +26,13 @@ const (
 	EditCommitSubjectAction
 	SubmitDraftAction
 
-	noMilestone = "(none)"
+	noMilestone = "(无)"
 
-	submitLabel      = "Submit"
-	submitDraftLabel = "Submit as draft"
-	previewLabel     = "Continue in browser"
-	metadataLabel    = "Add metadata"
-	cancelLabel      = "Cancel"
+	submitLabel      = "提交"
+	submitDraftLabel = "以草稿(draft)提交"
+	previewLabel     = "在浏览器中继续"
+	metadataLabel    = "添加元数据"
+	cancelLabel      = "取消"
 )
 
 type Prompt interface {
@@ -68,9 +68,9 @@ func confirmSubmission(p Prompt, allowPreview, allowMetadata, allowDraft, isDraf
 	}
 	options = append(options, cancelLabel)
 
-	result, err := p.Select("What's next?", "", options)
+	result, err := p.Select("下一步做什么?", "", options)
 	if err != nil {
-		return -1, fmt.Errorf("could not prompt: %w", err)
+		return -1, fmt.Errorf("无法显示提示: %w", err)
 	}
 
 	switch options[result] {
@@ -85,21 +85,21 @@ func confirmSubmission(p Prompt, allowPreview, allowMetadata, allowDraft, isDraf
 	case cancelLabel:
 		return CancelAction, nil
 	default:
-		return -1, fmt.Errorf("invalid index: %d", result)
+		return -1, fmt.Errorf("无效的索引: %d", result)
 	}
 }
 
 func BodySurvey(p Prompt, state *IssueMetadataState, templateContent string) error {
 	if templateContent != "" {
 		if state.Body != "" {
-			// prevent excessive newlines between default body and template
+			// 避免默认正文与模板之间出现过多换行
 			state.Body = strings.TrimRight(state.Body, "\n")
 			state.Body += "\n\n"
 		}
 		state.Body += templateContent
 	}
 
-	result, err := p.MarkdownEditor("Body", state.Body, true)
+	result, err := p.MarkdownEditor("正文", state.Body, true)
 	if err != nil {
 		return err
 	}
@@ -117,12 +117,12 @@ func TitleSurvey(p Prompt, io *iostreams.IOStreams, state *IssueMetadataState) e
 	var err error
 	result := ""
 	for result == "" {
-		result, err = p.Input("Title (required)", state.Title)
+		result, err = p.Input("标题(必填)", state.Title)
 		if err != nil {
 			return err
 		}
 		if result == "" {
-			fmt.Fprintf(io.ErrOut, "%s Title cannot be blank\n", io.ColorScheme().FailureIcon())
+			fmt.Fprintf(io.ErrOut, "%s 标题不能为空\n", io.ColorScheme().FailureIcon())
 		}
 	}
 
@@ -163,11 +163,11 @@ func MetadataSurvey(p Prompt, io *iostreams.IOStreams, baseRepo ghrepo.Interface
 
 	extraFieldsOptions := []string{}
 	if allowReviewers {
-		extraFieldsOptions = append(extraFieldsOptions, "Reviewers")
+		extraFieldsOptions = append(extraFieldsOptions, "审核者")
 	}
-	extraFieldsOptions = append(extraFieldsOptions, "Assignees", "Labels", "Projects", "Milestone")
+	extraFieldsOptions = append(extraFieldsOptions, "被指派人", "标签", "项目", "里程碑")
 
-	selected, err := p.MultiSelect("What would you like to add?", nil, extraFieldsOptions)
+	selected, err := p.MultiSelect("您想添加哪些内容?", nil, extraFieldsOptions)
 	if err != nil {
 		return err
 	}
@@ -175,25 +175,25 @@ func MetadataSurvey(p Prompt, io *iostreams.IOStreams, baseRepo ghrepo.Interface
 		state.Metadata = append(state.Metadata, extraFieldsOptions[i])
 	}
 
-	// Retrieve and process data for survey prompts based on the extra fields selected.
-	// When search-based selection is available, skip the expensive assignable-users
-	// and teams fetch since they are found dynamically via the search function.
+	// 根据选中的额外字段获取并处理数据，供调查(survey)提示使用。
+	// 当可使用基于搜索的选择时，跳过代价高昂的可指派用户与团队获取，
+	// 因为它们可通过搜索函数动态找到。
 	// TODO ApiActorsSupported
 	useReviewerSearch := state.ApiActorsSupported && reviewerSearchFunc != nil
 	useAssigneeSearch := state.ApiActorsSupported && assigneeSearchFunc != nil
 	metadataInput := api.RepoMetadataInput{
-		Reviewers:          isChosen("Reviewers") && !useReviewerSearch,
-		TeamReviewers:      isChosen("Reviewers") && !useReviewerSearch,
-		Assignees:          isChosen("Assignees") && !useAssigneeSearch,
+		Reviewers:          isChosen("审核者") && !useReviewerSearch,
+		TeamReviewers:      isChosen("审核者") && !useReviewerSearch,
+		Assignees:          isChosen("被指派人") && !useAssigneeSearch,
 		ApiActorsSupported: state.ApiActorsSupported,
-		Labels:             isChosen("Labels"),
-		ProjectsV1:         isChosen("Projects") && projectsV1Support == gh.ProjectsV1Supported,
-		ProjectsV2:         isChosen("Projects"),
-		Milestones:         isChosen("Milestone"),
+		Labels:             isChosen("标签"),
+		ProjectsV1:         isChosen("项目") && projectsV1Support == gh.ProjectsV1Supported,
+		ProjectsV2:         isChosen("项目"),
+		Milestones:         isChosen("里程碑"),
 	}
 	metadataResult, err := fetcher.RepoMetadataFetch(metadataInput)
 	if err != nil {
-		return fmt.Errorf("error fetching metadata options: %w", err)
+		return fmt.Errorf("获取元数据选项出错: %w", err)
 	}
 
 	var reviewers []string
@@ -248,7 +248,7 @@ func MetadataSurvey(p Prompt, io *iostreams.IOStreams, baseRepo ghrepo.Interface
 		milestones = append(milestones, m.Title)
 	}
 
-	// Prompt user for additional metadata based on selected fields
+	// 根据选中的字段提示用户输入额外的元数据
 	values := struct {
 		Reviewers []string
 		Assignees []string
@@ -257,11 +257,11 @@ func MetadataSurvey(p Prompt, io *iostreams.IOStreams, baseRepo ghrepo.Interface
 		Milestone string
 	}{}
 
-	if isChosen("Reviewers") {
+	if isChosen("审核者") {
 		if useReviewerSearch {
 			selectedReviewers, err := p.MultiSelectWithSearch(
-				"Reviewers",
-				"Search reviewers",
+				"审核者",
+				"搜索审核者(reviewer)",
 				state.Reviewers,
 				[]string{},
 				reviewerSearchFunc)
@@ -271,9 +271,9 @@ func MetadataSurvey(p Prompt, io *iostreams.IOStreams, baseRepo ghrepo.Interface
 			values.Reviewers = selectedReviewers
 		} else if len(reviewers) > 0 {
 			// TODO ApiActorsSupported
-			// The static MultiSelect path can be removed once GHES supports
-			// requestReviewsByLogin and search-based selection is always used.
-			selected, err := p.MultiSelect("Reviewers", state.Reviewers, reviewers)
+			// 待 GHES 支持 requestReviewsByLogin 且始终使用基于搜索的选择后，
+			// 可移除静态 MultiSelect 路径。
+			selected, err := p.MultiSelect("审核者", state.Reviewers, reviewers)
 			if err != nil {
 				return err
 			}
@@ -281,14 +281,14 @@ func MetadataSurvey(p Prompt, io *iostreams.IOStreams, baseRepo ghrepo.Interface
 				values.Reviewers = append(values.Reviewers, reviewers[i])
 			}
 		} else {
-			fmt.Fprintln(io.ErrOut, "warning: no available reviewers")
+			fmt.Fprintln(io.ErrOut, "警告: 没有可用的审核者(reviewer)")
 		}
 	}
-	if isChosen("Assignees") {
+	if isChosen("被指派人") {
 		if useAssigneeSearch {
 			selectedAssignees, err := p.MultiSelectWithSearch(
-				"Assignees",
-				"Search assignees",
+				"被指派人",
+				"搜索被指派人(assignee)",
 				state.Assignees,
 				[]string{},
 				assigneeSearchFunc)
@@ -297,7 +297,7 @@ func MetadataSurvey(p Prompt, io *iostreams.IOStreams, baseRepo ghrepo.Interface
 			}
 			values.Assignees = selectedAssignees
 		} else if len(assignees) > 0 {
-			selected, err := p.MultiSelect("Assignees", assigneesDefault, assignees)
+			selected, err := p.MultiSelect("被指派人", assigneesDefault, assignees)
 			if err != nil {
 				return err
 			}
@@ -310,12 +310,12 @@ func MetadataSurvey(p Prompt, io *iostreams.IOStreams, baseRepo ghrepo.Interface
 				}
 			}
 		} else {
-			fmt.Fprintln(io.ErrOut, "warning: no assignable users")
+			fmt.Fprintln(io.ErrOut, "警告: 没有可指派的用户")
 		}
 	}
-	if isChosen("Labels") {
+	if isChosen("标签") {
 		if len(labels) > 0 {
-			selected, err := p.MultiSelect("Labels", state.Labels, labels)
+			selected, err := p.MultiSelect("标签", state.Labels, labels)
 			if err != nil {
 				return err
 			}
@@ -323,12 +323,12 @@ func MetadataSurvey(p Prompt, io *iostreams.IOStreams, baseRepo ghrepo.Interface
 				values.Labels = append(values.Labels, labels[i])
 			}
 		} else {
-			fmt.Fprintln(io.ErrOut, "warning: no labels in the repository")
+			fmt.Fprintln(io.ErrOut, "警告: 仓库中没有任何标签(label)")
 		}
 	}
-	if isChosen("Projects") {
+	if isChosen("项目") {
 		if len(projects) > 0 {
-			selected, err := p.MultiSelect("Projects", state.ProjectTitles, projects)
+			selected, err := p.MultiSelect("项目", state.ProjectTitles, projects)
 			if err != nil {
 				return err
 			}
@@ -336,10 +336,10 @@ func MetadataSurvey(p Prompt, io *iostreams.IOStreams, baseRepo ghrepo.Interface
 				values.Projects = append(values.Projects, projects[i])
 			}
 		} else {
-			fmt.Fprintln(io.ErrOut, "warning: no projects to choose from")
+			fmt.Fprintln(io.ErrOut, "警告: 没有可选择的项目(project)")
 		}
 	}
-	if isChosen("Milestone") {
+	if isChosen("里程碑") {
 		if len(milestones) > 1 {
 			var milestoneDefault string
 			if len(state.Milestones) > 0 {
@@ -347,35 +347,35 @@ func MetadataSurvey(p Prompt, io *iostreams.IOStreams, baseRepo ghrepo.Interface
 			} else {
 				milestoneDefault = milestones[1]
 			}
-			selected, err := p.Select("Milestone", milestoneDefault, milestones)
+			selected, err := p.Select("里程碑", milestoneDefault, milestones)
 			if err != nil {
 				return err
 			}
 			values.Milestone = milestones[selected]
 		} else {
-			fmt.Fprintln(io.ErrOut, "warning: no milestones in the repository")
+			fmt.Fprintln(io.ErrOut, "警告: 仓库中没有任何里程碑(milestone)")
 		}
 	}
 
-	// Update issue / pull request metadata state
-	if isChosen("Reviewers") {
+	// 更新 issue / 拉取请求(PR)的元数据状态
+	if isChosen("审核者") {
 		var logins []string
 		for _, r := range values.Reviewers {
-			// Extract user login from display name
+			// 从显示名中提取用户登录名(login)
 			logins = append(logins, (strings.Split(r, " "))[0])
 		}
 		state.Reviewers = logins
 	}
-	if isChosen("Assignees") {
+	if isChosen("被指派人") {
 		state.Assignees = values.Assignees
 	}
-	if isChosen("Labels") {
+	if isChosen("标签") {
 		state.Labels = values.Labels
 	}
-	if isChosen("Projects") {
+	if isChosen("项目") {
 		state.ProjectTitles = values.Projects
 	}
-	if isChosen("Milestone") {
+	if isChosen("里程碑") {
 		if values.Milestone != "" && values.Milestone != noMilestone {
 			state.Milestones = []string{values.Milestone}
 		} else {
@@ -405,8 +405,8 @@ func (e *UserEditor) Edit(filename, initialValue string) (string, error) {
 
 const editorHintMarker = "------------------------ >8 ------------------------"
 const editorHint = `
-Please Enter the title on the first line and the body on subsequent lines.
-Lines below dotted lines will be ignored, and an empty title aborts the creation process.`
+请在第一行输入标题，正文写在后续行中。
+虚线以下的内容将被忽略，标题为空将中止创建过程。`
 
 func TitledEditSurvey(editor Editor) func(string, string) (string, string, error) {
 	return func(initialTitle, initialBody string) (string, string, error) {
@@ -425,7 +425,7 @@ func TitledEditSurvey(editor Editor) func(string, string) (string, string, error
 
 func InitEditorMode(f *cmdutil.Factory, editorMode bool, webMode bool, canPrompt bool) (bool, error) {
 	if err := cmdutil.MutuallyExclusive(
-		"specify only one of `--editor` or `--web`",
+		"只能指定 `--editor` 或 `--web` 之一",
 		editorMode,
 		webMode,
 	); err != nil {
@@ -440,7 +440,7 @@ func InitEditorMode(f *cmdutil.Factory, editorMode bool, webMode bool, canPrompt
 	editorMode = !webMode && (editorMode || config.PreferEditorPrompt("").Value == "enabled")
 
 	if editorMode && !canPrompt {
-		return false, errors.New("--editor or enabled prefer_editor_prompt configuration are not supported in non-tty mode")
+		return false, errors.New("--editor 或已启用的 prefer_editor_prompt 配置在非 tty 模式下不受支持")
 	}
 
 	return editorMode, nil

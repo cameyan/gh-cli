@@ -26,26 +26,26 @@ func TestLiveSigstoreVerifier(t *testing.T) {
 
 	testcases := []testcase{
 		{
-			name:         "with invalid signature",
+			name:         "签名无效的情况",
 			attestations: getAttestationsFor(t, "../test/data/sigstoreBundle-invalid-signature.json"),
 			expectErr:    true,
-			errContains:  "verifying with issuer \"sigstore.dev\"",
+			errContains:  "使用签发者(issuer) \"sigstore.dev\" 进行验证时出错",
 		},
 		{
-			name:         "with valid artifact and JSON lines file containing multiple Sigstore bundles",
+			name:         "制品(artifact)有效且 JSON lines 文件包含多个 Sigstore bundle 的情况",
 			attestations: getAttestationsFor(t, "../test/data/sigstore-js-2.1.0_with_2_bundles.jsonl"),
 		},
 		{
-			name:         "with invalid bundle version",
+			name:         "bundle 版本无效的情况",
 			attestations: getAttestationsFor(t, "../test/data/sigstore-js-2.1.0-bundle-v0.1.json"),
 			expectErr:    true,
-			errContains:  "unsupported bundle version",
+			errContains:  "不支持的 bundle 版本",
 		},
 		{
-			name:         "with no attestations",
+			name:         "没有证明(attestation)的情况",
 			attestations: []*api.Attestation{},
 			expectErr:    true,
-			errContains:  "no attestations were verified",
+			errContains:  "没有证明(attestation)通过验证",
 		},
 	}
 
@@ -71,7 +71,7 @@ func TestLiveSigstoreVerifier(t *testing.T) {
 		})
 	}
 
-	t.Run("with 2/3 verified attestations", func(t *testing.T) {
+	t.Run("2/3 个证明(attestation)通过验证的情况", func(t *testing.T) {
 		verifier, err := NewLiveSigstoreVerifier(SigstoreConfig{
 			ExternalHttpClient: http.DefaultClient,
 			Logger:             io.NewTestHandler(),
@@ -90,7 +90,7 @@ func TestLiveSigstoreVerifier(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("fail with 0/2 verified attestations", func(t *testing.T) {
+	t.Run("0/2 个证明(attestation)通过验证而失败的情况", func(t *testing.T) {
 		verifier, err := NewLiveSigstoreVerifier(SigstoreConfig{
 			ExternalHttpClient: http.DefaultClient,
 			Logger:             io.NewTestHandler(),
@@ -108,7 +108,7 @@ func TestLiveSigstoreVerifier(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("with GitHub Sigstore artifact", func(t *testing.T) {
+	t.Run("GitHub Sigstore 制品(artifact)的情况", func(t *testing.T) {
 		githubArtifactPath := test.NormalizeRelativePath("../test/data/github_provenance_demo-0.0.12-py3-none-any.whl")
 		githubArtifact, err := artifact.NewDigestedArtifact(nil, githubArtifactPath, "sha256")
 		require.NoError(t, err)
@@ -129,7 +129,7 @@ func TestLiveSigstoreVerifier(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("with custom trusted root", func(t *testing.T) {
+	t.Run("自定义受信任根(trusted root)的情况", func(t *testing.T) {
 		attestations := getAttestationsFor(t, "../test/data/sigstore-js-2.1.0_with_2_bundles.jsonl")
 
 		verifier, err := NewLiveSigstoreVerifier(SigstoreConfig{
@@ -145,7 +145,7 @@ func TestLiveSigstoreVerifier(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("returns an error instead of panicking when the GitHub verifier failed to initialize", func(t *testing.T) {
+	t.Run("当 GitHub 验证器(verifier)初始化失败时返回错误而非 panic 的情况", func(t *testing.T) {
 		githubArtifactPath := test.NormalizeRelativePath("../test/data/github_provenance_demo-0.0.12-py3-none-any.whl")
 		githubArtifact, err := artifact.NewDigestedArtifact(nil, githubArtifactPath, "sha256")
 		require.NoError(t, err)
@@ -163,8 +163,8 @@ func TestLiveSigstoreVerifier(t *testing.T) {
 		results, verifyErr := verifier.Verify(attestations, githubPolicy)
 		require.Nil(t, results)
 		require.Error(t, verifyErr)
-		require.ErrorContains(t, verifyErr, "failed to choose verifier based on provided bundle issuer")
-		require.ErrorContains(t, verifyErr, "GitHub verifier is not available")
+		require.ErrorContains(t, verifyErr, "基于提供的 bundle 签发者(issuer)选择验证器(verifier)失败")
+		require.ErrorContains(t, verifyErr, "GitHub 验证器(verifier)不可用")
 	})
 }
 

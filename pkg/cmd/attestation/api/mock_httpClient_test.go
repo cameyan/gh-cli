@@ -54,7 +54,7 @@ func (m *reqFailHttpClient) Get(url string) (*http.Response, error) {
 
 	return &http.Response{
 		StatusCode: 500,
-	}, fmt.Errorf("failed to fetch with %s", url)
+	}, fmt.Errorf("请求 %s 失败", url)
 }
 
 type failAfterNCallsHttpClient struct {

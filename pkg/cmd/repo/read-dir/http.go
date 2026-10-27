@@ -10,9 +10,8 @@ import (
 	"github.com/shurcooL/githubv4"
 )
 
-// Git object modes. The high bits encode the object type (modeTypeMask); regular
-// files additionally carry permission bits, so they are matched against modeFile
-// after masking rather than by an exact value.
+// Git 对象模式(mode)。高位编码对象类型(modeTypeMask)；普通文件
+// 还带有权限位，因此在掩码后与 modeFile 匹配，而不是按精确值匹配。
 const (
 	modeTypeMask  = 0o170000
 	modeDir       = 0o040000
@@ -21,14 +20,14 @@ const (
 	modeSubmodule = 0o160000
 )
 
-// repoDir is a resolved directory listing for a single tree path.
+// repoDir 是单个树(tree)路径解析后的目录列表。
 type repoDir struct {
 	GitSHA  string
 	ID      string
 	Entries []dirEntry
 }
 
-// dirEntry is a single entry within a directory listing.
+// dirEntry 是目录列表中的单个条目。
 type dirEntry struct {
 	Name      string
 	Path      string
@@ -42,24 +41,24 @@ type dirEntry struct {
 	Submodule *submodule
 }
 
-// submodule holds the extra metadata GraphQL exposes for a submodule entry.
+// submodule 保存 GraphQL 为子模块条目暴露的额外元数据。
 type submodule struct {
 	GitURL              string
 	Branch              *string
 	SubprojectCommitOid string
 }
 
-// isExecutable reports whether the entry is a regular file with an executable bit set.
+// isExecutable 报告该条目是否为设置了可执行位的普通文件。
 func (e dirEntry) isExecutable() bool {
 	return e.Type == "file" && e.Mode&0o111 != 0
 }
 
-// modeOctal renders the git mode as a six-digit octal string (e.g. 100644).
+// modeOctal 将 git 模式渲染为六位八进制字符串(例如 100644)。
 func (e dirEntry) modeOctal() string {
 	return fmt.Sprintf("%06o", e.Mode)
 }
 
-// ExportData implements the cmdutil exportable interface for a single entry.
+// ExportData 为单个条目实现 cmdutil 可导出接口。
 func (e dirEntry) ExportData(fields []string) map[string]any {
 	data := map[string]any{}
 	for _, field := range fields {
@@ -99,10 +98,10 @@ func (e dirEntry) ExportData(fields []string) map[string]any {
 	return data
 }
 
-// ExportData implements the cmdutil exportable interface for the directory.
+// ExportData 为目录实现 cmdutil 可导出接口。
 //
-// gitSHA and id are structural and always present; the requested fields select
-// which properties appear on each entry.
+// gitSHA 和 id 是结构性字段，始终存在；所请求的字段决定
+// 每个条目上出现哪些属性。
 func (d *repoDir) ExportData(fields []string) map[string]any {
 	entries := make([]any, 0, len(d.Entries))
 	for _, e := range d.Entries {
@@ -115,17 +114,16 @@ func (d *repoDir) ExportData(fields []string) map[string]any {
 	}
 }
 
-// fetchTree resolves a directory listing for dirPath at ref.
+// fetchTree 解析 dirPath 在 ref 上的目录列表。
 //
-// It uses the repository.object(expression) field, which returns a Tree for a
-// directory, a Blob for a file, or null when the path or ref cannot be resolved.
-// Unlike the REST Contents API, GraphQL has no 1000-entry cap and exposes the git
-// mode, which lets us tell files, dirs, symlinks, and submodules apart.
+// 它使用 repository.object(expression) 字段，该字段对目录返回 Tree，
+// 对文件返回 Blob，当路径或 ref 无法解析时返回 null。
+// 与 REST Contents API 不同，GraphQL 没有 1000 条目上限，并暴露 git 模式(mode)，
+// 这让我们能够区分文件、目录、符号链接和子模块。
 //
-// A null object means the path or ref could not be resolved (GraphQL cannot tell
-// the two apart, so we report a single ambiguous error). A non-Tree object means
-// the path points to a file rather than a directory. The original ref (empty for
-// the default branch) is only used when building error messages.
+// null 对象表示路径或 ref 无法解析(GraphQL 无法区分这两种情况，
+// 因此我们报告一个含糊的统一错误)。非 Tree 对象表示路径指向的是文件而非目录。
+// 原始 ref(默认分支时为空)仅在构建错误消息时使用。
 func fetchTree(httpClient *http.Client, repo ghrepo.Interface, dirPath, ref string) (*repoDir, error) {
 	client := api.NewClientFromHTTP(httpClient)
 
@@ -174,19 +172,19 @@ func fetchTree(httpClient *http.Client, repo ghrepo.Interface, dirPath, ref stri
 
 	obj := query.Repository.Object
 	if obj == nil {
-		// The API returns a null object for both missing paths or refs, so we
-		// cannot tell which one is wrong and infer the message from whether a ref was given.
+		// 对于路径或 ref 缺失的情况，API 都返回 null 对象，因此我们
+		// 无法区分哪个有误，只能根据是否提供了 ref 来推断错误消息。
 		if ref != "" {
-			return nil, fmt.Errorf("could not find %q at %q in %s (the path or ref may not exist)", dirPath, ref, ghrepo.FullName(repo))
+			return nil, fmt.Errorf("在 %s 的 %q 中找不到 %q(路径或 ref 可能不存在)", ghrepo.FullName(repo), ref, dirPath)
 		}
-		return nil, fmt.Errorf("could not find %q in %s", dirPath, ghrepo.FullName(repo))
+		return nil, fmt.Errorf("在 %s 中找不到 %q", ghrepo.FullName(repo), dirPath)
 	}
 
 	if obj.TypeName != "Tree" {
 		if obj.TypeName == "Blob" {
-			return nil, fmt.Errorf("%q is a file, not a directory; use `gh repo read-file` instead", dirPath)
+			return nil, fmt.Errorf("%q 是文件而非目录；请改用 `gh repo read-file`", dirPath)
 		}
-		return nil, fmt.Errorf("%q is not a directory", dirPath)
+		return nil, fmt.Errorf("%q 不是目录", dirPath)
 	}
 
 	dir := &repoDir{
@@ -220,9 +218,8 @@ func fetchTree(httpClient *http.Client, repo ghrepo.Interface, dirPath, ref stri
 	return dir, nil
 }
 
-// entryTypeFromMode normalizes a git object mode into the entry type names the
-// command reports: dir, file, symlink, or submodule. Modes with an unrecognized
-// type are reported as "unknown".
+// entryTypeFromMode 将 git 对象模式归一化为命令报告的条目类型名称:
+// dir、file、symlink 或 submodule。无法识别类型的模式报告为 "unknown"。
 func entryTypeFromMode(mode int) string {
 	switch mode & modeTypeMask {
 	case modeDir:

@@ -63,15 +63,14 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 
 	cmd := &cobra.Command{
 		Use:   "edit [<number> | <url> | <branch>]",
-		Short: "Edit a pull request",
+		Short: "编辑拉取请求(PR)",
 		Long: heredoc.Docf(`
-			Edit a pull request.
+			编辑拉取请求(PR)。
 
-			Without an argument, the pull request that belongs to the current branch
-			is selected.
+			若未提供参数，将选择属于当前分支的拉取请求(PR)。
 
-			Editing a pull request's projects requires authorization with the %[1]sproject%[1]s scope.
-			To authorize, run %[1]sgh auth refresh -s project%[1]s.
+			编辑拉取请求(PR)的项目(project)需要以 %[1]sproject%[1]s 权限范围(scope)授权。
+			如需授权，请运行 %[1]sgh auth refresh -s project%[1]s。
 
 			Use %[1]s--attach%[1]s to upload an image or video. Without a body flag the pull
 			request keeps the body it already has and the attachment is appended to it. If the
@@ -80,56 +79,53 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 			relative to its directory, falling back to the working directory.
 			You can attach up to 50 files per command.
 
-			Alt text for an image follows the path after %[1]s#%[1]s, as in
-			%[1]s--attach './login.png#The login error state'%[1]s. Without it the filename is used.
-			A reference already in the body keeps the alt text written there. Video renders
-			as a player and has no alt text, so it cannot be given any.
+			图片的替代文本(alt text)为 %[1]s#%[1]s 之后的路径内容，如
+			%[1]s--attach './login.png#The login error state'%[1]s。未提供时使用文件名。
+			正文中已有的引用会保留其中书写的替代文本。视频以播放器形式呈现且没有替代文本，
+			因此无法为其指定。
 
-			If some attachments upload and others fail, the pull request is still updated with the
-			ones that succeeded. The command then exits with a non-zero status, but the pull
-			request's URL is still printed to stdout.
+			如果部分附件上传成功而其他失败，拉取请求(PR)仍会以成功上传的那些更新。
+			随后该命令以非零状态退出，但拉取请求(PR)的 URL 仍会打印到标准输出。
 
-			The %[1]s--add-assignee%[1]s and %[1]s--remove-assignee%[1]s flags both support
-			the following special values:
-			- %[1]s@me%[1]s: assign or unassign yourself
-			- %[1]s@copilot%[1]s: assign or unassign Copilot (not supported on GitHub Enterprise Server)
+			%[1]s--add-assignee%[1]s 和 %[1]s--remove-assignee%[1]s flag 均支持以下特殊取值:
+			- %[1]s@me%[1]s: 指派或取消指派自己
+			- %[1]s@copilot%[1]s: 指派或取消指派 Copilot (GitHub Enterprise Server 不支持)
 
-			The %[1]s--add-reviewer%[1]s and %[1]s--remove-reviewer%[1]s flags support
-			the following special value:
-			- %[1]s@copilot%[1]s: request or remove review from Copilot (not supported on GitHub Enterprise Server)
+			%[1]s--add-reviewer%[1]s 和 %[1]s--remove-reviewer%[1]s flag 支持以下特殊取值:
+			- %[1]s@copilot%[1]s: 请求或移除 Copilot 的审核(review) (GitHub Enterprise Server 不支持)
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Edit the title and body of a pull request
+			# 编辑拉取请求(PR)的标题与正文
 			$ gh pr edit 23 --title "I found a bug" --body "Nothing works"
 
-			# Use a file as the body
+			# 使用文件作为正文
 			$ gh pr edit 23 --body-file body.txt
 
-			# Append a screenshot to the body, with alt text after "#"
+			# 将截图追加到正文，"#" 之后为替代文本(alt text)
 			$ gh pr edit 23 --attach './login.png#The login error state'
 
-			# Append multiple files by repeating the flag
+			# 通过重复 flag 追加多个文件
 			$ gh pr edit 23 --attach ./before.png --attach ./after.png
 
-			# Manage labels
+			# 管理标签(label)
 			$ gh pr edit 23 --add-label "bug,help wanted" --remove-label "core"
 
-			# Manage reviewers
+			# 管理审核者(reviewer)
 			$ gh pr edit 23 --add-reviewer monalisa,hubot --remove-reviewer myorg/team-name
 
-			# Re-request review
+			# 重新请求审核(review)
 			$ gh pr edit 23 --add-reviewer monalisa
 
-			# Request a review from GitHub Copilot
+			# 请求 GitHub Copilot 审核(review)
 			$ gh pr edit 23 --add-reviewer "@copilot"
 
-			# Manage assignees
+			# 管理被指派人(assignee)
 			$ gh pr edit 23 --add-assignee "@me" --remove-assignee monalisa,hubot
 
-			# Assign GitHub Copilot
+			# 指派 GitHub Copilot
 			$ gh pr edit 23 --add-assignee "@copilot"
 
-			# Manage projects and milestones
+			# 管理项目(project)与里程碑(milestone)
 			$ gh pr edit 23 --add-project "Roadmap" --remove-project v1,v2
 			$ gh pr edit 23 --milestone "Version 1"
 			$ gh pr edit 23 --remove-milestone
@@ -146,12 +142,10 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 			}
 
 			if opts.SelectorArg != "" {
-				// If a URL is provided, we need to parse it to override the
-				// base repository, especially the hostname part. That's because
-				// we need a feature detector down in this command, and that
-				// needs to know the API host. If the command is run outside of
-				// a git repo, we cannot instantiate the detector unless we have
-				// already parsed the URL.
+				// 如果提供了 URL，我们需要解析它以覆盖基础仓库(base repo)，
+				// 尤其是主机名部分。这是因为该命令内部需要用到特性检测器(feature detector)，
+				// 而它需要知道 API 主机。如果命令在 git 仓库之外运行，
+				// 则除非已解析 URL，否则无法实例化该检测器。
 				if baseRepo, _, _, err := shared.ParseURL(opts.SelectorArg); err == nil {
 					opts.BaseRepo = func() (ghrepo.Interface, error) {
 						return baseRepo, nil
@@ -165,7 +159,7 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 			bodyFileProvided := bodyFile != ""
 
 			if err := cmdutil.MutuallyExclusive(
-				"specify only one of `--body` or `--body-file`",
+				"只能指定 `--body` 或 `--body-file` 之一",
 				bodyProvided,
 				bodyFileProvided,
 			); err != nil {
@@ -183,7 +177,7 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 			}
 
 			if err := cmdutil.MutuallyExclusive(
-				"specify only one of `--milestone` or `--remove-milestone`",
+				"只能指定 `--milestone` 或 `--remove-milestone` 之一",
 				flags.Changed("milestone"),
 				removeMilestone,
 			); err != nil {
@@ -214,10 +208,9 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 			if flags.Changed("milestone") || removeMilestone {
 				opts.Editable.Milestone.Edited = true
 
-				// Note that when `--remove-milestone` is provided, the value of
-				// `opts.Editable.Milestone.Value` will automatically be empty,
-				// which results in milestone association removal. For reference,
-				// see the `Editable.MilestoneId` method.
+				// 注意: 提供了 `--remove-milestone` 时，`opts.Editable.Milestone.Value`
+				// 会自动为空，这将导致里程碑(milestone)关联被移除。
+				// 参见 `Editable.MilestoneId` 方法。
 			}
 
 			var err error
@@ -232,7 +225,7 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 			}
 
 			if opts.Interactive && !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("--title, --body, --reviewer, --assignee, --label, --project, or --milestone required when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时必须提供 --title、--body、--reviewer、--assignee、--label、--project 或 --milestone")
 			}
 
 			if runF != nil {
@@ -243,20 +236,20 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Editable.Title.Value, "title", "t", "", "Set the new title.")
-	cmd.Flags().StringVarP(&opts.Editable.Body.Value, "body", "b", "", "Set the new body.")
-	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "Read body text from `file` (use \"-\" to read from standard input)")
-	cmd.Flags().StringVarP(&opts.Editable.Base.Value, "base", "B", "", "Change the base `branch` for this pull request")
-	cmd.Flags().StringSliceVar(&opts.Editable.Reviewers.Add, "add-reviewer", nil, "Add or re-request reviewers by their `login`. Use \"@copilot\" to request review from Copilot.")
-	cmd.Flags().StringSliceVar(&opts.Editable.Reviewers.Remove, "remove-reviewer", nil, "Remove reviewers by their `login`. Use \"@copilot\" to remove review request from Copilot.")
-	cmd.Flags().StringSliceVar(&opts.Editable.Assignees.Add, "add-assignee", nil, "Add assigned users by their `login`. Use \"@me\" to assign yourself, or \"@copilot\" to assign Copilot.")
-	cmd.Flags().StringSliceVar(&opts.Editable.Assignees.Remove, "remove-assignee", nil, "Remove assigned users by their `login`. Use \"@me\" to unassign yourself, or \"@copilot\" to unassign Copilot.")
-	cmd.Flags().StringSliceVar(&opts.Editable.Labels.Add, "add-label", nil, "Add labels by `name`")
-	cmd.Flags().StringSliceVar(&opts.Editable.Labels.Remove, "remove-label", nil, "Remove labels by `name`")
-	cmd.Flags().StringSliceVar(&opts.Editable.Projects.Add, "add-project", nil, "Add the pull request to projects by `title`")
-	cmd.Flags().StringSliceVar(&opts.Editable.Projects.Remove, "remove-project", nil, "Remove the pull request from projects by `title`")
-	cmd.Flags().StringVarP(&opts.Editable.Milestone.Value, "milestone", "m", "", "Edit the milestone the pull request belongs to by `name`")
-	cmd.Flags().BoolVar(&removeMilestone, "remove-milestone", false, "Remove the milestone association from the pull request")
+	cmd.Flags().StringVarP(&opts.Editable.Title.Value, "title", "t", "", "设置新标题。")
+	cmd.Flags().StringVarP(&opts.Editable.Body.Value, "body", "b", "", "设置新正文。")
+	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "从 `file` 读取正文文本 (使用 \"-\" 从标准输入读取)")
+	cmd.Flags().StringVarP(&opts.Editable.Base.Value, "base", "B", "", "更改该拉取请求(PR)的基础分支(base `branch`)")
+	cmd.Flags().StringSliceVar(&opts.Editable.Reviewers.Add, "add-reviewer", nil, "按 `login` 添加或重新请求审核者(reviewer)。使用 \"@copilot\" 请求 Copilot 审核。")
+	cmd.Flags().StringSliceVar(&opts.Editable.Reviewers.Remove, "remove-reviewer", nil, "按 `login` 移除审核者(reviewer)。使用 \"@copilot\" 移除对 Copilot 的审核请求。")
+	cmd.Flags().StringSliceVar(&opts.Editable.Assignees.Add, "add-assignee", nil, "按 `login` 添加被指派人。使用 \"@me\" 指派给自己，或使用 \"@copilot\" 指派 Copilot。")
+	cmd.Flags().StringSliceVar(&opts.Editable.Assignees.Remove, "remove-assignee", nil, "按 `login` 移除被指派人。使用 \"@me\" 取消指派自己，或使用 \"@copilot\" 取消指派 Copilot。")
+	cmd.Flags().StringSliceVar(&opts.Editable.Labels.Add, "add-label", nil, "按 `name` 添加标签(label)")
+	cmd.Flags().StringSliceVar(&opts.Editable.Labels.Remove, "remove-label", nil, "按 `name` 移除标签(label)")
+	cmd.Flags().StringSliceVar(&opts.Editable.Projects.Add, "add-project", nil, "按 `title` 将拉取请求(PR)添加到项目(project)")
+	cmd.Flags().StringSliceVar(&opts.Editable.Projects.Remove, "remove-project", nil, "按 `title` 将拉取请求(PR)从项目(project)中移除")
+	cmd.Flags().StringVarP(&opts.Editable.Milestone.Value, "milestone", "m", "", "按 `name` 编辑该拉取请求(PR)所属的里程碑(milestone)")
+	cmd.Flags().BoolVar(&removeMilestone, "remove-milestone", false, "移除该拉取请求(PR)的里程碑(milestone)关联")
 	opts.AttachFlag = attachments.AddFlag(cmd)
 
 	_ = cmdutil.RegisterBranchCompletionFlags(f.GitClient, cmd, "base")
@@ -325,7 +318,7 @@ func editRun(opts *EditOptions) error {
 		return err
 	}
 
-	// Built before the prompts, so a run that cannot upload stops early.
+	// 在提示之前构建，使无法上传的运行可以尽早停止。
 	var uploader *attachments.Uploader
 	if len(opts.Assets) > 0 {
 		// A URL selector names its own host, so this can differ from the
@@ -371,9 +364,8 @@ func editRun(opts *EditOptions) error {
 
 	apiClient := api.NewClientFromHTTP(httpClient)
 
-	// Wire up search functions for assignees and reviewers.
-	// When these aren't wired up, it triggers a downstream fallback
-	// to legacy reviewer/assignee fetching.
+	// 为被指派人(assignee)与审核者(reviewer)接入搜索函数。
+	// 未接入时会触发下游回退到遗留的审核者/被指派人获取方式。
 	// TODO ApiActorsSupported
 	if issueFeatures.ApiActorsSupported {
 		editable.AssigneeSearchFunc = shared.AssigneeSearchFunc(apiClient, repo, pr.ID)
@@ -388,8 +380,8 @@ func editRun(opts *EditOptions) error {
 	}
 
 	if opts.Interactive {
-		// Remove PR author from reviewer options;
-		// REST API errors if author is included (GraphQL silently ignores).
+		// 从审核者选项中移除 PR 作者；
+		// 若包含作者，REST API 会报错(GraphQL 则会静默忽略)。
 		if editable.Reviewers.Edited {
 			s := set.NewStringSet()
 			s.AddValues(editable.Reviewers.Options)
@@ -409,30 +401,28 @@ func editRun(opts *EditOptions) error {
 
 	var uploadErr error
 	if uploader != nil {
-		// A body the caller supplied replaces the pull request's, including an
-		// empty one.
+		// 调用方提供的正文会替换拉取请求(PR)的正文，包括空正文。
 		body := editable.Body.Value
 		if !editable.Body.Edited {
 			body = editable.Body.Default
 		}
 
-		// Nothing that can prompt or cancel may follow this.
+		// 在此之后不得有任何可能提示或取消的操作。
 		var uploadResult attachments.UploadResult
 		body, uploadResult, uploadErr = uploader.UploadAndAttach(context.Background(), body, opts.BodyDir, opts.Assets)
 		opts.AttachEvent.RecordOperations(uploadResult)
 
-		// With nothing uploaded, even a body the caller typed goes unwritten:
-		// its references are still local paths, which render broken. The other
-		// fields are innocent of the upload, so they proceed either way.
+		// 没有上传任何文件时，即使是调用方亲手输入的正文也不会写入:
+		// 其中的引用仍是本地路径，渲染出来是坏的。其余字段与上传无关，
+		// 因此无论哪种情况都会继续处理。
 		editable.Body.Edited = uploadResult.Uploaded > 0
 		if uploadResult.Uploaded > 0 {
 			editable.Body.Value = body
 		}
 
-		// The URL below is this command's success signal, so a run that writes
-		// nothing at all must not print it.
+		// 下面的 URL 是该命令成功的标志，因此什么都没写入的运行不得打印它。
 		if !editable.Dirty() {
-			return errors.Join(uploadErr, errors.New("the pull request was not changed"))
+			return errors.Join(uploadErr, errors.New("拉取请求(PR)未被更改"))
 		}
 	}
 
@@ -440,7 +430,7 @@ func editRun(opts *EditOptions) error {
 	err = updatePullRequest(httpClient, repo, pr.ID, pr.Number, editable)
 	opts.IO.StopProgressIndicator()
 	if err != nil {
-		// A failed write does not undo an upload, so both are reported.
+		// 写入失败不会撤销上传，因此两者都要上报。
 		return errors.Join(uploadErr, err)
 	}
 
@@ -449,9 +439,9 @@ func editRun(opts *EditOptions) error {
 	return uploadErr
 }
 
-// reviewerSearchFunc is intended to be an arg for MultiSelectWithSearch
-// to return potential reviewer candidates (users, bots, and teams).
-// It also updates the editable's metadata for later ID resolution.
+// reviewerSearchFunc 旨在作为 MultiSelectWithSearch 的参数，
+// 返回潜在的审核者(reviewer)候选(用户、bot 与团队)。
+// 它还会更新 editable 的元数据，供稍后进行 ID 解析。
 func reviewerSearchFunc(apiClient *api.Client, repo ghrepo.Interface, editable *shared.Editable, prID string) func(string) prompter.MultiSelectSearchResult {
 	searchFunc := func(input string) prompter.MultiSelectSearchResult {
 		candidates, moreResults, err := api.SuggestedReviewerActors(
@@ -475,11 +465,11 @@ func reviewerSearchFunc(apiClient *api.Client, repo ghrepo.Interface, editable *
 			keys = append(keys, c.Login())
 			labels = append(labels, c.DisplayName())
 
-			// Update the teams metadata in the editable struct
-			// so that updating the PR later can resolve the team ID.
+			// 更新 editable 结构体中的团队(teams)元数据，
+			// 以便稍后更新 PR 时能够解析团队 ID。
 			if team, ok := c.(api.ReviewerTeam); ok {
 				editable.Metadata.Teams = append(editable.Metadata.Teams, api.OrgTeam{
-					ID:   "", // ID not needed for REST API reviewer mutations
+					ID:   "", // REST API 的审核者(reviewer) mutation 不需要 ID
 					Slug: team.Slug(),
 				})
 			}
@@ -514,13 +504,13 @@ func updatePullRequestReviews(httpClient *http.Client, repo ghrepo.Interface, pr
 
 	client := api.NewClientFromHTTP(httpClient)
 
-	// Rebuild the Value slice from non-interactive flag input.
+	// 从非交互式 flag 输入重建 Value 切片。
 	if len(editable.Reviewers.Add) != 0 || len(editable.Reviewers.Remove) != 0 {
 		add := editable.Reviewers.Add
 		remove := editable.Reviewers.Remove
 
-		// Replace @copilot with the Copilot reviewer login (only on github.com).
-		// Also use DefaultLogins (not Default display names) for computing the set.
+		// 将 @copilot 替换为 Copilot 审核者登录名(仅在 github.com 上)。
+		// 计算集合时同样使用 DefaultLogins(而非 Default 显示名)。
 		var defaultLogins []string
 		// TODO ApiActorsSupported
 		if editable.ApiActorsSupported {
@@ -529,7 +519,7 @@ func updatePullRequestReviews(httpClient *http.Client, repo ghrepo.Interface, pr
 			remove = copilotReplacer.ReplaceSlice(remove)
 			defaultLogins = editable.Reviewers.DefaultLogins
 		} else {
-			// On GHES, Default already contains logins (no display name distinction)
+			// 在 GHES 上，Default 已经是登录名(没有显示名的区分)
 			defaultLogins = editable.Reviewers.Default
 		}
 
@@ -540,8 +530,8 @@ func updatePullRequestReviews(httpClient *http.Client, repo ghrepo.Interface, pr
 		editable.Reviewers.Value = s.ToSlice()
 	}
 
-	// On github.com, use the new GraphQL mutation which supports bots.
-	// On GHES, fall back to REST API.
+	// 在 github.com 上，使用支持 bot 的新 GraphQL mutation。
+	// 在 GHES 上，回退到 REST API。
 	// TODO ApiActorsSupported
 	if editable.ApiActorsSupported {
 		return updatePullRequestReviewsGraphQL(client, repo, prID, editable)
@@ -549,21 +539,21 @@ func updatePullRequestReviews(httpClient *http.Client, repo ghrepo.Interface, pr
 	return updatePullRequestReviewsREST(client, repo, number, editable)
 }
 
-// updatePullRequestReviewsGraphQL uses the RequestReviewsByLogin mutation.
-// This mutation replaces the entire reviewer set (union: false).
+// updatePullRequestReviewsGraphQL 使用 RequestReviewsByLogin mutation。
+// 该 mutation 会替换整个审核者(reviewer)集合(union: false)。
 func updatePullRequestReviewsGraphQL(client *api.Client, repo ghrepo.Interface, prID string, editable shared.Editable) error {
 	users, bots, teams := partitionReviewersByType(editable.Reviewers.Value)
 	return api.RequestReviewsByLogin(client, repo, prID, users, bots, teams, false)
 }
 
-// updatePullRequestReviewsREST uses the REST API to add/remove reviewers.
-// This is the legacy path for GHES compatibility.
+// updatePullRequestReviewsREST 使用 REST API 添加/移除审核者(reviewer)。
+// 这是用于 GHES 兼容性的遗留路径。
 func updatePullRequestReviewsREST(client *api.Client, repo ghrepo.Interface, number int, editable shared.Editable) error {
 	addUsers, addBots, addTeams := partitionReviewersByType(editable.Reviewers.Value)
-	// REST API doesn't distinguish bots from users, so we need to combine them.
+	// REST API 不区分 bot 与用户，因此需要将它们合并。
 	allAddUsers := append(addUsers, addBots...)
 
-	// Reviewers in Default but not in Value have been removed interactively.
+	// 在 Default 中但不在 Value 中的审核者已被交互式移除。
 	var toRemove []string
 	for _, r := range editable.Reviewers.Default {
 		if !slices.Contains(editable.Reviewers.Value, r) {
@@ -622,16 +612,16 @@ func (e editorRetriever) Retrieve() (string, error) {
 	return cmdutil.DetermineEditor(e.config)
 }
 
-// partitionReviewersByType splits reviewer identifiers into users, bots, and teams.
-// Team identifiers are in the form "org/slug" and are returned as-is.
-// Bot logins (currently only Copilot) are identified and returned separately.
+// partitionReviewersByType 将审核者标识符拆分为用户、bot 与团队。
+// 团队标识符采用 "org/slug" 形式并原样返回。
+// bot 登录名(目前仅 Copilot)会被识别并单独返回。
 func partitionReviewersByType(values []string) (users []string, bots []string, teams []string) {
 	for _, v := range values {
 		if v == "" {
 			continue
 		}
 		if strings.ContainsRune(v, '/') {
-			// Team: org/slug format, pass as-is
+			// 团队: org/slug 格式，原样传递
 			teams = append(teams, v)
 		} else if v == api.CopilotReviewerLogin {
 			bots = append(bots, v)

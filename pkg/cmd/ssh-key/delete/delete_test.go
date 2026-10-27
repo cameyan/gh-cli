@@ -48,7 +48,7 @@ func TestNewCmdDelete(t *testing.T) {
 			name:       "no tty",
 			input:      "123",
 			wantErr:    true,
-			wantErrMsg: "--yes required when not running interactively",
+			wantErrMsg: "非交互模式下必须提供 --yes",
 		},
 		{
 			name:   "confirm flag no tty",
@@ -64,7 +64,7 @@ func TestNewCmdDelete(t *testing.T) {
 			name:       "no args",
 			input:      "",
 			wantErr:    true,
-			wantErrMsg: "cannot delete: key id required",
+			wantErrMsg: "无法删除: 需要提供密钥 id",
 		},
 		{
 			name:       "too many args",
@@ -133,7 +133,7 @@ func Test_deleteRun(t *testing.T) {
 				reg.Register(httpmock.REST("GET", "user/keys/123"), httpmock.StatusStringResponse(200, keyResp))
 				reg.Register(httpmock.REST("DELETE", "user/keys/123"), httpmock.StatusStringResponse(204, ""))
 			},
-			wantStdout: "✓ SSH key \"My Key\" (123) deleted from your account\n",
+			wantStdout: "✓ 已从您的账户中删除 SSH 密钥 \"My Key\" (123)\n",
 		},
 		{
 			name: "delete with confirm flag tty",
@@ -143,7 +143,7 @@ func Test_deleteRun(t *testing.T) {
 				reg.Register(httpmock.REST("GET", "user/keys/123"), httpmock.StatusStringResponse(200, keyResp))
 				reg.Register(httpmock.REST("DELETE", "user/keys/123"), httpmock.StatusStringResponse(204, ""))
 			},
-			wantStdout: "✓ SSH key \"My Key\" (123) deleted from your account\n",
+			wantStdout: "✓ 已从您的账户中删除 SSH 密钥 \"My Key\" (123)\n",
 		},
 		{
 			name: "not found tty",

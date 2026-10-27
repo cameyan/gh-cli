@@ -156,7 +156,7 @@ func Test_editRun(t *testing.T) {
 	}{
 		{
 			name:    "no such gist",
-			wantErr: "gist not found: 1234",
+			wantErr: "gist 未找到: 1234",
 			opts: &EditOptions{
 				Selector: "1234",
 			},
@@ -197,15 +197,15 @@ func Test_editRun(t *testing.T) {
 			isTTY:        true,
 			mockGistList: true,
 			prompterStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterSelect("Edit which file?",
+				pm.RegisterSelect("编辑哪个文件?",
 					[]string{"cicada.txt", "unix.md"},
 					func(_, _ string, opts []string) (int, error) {
 						return prompter.IndexFor(opts, "unix.md")
 					})
-				pm.RegisterSelect("What next?",
+				pm.RegisterSelect("接下来做什么?",
 					editNextOptions,
 					func(_, _ string, opts []string) (int, error) {
-						return prompter.IndexFor(opts, "Submit")
+						return prompter.IndexFor(opts, "提交")
 					})
 			},
 			mockGist: &shared.Gist{
@@ -271,15 +271,15 @@ func Test_editRun(t *testing.T) {
 				Selector: "1234",
 			},
 			prompterStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterSelect("Edit which file?",
+				pm.RegisterSelect("编辑哪个文件?",
 					[]string{"cicada.txt", "unix.md"},
 					func(_, _ string, opts []string) (int, error) {
 						return prompter.IndexFor(opts, "unix.md")
 					})
-				pm.RegisterSelect("What next?",
+				pm.RegisterSelect("接下来做什么?",
 					editNextOptions,
 					func(_, _ string, opts []string) (int, error) {
-						return prompter.IndexFor(opts, "Cancel")
+						return prompter.IndexFor(opts, "取消")
 					})
 			},
 			wantErr: "CancelError",
@@ -333,7 +333,7 @@ func Test_editRun(t *testing.T) {
 				},
 				Owner: &shared.GistOwner{Login: "octocat2"},
 			},
-			wantErr: "you do not own this gist",
+			wantErr: "你不拥有此 gist",
 		},
 		{
 			name: "add file to existing gist",
@@ -470,7 +470,7 @@ func Test_editRun(t *testing.T) {
 				},
 				Owner: &shared.GistOwner{Login: "octocat"},
 			},
-			wantErr: "gist has no file \"sample2.txt\"",
+			wantErr: "gist 中没有文件 \"sample2.txt\"",
 		},
 		{
 			name: "remove file from existing gist",
@@ -574,7 +574,7 @@ func Test_editRun(t *testing.T) {
 			opts: &EditOptions{
 				Selector: "",
 			},
-			wantErr: "gist ID or URL required when not running interactively",
+			wantErr: "非交互式运行时必须指定 gist ID 或 URL",
 		},
 		{
 			name: "edit no-file gist (#10626)",
@@ -586,7 +586,7 @@ func Test_editRun(t *testing.T) {
 				Files: map[string]*shared.GistFile{},
 				Owner: &shared.GistOwner{Login: "octocat"},
 			},
-			wantErr: "no file in the gist",
+			wantErr: "gist 中没有文件",
 		},
 		{
 			name: "edit no-file gist, nil map (#10626)",
@@ -598,7 +598,7 @@ func Test_editRun(t *testing.T) {
 				Files: nil,
 				Owner: &shared.GistOwner{Login: "octocat"},
 			},
-			wantErr: "no file in the gist",
+			wantErr: "gist 中没有文件",
 		},
 		{
 			name: "edit gist with truncated file",
@@ -677,18 +677,18 @@ func Test_editRun(t *testing.T) {
 			isTTY: true,
 			opts:  &EditOptions{Selector: "1234"},
 			prompterStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterSelect("Edit which file?", []string{"also-truncated.txt", "large.txt"}, func(_, _ string, opts []string) (int, error) {
+				pm.RegisterSelect("编辑哪个文件?", []string{"also-truncated.txt", "large.txt"}, func(_, _ string, opts []string) (int, error) {
 					return prompter.IndexFor(opts, "large.txt")
 				})
-				pm.RegisterSelect("What next?", editNextOptions, func(_, _ string, opts []string) (int, error) {
-					return prompter.IndexFor(opts, "Edit another file")
+				pm.RegisterSelect("接下来做什么?", editNextOptions, func(_, _ string, opts []string) (int, error) {
+					return prompter.IndexFor(opts, "编辑另一个文件")
 				})
 				// Editing large.txt twice to ensure that fetch for the raw URL happens only once
-				pm.RegisterSelect("Edit which file?", []string{"also-truncated.txt", "large.txt"}, func(_, _ string, opts []string) (int, error) {
+				pm.RegisterSelect("编辑哪个文件?", []string{"also-truncated.txt", "large.txt"}, func(_, _ string, opts []string) (int, error) {
 					return prompter.IndexFor(opts, "large.txt")
 				})
-				pm.RegisterSelect("What next?", editNextOptions, func(_, _ string, opts []string) (int, error) {
-					return prompter.IndexFor(opts, "Submit")
+				pm.RegisterSelect("接下来做什么?", editNextOptions, func(_, _ string, opts []string) (int, error) {
+					return prompter.IndexFor(opts, "提交")
 				})
 			},
 			mockGist: &shared.Gist{
@@ -774,7 +774,7 @@ func Test_editRun(t *testing.T) {
 				httpmock.StringResponse(`{"data":{"viewer":{"login":"octocat"}}}`))
 
 			gistList := "cicada.txt whatever about 6 hours ago"
-			pm.RegisterSelect("Select a gist",
+			pm.RegisterSelect("选择 gist",
 				[]string{gistList},
 				func(_, _ string, opts []string) (int, error) {
 					return prompter.IndexFor(opts, gistList)

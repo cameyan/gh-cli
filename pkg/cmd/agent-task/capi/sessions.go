@@ -24,9 +24,9 @@ const AgentsHomeURL = "https://github.com/copilot/agents"
 
 var defaultSessionsPerPage = 50
 
-var ErrSessionNotFound = errors.New("not found")
+var ErrSessionNotFound = errors.New("未找到")
 
-// session is an in-flight agent task
+// session 是一个进行中的 agent 任务
 type session struct {
 	ID               string    `json:"id"`
 	Name             string    `json:"name"`
@@ -52,8 +52,8 @@ type session struct {
 	} `json:"error,omitempty"`
 }
 
-// A shim of a full pull request because looking up by node ID
-// using the full api.PullRequest type fails on unions (actors)
+// 完整 pull request 的精简替身，因为使用完整的 api.PullRequest 类型
+// 按 node ID 查询时在 union (actors) 上会失败
 type sessionPullRequest struct {
 	ID             string
 	FullDatabaseID string
@@ -72,7 +72,7 @@ type sessionPullRequest struct {
 	Repository *api.PRRepository
 }
 
-// Session is a hydrated in-flight agent task
+// Session 是一个已填充完整信息的进行中 agent 任务
 type Session struct {
 	ID              string
 	Name            string
@@ -102,7 +102,7 @@ type SessionError struct {
 	Message string
 }
 
-// SessionFields defines the available fields for JSON export of a Session.
+// SessionFields 定义了 Session 的 JSON 导出可用字段。
 var SessionFields = []string{
 	"id",
 	"name",
@@ -118,7 +118,7 @@ var SessionFields = []string{
 	"pullRequestState",
 }
 
-// ExportData implements the exportable interface for JSON output.
+// ExportData 实现了用于 JSON 输出的 exportable 接口。
 func (s *Session) ExportData(fields []string) map[string]any {
 	data := make(map[string]any, len(fields))
 	for _, f := range fields {
@@ -210,8 +210,8 @@ type resourceSession struct {
 	SessionLastUpdatedAt int64  `json:"last_updated_at"`
 }
 
-// ListLatestSessionsForViewer lists all agent sessions for the
-// authenticated user up to limit.
+// ListLatestSessionsForViewer 列出已认证用户的所有 agent session，
+// 数量不超过 limit。
 func (c *CAPIClient) ListLatestSessionsForViewer(ctx context.Context, limit int) ([]*Session, error) {
 	if limit == 0 {
 		return nil, nil
@@ -243,28 +243,28 @@ func (c *CAPIClient) ListLatestSessionsForViewer(ctx context.Context, limit int)
 		}
 		defer res.Body.Close()
 		if res.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("failed to list sessions: %s", res.Status)
+			return nil, fmt.Errorf("列出 session 失败: %s", res.Status)
 		}
 		var response struct {
 			Sessions []session `json:"sessions"`
 		}
 		if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
-			return nil, fmt.Errorf("failed to decode sessions response: %w", err)
+			return nil, fmt.Errorf("解码 session 响应失败: %w", err)
 		}
 
-		// Process only the newly fetched page worth of sessions.
+		// 只处理新获取的这一页 session。
 		pageSessions := response.Sessions
 
-		// De-duplicate sessions by resource ID.
-		// Because the API returns newest first, once we've seen
-		// a resource ID we can ignore any older sessions for it.
+		// 按 resource ID 对 session 去重。
+		// 由于 API 按最新优先返回，一旦见过某个 resource ID，
+		// 就可以忽略它更旧的 session。
 		for _, s := range pageSessions {
 			if _, exists := seenResources[s.ResourceID]; exists {
 				continue
 			}
 
-			// A zero resource ID is a temporary situation before a PR/resource
-			// is associated with the session. We should not mark such case as seen.
+			// resource ID 为零是在 PR/resource 与 session 关联之前的临时情况。
+			// 我们不应将这种情况标记为已见。
 			if s.ResourceID != 0 {
 				seenResources[s.ResourceID] = struct{}{}
 			}
@@ -280,23 +280,23 @@ func (c *CAPIClient) ListLatestSessionsForViewer(ctx context.Context, limit int)
 		}
 	}
 
-	// Drop any above the limit
+	// 丢弃超出 limit 的部分
 	if len(latestSessions) > limit {
 		latestSessions = latestSessions[:limit]
 	}
 
 	result, err := c.hydrateSessionPullRequestsAndUsers(latestSessions)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch session resources: %w", err)
+		return nil, fmt.Errorf("获取 session 资源失败: %w", err)
 	}
 
 	return result, nil
 }
 
-// GetSession retrieves a specific agent session by ID.
+// GetSession 按 ID 获取指定的 agent session。
 func (c *CAPIClient) GetSession(ctx context.Context, id string) (*Session, error) {
 	if id == "" {
-		return nil, fmt.Errorf("missing session ID")
+		return nil, fmt.Errorf("缺少 session ID")
 	}
 
 	u, err := safeurl.JoinPathWithHostPrefix(c.capiBaseURL, "agents", "sessions", id)
@@ -319,26 +319,26 @@ func (c *CAPIClient) GetSession(ctx context.Context, id string) (*Session, error
 		if res.StatusCode == http.StatusNotFound {
 			return nil, ErrSessionNotFound
 		}
-		return nil, fmt.Errorf("failed to get session: %s", res.Status)
+		return nil, fmt.Errorf("获取 session 失败: %s", res.Status)
 	}
 
 	var rawSession session
 	if err := json.NewDecoder(res.Body).Decode(&rawSession); err != nil {
-		return nil, fmt.Errorf("failed to decode session response: %w", err)
+		return nil, fmt.Errorf("解码 session 响应失败: %w", err)
 	}
 
 	sessions, err := c.hydrateSessionPullRequestsAndUsers([]session{rawSession})
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch session resources: %w", err)
+		return nil, fmt.Errorf("获取 session 资源失败: %w", err)
 	}
 
 	return sessions[0], nil
 }
 
-// GetSessionLogs retrieves logs of an agent session identified by ID.
+// GetSessionLogs 按 ID 获取一个 agent session 的日志。
 func (c *CAPIClient) GetSessionLogs(ctx context.Context, id string) ([]byte, error) {
 	if id == "" {
-		return nil, fmt.Errorf("missing session ID")
+		return nil, fmt.Errorf("缺少 session ID")
 	}
 
 	u, err := safeurl.JoinPathWithHostPrefix(c.capiBaseURL, "agents", "sessions", id, "logs")
@@ -361,16 +361,16 @@ func (c *CAPIClient) GetSessionLogs(ctx context.Context, id string) ([]byte, err
 		if res.StatusCode == http.StatusNotFound {
 			return nil, ErrSessionNotFound
 		}
-		return nil, fmt.Errorf("failed to get session: %s", res.Status)
+		return nil, fmt.Errorf("获取 session 失败: %s", res.Status)
 	}
 
 	return io.ReadAll(res.Body)
 }
 
-// ListSessionsByResourceID retrieves sessions associated with the given resource type and ID.
+// ListSessionsByResourceID 获取与给定 resource 类型和 ID 关联的 session。
 func (c *CAPIClient) ListSessionsByResourceID(ctx context.Context, resourceType string, resourceID int64, limit int) ([]*Session, error) {
 	if resourceType == "" || resourceID == 0 {
-		return nil, fmt.Errorf("missing resource type/ID")
+		return nil, fmt.Errorf("缺少 resource 类型/ID")
 	}
 
 	if limit == 0 {
@@ -393,12 +393,12 @@ func (c *CAPIClient) ListSessionsByResourceID(ctx context.Context, resourceType 
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to list sessions: %s", res.Status)
+		return nil, fmt.Errorf("列出 session 失败: %s", res.Status)
 	}
 
 	var response resource
 	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("failed to decode sessions response: %w", err)
+		return nil, fmt.Errorf("解码 session 响应失败: %w", err)
 	}
 
 	sessions := make([]session, 0, len(response.Sessions))
@@ -420,12 +420,12 @@ func (c *CAPIClient) ListSessionsByResourceID(ctx context.Context, resourceType 
 
 	result, err := c.hydrateSessionPullRequestsAndUsers(sessions)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch session resources: %w", err)
+		return nil, fmt.Errorf("获取 session 资源失败: %w", err)
 	}
 	return result, nil
 }
 
-// hydrateSessionPullRequestsAndUsers hydrates pull request and user information in sessions
+// hydrateSessionPullRequestsAndUsers 在 session 中填充 pull request 和用户信息
 func (c *CAPIClient) hydrateSessionPullRequestsAndUsers(sessions []session) ([]*Session, error) {
 	if len(sessions) == 0 {
 		return nil, nil
@@ -436,8 +436,8 @@ func (c *CAPIClient) hydrateSessionPullRequestsAndUsers(sessions []session) ([]*
 	for _, session := range sessions {
 		if session.ResourceType == "pull" {
 			prNodeID := session.ResourceGlobalID
-			// TODO: probably this can be dropped since the API should always
-			// keep returning the resource global ID.
+			// TODO: 由于 API 应该始终会返回 resource global ID，
+			// 这段代码或许可以移除。
 			if session.ResourceGlobalID == "" {
 				prNodeID = generatePullRequestNodeID(int64(session.RepoID), session.ResourceID)
 			}
@@ -465,7 +465,7 @@ func (c *CAPIClient) hydrateSessionPullRequestsAndUsers(sessions []session) ([]*
 	ids = append(ids, prNodeIds...)
 	ids = append(ids, userNodeIds...)
 
-	// TODO handle pagination
+	// TODO 处理分页
 	err := apiClient.Query(c.host, "FetchPRsAndUsersForAgentTaskSessions", &resp, map[string]any{
 		"ids": ids,
 	})
@@ -510,13 +510,12 @@ func (c *CAPIClient) hydrateSessionPullRequestsAndUsers(sessions []session) ([]*
 	return newSessions, nil
 }
 
-// GetPullRequestDatabaseID retrieves the database ID and URL of a pull request given its number in a repository.
+// GetPullRequestDatabaseID 根据 pull request 在仓库中的编号获取其数据库 ID 和 URL。
 func (c *CAPIClient) GetPullRequestDatabaseID(ctx context.Context, hostname string, owner string, repo string, number int) (int64, string, error) {
-	// TODO: better int handling so we don't need to do bounds checks
-	// to both ensure a panic is impossible and that we do not trigger
-	// CodeQL alerts.
+	// TODO: 更好地处理 int，这样我们就无需做边界检查，
+	// 既能确保不可能发生 panic，也不会触发 CodeQL 告警。
 	if number <= 0 || number > math.MaxInt32 {
-		return 0, "", fmt.Errorf("pull request number %d out of bounds", number)
+		return 0, "", fmt.Errorf("PR 编号 %d 超出范围", number)
 	}
 
 	var resp struct {
@@ -546,8 +545,8 @@ func (c *CAPIClient) GetPullRequestDatabaseID(ctx context.Context, hostname stri
 	return databaseID, resp.Repository.PullRequest.URL, nil
 }
 
-// generatePullRequestNodeID converts an int64 databaseID and repoID to a GraphQL Node ID format
-// with the "PR_" prefix for pull requests
+// generatePullRequestNodeID 将 int64 类型的 databaseID 和 repoID 转换为 GraphQL Node ID 格式，
+// pull request 使用 "PR_" 前缀
 func generatePullRequestNodeID(repoID, pullRequestID int64) string {
 	buf := bytes.Buffer{}
 	parts := []int64{0, repoID, pullRequestID}

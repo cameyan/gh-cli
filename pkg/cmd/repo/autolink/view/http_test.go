@@ -71,7 +71,7 @@ func TestAutolinkViewer_View(t *testing.T) {
 				"status": "404"
 			}`,
 			expectErr:      true,
-			expectedErrMsg: "HTTP 404: Perhaps you are missing admin rights to the repository? (https://api.github.com/repos/OWNER/REPO/autolinks/123)",
+			expectedErrMsg: "HTTP 404: 可能缺少仓库的管理员权限？(https://api.github.com/repos/OWNER/REPO/autolinks/123)",
 		},
 		{
 			name:           "500 unexpected error",

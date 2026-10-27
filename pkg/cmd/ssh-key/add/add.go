@@ -32,12 +32,12 @@ func NewCmdAdd(f *cmdutil.Factory, runF func(*AddOptions) error) *cobra.Command 
 
 	cmd := &cobra.Command{
 		Use:   "add [<key-file>]",
-		Short: "Add an SSH key to your GitHub account",
+		Short: "向您的 GitHub 账户添加 SSH 密钥",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				if opts.IO.IsStdoutTTY() && opts.IO.IsStdinTTY() {
-					return cmdutil.FlagErrorf("public key file missing")
+					return cmdutil.FlagErrorf("缺少公钥文件")
 				}
 				opts.KeyFile = "-"
 			} else {
@@ -52,8 +52,8 @@ func NewCmdAdd(f *cmdutil.Factory, runF func(*AddOptions) error) *cobra.Command 
 	}
 
 	typeEnums := []string{shared.AuthenticationKey, shared.SigningKey}
-	cmdutil.StringEnumFlag(cmd, &opts.Type, "type", "", shared.AuthenticationKey, typeEnums, "Type of the ssh key")
-	cmd.Flags().StringVarP(&opts.Title, "title", "t", "", "Title for the new key")
+	cmdutil.StringEnumFlag(cmd, &opts.Type, "type", "", shared.AuthenticationKey, typeEnums, "SSH 密钥的类型")
+	cmd.Flags().StringVarP(&opts.Title, "title", "t", "", "新密钥的标题")
 	return cmd
 }
 
@@ -98,9 +98,9 @@ func runAdd(opts *AddOptions) error {
 	cs := opts.IO.ColorScheme()
 
 	if uploaded {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Public key added to your account\n", cs.SuccessIcon())
+		fmt.Fprintf(opts.IO.ErrOut, "%s 公钥已添加到您的账户\n", cs.SuccessIcon())
 	} else {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Public key already exists on your account\n", cs.SuccessIcon())
+		fmt.Fprintf(opts.IO.ErrOut, "%s 公钥已存在于您的账户中\n", cs.SuccessIcon())
 	}
 
 	return nil

@@ -43,12 +43,11 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view [<tag>]",
-		Short: "View information about a release",
+		Short: "查看发布(release)的信息",
 		Long: heredoc.Doc(`
-			View information about a GitHub Release.
+			查看 GitHub Release 的信息。
 
-			Without an explicit tag name argument, the latest release in the project
-			is shown.
+			若未显式提供标签(tag)名参数，则显示项目中的最新发布(release)。
 		`),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -66,7 +65,7 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "Open the release in the browser")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在浏览器中打开该发布(release)")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, shared.ReleaseFields)
 
 	return cmd
@@ -100,14 +99,14 @@ func viewRun(opts *ViewOptions) error {
 
 	if opts.WebMode {
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(release.URL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(release.URL))
 		}
 		return opts.Browser.Browse(release.URL)
 	}
 
 	opts.IO.DetectTerminalTheme()
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "error starting pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器(pager)出错: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -134,14 +133,14 @@ func renderReleaseTTY(io *iostreams.IOStreams, release *shared.Release) error {
 
 	fmt.Fprintf(w, "%s\n", cs.Bold(release.TagName))
 	if release.IsDraft {
-		fmt.Fprintf(w, "%s • ", cs.Red("Draft"))
+		fmt.Fprintf(w, "%s • ", cs.Red("草稿"))
 	} else if release.IsPrerelease {
-		fmt.Fprintf(w, "%s • ", cs.Yellow("Pre-release"))
+		fmt.Fprintf(w, "%s • ", cs.Yellow("预发布"))
 	}
 	if release.IsDraft {
-		fmt.Fprintln(w, cs.Mutedf("%s created this %s", release.Author.Login, text.FuzzyAgo(time.Now(), release.CreatedAt)))
+		fmt.Fprintln(w, cs.Mutedf("%s 创建于 %s", release.Author.Login, text.FuzzyAgo(time.Now(), release.CreatedAt)))
 	} else {
-		fmt.Fprintln(w, cs.Mutedf("%s released this %s", release.Author.Login, text.FuzzyAgo(time.Now(), *release.PublishedAt)))
+		fmt.Fprintln(w, cs.Mutedf("%s 发布于 %s", release.Author.Login, text.FuzzyAgo(time.Now(), *release.PublishedAt)))
 	}
 
 	renderedDescription, err := markdown.Render(release.Body,
@@ -153,8 +152,8 @@ func renderReleaseTTY(io *iostreams.IOStreams, release *shared.Release) error {
 	fmt.Fprintln(w, renderedDescription)
 
 	if len(release.Assets) > 0 {
-		fmt.Fprintln(w, cs.Bold("Assets"))
-		table := tableprinter.New(io, tableprinter.WithHeader("Name", "Digest", "Size"))
+		fmt.Fprintln(w, cs.Bold("资产(asset)"))
+		table := tableprinter.New(io, tableprinter.WithHeader("名称", "摘要(digest)", "大小"))
 		for _, a := range release.Assets {
 			table.AddField(a.Name)
 			if a.Digest == nil {
@@ -172,7 +171,7 @@ func renderReleaseTTY(io *iostreams.IOStreams, release *shared.Release) error {
 		fmt.Fprint(w, "\n")
 	}
 
-	fmt.Fprintln(w, cs.Mutedf("View on GitHub: %s", release.URL))
+	fmt.Fprintln(w, cs.Mutedf("在 GitHub 上查看: %s", release.URL))
 	return nil
 }
 
@@ -218,7 +217,7 @@ func humanFileSize(s int64) string {
 	return fmt.Sprintf("%s GiB", floatToString(gb, 2))
 }
 
-// render float to fixed precision using truncation instead of rounding
+// 使用截断(而非四舍五入)将浮点数渲染为固定精度
 func floatToString(f float64, p uint8) string {
 	fs := fmt.Sprintf("%#f%0*s", f, p, "")
 	idx := strings.IndexRune(fs, '.')

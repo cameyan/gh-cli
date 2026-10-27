@@ -128,7 +128,7 @@ func (rel *Release) ExportData(fields []string) map[string]any {
 	return data
 }
 
-var ErrReleaseNotFound = errors.New("release not found")
+var ErrReleaseNotFound = errors.New("未找到发布(release)")
 
 type fetchResult struct {
 	release *Release
@@ -142,8 +142,8 @@ func FetchRefSHA(ctx context.Context, httpClient *http.Client, repo ghrepo.Inter
 	}
 
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	resp, err := api.NewClientFromHTTP(httpClient).RequestWithContext(ctx, repo.RepoHost(), http.MethodGet, path.String(), nil)
 	if err != nil {
 		if isNotFound(err) {
@@ -160,16 +160,15 @@ func FetchRefSHA(ctx context.Context, httpClient *http.Client, repo ghrepo.Inter
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&ref); err != nil {
-		return "", fmt.Errorf("failed to parse ref response: %w", err)
+		return "", fmt.Errorf("解析 ref 响应失败: %w", err)
 	}
 
 	return ref.Object.SHA, nil
 }
 
-// DigestAlgForRef returns the digest algorithm name corresponding to the given
-// git ref SHA. SHA-1 git object IDs are 40 hex characters and SHA-256 git
-// object IDs are 64 hex characters. Unknown lengths default to "sha1" to
-// preserve backwards-compatible behavior.
+// DigestAlgForRef 返回与给定 git ref SHA 对应的摘要(digest)算法名称。
+// SHA-1 git 对象 ID 为 40 个十六进制字符，SHA-256 git 对象 ID 为 64 个
+// 十六进制字符。未知长度默认返回 "sha1" 以保持向后兼容的行为。
 func DigestAlgForRef(digest string) string {
 	switch len(digest) {
 	case 64:
@@ -179,7 +178,7 @@ func DigestAlgForRef(digest string) string {
 	}
 }
 
-// FetchRelease finds a published repository release by its tagName, or a draft release by its pending tag name.
+// FetchRelease 按标签(tag)名查找已发布的仓库发布(release)，或按待定标签名查找草稿(draft)发布。
 func FetchRelease(ctx context.Context, httpClient *http.Client, repo ghrepo.Interface, tagName string) (*Release, error) {
 	publishedPath, err := safeurl.JoinPath("repos", repo.RepoOwner(), repo.RepoName(), "releases", "tags", tagName)
 	if err != nil {
@@ -189,42 +188,41 @@ func FetchRelease(ctx context.Context, httpClient *http.Client, repo ghrepo.Inte
 	cc, cancel := context.WithCancel(ctx)
 	results := make(chan fetchResult, 2)
 
-	// published release lookup
+	// 已发布发布(release)的查找
 	go func() {
 		release, err := fetchReleasePath(cc, httpClient, repo.RepoHost(), publishedPath)
 		results <- fetchResult{release: release, error: err}
 	}()
 
-	// draft release lookup
+	// 草稿(draft)发布的查找
 	go func() {
 		release, err := fetchDraftRelease(cc, httpClient, repo, tagName)
 		results <- fetchResult{release: release, error: err}
 	}()
 
-	// Prefer a release found by either lookup. A single failed lookup, such as
-	// the draft lookup when unauthenticated, must not mask a release found by
-	// the other; only report an error when both lookups fail.
+	// 优先采用任一查找成功找到的发布(release)。单个查找失败(例如未认证时的草稿查找)
+	// 不得掩盖另一个查找的结果；只有两者都失败时才报告错误。
 	first := <-results
 	if first.error == nil {
 		cancel()
-		<-results // drain the channel
+		<-results // 清空 channel
 		return first.release, nil
 	}
 
 	second := <-results
-	cancel() // satisfy the linter even though no goroutines are running anymore
+	cancel() // 即使已无 goroutine 在运行，也调用 cancel 以满足 linter
 	if second.error == nil {
 		return second.release, nil
 	}
 
-	// Both lookups failed; prefer reporting the release as not found.
+	// 两次查找都失败；优先报告为未找到发布(release)。
 	if errors.Is(second.error, ErrReleaseNotFound) {
 		return nil, second.error
 	}
 	return nil, first.error
 }
 
-// FetchLatestRelease finds the latest published release for a repository.
+// FetchLatestRelease 查找仓库最新发布的发布(release)。
 func FetchLatestRelease(ctx context.Context, httpClient *http.Client, repo ghrepo.Interface) (*Release, error) {
 	path, err := safeurl.JoinPath("repos", repo.RepoOwner(), repo.RepoName(), "releases", "latest")
 	if err != nil {
@@ -233,9 +231,9 @@ func FetchLatestRelease(ctx context.Context, httpClient *http.Client, repo ghrep
 	return fetchReleasePath(ctx, httpClient, repo.RepoHost(), path)
 }
 
-// fetchDraftRelease returns the first draft release that has tagName as its pending tag.
+// fetchDraftRelease 返回第一个以待定标签名 tagName 作为待定标签(tag)的草稿(draft)发布。
 func fetchDraftRelease(ctx context.Context, httpClient *http.Client, repo ghrepo.Interface, tagName string) (*Release, error) {
-	// First use GraphQL to find a draft release by pending tag name, since REST doesn't have this ability.
+	// 先使用 GraphQL 按待定标签名查找草稿(draft)发布，因为 REST 不具备此能力。
 	var query struct {
 		Repository struct {
 			Release *struct {
@@ -260,8 +258,8 @@ func fetchDraftRelease(ctx context.Context, httpClient *http.Client, repo ghrepo
 		return nil, ErrReleaseNotFound
 	}
 
-	// Then, use REST to get information about the draft release. In theory, we could have fetched
-	// all the necessary information via GraphQL, but REST is safer for backwards compatibility.
+	// 然后，使用 REST 获取草稿(draft)发布的信息。理论上可以通过 GraphQL 获取全部所需信息，
+	// 但出于向后兼容的考虑，使用 REST 更安全。
 	path, err := safeurl.JoinPath("repos", repo.RepoOwner(), repo.RepoName(), "releases", strconv.FormatInt(query.Repository.Release.DatabaseID, 10))
 	if err != nil {
 		return nil, err
@@ -271,8 +269,8 @@ func fetchDraftRelease(ctx context.Context, httpClient *http.Client, repo ghrepo
 
 func fetchReleasePath(ctx context.Context, httpClient *http.Client, host string, path safeurl.SafeURL) (*Release, error) {
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	resp, err := api.NewClientFromHTTP(httpClient).RequestWithContext(ctx, host, http.MethodGet, path.String(), nil)
 	if err != nil {
 		if isNotFound(err) {
@@ -290,9 +288,9 @@ func fetchReleasePath(ctx context.Context, httpClient *http.Client, host string,
 	return &release, nil
 }
 
-// isNotFound reports whether err is an API error carrying a 404 status. The release lookups
-// treat a missing release as a sentinel rather than an error, and the api client reports the
-// status through an HTTPError rather than through a response the call site can inspect.
+// isNotFound 判断 err 是否为携带 404 状态码的 API 错误。发布(release)查找将
+// 发布缺失视为哨兵(sentinel)值而非错误，而 api client 通过 HTTPError 而非
+// 调用点可检查的响应来上报状态。
 func isNotFound(err error) bool {
 	httpErr, ok := errors.AsType[api.HTTPError](err)
 	return ok && httpErr.StatusCode == http.StatusNotFound

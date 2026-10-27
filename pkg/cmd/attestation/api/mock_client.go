@@ -41,8 +41,8 @@ func OnGetByDigestSuccess(params FetchParams) ([]*Attestation, error) {
 	att3 := makeTestReleaseAttestation()
 	attestations := []*Attestation{&att1, &att2}
 	if params.PredicateType != "" {
-		// "release" is a sentinel value that returns all release attestations (v0.1, v0.2, etc.)
-		// This mimics the GitHub API behavior which handles this server-side
+		// "release" 是一个哨兵值(sentinel value)，返回所有发布证明(release attestation)(v0.1、v0.2 等)
+		// 这模拟了 GitHub API 在服务端处理该值的行为
 		if params.PredicateType == "release" {
 			return []*Attestation{&att3}, nil
 		}
@@ -54,9 +54,9 @@ func OnGetByDigestSuccess(params FetchParams) ([]*Attestation, error) {
 
 func OnGetByDigestFailure(params FetchParams) ([]*Attestation, error) {
 	if params.Repo != "" {
-		return nil, fmt.Errorf("failed to fetch attestations from %s", params.Repo)
+		return nil, fmt.Errorf("从 %s 获取证明失败", params.Repo)
 	}
-	return nil, fmt.Errorf("failed to fetch attestations from %s", params.Owner)
+	return nil, fmt.Errorf("从 %s 获取证明失败", params.Owner)
 }
 
 func NewTestClient() *MockClient {

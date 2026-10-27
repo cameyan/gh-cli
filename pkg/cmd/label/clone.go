@@ -33,27 +33,22 @@ func newCmdClone(f *cmdutil.Factory, runF func(*cloneOptions) error) *cobra.Comm
 
 	cmd := &cobra.Command{
 		Use:   "clone <source-repository>",
-		Short: "Clones labels from one repository to another",
+		Short: "将标签从一个仓库克隆到另一个仓库",
 		Long: heredoc.Docf(`
-			Clones labels from a source repository to a destination repository on GitHub.
-			By default, the destination repository is the current repository.
+			将标签从 GitHub 上的源仓库克隆到目标仓库。默认情况下，目标仓库为当前仓库。
 
-			All labels from the source repository will be copied to the destination
-			repository. Labels in the destination repository that are not in the source
-			repository will not be deleted or modified.
+			源仓库中的所有标签都会被复制到目标仓库。目标仓库中不在源仓库里的标签不会被删除或修改。
 
-			Labels from the source repository that already exist in the destination
-			repository will be skipped. You can overwrite existing labels in the
-			destination repository using the %[1]s--force%[1]s flag.
+			源仓库中已存在于目标仓库的标签将被跳过。可以使用 %[1]s--force%[1]s flag 覆盖目标仓库中的已有标签。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Clone and overwrite labels from cli/cli repository into the current repository
+			# 从 cli/cli 仓库克隆并覆盖标签到当前仓库
 			$ gh label clone cli/cli --force
 
-			# Clone labels from cli/cli repository into octocat/cli repository
+			# 从 cli/cli 仓库克隆标签到 octocat/cli 仓库
 			$ gh label clone cli/cli --repo octocat/cli
 		`),
-		Args: cmdutil.ExactArgs(1, "cannot clone labels: source-repository argument required"),
+		Args: cmdutil.ExactArgs(1, "无法克隆标签: 需要提供 source-repository 参数"),
 		RunE: func(c *cobra.Command, args []string) error {
 			var err error
 			opts.BaseRepo = f.BaseRepo
@@ -68,7 +63,7 @@ func newCmdClone(f *cmdutil.Factory, runF func(*cloneOptions) error) *cobra.Comm
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Overwrite labels in the destination repository")
+	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "覆盖目标仓库中的标签")
 
 	return cmd
 }
@@ -100,9 +95,9 @@ func cloneRun(opts *cloneOptions) error {
 		successCount := int(successCount)
 		switch {
 		case successCount == totalCount:
-			fmt.Fprintf(opts.IO.Out, "%s Cloned %s from %s to %s\n", cs.SuccessIcon(), pluralize(successCount), ghrepo.FullName(opts.SourceRepo), ghrepo.FullName(baseRepo))
+			fmt.Fprintf(opts.IO.Out, "%s 已将 %s 从 %s 克隆到 %s\n", cs.SuccessIcon(), pluralize(successCount), ghrepo.FullName(opts.SourceRepo), ghrepo.FullName(baseRepo))
 		default:
-			fmt.Fprintf(opts.IO.Out, "%s Cloned %s of %d from %s to %s\n", cs.WarningIcon(), pluralize(successCount), totalCount, ghrepo.FullName(opts.SourceRepo), ghrepo.FullName(baseRepo))
+			fmt.Fprintf(opts.IO.Out, "%s 已将 %d 个标签中的 %s 从 %s 克隆到 %s\n", cs.WarningIcon(), totalCount, pluralize(successCount), ghrepo.FullName(opts.SourceRepo), ghrepo.FullName(baseRepo))
 		}
 	}
 

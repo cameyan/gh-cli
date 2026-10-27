@@ -27,7 +27,7 @@ func TestNewCmdCreate(t *testing.T) {
 			name:    "no argument",
 			input:   "",
 			wantErr: true,
-			errMsg:  "cannot create label: name argument required",
+			errMsg:  "无法创建标签: 需要提供 name 参数",
 		},
 		{
 			name:   "name argument",
@@ -101,7 +101,7 @@ func TestCreateRun(t *testing.T) {
 					httpmock.StatusStringResponse(201, "{}"),
 				)
 			},
-			wantStdout: "✓ Label \"test\" created in OWNER/REPO\n",
+			wantStdout: "✓ 已在 test 中创建标签 \"OWNER/REPO\"\n",
 		},
 		{
 			name: "creates label notty",

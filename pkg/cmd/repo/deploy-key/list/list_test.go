@@ -51,9 +51,9 @@ func TestListRun(t *testing.T) {
 				)
 			},
 			wantStdout: heredoc.Doc(`
-				ID    TITLE          TYPE        KEY                  CREATED AT
-				1234  Mac            read-only   ssh-rsa AAAABbBB123  about 1 day ago
-				5678  hubot@Windows  read-write  ssh-rsa EEEEEEEK247  about 1 day ago
+				ID    标题           类型  密钥                 创建时间
+				1234  Mac            只读  ssh-rsa AAAABbBB123  about 1 day ago
+				5678  hubot@Windows  读写  ssh-rsa EEEEEEEK247  about 1 day ago
 			`),
 			wantStderr: "",
 		},
@@ -83,8 +83,8 @@ func TestListRun(t *testing.T) {
 				)
 			},
 			wantStdout: heredoc.Doc(`
-				1234	Mac	read-write	ssh-rsa AAAABbBB123	2020-08-31T15:44:24+02:00
-				5678	hubot@Windows	read-only	ssh-rsa EEEEEEEK247	2020-08-31T15:44:24+02:00
+				1234	Mac	读写	ssh-rsa AAAABbBB123	2020-08-31T15:44:24+02:00
+				5678	hubot@Windows	只读	ssh-rsa EEEEEEEK247	2020-08-31T15:44:24+02:00
 			`),
 			wantStderr: "",
 		},

@@ -17,7 +17,7 @@ func newCodeCmd(app *App) *cobra.Command {
 
 	codeCmd := &cobra.Command{
 		Use:   "code",
-		Short: "Open a codespace in Visual Studio Code",
+		Short: "在 Visual Studio Code 中打开 codespace",
 		Args:  noArgsConstraint,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.VSCode(cmd.Context(), selector, useInsiders, useWeb)
@@ -26,13 +26,13 @@ func newCodeCmd(app *App) *cobra.Command {
 
 	selector = AddCodespaceSelector(codeCmd, app.apiClient)
 
-	codeCmd.Flags().BoolVar(&useInsiders, "insiders", false, "Use the insiders version of Visual Studio Code")
-	codeCmd.Flags().BoolVarP(&useWeb, "web", "w", false, "Use the web version of Visual Studio Code")
+	codeCmd.Flags().BoolVar(&useInsiders, "insiders", false, "使用 Visual Studio Code 的 insiders 版本")
+	codeCmd.Flags().BoolVarP(&useWeb, "web", "w", false, "使用 Visual Studio Code 的网页版本")
 
 	return codeCmd
 }
 
-// VSCode opens a codespace in the local VS VSCode application.
+// VSCode 在本地 VSCode 应用程序中打开 codespace。
 func (a *App) VSCode(ctx context.Context, selector *CodespaceSelector, useInsiders bool, useWeb bool) error {
 	codespace, err := selector.Select(ctx)
 	if err != nil {
@@ -55,7 +55,7 @@ func (a *App) VSCode(ctx context.Context, selector *CodespaceSelector, useInside
 	}
 
 	if err := a.browser.Browse(browseURL); err != nil {
-		return fmt.Errorf("error opening Visual Studio Code: %w", err)
+		return fmt.Errorf("打开 Visual Studio Code 时出错: %w", err)
 	}
 
 	return nil

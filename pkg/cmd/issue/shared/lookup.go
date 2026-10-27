@@ -23,30 +23,30 @@ func ParseIssuesFromArgs(args []string) ([]int, o.Option[ghrepo.Interface], erro
 	issueNumbers := make([]int, len(args))
 
 	for i, arg := range args {
-		// For each argument, parse the issue number and an optional repo
+		// 对每个参数, 解析issue编号和可选的仓库
 		issueNumber, issueRepo, err := ParseIssueFromArg(arg)
 		if err != nil {
 			return nil, o.None[ghrepo.Interface](), err
 		}
 
-		// if this is our first issue repo found, then we need to set it
+		// 如果这是找到的第一个issue仓库, 则需要设置它
 		if repo.IsNone() {
 			repo = issueRepo
 		}
 
-		// if there is an issue repo returned, then we need to check if it is the same as the previous one
+		// 如果返回了issue仓库, 则需要检查它是否与之前的是同一个
 		if issueRepo.IsSome() && repo.IsSome() {
-			// Unwraps are safe because we've checked for presence above
+			// 由于上面已检查过存在性, 因此解包是安全的
 			if !ghrepo.IsSame(repo.Unwrap(), issueRepo.Unwrap()) {
 				return nil, o.None[ghrepo.Interface](), fmt.Errorf(
-					"multiple issues must be in same repo: found %q, expected %q",
+					"多个 issue 必须位于同一仓库中: 找到 %q，期望 %q",
 					ghrepo.FullName(issueRepo.Unwrap()),
 					ghrepo.FullName(repo.Unwrap()),
 				)
 			}
 		}
 
-		// add the issue number to the list
+		// 将issue编号添加到列表中
 		issueNumbers[i] = issueNumber
 	}
 
@@ -61,7 +61,7 @@ func ParseIssueFromArg(arg string) (int, o.Option[ghrepo.Interface], error) {
 
 	issueNumber, err := strconv.Atoi(strings.TrimPrefix(arg, "#"))
 	if err != nil {
-		return 0, o.None[ghrepo.Interface](), fmt.Errorf("invalid issue format: %q", arg)
+		return 0, o.None[ghrepo.Interface](), fmt.Errorf("无效的 issue 格式: %q", arg)
 	}
 
 	return issueNumber, o.None[ghrepo.Interface](), nil
@@ -72,7 +72,7 @@ type issueLocator struct {
 	repo        ghrepo.Interface
 }
 
-// tryParseIssueFromURL tries to parse an issue number and repo from a URL.
+// tryParseIssueFromURL 尝试从 URL 解析出issue编号和仓库。
 func tryParseIssueFromURL(maybeURL string) o.Option[issueLocator] {
 	u, err := url.Parse(maybeURL)
 	if err != nil {
@@ -100,8 +100,8 @@ type PartialLoadError struct {
 	error
 }
 
-// FindIssuesOrPRs loads 1 or more issues or pull requests with the specified fields. If some of the fields
-// could not be fetched by GraphQL, this returns non-nil issues and a *PartialLoadError.
+// FindIssuesOrPRs 使用指定的字段加载 1 个或多个issue或拉取请求。如果某些字段
+// 无法通过 GraphQL 获取, 则会返回非 nil 的 issues 以及一个 *PartialLoadError。
 func FindIssuesOrPRs(httpClient *http.Client, repo ghrepo.Interface, issueNumbers []int, fields []string) ([]*api.Issue, error) {
 	issuesChan := make(chan *api.Issue, len(issueNumbers))
 	g := errgroup.Group{}
@@ -176,10 +176,10 @@ func FindIssueOrPR(httpClient *http.Client, repo ghrepo.Interface, number int, f
 	if err := client.GraphQL(repo.RepoHost(), query, variables, &resp); err != nil {
 		if gerr, ok := errors.AsType[api.GraphQLError](err); ok {
 			if gerr.Match("NOT_FOUND", "repository.issue") && !resp.Repository.HasIssuesEnabled {
-				return nil, fmt.Errorf("the '%s' repository has disabled issues", ghrepo.FullName(repo))
+				return nil, fmt.Errorf("'%s' 仓库已禁用 issue", ghrepo.FullName(repo))
 			} else if gerr.Match("FORBIDDEN", "repository.issue.projectCards.") {
 				issue := resp.Repository.Issue
-				// remove nil entries for project cards due to permission issues
+				// 由于权限问题, 移除项目卡片的 nil 条目
 				projects := make([]*api.ProjectInfo, 0, len(issue.ProjectCards.Nodes))
 				for _, p := range issue.ProjectCards.Nodes {
 					if p != nil {
@@ -194,7 +194,7 @@ func FindIssueOrPR(httpClient *http.Client, repo ghrepo.Interface, number int, f
 	}
 
 	if resp.Repository.Issue == nil {
-		return nil, errors.New("issue was not found but GraphQL reported no error")
+		return nil, errors.New("未找到issue, 但 GraphQL 未报告错误")
 	}
 
 	if getProjectItems {
@@ -208,9 +208,9 @@ func FindIssueOrPR(httpClient *http.Client, repo ghrepo.Interface, number int, f
 	return resp.Repository.Issue, nil
 }
 
-// ResolveIssueRef parses an issue reference (number or URL) and returns its
-// node ID. References that point at a different host than baseRepo are
-// rejected because relationship mutations require IDs from the base host.
+// ResolveIssueRef 解析issue引用(编号或 URL)并返回其
+// 节点 ID。指向与 baseRepo 不同主机的引用会被
+// 拒绝, 因为关系变更需要来自基础主机的 ID。
 func ResolveIssueRef(client *api.Client, baseRepo ghrepo.Interface, ref string) (string, error) {
 	number, repo, err := ParseIssueFromArg(ref)
 	if err != nil {
@@ -220,7 +220,7 @@ func ResolveIssueRef(client *api.Client, baseRepo ghrepo.Interface, ref string) 
 	targetRepo := baseRepo
 	if r, ok := repo.Value(); ok {
 		if r.RepoHost() != baseRepo.RepoHost() {
-			return "", fmt.Errorf("issue reference %q belongs to a different host (%s) than the current repository (%s)", ref, r.RepoHost(), baseRepo.RepoHost())
+			return "", fmt.Errorf("issue引用 %q 的主机 (%s) 与当前仓库的主机 (%s) 不同", ref, r.RepoHost(), baseRepo.RepoHost())
 		}
 		targetRepo = r
 	}
@@ -228,8 +228,8 @@ func ResolveIssueRef(client *api.Client, baseRepo ghrepo.Interface, ref string) 
 	return api.IssueNodeID(client, targetRepo, number)
 }
 
-// ResolveIssueTypeName resolves an issue type name to its node ID by
-// fetching the repository's available types.
+// ResolveIssueTypeName 通过获取仓库的可用类型,
+// 将issue类型名称解析为其节点 ID。
 func ResolveIssueTypeName(client *api.Client, repo ghrepo.Interface, typeName string) (string, error) {
 	issueTypes, err := api.RepoIssueTypes(client, repo)
 	if err != nil {
@@ -244,5 +244,5 @@ func ResolveIssueTypeName(client *api.Client, repo ghrepo.Interface, typeName st
 		}
 	}
 
-	return "", fmt.Errorf("type %q not found; available types: %s", typeName, strings.Join(typeNames, ", "))
+	return "", fmt.Errorf("未找到类型 %q; 可用类型: %s", typeName, strings.Join(typeNames, ", "))
 }

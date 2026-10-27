@@ -38,18 +38,18 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "delete [<repository>]",
-		Short: "Delete a repository",
+		Short: "删除仓库",
 		Long: heredoc.Docf(`
-			Delete a GitHub repository.
+			删除一个 GitHub 仓库。
 
-			With no argument, deletes the current repository. Otherwise, deletes the specified repository.
-			
-			For safety, when no repository argument is provided, the %[1]s--yes%[1]s flag is ignored 
-			and you will be prompted for confirmation. To delete the current repository non-interactively, 
-			specify it explicitly (e.g., %[1]sgh repo delete owner/repo --yes%[1]s).
+			不带参数时，删除当前仓库。否则，删除指定的仓库。
 
-			Deletion requires authorization with the %[1]sdelete_repo%[1]s scope.
-			To authorize, run %[1]sgh auth refresh -s delete_repo%[1]s
+			出于安全考虑，当未提供仓库参数时，%[1]s--yes%[1]s 旗标将被忽略，并且系统会提示您进行确认。
+
+			若要以非交互方式删除当前仓库，请显式指定仓库名称(例如: %[1]sgh repo delete owner/repo --yes%[1]s)。
+
+			删除操作需要已授权 %[1]sdelete_repo%[1]s 权限范围。
+			若要授权，请运行 %[1]sgh auth refresh -s delete_repo%[1]s
 		`, "`"),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -57,17 +57,17 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 				opts.RepoArg = args[0]
 			}
 
-			// Ignore --yes when no argument provided to prevent accidental deletion
+			// 未提供参数时忽略 --yes, 以防止误删
 			if len(args) == 0 && opts.Confirmed {
 				if !opts.IO.CanPrompt() {
-					return cmdutil.FlagErrorf("cannot non-interactively delete current repository. Please specify a repository or run interactively")
+					return cmdutil.FlagErrorf("无法以非交互方式删除当前仓库。请指定仓库名称或以交互方式运行")
 				}
-				_, _ = fmt.Fprintln(opts.IO.ErrOut, "Warning: `--yes` is ignored since no repository was specified")
+				_, _ = fmt.Fprintln(opts.IO.ErrOut, "警告: 由于未指定仓库，`--yes` 已被忽略")
 				opts.Confirmed = false
 			}
 
 			if !opts.IO.CanPrompt() && !opts.Confirmed {
-				return cmdutil.FlagErrorf("--yes required when not running interactively")
+				return cmdutil.FlagErrorf("非交互模式下运行时，需要 --yes")
 			}
 
 			if runF != nil {
@@ -78,9 +78,9 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.Confirmed, "confirm", false, "Confirm deletion without prompting")
-	_ = cmd.Flags().MarkDeprecated("confirm", "use `--yes` instead")
-	cmd.Flags().BoolVar(&opts.Confirmed, "yes", false, "Confirm deletion without prompting")
+	cmd.Flags().BoolVar(&opts.Confirmed, "confirm", false, "无需提示直接确认删除")
+	_ = cmd.Flags().MarkDeprecated("confirm", "请改用 `--yes`")
+	cmd.Flags().BoolVar(&opts.Confirmed, "yes", false, "无需提示直接确认删除")
 	return cmd
 }
 
@@ -110,7 +110,7 @@ func deleteRun(opts *DeleteOptions) error {
 		}
 		toDelete, err = ghrepo.FromFullName(repoSelector)
 		if err != nil {
-			return fmt.Errorf("argument error: %w", err)
+			return fmt.Errorf("参数错误: %w", err)
 		}
 	}
 	fullName := ghrepo.FullName(toDelete)
@@ -129,7 +129,7 @@ func deleteRun(opts *DeleteOptions) error {
 				statusCode == http.StatusTemporaryRedirect ||
 				statusCode == http.StatusPermanentRedirect {
 				cs := opts.IO.ColorScheme()
-				fmt.Fprintf(opts.IO.ErrOut, "%s Failed to delete repository: %s has changed name or transferred ownership\n", cs.FailureIcon(), fullName)
+				fmt.Fprintf(opts.IO.ErrOut, "%s 删除仓库失败: %s 已更名或已转移所有权\n", cs.FailureIcon(), fullName)
 				return cmdutil.SilentError
 			}
 		}
@@ -139,7 +139,7 @@ func deleteRun(opts *DeleteOptions) error {
 	if opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
 		fmt.Fprintf(opts.IO.Out,
-			"%s Deleted repository %s\n",
+			"%s 已删除仓库 %s\n",
 			cs.SuccessIcon(),
 			fullName)
 	}

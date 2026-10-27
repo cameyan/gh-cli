@@ -133,8 +133,8 @@ func Test_statusRun(t *testing.T) {
 			wantErr: cmdutil.SilentError,
 			wantErrOut: heredoc.Doc(`
 				github.com
-				  X Timeout trying to log in to github.com account monalisa (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
+				  X 登录 github.com 的账户 monalisa 时超时 (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
 			`),
 		},
 		{
@@ -152,11 +152,11 @@ func Test_statusRun(t *testing.T) {
 			},
 			wantOut: heredoc.Doc(`
 				ghe.io
-				  ✓ Logged in to ghe.io account monalisa-ghe (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: https
-				  - Token: gho_******
-				  - Token scopes: 'repo', 'read:org'
+				  ✓ 已登录 ghe.io 的账户 monalisa-ghe (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: https
+				  - 令牌: gho_******
+				  - 令牌作用域: 'repo', 'read:org'
 			`),
 		},
 		{
@@ -171,13 +171,13 @@ func Test_statusRun(t *testing.T) {
 			},
 			wantOut: heredoc.Doc(`
 				ghe.io
-				  ✓ Logged in to ghe.io account monalisa-ghe (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: https
-				  - Token: gho_******
-				  - Token scopes: 'repo'
-				  ! Missing required token scopes: 'read:org'
-				  - To request missing scopes, run: gh auth refresh -h ghe.io
+				  ✓ 已登录 ghe.io 的账户 monalisa-ghe (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: https
+				  - 令牌: gho_******
+				  - 令牌作用域: 'repo'
+				  ! 缺少所需的令牌作用域: 'read:org'
+				  - 若要请求缺失的作用域，请运行: gh auth refresh -h ghe.io
 			`),
 		},
 		{
@@ -193,11 +193,11 @@ func Test_statusRun(t *testing.T) {
 			wantErr: cmdutil.SilentError,
 			wantErrOut: heredoc.Doc(`
 				ghe.io
-				  X Failed to log in to ghe.io account monalisa-ghe (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - The token in GH_CONFIG_DIR/hosts.yml is invalid.
-				  - To re-authenticate, run: gh auth refresh -h ghe.io
-				  - To forget about this account, run: gh auth logout -h ghe.io -u monalisa-ghe
+				  X 登录 ghe.io 的账户 monalisa-ghe 失败 (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - GH_CONFIG_DIR/hosts.yml 中的令牌无效。
+				  - 若要重新进行身份验证，请运行: gh auth refresh -h ghe.io
+				  - 若要忘记此账户，请运行: gh auth logout -h ghe.io -u monalisa-ghe
 			`),
 		},
 		{
@@ -215,11 +215,11 @@ func Test_statusRun(t *testing.T) {
 			},
 			wantOut: heredoc.Doc(`
 				ghe.io
-				  ✓ Logged in to ghe.io account monalisa-ghe (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: https
-				  - Token: gho_******
-				  - Token scopes: 'repo', 'read:org'
+				  ✓ 已登录 ghe.io 的账户 monalisa-ghe (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: https
+				  - 令牌: gho_******
+				  - 令牌作用域: 'repo', 'read:org'
 			`),
 		},
 		{
@@ -238,11 +238,11 @@ func Test_statusRun(t *testing.T) {
 			wantErr: cmdutil.SilentError,
 			wantErrOut: heredoc.Doc(`
 				ghe.io
-				  X Failed to log in to ghe.io account monalisa-ghe (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - The token in GH_CONFIG_DIR/hosts.yml is invalid.
-				  - To re-authenticate, run: gh auth refresh -h ghe.io
-				  - To forget about this account, run: gh auth logout -h ghe.io -u monalisa-ghe
+				  X 登录 ghe.io 的账户 monalisa-ghe 失败 (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - GH_CONFIG_DIR/hosts.yml 中的令牌无效。
+				  - 若要重新进行身份验证，请运行: gh auth refresh -h ghe.io
+				  - 若要忘记此账户，请运行: gh auth logout -h ghe.io -u monalisa-ghe
 			`),
 		},
 		{
@@ -264,18 +264,18 @@ func Test_statusRun(t *testing.T) {
 			},
 			wantOut: heredoc.Doc(`
 				github.com
-				  ✓ Logged in to github.com account monalisa (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: https
-				  - Token: gho_******
-				  - Token scopes: 'repo', 'read:org'
+				  ✓ 已登录 github.com 的账户 monalisa (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: https
+				  - 令牌: gho_******
+				  - 令牌作用域: 'repo', 'read:org'
 
 				ghe.io
-				  ✓ Logged in to ghe.io account monalisa-ghe (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: ssh
-				  - Token: gho_******
-				  - Token scopes: none
+				  ✓ 已登录 ghe.io 的账户 monalisa-ghe (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: ssh
+				  - 令牌: gho_******
+				  - 令牌作用域: 无
 			`),
 		},
 		{
@@ -498,11 +498,11 @@ func Test_statusRun(t *testing.T) {
 			},
 			wantOut: heredoc.Doc(`
 				github.com
-				  ✓ Logged in to github.com account monalisa (GH_TOKEN)
-				  - Active account: true
-				  - Git operations protocol: https
-				  - Token: gho_******
-				  - Token scopes: none
+				  ✓ 已登录 github.com 的账户 monalisa (GH_TOKEN)
+				  - 活跃账户: true
+				  - Git 操作协议: https
+				  - 令牌: gho_******
+				  - 令牌作用域: 无
 			`),
 		},
 		{
@@ -519,10 +519,10 @@ func Test_statusRun(t *testing.T) {
 			},
 			wantOut: heredoc.Doc(`
 				github.com
-				  ✓ Logged in to github.com account monalisa (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: https
-				  - Token: ghs_******
+				  ✓ 已登录 github.com 的账户 monalisa (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: https
+				  - 令牌: ghs_******
 			`),
 		},
 		{
@@ -539,10 +539,10 @@ func Test_statusRun(t *testing.T) {
 			},
 			wantOut: heredoc.Doc(`
 				github.com
-				  ✓ Logged in to github.com account monalisa (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: https
-				  - Token: github_pat_**********
+				  ✓ 已登录 github.com 的账户 monalisa (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: https
+				  - 令牌: github_pat_**********
 			`),
 		},
 		{
@@ -562,18 +562,18 @@ func Test_statusRun(t *testing.T) {
 			},
 			wantOut: heredoc.Doc(`
 				github.com
-				  ✓ Logged in to github.com account monalisa (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: https
-				  - Token: gho_abc123
-				  - Token scopes: 'repo', 'read:org'
+				  ✓ 已登录 github.com 的账户 monalisa (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: https
+				  - 令牌: gho_abc123
+				  - 令牌作用域: 'repo', 'read:org'
 
 				ghe.io
-				  ✓ Logged in to ghe.io account monalisa-ghe (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: https
-				  - Token: gho_xyz456
-				  - Token scopes: 'repo', 'read:org'
+				  ✓ 已登录 ghe.io 的账户 monalisa-ghe (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: https
+				  - 令牌: gho_xyz456
+				  - 令牌作用域: 'repo', 'read:org'
 			`),
 		},
 		{
@@ -586,7 +586,7 @@ func Test_statusRun(t *testing.T) {
 			},
 			httpStubs:  func(reg *httpmock.Registry) {},
 			wantErr:    cmdutil.SilentError,
-			wantErrOut: "You are not logged into any accounts on github.example.com\n",
+			wantErrOut: "您尚未在 github.example.com 上登录任何账户\n",
 		},
 		{
 			name: "multiple accounts on a host",
@@ -601,17 +601,17 @@ func Test_statusRun(t *testing.T) {
 			},
 			wantOut: heredoc.Doc(`
 				github.com
-				  ✓ Logged in to github.com account monalisa-2 (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: https
-				  - Token: gho_******
-				  - Token scopes: 'repo', 'read:org'
+				  ✓ 已登录 github.com 的账户 monalisa-2 (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: https
+				  - 令牌: gho_******
+				  - 令牌作用域: 'repo', 'read:org'
 
-				  ✓ Logged in to github.com account monalisa (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: false
-				  - Git operations protocol: https
-				  - Token: gho_******
-				  - Token scopes: 'repo', 'read:org', 'project:read'
+				  ✓ 已登录 github.com 的账户 monalisa (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: false
+				  - Git 操作协议: https
+				  - 令牌: gho_******
+				  - 令牌作用域: 'repo', 'read:org', 'project:read'
 			`),
 		},
 		{
@@ -640,32 +640,32 @@ func Test_statusRun(t *testing.T) {
 			wantErr: cmdutil.SilentError,
 			wantErrOut: heredoc.Doc(`
 				github.com
-				  ✓ Logged in to github.com account monalisa-2 (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: https
-				  - Token: gho_******
-				  - Token scopes: 'repo', 'read:org'
+				  ✓ 已登录 github.com 的账户 monalisa-2 (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: https
+				  - 令牌: gho_******
+				  - 令牌作用域: 'repo', 'read:org'
 
-				  ✓ Logged in to github.com account monalisa (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: false
-				  - Git operations protocol: https
-				  - Token: gho_******
-				  - Token scopes: 'repo'
-				  ! Missing required token scopes: 'read:org'
-				  - To request missing scopes, run: gh auth refresh -h github.com
+				  ✓ 已登录 github.com 的账户 monalisa (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: false
+				  - Git 操作协议: https
+				  - 令牌: gho_******
+				  - 令牌作用域: 'repo'
+				  ! 缺少所需的令牌作用域: 'read:org'
+				  - 若要请求缺失的作用域，请运行: gh auth refresh -h github.com
 
 				ghe.io
-				  ✓ Logged in to ghe.io account monalisa-ghe-2 (GH_ENTERPRISE_TOKEN)
-				  - Active account: true
-				  - Git operations protocol: ssh
-				  - Token: gho_******
-				  - Token scopes: 'repo', 'read:org'
+				  ✓ 已登录 ghe.io 的账户 monalisa-ghe-2 (GH_ENTERPRISE_TOKEN)
+				  - 活跃账户: true
+				  - Git 操作协议: ssh
+				  - 令牌: gho_******
+				  - 令牌作用域: 'repo', 'read:org'
 
-				  X Failed to log in to ghe.io account monalisa-ghe (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: false
-				  - The token in GH_CONFIG_DIR/hosts.yml is invalid.
-				  - To re-authenticate, run: gh auth refresh -h ghe.io
-				  - To forget about this account, run: gh auth logout -h ghe.io -u monalisa-ghe
+				  X 登录 ghe.io 的账户 monalisa-ghe 失败 (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: false
+				  - GH_CONFIG_DIR/hosts.yml 中的令牌无效。
+				  - 若要重新进行身份验证，请运行: gh auth refresh -h ghe.io
+				  - 若要忘记此账户，请运行: gh auth logout -h ghe.io -u monalisa-ghe
 			`),
 		},
 		{
@@ -682,11 +682,11 @@ func Test_statusRun(t *testing.T) {
 			},
 			wantOut: heredoc.Doc(`
 				github.com
-				  ✓ Logged in to github.com account monalisa-2 (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: https
-				  - Token: gho_******
-				  - Token scopes: 'repo', 'read:org'
+				  ✓ 已登录 github.com 的账户 monalisa-2 (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: https
+				  - 令牌: gho_******
+				  - 令牌作用域: 'repo', 'read:org'
 			`),
 		},
 		{
@@ -708,18 +708,18 @@ func Test_statusRun(t *testing.T) {
 			},
 			wantOut: heredoc.Doc(`
 				github.com
-				  ✓ Logged in to github.com account monalisa-2 (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: https
-				  - Token: gho_******
-				  - Token scopes: 'repo', 'read:org'
+				  ✓ 已登录 github.com 的账户 monalisa-2 (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: https
+				  - 令牌: gho_******
+				  - 令牌作用域: 'repo', 'read:org'
 
 				ghe.io
-				  ✓ Logged in to ghe.io account monalisa-ghe-2 (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: ssh
-				  - Token: gho_******
-				  - Token scopes: 'repo', 'read:org'
+				  ✓ 已登录 ghe.io 的账户 monalisa-ghe-2 (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: ssh
+				  - 令牌: gho_******
+				  - 令牌作用域: 'repo', 'read:org'
 			`),
 		},
 		{
@@ -742,18 +742,18 @@ func Test_statusRun(t *testing.T) {
 			wantErr: cmdutil.SilentError,
 			wantErrOut: heredoc.Doc(`
 				github.com
-				  ✓ Logged in to github.com account monalisa-2 (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - Git operations protocol: https
-				  - Token: gho_******
-				  - Token scopes: 'repo', 'read:org'
+				  ✓ 已登录 github.com 的账户 monalisa-2 (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - Git 操作协议: https
+				  - 令牌: gho_******
+				  - 令牌作用域: 'repo', 'read:org'
 
 				ghe.io
-				  X Failed to log in to ghe.io account monalisa-ghe-2 (GH_CONFIG_DIR/hosts.yml)
-				  - Active account: true
-				  - The token in GH_CONFIG_DIR/hosts.yml is invalid.
-				  - To re-authenticate, run: gh auth refresh -h ghe.io
-				  - To forget about this account, run: gh auth logout -h ghe.io -u monalisa-ghe-2
+				  X 登录 ghe.io 的账户 monalisa-ghe-2 失败 (GH_CONFIG_DIR/hosts.yml)
+				  - 活跃账户: true
+				  - GH_CONFIG_DIR/hosts.yml 中的令牌无效。
+				  - 若要重新进行身份验证，请运行: gh auth refresh -h ghe.io
+				  - 若要忘记此账户，请运行: gh auth logout -h ghe.io -u monalisa-ghe-2
 			`),
 		},
 		{
@@ -761,7 +761,7 @@ func Test_statusRun(t *testing.T) {
 			opts:       StatusOptions{},
 			jsonFields: []string{"hosts"},
 			wantOut:    "{\"hosts\":{}}\n",
-			wantErrOut: "You are not logged into any GitHub hosts. To log in, run: gh auth login\n",
+			wantErrOut: "您尚未登录任何 GitHub 主机。若要登录，请运行: gh auth login\n",
 			wantErr:    nil, // should not return error in machine-readable mode
 		},
 		{
@@ -774,7 +774,7 @@ func Test_statusRun(t *testing.T) {
 				login(t, c, "github.com", "monalisa", "gho_abc123", "https")
 			},
 			wantOut:    "{\"hosts\":{}}\n",
-			wantErrOut: "You are not logged into any accounts on foo.com\n",
+			wantErrOut: "您尚未在 foo.com 上登录任何账户\n",
 			wantErr:    nil, // should not return error in machine-readable mode
 		},
 		{

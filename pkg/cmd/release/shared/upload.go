@@ -110,7 +110,7 @@ func fileExt(fn string) string {
 
 func ConcurrentUpload(httpClient *http.Client, hostname string, uploadURL safeurl.SafeURL, numWorkers int, assets []*AssetForUpload) error {
 	if numWorkers == 0 {
-		return errors.New("the number of concurrent workers needs to be greater than 0")
+		return errors.New("并发 worker 数量必须大于 0")
 	}
 
 	ctx := context.Background()
@@ -135,7 +135,7 @@ func shouldRetry(err error) bool {
 	return errors.As(err, &httpError) && httpError.StatusCode >= 500
 }
 
-// Allow injecting backoff interval in tests.
+// 允许在测试中注入退避(backoff)间隔。
 var retryInterval = time.Millisecond * 200
 
 func uploadWithDelete(ctx context.Context, httpClient *http.Client, hostname string, uploadURL safeurl.SafeURL, a AssetForUpload) error {
@@ -164,7 +164,7 @@ func uploadAsset(ctx context.Context, httpClient *http.Client, uploadURL safeurl
 	params.Set("label", asset.Label)
 	u.RawQuery = params.Encode()
 
-	// Since u is derived from uploadURL, an already-trusted safeurl.SafeURL, the resulting URL is safe to declare as such.
+	// 由于 u 派生自 uploadURL(已经是受信任的 safeurl.SafeURL)，因此可以安全地将生成的 URL 声明为 safeURL。
 	safeURL := safeurl.NewImmutableSafeURL(u.String())
 
 	f, err := asset.Open()
@@ -181,16 +181,15 @@ func uploadAsset(ctx context.Context, httpClient *http.Client, uploadURL safeurl
 	req.Header.Set("Content-Type", asset.MIMEType)
 	req.GetBody = asset.Open
 
-	// DoRequest rather than Request because ContentLength and GetBody are set on the request
-	// itself, and neither can be expressed as a header. The upload URL is supplied by the API
-	// and points at the uploads host, so there is no endpoint resolution to delegate here.
+	// 使用 DoRequest 而非 Request，因为 ContentLength 和 GetBody 是直接设置在请求上的，
+	// 无法用请求头表达。上传 URL 由 API 提供，指向 uploads 主机，因此这里无需进行端点解析。
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	resp, err := api.NewClientFromHTTP(httpClient).DoRequest(req)
 	if err != nil {
-		// Only transport failures are retryable as network errors. A response that arrived and
-		// carried a failing status is reported as is, so shouldRetry can judge it by status.
+		// 只有传输层失败才可作为网络错误重试。已到达且携带失败状态码的响应原样上报，
+		// 交由 shouldRetry 根据状态码判断。
 		if _, ok := errors.AsType[api.HTTPError](err); ok {
 			return nil, err
 		}
@@ -208,10 +207,10 @@ func uploadAsset(ctx context.Context, httpClient *http.Client, uploadURL safeurl
 }
 
 func deleteAsset(ctx context.Context, httpClient *http.Client, hostname string, assetURL safeurl.SafeURL) error {
-	// The asset URL is supplied by the API, so it is absolute and requested as given.
+	// 资产(asset) URL 由 API 提供，因此它是绝对地址，并按原样请求。
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	resp, err := api.NewClientFromHTTP(httpClient).RequestWithContext(ctx, hostname, http.MethodDelete, assetURL.String(), nil)
 	if err != nil {
 		return err

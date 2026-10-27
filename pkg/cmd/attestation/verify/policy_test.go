@@ -14,7 +14,7 @@ import (
 func TestNewEnforcementCriteria(t *testing.T) {
 	artifactPath := "../test/data/sigstore-js-2.1.0.tgz"
 
-	t.Run("sets SANRegex and SAN using SANRegex and SAN", func(t *testing.T) {
+	t.Run("使用 SANRegex 和 SAN 设置 SANRegex 和 SAN", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath:   artifactPath,
 			Owner:          "foo",
@@ -31,7 +31,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Equal(t, "(?i)^https://github/foo", c.SANRegex)
 	})
 
-	t.Run("sets SANRegex using SignerRepo", func(t *testing.T) {
+	t.Run("使用 SignerRepo 设置 SANRegex", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath:   artifactPath,
 			Owner:          "wrong",
@@ -46,7 +46,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Zero(t, c.SAN)
 	})
 
-	t.Run("sets SANRegex using SignerRepo and Tenant", func(t *testing.T) {
+	t.Run("使用 SignerRepo 和 Tenant 设置 SANRegex", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath:   artifactPath,
 			Owner:          "wrong",
@@ -62,7 +62,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Zero(t, c.SAN)
 	})
 
-	t.Run("sets SANRegex using SignerWorkflow matching host regex", func(t *testing.T) {
+	t.Run("使用匹配主机正则的 SignerWorkflow 设置 SANRegex", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath:   artifactPath,
 			Owner:          "wrong",
@@ -77,7 +77,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Zero(t, c.SAN)
 	})
 
-	t.Run("sets SANRegex using opts.Repo", func(t *testing.T) {
+	t.Run("使用 opts.Repo 设置 SANRegex", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath: artifactPath,
 			Owner:        "wrong",
@@ -89,7 +89,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Equal(t, `(?i)^https://github\.com/foo/bar/`, c.SANRegex)
 	})
 
-	t.Run("sets SANRegex using opts.Owner", func(t *testing.T) {
+	t.Run("使用 opts.Owner 设置 SANRegex", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath: artifactPath,
 			Owner:        "foo",
@@ -100,7 +100,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Equal(t, `(?i)^https://github\.com/foo/`, c.SANRegex)
 	})
 
-	t.Run("SANRegex escapes regex metacharacters in repo names", func(t *testing.T) {
+	t.Run("SANRegex 转义 repo 名称中的正则元字符", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath: artifactPath,
 			SignerRepo:   "my.org/my.repo",
@@ -110,13 +110,13 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, `(?i)^https://github\.com/my\.org/my\.repo/`, c.SANRegex)
 
-		// Verify the generated regex does NOT match a lookalike repo
+		// 验证生成的正则(regex)不会匹配一个外观相似的仓库(repo)
 		re := regexp.MustCompile(c.SANRegex)
 		require.True(t, re.MatchString("https://github.com/my.org/my.repo/.github/workflows/build.yml"))
 		require.False(t, re.MatchString("https://github.com/myXorg/myXrepo/.github/workflows/build.yml"))
 	})
 
-	t.Run("sets Extensions.RunnerEnvironment to GitHubRunner value if opts.DenySelfHostedRunner is true", func(t *testing.T) {
+	t.Run("当 opts.DenySelfHostedRunner 为 true 时将 Extensions.RunnerEnvironment 设置为 GitHubRunner 值", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath:         artifactPath,
 			Owner:                "foo",
@@ -129,7 +129,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Equal(t, verification.GitHubRunner, c.Certificate.RunnerEnvironment)
 	})
 
-	t.Run("sets Extensions.RunnerEnvironment to * value if opts.DenySelfHostedRunner is false", func(t *testing.T) {
+	t.Run("当 opts.DenySelfHostedRunner 为 false 时将 Extensions.RunnerEnvironment 设置为 * 值", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath:         artifactPath,
 			Owner:                "foo",
@@ -142,7 +142,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Zero(t, c.Certificate.RunnerEnvironment)
 	})
 
-	t.Run("sets Extensions.SourceRepositoryURI using opts.Repo and opts.Tenant", func(t *testing.T) {
+	t.Run("使用 opts.Repo 和 opts.Tenant 设置 Extensions.SourceRepositoryURI", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath: artifactPath,
 			Owner:        "foo",
@@ -155,7 +155,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Equal(t, "https://baz.ghe.com/foo/bar", c.Certificate.SourceRepositoryURI)
 	})
 
-	t.Run("sets Extensions.SourceRepositoryURI using opts.Repo", func(t *testing.T) {
+	t.Run("使用 opts.Repo 设置 Extensions.SourceRepositoryURI", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath: artifactPath,
 			Owner:        "foo",
@@ -167,7 +167,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Equal(t, "https://github.com/foo/bar", c.Certificate.SourceRepositoryURI)
 	})
 
-	t.Run("sets SANRegex and SAN using SANRegex and SAN, sets Extensions.SourceRepositoryURI using opts.Repo", func(t *testing.T) {
+	t.Run("使用 SANRegex 和 SAN 设置 SANRegex 和 SAN，并使用 opts.Repo 设置 Extensions.SourceRepositoryURI", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath: artifactPath,
 			Owner:        "baz",
@@ -183,7 +183,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Equal(t, "https://github.com/baz/xyz", c.Certificate.SourceRepositoryURI)
 	})
 
-	t.Run("sets Extensions.SourceRepositoryOwnerURI using opts.Owner and opts.Tenant", func(t *testing.T) {
+	t.Run("使用 opts.Owner 和 opts.Tenant 设置 Extensions.SourceRepositoryOwnerURI", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath: artifactPath,
 			Owner:        "foo",
@@ -196,7 +196,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Equal(t, "https://baz.ghe.com/foo", c.Certificate.SourceRepositoryOwnerURI)
 	})
 
-	t.Run("sets Extensions.SourceRepositoryOwnerURI using opts.Owner", func(t *testing.T) {
+	t.Run("使用 opts.Owner 设置 Extensions.SourceRepositoryOwnerURI", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath: artifactPath,
 			Owner:        "foo",
@@ -208,7 +208,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Equal(t, "https://github.com/foo", c.Certificate.SourceRepositoryOwnerURI)
 	})
 
-	t.Run("sets OIDCIssuer using opts.Tenant", func(t *testing.T) {
+	t.Run("使用 opts.Tenant 设置 OIDCIssuer", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath: artifactPath,
 			Owner:        "foo",
@@ -222,7 +222,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Equal(t, "https://token.actions.baz.ghe.com", c.Certificate.Issuer)
 	})
 
-	t.Run("sets OIDCIssuer using opts.OIDCIssuer", func(t *testing.T) {
+	t.Run("使用 opts.OIDCIssuer 设置 OIDCIssuer", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath: artifactPath,
 			Owner:        "foo",
@@ -236,7 +236,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Equal(t, "https://foo.com", c.Certificate.Issuer)
 	})
 
-	t.Run("sets Certificate.BuildSignerDigest using opts.SignerDigest", func(t *testing.T) {
+	t.Run("使用 opts.SignerDigest 设置 Certificate.BuildSignerDigest", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath: artifactPath,
 			Owner:        "wrong",
@@ -250,7 +250,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Equal(t, "foo", c.Certificate.BuildSignerDigest)
 	})
 
-	t.Run("sets Certificate.SourceRepositoryDigest using opts.SourceDigest", func(t *testing.T) {
+	t.Run("使用 opts.SourceDigest 设置 Certificate.SourceRepositoryDigest", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath: artifactPath,
 			Owner:        "wrong",
@@ -264,7 +264,7 @@ func TestNewEnforcementCriteria(t *testing.T) {
 		require.Equal(t, "foo", c.Certificate.SourceRepositoryDigest)
 	})
 
-	t.Run("sets Certificate.SourceRepositoryRef using opts.SourceRef", func(t *testing.T) {
+	t.Run("使用 opts.SourceRef 设置 Certificate.SourceRepositoryRef", func(t *testing.T) {
 		opts := &Options{
 			ArtifactPath: artifactPath,
 			Owner:        "wrong",
@@ -291,31 +291,31 @@ func TestValidateSignerWorkflow(t *testing.T) {
 
 	testcases := []testcase{
 		{
-			name:                   "workflow with no host specified",
+			name:                   "未指定主机(host)的工作流(workflow)",
 			providedSignerWorkflow: "github/artifact-attestations-workflows/.github/workflows/attest.yml",
 			expectErr:              true,
-			errContains:            "unknown signer workflow host",
+			errContains:            "未知的签名者工作流主机",
 		},
 		{
-			name:                   "workflow with default host",
+			name:                   "使用默认主机(host)的工作流(workflow)",
 			providedSignerWorkflow: "github/artifact-attestations-workflows/.github/workflows/attest.yml",
 			expectedWorkflowRegex:  `^https://github\.com/github/artifact-attestations-workflows/\.github/workflows/attest\.yml(@(refs/.*|[0-9a-fA-F]+))?$`,
 			host:                   "github.com",
 		},
 		{
-			name:                   "workflow with workflow URL included",
+			name:                   "包含工作流(workflow) URL 的工作流(workflow)",
 			providedSignerWorkflow: "github.com/github/artifact-attestations-workflows/.github/workflows/attest.yml",
 			expectedWorkflowRegex:  `^https://github\.com/github/artifact-attestations-workflows/\.github/workflows/attest\.yml(@(refs/.*|[0-9a-fA-F]+))?$`,
 			host:                   "github.com",
 		},
 		{
-			name:                   "workflow with GH_HOST set",
+			name:                   "设置了 GH_HOST 的工作流(workflow)",
 			providedSignerWorkflow: "github/artifact-attestations-workflows/.github/workflows/attest.yml",
 			expectedWorkflowRegex:  `^https://myhost\.github\.com/github/artifact-attestations-workflows/\.github/workflows/attest\.yml(@(refs/.*|[0-9a-fA-F]+))?$`,
 			host:                   "myhost.github.com",
 		},
 		{
-			name:                   "workflow with authenticated host",
+			name:                   "使用已认证主机(host)的工作流(workflow)",
 			providedSignerWorkflow: "github/artifact-attestations-workflows/.github/workflows/attest.yml",
 			expectedWorkflowRegex:  `^https://authedhost\.github\.com/github/artifact-attestations-workflows/\.github/workflows/attest\.yml(@(refs/.*|[0-9a-fA-F]+))?$`,
 			host:                   "authedhost.github.com",
@@ -323,7 +323,7 @@ func TestValidateSignerWorkflow(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-		// All host resolution is done verify.go:RunE
+		// 所有主机(host)解析都在 verify.go:RunE 中完成
 		workflowRegex, err := validateSignerWorkflow(tc.host, tc.providedSignerWorkflow)
 		require.Equal(t, tc.expectedWorkflowRegex, workflowRegex)
 
@@ -337,9 +337,9 @@ func TestValidateSignerWorkflow(t *testing.T) {
 	}
 }
 
-// TestSignerWorkflowSANMatching drives the pattern built by validateSignerWorkflow
-// through the sigstore-go matcher that consumes it, because that matcher applies the
-// pattern with regexp.MatchString and so does not anchor it on the caller's behalf.
+// TestSignerWorkflowSANMatching 将 validateSignerWorkflow 构建的模式(pattern)
+// 通过使用它的 sigstore-go 匹配器(matcher)进行驱动验证，因为该匹配器(matcher)
+// 使用 regexp.MatchString 应用该模式(pattern)，不会替调用方进行锚定。
 func TestSignerWorkflowSANMatching(t *testing.T) {
 	const pinnedWorkflow = "owner/builder/.github/workflows/release.yml"
 	const workflowDir = "https://github.com/owner/builder/.github/workflows/"
@@ -350,47 +350,47 @@ func TestSignerWorkflowSANMatching(t *testing.T) {
 		expectMatch bool
 	}{
 		{
-			name:        "pinned workflow at a branch ref",
+			name:        "在分支(branch)引用(ref)上固定(pin)的工作流(workflow)",
 			san:         workflowDir + "release.yml@refs/heads/main",
 			expectMatch: true,
 		},
 		{
-			name:        "pinned workflow at a commit SHA",
+			name:        "在提交(commit) SHA 上固定(pin)的工作流(workflow)",
 			san:         workflowDir + "release.yml@09b495c3f12c7881b3cc17209a327792065c1a1d",
 			expectMatch: true,
 		},
 		{
-			name:        "pinned workflow at a tag containing @",
+			name:        "在包含 @ 的标签(tag)上固定(pin)的工作流(workflow)",
 			san:         workflowDir + "release.yml@refs/tags/pkg@1.2.3",
 			expectMatch: true,
 		},
 		{
-			name:        "pinned workflow at a branch containing @",
+			name:        "在包含 @ 的分支(branch)上固定(pin)的工作流(workflow)",
 			san:         workflowDir + "release.yml@refs/heads/feature@v2",
 			expectMatch: true,
 		},
 		{
-			name:        "pinned workflow with no ref",
+			name:        "未带引用(ref)的固定(pin)工作流(workflow)",
 			san:         workflowDir + "release.yml",
 			expectMatch: true,
 		},
 		{
-			name:        "workflow whose file name extends the pinned name",
+			name:        "文件名扩展了被固定(pin)名称的工作流(workflow)",
 			san:         workflowDir + "release.yml.attacker.yml@refs/heads/attacker",
 			expectMatch: false,
 		},
 		{
-			name:        "workflow whose file name contains the ref separator",
+			name:        "文件名包含引用(ref)分隔符的工作流(workflow)",
 			san:         workflowDir + "release.yml@attacker.yml@refs/heads/attacker",
 			expectMatch: false,
 		},
 		{
-			name:        "different workflow in the pinned repository",
+			name:        "被固定(pin)仓库(repository)中的另一个工作流(workflow)",
 			san:         workflowDir + "other.yml@refs/heads/main",
 			expectMatch: false,
 		},
 		{
-			name:        "pinned workflow in a lookalike repository",
+			name:        "外观相似仓库(repository)中的被固定(pin)工作流(workflow)",
 			san:         "https://github.com/owner/builder-attacker/.github/workflows/release.yml@refs/heads/main",
 			expectMatch: false,
 		},
@@ -414,11 +414,10 @@ func TestSignerWorkflowSANMatching(t *testing.T) {
 	}
 }
 
-// TestSignerWorkflowSANMatchingObservedCertificate uses the SubjectAlternativeName from
-// a certificate Fulcio actually issued for a workflow stored at
-// .github/workflows/provenance-image.yml@evil.yml. Actions loads a workflow file whose
-// name contains "@", and neither the OIDC claim nor Fulcio escapes it, so the separator
-// really can appear more than once in a SAN.
+// TestSignerWorkflowSANMatchingObservedCertificate 使用 Fulcio 实际为存储在
+// .github/workflows/provenance-image.yml@evil.yml 的工作流签发的证书(certificate)中的
+// SubjectAlternativeName。Actions 会加载名称包含 "@" 的工作流文件，且 OIDC 声明(claim)
+// 和 Fulcio 都不会对其进行转义，因此该分隔符确实可能在 SAN 中出现多次。
 func TestSignerWorkflowSANMatchingObservedCertificate(t *testing.T) {
 	const observedSAN = "https://github.com/bdehamer/attest-demo/.github/workflows/provenance-image.yml@evil.yml@refs/heads/main"
 
@@ -431,10 +430,9 @@ func TestSignerWorkflowSANMatchingObservedCertificate(t *testing.T) {
 	require.Error(t, matcher.Verify(certificate.Summary{SubjectAlternativeName: observedSAN}))
 }
 
-// TestSignerWorkflowSANMatchingPinnedRef covers a --signer-workflow value that pins a
-// ref as well as a workflow. Such a value has to match the end of the SAN exactly,
-// because a git ref may itself be named so that it begins with the pinned ref and is
-// followed by something ref-shaped.
+// TestSignerWorkflowSANMatchingPinnedRef 覆盖同时固定(pin)引用(ref)和工作流(workflow)的
+// --signer-workflow 值。这样的值必须与 SAN 的结尾精确匹配，因为 git 引用(ref)本身
+// 可能被命名为以被固定(pin)的引用(ref)开头、后跟某种引用(ref)形态的内容。
 func TestSignerWorkflowSANMatchingPinnedRef(t *testing.T) {
 	const pinnedWorkflow = "owner/builder/.github/workflows/release.yml@refs/heads/main"
 	const workflowURL = "https://github.com/owner/builder/.github/workflows/release.yml"
@@ -445,27 +443,27 @@ func TestSignerWorkflowSANMatchingPinnedRef(t *testing.T) {
 		expectMatch bool
 	}{
 		{
-			name:        "the pinned ref",
+			name:        "被固定(pin)的引用(ref)",
 			san:         workflowURL + "@refs/heads/main",
 			expectMatch: true,
 		},
 		{
-			name:        "a branch whose name extends the pinned ref",
+			name:        "名称扩展了被固定(pin)引用(ref)的分支(branch)",
 			san:         workflowURL + "@refs/heads/mainattacker",
 			expectMatch: false,
 		},
 		{
-			name:        "a branch named so that a second ref follows the pinned ref",
+			name:        "命名使得第二个引用(ref)跟随被固定(pin)引用(ref)的分支(branch)",
 			san:         workflowURL + "@refs/heads/main@refs/heads/attacker",
 			expectMatch: false,
 		},
 		{
-			name:        "a branch named so that an object ID follows the pinned ref",
+			name:        "命名使得对象 ID 跟随被固定(pin)引用(ref)的分支(branch)",
 			san:         workflowURL + "@refs/heads/main@09b495c3f12c7881b3cc17209a327792065c1a1d",
 			expectMatch: false,
 		},
 		{
-			name:        "a different ref",
+			name:        "另一个引用(ref)",
 			san:         workflowURL + "@refs/heads/attacker",
 			expectMatch: false,
 		},
@@ -489,9 +487,9 @@ func TestSignerWorkflowSANMatchingPinnedRef(t *testing.T) {
 	}
 }
 
-// TestSignerWorkflowSANMatchingObservedNestedRef uses the job_workflow_ref claim
-// observed from a workflow run on a branch named "main@refs/heads/evil". Actions runs a
-// workflow from such a branch, so a pin on refs/heads/main must not admit it.
+// TestSignerWorkflowSANMatchingObservedNestedRef 使用从在名为 "main@refs/heads/evil" 的
+// 分支(branch)上运行的工作流中观察到的 job_workflow_ref 声明(claim)。Actions 会从这样的
+// 分支(branch)运行工作流(workflow)，因此对 refs/heads/main 的固定(pin)不得接受它。
 func TestSignerWorkflowSANMatchingObservedNestedRef(t *testing.T) {
 	const observedSAN = "https://github.com/bdehamer/attest-demo/.github/workflows/control-probe.yml@refs/heads/main@refs/heads/evil"
 
@@ -504,9 +502,9 @@ func TestSignerWorkflowSANMatchingObservedNestedRef(t *testing.T) {
 	require.Error(t, matcher.Verify(certificate.Summary{SubjectAlternativeName: observedSAN}))
 }
 
-// TestSignerWorkflowSANMatchingRepositoryValue covers a --signer-workflow value that
-// names a repository instead of a workflow. The value is still matched as a complete
-// identity, so it cannot match a repository whose name merely starts with it.
+// TestSignerWorkflowSANMatchingRepositoryValue 覆盖指定仓库(repository)而非工作流(workflow)
+// 的 --signer-workflow 值。该值仍会作为完整身份(identity)进行匹配，因此它不能匹配
+// 名称仅以其开头的仓库(repository)。
 func TestSignerWorkflowSANMatchingRepositoryValue(t *testing.T) {
 	sanRegex, err := validateSignerWorkflow("github.com", "owner/builder")
 	require.NoError(t, err)

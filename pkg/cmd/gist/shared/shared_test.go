@@ -39,7 +39,7 @@ func Test_GetGistIDFromURL(t *testing.T) {
 			name:    "invalid url",
 			url:     "https://gist.github.com",
 			wantErr: true,
-			want:    "Invalid gist URL https://gist.github.com",
+			want:    "无效的 gist URL https://gist.github.com",
 		},
 	}
 
@@ -108,7 +108,7 @@ func TestPromptGists(t *testing.T) {
 		{
 			name: "multiple files, select first gist",
 			prompterStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterSelect("Select a gist",
+				pm.RegisterSelect("选择 gist",
 					[]string{"cool.txt  about 6 hours ago", "gistfile0.txt  about 6 hours ago"},
 					func(_, _ string, opts []string) (int, error) {
 						return prompter.IndexFor(opts, "cool.txt  about 6 hours ago")
@@ -135,7 +135,7 @@ func TestPromptGists(t *testing.T) {
 		{
 			name: "multiple files, select second gist",
 			prompterStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterSelect("Select a gist",
+				pm.RegisterSelect("选择 gist",
 					[]string{"cool.txt  about 6 hours ago", "gistfile0.txt  about 6 hours ago"},
 					func(_, _ string, opts []string) (int, error) {
 						return prompter.IndexFor(opts, "gistfile0.txt  about 6 hours ago")
@@ -167,7 +167,7 @@ func TestPromptGists(t *testing.T) {
 		{
 			name: "prompt list contains no-file gist (#10626)",
 			prompterStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterSelect("Select a gist",
+				pm.RegisterSelect("选择 gist",
 					[]string{"  about 6 hours ago", "gistfile0.txt  about 6 hours ago"},
 					func(_, _ string, opts []string) (int, error) {
 						return prompter.IndexFor(opts, "  about 6 hours ago")

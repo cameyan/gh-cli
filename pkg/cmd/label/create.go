@@ -57,20 +57,19 @@ func newCmdCreate(f *cmdutil.Factory, runF func(*createOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "create <name>",
-		Short: "Create a new label",
+		Short: "创建一个新标签",
 		Long: heredoc.Docf(`
-			Create a new label on GitHub, or update an existing one with %[1]s--force%[1]s.
+			在 GitHub 上创建一个新标签，或使用 %[1]s--force%[1]s 更新已有标签。
 
-			Must specify name for the label. The description and color are optional.
-			If a color isn't provided, a random one will be chosen.
+			必须指定标签名称，描述与颜色是可选的。若未提供颜色，将随机选择一个。
 
-			The label color needs to be 6 character hex value.
+			标签颜色必须是 6 位十六进制值。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Create new bug label
+			# 创建新的 bug 标签
 			$ gh label create bug --description "Something isn't working" --color E99695
 		`),
-		Args: cmdutil.ExactArgs(1, "cannot create label: name argument required"),
+		Args: cmdutil.ExactArgs(1, "无法创建标签: 需要提供 name 参数"),
 		RunE: func(c *cobra.Command, args []string) error {
 			opts.BaseRepo = f.BaseRepo
 			opts.Name = args[0]
@@ -82,14 +81,14 @@ func newCmdCreate(f *cmdutil.Factory, runF func(*createOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Description, "description", "d", "", "Description of the label")
-	cmd.Flags().StringVarP(&opts.Color, "color", "c", "", "Color of the label")
-	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Update the label color and description if label already exists")
+	cmd.Flags().StringVarP(&opts.Description, "description", "d", "", "标签的描述")
+	cmd.Flags().StringVarP(&opts.Color, "color", "c", "", "标签的颜色")
+	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "若标签已存在，则更新其颜色与描述")
 
 	return cmd
 }
 
-var errLabelAlreadyExists = errors.New("label already exists")
+var errLabelAlreadyExists = errors.New("标签已存在")
 
 func createRun(opts *createOptions) error {
 	httpClient, err := opts.HttpClient()
@@ -112,14 +111,14 @@ func createRun(opts *createOptions) error {
 	opts.IO.StopProgressIndicator()
 	if err != nil {
 		if errors.Is(err, errLabelAlreadyExists) {
-			return fmt.Errorf("label with name %q already exists; use `--force` to update its color and description", opts.Name)
+			return fmt.Errorf("名为 %q 的标签已存在，使用 `--force` 更新其颜色与描述", opts.Name)
 		}
 		return err
 	}
 
 	if opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
-		successMsg := fmt.Sprintf("%s Label %q created in %s\n", cs.SuccessIcon(), opts.Name, ghrepo.FullName(baseRepo))
+		successMsg := fmt.Sprintf("%s 已在 %s 中创建标签 %q\n", cs.SuccessIcon(), opts.Name, ghrepo.FullName(baseRepo))
 		fmt.Fprint(opts.IO.Out, successMsg)
 	}
 

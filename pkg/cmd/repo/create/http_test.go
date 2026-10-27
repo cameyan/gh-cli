@@ -693,7 +693,7 @@ func Test_repoCreate(t *testing.T) {
 				OwnerLogin:  "OWNER",
 			},
 			wantErr: true,
-			errMsg:  "internal repositories can only be created within an organization",
+			errMsg:  "内部仓库只能在组织内创建",
 			stubs: func(t *testing.T, r *httpmock.Registry) {
 				r.Register(
 					httpmock.REST("GET", "users/OWNER"),
@@ -716,7 +716,7 @@ func Test_repoCreate(t *testing.T) {
 				InitReadme:  true,
 			},
 			wantErr: true,
-			errMsg:  "internal repositories can only be created within an organization",
+			errMsg:  "内部仓库只能在组织内创建",
 			stubs: func(t *testing.T, r *httpmock.Registry) {
 				r.Register(
 					httpmock.REST("GET", "users/OWNER"),

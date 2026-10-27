@@ -15,34 +15,35 @@ import (
 
 const hostRegex = `^[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+.*$`
 
-// signerWorkflowRefPattern matches the "@<ref>" that terminates the
-// SubjectAlternativeName of a certificate issued to a GitHub Actions workflow.
+// signerWorkflowRefPattern 匹配终止于为 GitHub Actions 工作流签发的
+// 证书(certificate) SubjectAlternativeName 的 "@<ref>"。
 //
-// The separator cannot be located by splitting on "@", because both sides may contain
-// one. A git ref may contain "@", as in the refs/tags/pkg@1.2.3 convention used by
-// JavaScript monorepos, and so may a workflow file name. What separates them is shape:
-// a ref is either a "refs/"-prefixed path or a bare object ID, and a workflow file name
-// can be neither. It cannot contain "/", since Actions only loads workflows stored
-// directly in .github/workflows, and it cannot be a bare object ID, since it must carry
-// a .yml or .yaml extension.
+// 该分隔符无法通过按 "@" 拆分来定位，因为两侧都可能包含 "@"。
+// git 引用(ref)可能包含 "@"，例如 JavaScript monorepo 所用的
+// refs/tags/pkg@1.2.3 约定，工作流文件名也可能包含 "@"。区分它们的是形态:
+// 引用(ref)要么是 "refs/" 前缀的路径，要么是裸对象 ID，而工作流文件名
+// 两者都不是。它不能包含 "/"，因为 Actions 只加载直接存储在
+// .github/workflows 中的工作流，它也不能是裸对象 ID，因为它必须带有
+// .yml 或 .yaml 扩展名。
 const signerWorkflowRefPattern = `@(refs/.*|[0-9a-fA-F]+)`
 
-// signerWorkflowHasRef reports whether a --signer-workflow value already pins a ref.
+// signerWorkflowHasRef 报告 --signer-workflow 值是否已固定(pin)了一个引用(ref)。
 var signerWorkflowHasRef = regexp.MustCompile(signerWorkflowRefPattern + `$`)
 
-// signerWorkflowSANPattern builds the SAN pattern enforced for --signer-workflow.
+// signerWorkflowSANPattern 为 --signer-workflow 构建强制执行的 SAN 模式(pattern)。
 //
-// sigstore-go matches SAN patterns with regexp.MatchString, which is unanchored, so a
-// pattern anchored only at the start is a prefix match: a workflow named
-// release.yml.attacker.yml satisfies a pin on release.yml. Anchoring the end makes the
-// pin an identity match.
+// sigstore-go 使用 regexp.MatchString 匹配 SAN 模式(pattern)，该匹配是非锚定的，
+// 因此仅在开头锚定的模式(pattern)是前缀匹配: 名为
+// release.yml.attacker.yml 的工作流可以满足对 release.yml 的固定(pin)。
+// 在结尾锚定可以使固定(pin)成为精确的身份匹配(identity match)。
 //
-// The documented flag format carries no ref, and such a value has to keep matching a
-// certificate from any ref, so the ref is optional. Once the value pins a ref of its
-// own it must match the end of the SAN exactly. Leaving the ref optional there would
-// let a second ref follow the pinned one, and since a branch may be named
-// "main@refs/heads/attacker", a pin on refs/heads/main would still admit a certificate
-// built from a different branch.
+// 文档记载的标志(flag)格式不携带引用(ref)，这样的值必须继续匹配
+// 来自任何引用(ref)的证书(certificate)，因此引用(ref)是可选的。
+// 一旦该值固定(pin)了它自己的引用(ref)，它就必须与 SAN 的结尾精确匹配。
+// 在那里让引用(ref)保持可选，将允许在已固定(pin)的引用(ref)之后再跟随另一个引用(ref)，
+// 并且由于分支(branch)可以命名为
+// "main@refs/heads/attacker"，对 refs/heads/main 的固定(pin)仍会接受
+// 由不同分支(branch)构建的证书(certificate)。
 func signerWorkflowSANPattern(workflowURL string) string {
 	pattern := "^" + regexp.QuoteMeta(workflowURL)
 	if signerWorkflowHasRef.MatchString(workflowURL) {
@@ -64,31 +65,30 @@ func expandToGitHubURLRegex(tenant, ownerOrRepo string) string {
 }
 
 func newEnforcementCriteria(opts *Options) (verification.EnforcementCriteria, error) {
-	// initialize the enforcement criteria with the provided PredicateType
+	// 使用提供的 PredicateType 初始化执行标准(enforcement criteria)
 	c := verification.EnforcementCriteria{
 		PredicateType: opts.PredicateType,
 	}
 
-	// set the owner value by checking the repo and owner options
+	// 通过检查 repo 和 owner 选项来设置 owner 值
 	var owner string
 	if opts.Repo != "" {
-		// we expect the repo argument to be in the format <OWNER>/<REPO>
+		// 我们期望 repo 参数的格式为 <OWNER>/<REPO>
 		splitRepo := strings.Split(opts.Repo, "/")
-		// if Repo is provided but owner is not, set the OWNER portion of the Repo value
-		// to Owner
+		// 如果提供了 Repo 但未提供 owner，则将 Repo 值的 OWNER 部分设置为 Owner
 		owner = splitRepo[0]
 	} else {
-		// otherwise use the user provided owner value
+		// 否则使用用户提供的 owner 值
 		owner = opts.Owner
 	}
 
-	// Set the SANRegex and SAN values using the provided options
-	// First check if the opts.SANRegex or opts.SAN values are provided
+	// 使用提供的选项设置 SANRegex 和 SAN 值
+	// 首先检查是否提供了 opts.SANRegex 或 opts.SAN 值
 	if opts.SANRegex != "" || opts.SAN != "" {
 		c.SANRegex = opts.SANRegex
 		c.SAN = opts.SAN
 	} else if opts.SignerRepo != "" {
-		// next check if opts.SignerRepo was provided
+		// 接着检查是否提供了 opts.SignerRepo
 		signedRepoRegex := expandToGitHubURLRegex(opts.Tenant, opts.SignerRepo)
 		c.SANRegex = signedRepoRegex
 	} else if opts.SignerWorkflow != "" {
@@ -98,44 +98,43 @@ func newEnforcementCriteria(opts *Options) (verification.EnforcementCriteria, er
 		}
 		c.SANRegex = validatedWorkflowRegex
 	} else if opts.Repo != "" {
-		// if the user has not provided the SAN, SANRegex, SignerRepo, or SignerWorkflow options
-		// then we default to the repo option
+		// 如果用户未提供 SAN、SANRegex、SignerRepo 或 SignerWorkflow 选项，
+		// 则我们默认使用 repo 选项
 		c.SANRegex = expandToGitHubURLRegex(opts.Tenant, opts.Repo)
 	} else {
-		// if opts.Repo was not provided, we fall back to the opts.Owner value
+		// 如果未提供 opts.Repo，我们回退到 opts.Owner 值
 		c.SANRegex = expandToGitHubURLRegex(opts.Tenant, owner)
 	}
 
-	// if the DenySelfHostedRunner option is set to true, set the
-	// RunnerEnvironment extension to the GitHub hosted runner value
+	// 如果 DenySelfHostedRunner 选项设置为 true，则将
+	// RunnerEnvironment 扩展设置为 GitHub 托管运行器(hosted runner)值
 	if opts.DenySelfHostedRunner {
 		c.Certificate.RunnerEnvironment = verification.GitHubRunner
 	} else {
-		// if Certificate.RunnerEnvironment value is set to the empty string
-		// through the second function argument,
-		// no certificate matching will happen on the RunnerEnvironment field
+		// 如果通过第二个函数参数将 Certificate.RunnerEnvironment 值设置为空字符串，
+		// 则不会在 RunnerEnvironment 字段上进行任何证书(certificate)匹配
 		c.Certificate.RunnerEnvironment = ""
 	}
 
-	// If the Repo option is provided, set the SourceRepositoryURI extension
+	// 如果提供了 Repo 选项，则设置 SourceRepositoryURI 扩展
 	if opts.Repo != "" {
 		c.Certificate.SourceRepositoryURI = expandToGitHubURL(opts.Tenant, opts.Repo)
 	}
 
-	// Set the SourceRepositoryOwnerURI extension using owner and tenant if provided
+	// 使用 owner 和 tenant(如果提供)设置 SourceRepositoryOwnerURI 扩展
 	c.Certificate.SourceRepositoryOwnerURI = expandToGitHubURL(opts.Tenant, owner)
 
-	// if the tenant is provided and OIDC issuer provided matches the default
-	// use the tenant-specific issuer
+	// 如果提供了 tenant 且提供的 OIDC 签发者(issuer)与默认值匹配，
+	// 则使用租户(tenant)专属的签发者(issuer)
 	if opts.Tenant != "" && opts.OIDCIssuer == verification.GitHubOIDCIssuer {
 		c.Certificate.Issuer = fmt.Sprintf(verification.GitHubTenantOIDCIssuer, opts.Tenant)
 	} else {
-		// otherwise use the custom OIDC issuer provided as an option
+		// 否则使用作为选项提供的自定义 OIDC 签发者(issuer)
 		c.Certificate.Issuer = opts.OIDCIssuer
 	}
 
-	// set the SourceRepositoryDigest, SourceRepositoryRef, and BuildSignerDigest
-	// extensions if the options are provided
+	// 如果提供了相应选项，则设置 SourceRepositoryDigest、SourceRepositoryRef
+	// 和 BuildSignerDigest 扩展
 	c.Certificate.BuildSignerDigest = opts.SignerDigest
 	c.Certificate.SourceRepositoryDigest = opts.SourceDigest
 	c.Certificate.SourceRepositoryRef = opts.SourceRef
@@ -149,7 +148,7 @@ func buildCertificateIdentityOption(c verification.EnforcementCriteria) (verify.
 		return nil, err
 	}
 
-	// Accept any issuer, we will verify the issuer as part of the extension verification
+	// 接受任意签发者(issuer)，签发者(issuer)将作为扩展验证(verification)的一部分进行验证
 	issuerMatcher, err := verify.NewIssuerMatcher("", ".*")
 	if err != nil {
 		return nil, err
@@ -183,8 +182,8 @@ func buildSigstoreVerifyPolicy(c verification.EnforcementCriteria, a artifact.Di
 }
 
 func validateSignerWorkflow(hostname, signerWorkflow string) (string, error) {
-	// we expect a provided workflow argument be in the format [HOST/]/<OWNER>/<REPO>/path/to/workflow.yml
-	// if the provided workflow does not contain a host, set the host
+	// 我们期望提供的工作流(workflow)参数格式为 [HOST/]<OWNER>/<REPO>/path/to/workflow.yml
+	// 如果提供的工作流(workflow)不包含主机(host)，则设置主机(host)
 	match, err := regexp.MatchString(hostRegex, signerWorkflow)
 	if err != nil {
 		return "", err
@@ -194,10 +193,10 @@ func validateSignerWorkflow(hostname, signerWorkflow string) (string, error) {
 		return signerWorkflowSANPattern(fmt.Sprintf("https://%s", signerWorkflow)), nil
 	}
 
-	// if the provided workflow did not match the expect format
-	// we move onto creating a signer workflow using the provided host name
+	// 如果提供的工作流(workflow)与期望的格式不匹配，
+	// 我们将继续使用提供的主机名(hostname)创建签名者工作流(signer workflow)
 	if hostname == "" {
-		return "", errors.New("unknown signer workflow host")
+		return "", errors.New("未知的签名者工作流主机")
 	}
 
 	return signerWorkflowSANPattern(fmt.Sprintf("https://%s/%s", hostname, signerWorkflow)), nil

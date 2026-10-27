@@ -33,10 +33,10 @@ func NewCmdStatus(f *cmdutil.Factory, runF func(*StatusOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "status",
-		Short: "Show status of relevant issues",
+		Short: "显示相关 issue 的状态",
 		Args:  cmdutil.NoArgsQuoteReminder,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// support `-R, --repo` override
+			// 支持 `-R, --repo` 覆盖
 			opts.BaseRepo = f.BaseRepo
 
 			if runF != nil {
@@ -91,7 +91,7 @@ func statusRun(opts *StatusOptions) error {
 
 	err = opts.IO.StartPager()
 	if err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "error starting pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器出错: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -107,31 +107,31 @@ func statusRun(opts *StatusOptions) error {
 	out := opts.IO.Out
 
 	fmt.Fprintln(out, "")
-	fmt.Fprintf(out, "Relevant issues in %s\n", ghrepo.FullName(baseRepo))
+	fmt.Fprintf(out, "位于 %s 的相关 issue\n", ghrepo.FullName(baseRepo))
 	fmt.Fprintln(out, "")
 
-	prShared.PrintHeader(opts.IO, "Issues assigned to you")
+	prShared.PrintHeader(opts.IO, "分配给您的 issue")
 	if issuePayload.Assigned.TotalCount > 0 {
 		issueShared.PrintIssues(opts.IO, time.Now(), "  ", issuePayload.Assigned.TotalCount, issuePayload.Assigned.Issues)
 	} else {
-		message := "  There are no issues assigned to you"
+		message := "  没有分配给您的 issue"
 		prShared.PrintMessage(opts.IO, message)
 	}
 	fmt.Fprintln(out)
 
-	prShared.PrintHeader(opts.IO, "Issues mentioning you")
+	prShared.PrintHeader(opts.IO, "提及您的 issue")
 	if issuePayload.Mentioned.TotalCount > 0 {
 		issueShared.PrintIssues(opts.IO, time.Now(), "  ", issuePayload.Mentioned.TotalCount, issuePayload.Mentioned.Issues)
 	} else {
-		prShared.PrintMessage(opts.IO, "  There are no issues mentioning you")
+		prShared.PrintMessage(opts.IO, "  没有提及您的 issue")
 	}
 	fmt.Fprintln(out)
 
-	prShared.PrintHeader(opts.IO, "Issues opened by you")
+	prShared.PrintHeader(opts.IO, "由您打开的 issue")
 	if issuePayload.Authored.TotalCount > 0 {
 		issueShared.PrintIssues(opts.IO, time.Now(), "  ", issuePayload.Authored.TotalCount, issuePayload.Authored.Issues)
 	} else {
-		prShared.PrintMessage(opts.IO, "  There are no issues opened by you")
+		prShared.PrintMessage(opts.IO, "  没有由您打开的 issue")
 	}
 	fmt.Fprintln(out)
 

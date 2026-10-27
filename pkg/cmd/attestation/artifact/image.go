@@ -8,11 +8,11 @@ import (
 )
 
 func digestContainerImageArtifact(url string, client oci.Client) (*DigestedArtifact, error) {
-	// try to parse the url as a valid registry reference
+	// 尝试将 URL 解析为有效的仓库(registry)引用(reference)
 	named, err := reference.Parse(url)
 	if err != nil {
-		// cannot be parsed as a registry reference
-		return nil, fmt.Errorf("artifact %s is not a valid registry reference: %v", url, err)
+		// 无法解析为仓库(registry)引用(reference)
+		return nil, fmt.Errorf("制品 %s 不是有效的仓库引用: %v", url, err)
 	}
 
 	digest, nameRef, err := client.GetImageDigest(named.String())

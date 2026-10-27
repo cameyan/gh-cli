@@ -70,7 +70,7 @@ func TestNewCmdView(t *testing.T) {
 		cmd.SetErr(io.Discard)
 
 		_, err := cmd.ExecuteC()
-		require.EqualError(t, err, "specify only one of --comments or --json")
+		require.EqualError(t, err, "`--comments` 或 `--json` 中只能指定一个")
 	})
 }
 
@@ -150,7 +150,7 @@ func TestIssueView_web(t *testing.T) {
 	}
 
 	assert.Equal(t, "", stdout.String())
-	assert.Equal(t, "Opening https://github.com/OWNER/REPO/issues/123 in your browser.\n", stderr.String())
+	assert.Equal(t, "正在浏览器中打开 https://github.com/OWNER/REPO/issues/123。\n", stderr.String())
 	browser.Verify(t, "https://github.com/OWNER/REPO/issues/123")
 }
 
@@ -186,7 +186,7 @@ func TestIssueView_nontty_Preview(t *testing.T) {
 				`state:\tOPEN`,
 				`comments:\t9`,
 				`labels:\tClosed: Duplicate, Closed: Won't Fix, help wanted, Status: In Progress, Type: Bug`,
-				`projects:\tv2 Project 1 \(No Status\), v2 Project 2 \(Done\), Project 1 \(column A\), Project 2 \(column B\), Project 3 \(column C\), Project 4 \(Awaiting triage\)\n`,
+				`projects:\tv2 Project 1 \(无状态\), v2 Project 2 \(Done\), Project 1 \(column A\), Project 2 \(column B\), Project 3 \(column C\), Project 4 \(待分类\)\n`,
 				`milestone:\tuluru\n`,
 				`number:\t123\n`,
 				`\*\*bold story\*\*`,
@@ -254,9 +254,9 @@ func TestIssueView_tty_Preview(t *testing.T) {
 			},
 			expectedOutputs: []string{
 				`ix of coins OWNER/REPO#123`,
-				`Open.*marseilles opened about 9 years ago.*9 comments`,
+				`Open.*marseilles 打开了 about 9 years ago.*9 comments`,
 				`bold story`,
-				`View this issue on GitHub: https://github.com/OWNER/REPO/issues/123`,
+				`在 GitHub 上查看此议题: https://github.com/OWNER/REPO/issues/123`,
 			},
 		},
 		"Open issue with metadata": {
@@ -266,14 +266,14 @@ func TestIssueView_tty_Preview(t *testing.T) {
 			},
 			expectedOutputs: []string{
 				`ix of coins OWNER/REPO#123`,
-				`Open.*marseilles opened about 9 years ago.*9 comments`,
+				`Open.*marseilles 打开了 about 9 years ago.*9 comments`,
 				`8 \x{1f615} • 7 \x{1f440} • 6 \x{2764}\x{fe0f} • 5 \x{1f389} • 4 \x{1f604} • 3 \x{1f680} • 2 \x{1f44e} • 1 \x{1f44d}`,
-				`Assignees:.*marseilles, monaco\n`,
-				`Labels:.*Closed: Duplicate, Closed: Won't Fix, help wanted, Status: In Progress, Type: Bug\n`,
-				`Projects:.*v2 Project 1 \(No Status\), v2 Project 2 \(Done\), Project 1 \(column A\), Project 2 \(column B\), Project 3 \(column C\), Project 4 \(Awaiting triage\)\n`,
-				`Milestone:.*uluru\n`,
+				`负责人:.*marseilles, monaco\n`,
+				`标签:.*Closed: Duplicate, Closed: Won't Fix, help wanted, Status: In Progress, Type: Bug\n`,
+				`项目:.*v2 Project 1 \(无状态\), v2 Project 2 \(Done\), Project 1 \(column A\), Project 2 \(column B\), Project 3 \(column C\), Project 4 \(待分类\)\n`,
+				`里程碑:.*uluru\n`,
 				`bold story`,
-				`View this issue on GitHub: https://github.com/OWNER/REPO/issues/123`,
+				`在 GitHub 上查看此议题: https://github.com/OWNER/REPO/issues/123`,
 			},
 		},
 		"Open issue with empty body": {
@@ -283,9 +283,9 @@ func TestIssueView_tty_Preview(t *testing.T) {
 			},
 			expectedOutputs: []string{
 				`ix of coins OWNER/REPO#123`,
-				`Open.*marseilles opened about 9 years ago.*9 comments`,
-				`No description provided`,
-				`View this issue on GitHub: https://github.com/OWNER/REPO/issues/123`,
+				`Open.*marseilles 打开了 about 9 years ago.*9 comments`,
+				`未提供描述`,
+				`在 GitHub 上查看此议题: https://github.com/OWNER/REPO/issues/123`,
 			},
 		},
 		"Closed issue": {
@@ -295,9 +295,9 @@ func TestIssueView_tty_Preview(t *testing.T) {
 			},
 			expectedOutputs: []string{
 				`ix of coins OWNER/REPO#123`,
-				`Closed.*marseilles opened about 9 years ago.*9 comments`,
+				`Closed.*marseilles 打开了 about 9 years ago.*9 comments`,
 				`bold story`,
-				`View this issue on GitHub: https://github.com/OWNER/REPO/issues/123`,
+				`在 GitHub 上查看此议题: https://github.com/OWNER/REPO/issues/123`,
 			},
 		},
 	}
@@ -391,7 +391,7 @@ func TestIssueView_disabledIssues(t *testing.T) {
 	)
 
 	_, err := runCommand(http, true, `6666`)
-	if err == nil || err.Error() != "the 'OWNER/REPO' repository has disabled issues" {
+	if err == nil || err.Error() != "'OWNER/REPO' 仓库已禁用议题" {
 		t.Errorf("error running command `issue view`: %v", err)
 	}
 }
@@ -416,7 +416,7 @@ func TestIssueView_tty_Comments(t *testing.T) {
 				`marseilles \(Collaborator\) • Jan  1, 2020 • Newest comment`,
 				`Comment 5`,
 				`Use --comments to view the full conversation`,
-				`View this issue on GitHub: https://github.com/OWNER/REPO/issues/123`,
+				`在 GitHub 上查看此议题: https://github.com/OWNER/REPO/issues/123`,
 			},
 		},
 		"with comments flag": {
@@ -441,7 +441,7 @@ func TestIssueView_tty_Comments(t *testing.T) {
 				`sam-spam • This comment has been marked as spam`,
 				`marseilles \(Collaborator\) • Jan  1, 2020 • Newest comment`,
 				`Comment 5`,
-				`View this issue on GitHub: https://github.com/OWNER/REPO/issues/123`,
+				`在 GitHub 上查看此议题: https://github.com/OWNER/REPO/issues/123`,
 			},
 		},
 		"with invalid comments flag": {
@@ -763,23 +763,23 @@ func TestIssueView_tty_Issues2AllFields(t *testing.T) {
 	assert.Contains(t, out, "Bug · Open")
 
 	// Type metadata row
-	assert.Contains(t, out, "Type:")
+	assert.Contains(t, out, "类型:")
 	assert.Contains(t, out, "Bug")
 
 	// Parent metadata row
-	assert.Contains(t, out, "Parent:")
+	assert.Contains(t, out, "父议题:")
 	assert.Contains(t, out, "OWNER/REPO#100 Epic: Authentication overhaul")
 
 	// Blocked by metadata row
-	assert.Contains(t, out, "Blocked by:")
+	assert.Contains(t, out, "被阻塞于:")
 	assert.Contains(t, out, "OWNER/REPO#200 API rate limiting")
 
 	// Blocking metadata row
-	assert.Contains(t, out, "Blocking:")
+	assert.Contains(t, out, "阻塞:")
 	assert.Contains(t, out, "OWNER/REPO#300 Release v2.0")
 
 	// Sub-issues section
-	assert.Contains(t, out, "Sub-issues")
+	assert.Contains(t, out, "子议题")
 	assert.Contains(t, out, "1/2 (50%)")
 	assert.Contains(t, out, "OWNER/REPO#101")
 	assert.Contains(t, out, "Design auth module")
@@ -790,7 +790,7 @@ func TestIssueView_tty_Issues2AllFields(t *testing.T) {
 	assert.Contains(t, out, "The OAuth flow needs work.")
 
 	// Footer
-	assert.Contains(t, out, "View this issue on GitHub: https://github.com/OWNER/REPO/issues/123")
+	assert.Contains(t, out, "在 GitHub 上查看此议题: https://github.com/OWNER/REPO/issues/123")
 }
 
 func TestIssueView_nontty_Issues2AllFields(t *testing.T) {
@@ -877,7 +877,7 @@ func TestIssueView_tty_Issues2NoFields(t *testing.T) {
 	assert.Contains(t, out, "OWNER/REPO#456")
 	assert.Contains(t, out, "Open")
 	assert.Contains(t, out, "The login page is broken.")
-	assert.Contains(t, out, "View this issue on GitHub: https://github.com/OWNER/REPO/issues/456")
+	assert.Contains(t, out, "在 GitHub 上查看此议题: https://github.com/OWNER/REPO/issues/456")
 
 	// Issues 2.0 sections must NOT appear
 	assert.NotContains(t, out, "Type:")

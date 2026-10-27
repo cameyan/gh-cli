@@ -12,7 +12,7 @@ import (
 	"github.com/shurcooL/githubv4"
 )
 
-// repoCreateInput is input parameters for the repoCreate method
+// repoCreateInput 是 repoCreate 方法的输入参数
 type repoCreateInput struct {
 	Name                 string
 	HomepageURL          string
@@ -29,7 +29,7 @@ type repoCreateInput struct {
 	InitReadme           bool
 }
 
-// createRepositoryInputV3 is the payload for the repo create REST API
+// createRepositoryInputV3 是仓库创建 REST API 的载荷
 type createRepositoryInputV3 struct {
 	Name              string `json:"name"`
 	HomepageURL       string `json:"homepage,omitempty"`
@@ -44,7 +44,7 @@ type createRepositoryInputV3 struct {
 	InitReadme        bool   `json:"auto_init,omitempty"`
 }
 
-// createRepositoryInput is the payload for the repo create GraphQL mutation
+// createRepositoryInput 是仓库创建 GraphQL 变更(mutation)的载荷
 type createRepositoryInput struct {
 	Name             string `json:"name"`
 	HomepageURL      string `json:"homepageUrl,omitempty"`
@@ -56,7 +56,7 @@ type createRepositoryInput struct {
 	HasWikiEnabled   bool   `json:"hasWikiEnabled"`
 }
 
-// cloneTemplateRepositoryInput is the payload for creating a repo from a template using GraphQL
+// cloneTemplateRepositoryInput 是通过 GraphQL 基于模板创建仓库的载荷
 type cloneTemplateRepositoryInput struct {
 	Name               string `json:"name"`
 	Visibility         string `json:"visibility"`
@@ -73,7 +73,7 @@ type updateRepositoryInput struct {
 	HomepageURL      string `json:"homepageUrl,omitempty"`
 }
 
-// repoCreate creates a new GitHub repository
+// repoCreate 创建一个新的 GitHub 仓库
 func repoCreate(client *http.Client, hostname string, input repoCreateInput) (*api.Repository, error) {
 	isOrg := false
 	var ownerID string
@@ -102,7 +102,7 @@ func repoCreate(client *http.Client, hostname string, input repoCreateInput) (*a
 
 	isInternal := strings.ToLower(input.Visibility) == "internal"
 	if isInternal && !isOrg {
-		return nil, fmt.Errorf("internal repositories can only be created within an organization")
+		return nil, fmt.Errorf("内部仓库只能在组织内创建")
 	}
 
 	if input.TemplateRepositoryID != "" {

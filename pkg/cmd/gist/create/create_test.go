@@ -191,7 +191,7 @@ func Test_createRun(t *testing.T) {
 				Filenames: []string{fixtureFile},
 			},
 			wantOut:    "https://gist.github.com/aa5a315d61ae9438b18d\n",
-			wantStderr: "- Creating gist fixture.txt\n✓ Created public gist fixture.txt\n",
+			wantStderr: "- 正在创建 gist fixture.txt\n✓ 已创建 public gist fixture.txt\n",
 			wantErr:    false,
 			wantParams: map[string]any{
 				"description": "",
@@ -212,7 +212,7 @@ func Test_createRun(t *testing.T) {
 				Filenames:   []string{fixtureFile},
 			},
 			wantOut:    "https://gist.github.com/aa5a315d61ae9438b18d\n",
-			wantStderr: "- Creating gist fixture.txt\n✓ Created secret gist fixture.txt\n",
+			wantStderr: "- 正在创建 gist fixture.txt\n✓ 已创建 secret gist fixture.txt\n",
 			wantErr:    false,
 			wantParams: map[string]any{
 				"description": "an incredibly interesting gist",
@@ -233,7 +233,7 @@ func Test_createRun(t *testing.T) {
 			},
 			stdin:      "cool stdin content",
 			wantOut:    "https://gist.github.com/aa5a315d61ae9438b18d\n",
-			wantStderr: "- Creating gist with multiple files\n✓ Created secret gist fixture.txt\n",
+			wantStderr: "- 正在创建包含多个文件的 gist\n✓ 已创建 secret gist fixture.txt\n",
 			wantErr:    false,
 			wantParams: map[string]any{
 				"description": "",
@@ -257,7 +257,7 @@ func Test_createRun(t *testing.T) {
 			},
 			stdin:      "cool stdin content",
 			wantOut:    "https://gist.github.com/aa5a315d61ae9438b18d\n",
-			wantStderr: "- Creating gist with multiple files\n✓ Created secret gist fixture.txt\n",
+			wantStderr: "- 正在创建包含多个文件的 gist\n✓ 已创建 secret gist fixture.txt\n",
 			wantErr:    false,
 			wantParams: map[string]any{
 				"description": "",
@@ -281,8 +281,8 @@ func Test_createRun(t *testing.T) {
 			},
 			wantOut: "",
 			wantStderr: heredoc.Doc(`
-				- Creating gist empty.txt
-				X Failed to create gist: a gist file cannot be blank
+				- 正在创建 gist empty.txt
+				X 创建 gist 失败: gist 文件不能为空
 			`),
 			wantErr: true,
 			wantParams: map[string]any{
@@ -302,7 +302,7 @@ func Test_createRun(t *testing.T) {
 			},
 			stdin:      "cool stdin content",
 			wantOut:    "https://gist.github.com/aa5a315d61ae9438b18d\n",
-			wantStderr: "- Creating gist...\n✓ Created secret gist\n",
+			wantStderr: "- 正在创建 gist...\n✓ 已创建 secret gist\n",
 			wantErr:    false,
 			wantParams: map[string]any{
 				"description": "",
@@ -322,8 +322,8 @@ func Test_createRun(t *testing.T) {
 				WebMode:   true,
 				Filenames: []string{fixtureFile},
 			},
-			wantOut:    "Opening https://gist.github.com/aa5a315d61ae9438b18d in your browser.\n",
-			wantStderr: "- Creating gist fixture.txt\n✓ Created secret gist fixture.txt\n",
+			wantOut:    "正在浏览器中打开 https://gist.github.com/aa5a315d61ae9438b18d。\n",
+			wantStderr: "- 正在创建 gist fixture.txt\n✓ 已创建 secret gist fixture.txt\n",
 			wantErr:    false,
 			wantBrowse: "https://gist.github.com/aa5a315d61ae9438b18d",
 			wantParams: map[string]any{

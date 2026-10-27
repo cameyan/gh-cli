@@ -21,21 +21,20 @@ const GitHubTUFMirror = "https://tuf-repo.github.com"
 func DefaultOptionsWithCacheSetting(tufMetadataDir o.Option[string], hc *http.Client) *tuf.Options {
 	opts := tuf.DefaultOptions()
 
-	// The CODESPACES environment variable will be set to true in a Codespaces workspace
+	// 在 Codespaces 工作区中，CODESPACES 环境变量将被设置为 true
 	if os.Getenv("CODESPACES") == "true" {
-		// if the tool is being used in a Codespace, disable the local cache
-		// because there is a permissions issue preventing the tuf library
-		// from writing the Sigstore cache to the home directory
+		// 如果该工具在 Codespace 中使用，则禁用本地缓存，
+		// 因为存在权限问题导致 tuf 库无法将 Sigstore 缓存写入主目录
 		opts.DisableLocalCache = true
 	}
 
-	// Set the cache path to the provided dir, or a directory owned by the CLI
+	// 将缓存路径设置为提供的目录，或 CLI 所属的目录
 	opts.CachePath = tufMetadataDir.UnwrapOr(filepath.Join(config.CacheDir(), ".sigstore", "root"))
 
-	// Allow TUF cache for 1 day
+	// 允许 TUF 缓存保留 1 天
 	opts.CacheValidity = 1
 
-	// configure fetcher timeout and retry
+	// 配置 fetcher 的超时与重试
 	f := fetcher.NewDefaultFetcher()
 	f.SetHTTPClient(hc)
 	retryOptions := []backoff.RetryOption{backoff.WithMaxTries(3)}

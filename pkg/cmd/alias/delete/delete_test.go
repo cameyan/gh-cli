@@ -26,7 +26,7 @@ func TestNewCmdDelete(t *testing.T) {
 			name:    "no arguments",
 			input:   "",
 			wantErr: true,
-			errMsg:  "specify an alias to delete or `--all`",
+			errMsg:  "指定要删除的别名或使用 `--all`",
 		},
 		{
 			name:  "specified alias",
@@ -46,7 +46,7 @@ func TestNewCmdDelete(t *testing.T) {
 			name:    "specified alias and all flag",
 			input:   "co --all",
 			wantErr: true,
-			errMsg:  "cannot use `--all` with alias name",
+			errMsg:  "不能在别名名称中使用 `--all`",
 		},
 		{
 			name:    "too many arguments",
@@ -110,7 +110,7 @@ func TestDeleteRun(t *testing.T) {
 			wantAliases: map[string]string{
 				"il": "issue list",
 			},
-			wantStderr: "✓ Deleted alias co; was pr checkout\n",
+			wantStderr: "✓ 删除别名 co，原名为 pr checkout\n",
 		},
 		{
 			name: "delete all aliases",
@@ -124,7 +124,7 @@ func TestDeleteRun(t *testing.T) {
 				All: true,
 			},
 			wantAliases: map[string]string{},
-			wantStderr:  "✓ Deleted alias co; was pr checkout\n✓ Deleted alias il; was issue list\n",
+			wantStderr:  "✓ 删除别名 co，原名为 pr checkout\n✓ 删除别名 il，原名为 issue list\n",
 		},
 		{
 			name: "delete alias that does not exist",
@@ -141,7 +141,7 @@ func TestDeleteRun(t *testing.T) {
 				"il": "issue list",
 				"co": "pr checkout",
 			},
-			wantErrMsg: "no such alias unknown",
+			wantErrMsg: "没有这样的别名 unknown",
 		},
 		{
 			name:  "delete all aliases when none exist",
@@ -150,7 +150,7 @@ func TestDeleteRun(t *testing.T) {
 				All: true,
 			},
 			wantAliases: map[string]string{},
-			wantErrMsg:  "no aliases configured",
+			wantErrMsg:  "未配置别名",
 		},
 	}
 	for _, tt := range tests {

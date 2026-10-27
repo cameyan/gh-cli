@@ -12,15 +12,15 @@ import (
 	"github.com/cli/cli/v2/git"
 )
 
-// WorktreeTarget describes whether a path is a new worktree location or the
-// root of an existing linked worktree that can be reused.
+// WorktreeTarget 描述某个路径是新工作树(worktree)的位置，
+// 还是可复用的已有关联工作树的根目录。
 type WorktreeTarget struct {
 	Path  string
 	Reuse bool
 }
 
-// ResolveWorktreeTarget validates path and determines whether it is the root
-// of an existing linked worktree for the current repository.
+// ResolveWorktreeTarget 校验 path，并判断它是否为当前仓库某个已有
+// 关联工作树的根目录。
 func ResolveWorktreeTarget(client *git.Client, path string) (WorktreeTarget, error) {
 	target := WorktreeTarget{Path: path}
 	if err := ensureWorktreePathSafe(path); err != nil {
@@ -40,8 +40,8 @@ func ResolveWorktreeTarget(client *git.Client, path string) (WorktreeTarget, err
 	return target, nil
 }
 
-// WorktreeCheckoutCommands returns the commands needed to place branch in
-// target. startPoint must be a remote branch suitable for --track.
+// WorktreeCheckoutCommands 返回将 branch 放入 target 所需的命令。
+// startPoint 必须是适合 --track 的远端分支(branch)。
 func WorktreeCheckoutCommands(client *git.Client, target WorktreeTarget, branch, startPoint string) ([][]string, bool) {
 	branchExists := client.HasLocalBranch(context.Background(), branch)
 
@@ -58,28 +58,26 @@ func WorktreeCheckoutCommands(client *git.Client, target WorktreeTarget, branch,
 	return [][]string{{"worktree", "add", "--track", "-b", branch, "--", target.Path, startPoint}}, false
 }
 
-// resolveWorktreeTarget asks git where path lives, letting git resolve symlinks,
-// "..", case, and trailing slashes for us instead of comparing paths ourselves.
-// It returns whether an existing linked worktree there should be reused, and
-// errors when the path cannot host a new worktree: a path inside a different
-// repository, a subdirectory of another worktree, or the worktree we are already
-// running in. Detection is best-effort: if git cannot resolve the current or
-// target worktree (e.g. the path does not exist yet), reuse is false so git
-// worktree add handles the path.
+// resolveWorktreeTarget 询问 git path 所在位置，让 git 替我们解析符号链接、
+// ".."、大小写与尾部斜杠，而不是自己比较路径。
+// 它返回位于该处的已有关联工作树是否应被复用，并在该路径无法容纳新工作树时报错:
+// 路径位于另一个仓库中、是另一个工作树的子目录，或是我们当前正在运行的工作树。
+// 检测为尽力而为(best-effort): 若 git 无法解析当前或目标工作树
+// (例如路径尚不存在)，则 reuse 为 false，交由 git worktree add 处理该路径。
 func resolveWorktreeTarget(client *git.Client, path string) (reuseWorktree bool, err error) {
 	abs, err := filepath.Abs(path)
 	if err != nil {
 		return false, err
 	}
 
-	// git emits one line per flag, so we expect exactly two lines here.
+	// git 每个 flag 输出一行，因此这里预期正好两行。
 	current, ok := revParseFacts(client, "", "--show-toplevel", "--git-common-dir")
 	if !ok || len(current) != 2 {
 		return false, nil
 	}
 	currentToplevel, currentCommonDir := current[0], current[1]
 
-	// A non-existent or non-git target fails here: it is a fresh path for a new worktree.
+	// 不存在或非 git 的目标会在此失败: 它是用于新工作树(worktree)的全新路径。
 	target, ok := revParseFacts(client, abs, "--show-toplevel", "--show-prefix", "--git-common-dir")
 	if !ok || len(target) != 3 {
 		return false, nil
@@ -88,11 +86,11 @@ func resolveWorktreeTarget(client *git.Client, path string) (reuseWorktree bool,
 
 	switch {
 	case targetCommonDir != currentCommonDir:
-		return false, fmt.Errorf("--worktree path is inside a different repository")
+		return false, fmt.Errorf("--worktree 路径位于另一个仓库内")
 	case targetToplevel == currentToplevel:
-		return false, fmt.Errorf("--worktree path points to the repository you're already in; omit --worktree to check out here")
+		return false, fmt.Errorf("--worktree 路径指向您当前所在的仓库; 省略 --worktree 即可在本地检出(check out)")
 	case targetPrefix != "":
-		return false, fmt.Errorf("--worktree path is inside an existing worktree")
+		return false, fmt.Errorf("--worktree 路径位于某个已有的工作树(worktree)内")
 	}
 	return true, nil
 }
@@ -121,9 +119,9 @@ func ensureWorktreePathSafe(path string) error {
 	case err != nil:
 		return err
 	case fi.Mode()&os.ModeSymlink != 0:
-		return fmt.Errorf("--worktree path must not be a symlink: %s", path)
+		return fmt.Errorf("--worktree 路径不能是符号链接(symlink): %s", path)
 	case !fi.IsDir():
-		return fmt.Errorf("--worktree path must be a directory: %s", path)
+		return fmt.Errorf("--worktree 路径必须是目录: %s", path)
 	}
 	return nil
 }
@@ -145,6 +143,6 @@ func ensureWorktreePathEmpty(path string) error {
 	case err != nil:
 		return err
 	default:
-		return fmt.Errorf("--worktree path must be empty: %s", path)
+		return fmt.Errorf("--worktree 路径必须为空: %s", path)
 	}
 }

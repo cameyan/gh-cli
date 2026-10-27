@@ -1,26 +1,26 @@
-# Installing gh on Linux and BSD
+# 在 Linux 和 BSD 上安装 gh
 
-## Recommended _(Official)_
+## 推荐 _(官方)_
 
 > [!IMPORTANT]
-> Our Linux packages and repository metadata are signed with the following PGP key fingerprints:
+> 我们的 Linux 软件包和仓库元数据使用以下 PGP 密钥指纹签名:
 > - `2C6106201985B60E6C7AC87323F3D4EA75716059`
 > - `7F38BBB59D064DBCB3D84D725612B36462313325`
 >
-> You may be prompted to confirm the import of these keys during installation.
+> 在安装过程中，系统可能会提示您确认导入这些密钥。
 >
-> <details><summary>Expand for SHA256/SHA512/MD5 checksums of our official keyring files.</summary>
+> <details><summary>展开查看我们官方密钥环文件的 SHA256/SHA512/MD5 校验和。</summary>
 > <p>
 >
->  **For security reasons, it is strongly recommended to only rely on SHA256/SHA512 checksums. MD5 checksums below are only for legacy systems where SHA256/SHA512 tooling is not available.**
+>  **出于安全考虑，强烈建议仅依赖 SHA256/SHA512 校验和。以下 MD5 校验和仅供无法使用 SHA256/SHA512 工具的旧系统使用。**
 >
-> - `https://cli.github.com/packages/githubcli-archive-keyring.gpg` (Binary):
+> - `https://cli.github.com/packages/githubcli-archive-keyring.gpg` (二进制):
 >    ```
 >    SHA256: 6084d5d7bd8e288441e0e94fc6275570895da18e6751f70f057485dc2d1a811b
 >    SHA512: ce6b9466dbd2a90b3227e177aa9b8187bd2405b1c29f91d78de83b9699dbbe2af35efd733bf53da622e7a38c59a7bc55539d63a3deae3c9ff9c2bff8af626434
 >    MD5:    23748c0965069fb1edae1b83c17890e1
 >    ```
-> - `https://cli.github.com/packages/githubcli-archive-keyring.asc` (ASCII-armored):
+> - `https://cli.github.com/packages/githubcli-archive-keyring.asc` (ASCII 装甲格式):
 >    ```
 >    SHA256: cec6e9ed82d3949ca5f4428cc968b41ef5e7416cb3653cdfc2a421977663bbfd
 >    SHA512: 2ca9487d88a508a1c87f06b46ba336b11cc5f20bd83915b4c2acde49d2cffbbce76af1641bf8494c29a765f96bc1fd694ebde2954b28b80dcc76376b6f1b766d
@@ -32,15 +32,15 @@
 
 ### Debian
 
-Debian packages are hosted on the [GitHub CLI marketing site](https://cli.github.com/) for various operating systems including:
+Debian 软件包托管在 [GitHub CLI 营销站点](https://cli.github.com/) 上，适用于各种操作系统，包括:
 
 - [Debian](https://www.debian.org/)
 - [Raspberry Pi](https://www.raspberrypi.com/)
 - [Ubuntu Linux](https://ubuntu.com/)
 
-These packages are supported by the GitHub CLI maintainers with updates powered by [GitHub CLI deployment workflow](https://github.com/cli/cli/actions/workflows/deployment.yml).
+这些软件包由 GitHub CLI 维护者提供支持，更新由 [GitHub CLI 部署工作流](https://github.com/cli/cli/actions/workflows/deployment.yml) 驱动。
 
-To install:
+安装:
 
 ```bash
 (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
@@ -54,7 +54,7 @@ To install:
 	&& sudo apt install gh -y
 ```
 
-To upgrade:
+升级:
 
 ```bash
 sudo apt update
@@ -62,7 +62,7 @@ sudo apt install gh
 ```
 
 > [!TIP]
-> To verify PGP keys before installing `gh`, you can run this and match the listed fingerprints with those at the top of this document:
+> 要在安装 `gh` 之前验证 PGP 密钥，您可以运行以下命令，并将列出的指纹与本文档顶部的指纹进行比对:
 >
 > ```shell
 > curl -fsSL -o - https://cli.github.com/packages/githubcli-archive-keyring.gpg | gpg --show-keys
@@ -70,7 +70,7 @@ sudo apt install gh
 
 ### RPM
 
-RPM packages are hosted on the [GitHub CLI marketing site](https://cli.github.com) for various operating systems including:
+RPM 软件包托管在 [GitHub CLI 营销站点](https://cli.github.com) 上，适用于各种操作系统，包括:
 
 - [Amazon Linux 2](https://aws.amazon.com/amazon-linux-2/)
 - [CentOS](https://www.centos.org/)
@@ -79,12 +79,12 @@ RPM packages are hosted on the [GitHub CLI marketing site](https://cli.github.co
 - [openSUSE](https://www.opensuse.org/)
 - [SUSE](https://www.suse.com/)
 
-These packages are supported by the GitHub CLI maintainers with updates powered by [GitHub CLI deployment workflow](https://github.com/cli/cli/actions/workflows/deployment.yml).
+这些软件包由 GitHub CLI 维护者提供支持，更新由 [GitHub CLI 部署工作流](https://github.com/cli/cli/actions/workflows/deployment.yml) 驱动。
 
 > [!TIP]
-> During installation, you may be prompted to confirm the import of PGP keys. You can verify the keys with the list of fingerprints at the top of this document.
+> 在安装过程中，系统可能会提示您确认导入 PGP 密钥。您可以使用本文档顶部的指纹列表来验证这些密钥。
 >
-> To verify the PGP keys before installing `gh`, you can run the following command and match the listed fingerprints with those at the top of this document:
+> 要在安装 `gh` 之前验证 PGP 密钥，您可以运行以下命令，并将列出的指纹与本文档顶部的指纹进行比对:
 >
 > ```shell
 > curl -fsSL -o - https://cli.github.com/packages/githubcli-archive-keyring.asc | gpg --show-keys
@@ -93,9 +93,9 @@ These packages are supported by the GitHub CLI maintainers with updates powered 
 #### DNF5
 
 > [!IMPORTANT]
-> **These commands apply to DNF5 only**. If you're using DNF4, please use [the DNF4 instructions](#dnf4).
+> **以下命令仅适用于 DNF5**。如果您使用的是 DNF4，请使用 [DNF4 说明](#dnf4)。
 
-To install:
+安装:
 
 ```bash
 sudo dnf install dnf5-plugins
@@ -103,7 +103,7 @@ sudo dnf config-manager addrepo --from-repofile=https://cli.github.com/packages/
 sudo dnf install gh
 ```
 
-To upgrade:
+升级:
 
 ```bash
 sudo dnf update gh
@@ -112,9 +112,9 @@ sudo dnf update gh
 #### DNF4
 
 > [!IMPORTANT]
-> **These commands apply to DNF4 only**. If you're using DNF5, please use [the DNF5 instructions](#dnf5).
+> **以下命令仅适用于 DNF4**。如果您使用的是 DNF5，请使用 [DNF5 说明](#dnf5)。
 
-To install:
+安装:
 
 ```bash
 sudo dnf install 'dnf-command(config-manager)'
@@ -122,7 +122,7 @@ sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.re
 sudo dnf install gh
 ```
 
-To upgrade:
+升级:
 
 ```bash
 sudo dnf update gh
@@ -130,7 +130,7 @@ sudo dnf update gh
 
 #### Amazon Linux 2 (yum)
 
-To install:
+安装:
 
 ```bash
 type -p yum-config-manager >/dev/null || sudo yum install yum-utils
@@ -138,7 +138,7 @@ sudo yum-config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.re
 sudo yum install gh
 ```
 
-To upgrade:
+升级:
 
 ```bash
 sudo yum update gh
@@ -146,7 +146,7 @@ sudo yum update gh
 
 #### openSUSE/SUSE Linux (zypper)
 
-To install:
+安装:
 
 ```bash
 sudo zypper addrepo https://cli.github.com/packages/rpm/gh-cli.repo
@@ -154,7 +154,7 @@ sudo zypper ref
 sudo zypper install gh
 ```
 
-To upgrade:
+升级:
 
 ```bash
 sudo zypper ref
@@ -163,42 +163,42 @@ sudo zypper update gh
 
 ### Homebrew
 
-[Homebrew](https://brew.sh/) is a free and open-source software package management system that simplifies the installation of software on Apple's operating system, macOS, as well as Linux.
+[Homebrew](https://brew.sh/) 是一个免费的开源软件包管理系统，可简化 Apple 操作系统 macOS 以及 Linux 上的软件安装。
 
-The [GitHub CLI formulae](https://formulae.brew.sh/formula/gh) is supported by the GitHub CLI maintainers with help from our friends at Homebrew with updates powered by [homebrew/homebrew-core](https://github.com/Homebrew/homebrew-core/blob/main/Formula/g/gh.rb).
+[GitHub CLI 公式](https://formulae.brew.sh/formula/gh) 由 GitHub CLI 维护者提供支持，并得到 Homebrew 朋友们的帮助，更新由 [homebrew/homebrew-core](https://github.com/Homebrew/homebrew-core/blob/main/Formula/g/gh.rb) 驱动。
 
-To install:
+安装:
 
 ```shell
 brew install gh
 ```
 
-To upgrade:
+升级:
 
 ```shell
 brew upgrade gh
 ```
 
-### Precompiled binaries
+### 预编译二进制文件
 
-[GitHub CLI releases](https://github.com/cli/cli/releases/latest) contain precompiled binaries for `386`, `amd64`, `arm64`, and `armv6` architectures.
+[GitHub CLI 发布版本](https://github.com/cli/cli/releases/latest) 包含适用于 `386`、`amd64`、`arm64` 和 `armv6` 架构的预编译二进制文件。
 
-## Community _(Unofficial)_
+## 社区 _(非官方)_
 
 > [!IMPORTANT]
-> The GitHub CLI team does not maintain the following packages or repositories. We are unable to provide support for these installation methods or any guarantees of stability, security, or availability for these installation methods.
+> GitHub CLI 团队不维护以下软件包或仓库。我们无法为这些安装方法提供支持，也无法对这些安装方法的稳定性、安全性或可用性提供任何保证。
 
 ### Alpine Linux
 
-The [GitHub CLI package](https://pkgs.alpinelinux.org/package/edge/community/x86_64/github-cli) is supported by the Alpine Linux community with updates powered by [alpine/aports](https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/community/github-cli).
+[GitHub CLI 软件包](https://pkgs.alpinelinux.org/package/edge/community/x86_64/github-cli) 由 Alpine Linux 社区提供支持，更新由 [alpine/aports](https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/community/github-cli) 驱动。
 
-To install stable release:
+安装稳定版:
 
 ```bash
 apk add github-cli
 ```
 
-To install edge release:
+安装 edge 版本:
 
 ```bash
 echo "@community http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
@@ -207,9 +207,9 @@ apk add github-cli@community
 
 ### Android
 
-The [GitHub CLI package](https://packages.termux.dev/apt/termux-main/pool/main/g/gh/) is supported by the Termux community with updates powered by [termux/termux-packages](https://github.com/termux/termux-packages/tree/master/packages/gh).
+[GitHub CLI 软件包](https://packages.termux.dev/apt/termux-main/pool/main/g/gh/) 由 Termux 社区提供支持，更新由 [termux/termux-packages](https://github.com/termux/termux-packages/tree/master/packages/gh) 驱动。
 
-To install and upgrade:
+安装和升级:
 
 ```bash
 pkg install gh
@@ -217,35 +217,35 @@ pkg install gh
 
 ### Arch Linux
 
-The [GitHub CLI package](https://www.archlinux.org/packages/extra/x86_64/github-cli) is supported by the Arch Linux community with updates powered by [Arch Linux packaging](https://gitlab.archlinux.org/archlinux/packaging/packages/github-cli).
+[GitHub CLI 软件包](https://www.archlinux.org/packages/extra/x86_64/github-cli) 由 Arch Linux 社区提供支持，更新由 [Arch Linux 打包](https://gitlab.archlinux.org/archlinux/packaging/packages/github-cli) 驱动。
 
-To install:
+安装:
 
 ```bash
 sudo pacman -S github-cli
 ```
 
-To upgrade all packages:
+升级所有软件包:
 
 ```bash
 sudo pacman -Syu
 ```
 
-Alternatively, use the [unofficial AUR package](https://aur.archlinux.org/packages/github-cli-git) to build GitHub CLI from source.
+或者，使用 [非官方 AUR 软件包](https://aur.archlinux.org/packages/github-cli-git) 从源码构建 GitHub CLI。
 
 ### Conda
 
-[Conda](https://docs.conda.io/en/latest/) is an open source package management system and environment management system for installing multiple versions of software packages and their dependencies and switching easily between them. It works on Linux, OS X and Windows, and was created for Python programs but can package and distribute any software.
+[Conda](https://docs.conda.io/en/latest/) 是一个开源软件包管理系统和环境管理系统，用于安装多个版本的软件包及其依赖项，并可在它们之间轻松切换。它适用于 Linux、OS X 和 Windows，最初是为 Python 程序而创建，但可以打包和分发任何软件。
 
-The [GitHub CLI package](https://anaconda.org/conda-forge/gh) is supported by the Conda community with updates powered by [conda-forge/gh-feedstock](https://github.com/conda-forge/gh-feedstock#installing-gh).
+[GitHub CLI 软件包](https://anaconda.org/conda-forge/gh) 由 Conda 社区提供支持，更新由 [conda-forge/gh-feedstock](https://github.com/conda-forge/gh-feedstock#installing-gh) 驱动。
 
-To install:
+安装:
 
 ```shell
 conda install gh --channel conda-forge
 ```
 
-To upgrade:
+升级:
 
 ```shell
 conda update gh --channel conda-forge
@@ -267,24 +267,24 @@ sudo apt install gh
 > [!WARNING]
 > The keyring downloaded by `extrepo` may differ from our published keyring, so the checksums listed at the top of this document may not apply.
 
-### Debian Community
+### Debian 社区
 
-The [GitHub CLI package](https://packages.debian.org/stable/gh) is supported by the Debian community with updates powered by [Debian Go Packaging Team](https://salsa.debian.org/go-team/packages/gh).
+[GitHub CLI 软件包](https://packages.debian.org/stable/gh) 由 Debian 社区提供支持，更新由 [Debian Go 打包团队](https://salsa.debian.org/go-team/packages/gh) 驱动。
 
 > [!NOTE]
-> As of November 2025, GitHub CLI maintainers strongly recommend [official Debian packages](#debian) especially as the community-distributed `2.45.x` / `2.46.x` version is broken due to deprecated GitHub APIs.
+> 截至 2025 年 11 月，GitHub CLI 维护者强烈建议使用 [官方 Debian 软件包](#debian)，尤其是因为社区分发的 `2.45.x` / `2.46.x` 版本由于 GitHub API 弃用而无法正常工作。
 
-### Fedora Community
+### Fedora 社区
 
-The [GitHub CLI package](https://packages.fedoraproject.org/pkgs/gh/gh/) is supported by the Fedora community with updates powered by [Fedora Project](https://src.fedoraproject.org/rpms/gh).
+[GitHub CLI 软件包](https://packages.fedoraproject.org/pkgs/gh/gh/) 由 Fedora 社区提供支持，更新由 [Fedora 项目](https://src.fedoraproject.org/rpms/gh) 驱动。
 
-To install:
+安装:
 
 ```bash
 sudo dnf install gh
 ```
 
-To upgrade:
+升级:
 
 ```bash
 sudo dnf update gh
@@ -292,17 +292,17 @@ sudo dnf update gh
 
 ### Flox
 
-[Flox](https://flox.dev/) is a virtual environment and package manager all in one. With Flox you create environments that layer and replace dependencies just where it matters, making them portable across the full software lifecycle.
+[Flox](https://flox.dev/) 是一个集虚拟环境与软件包管理器于一体的工具。借助 Flox，您可以在关键位置创建分层并替换依赖项的环境，使其在整个软件生命周期中可移植。
 
-Flox relies upon the [GitHub CLI package](https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/gh/gh/package.nix) supported by the [NixOS community](https://nixos.org/)
+Flox 依赖由 [NixOS 社区](https://nixos.org/) 支持的 [GitHub CLI 软件包](https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/gh/gh/package.nix)
 
-To install:
+安装:
 
 ```shell
 flox install gh
 ```
 
-To upgrade:
+升级:
 
 ```shell
 flox upgrade toplevel
@@ -310,13 +310,13 @@ flox upgrade toplevel
 
 ### FreeBSD
 
-The [GitHub CLI port](https://www.freshports.org/devel/gh/) is supported by the FreeBSD community with updates powered by [FreeBSD ports](https://cgit.freebsd.org/ports/tree/devel/gh).
+[GitHub CLI 移植版](https://www.freshports.org/devel/gh/) 由 FreeBSD 社区提供支持，更新由 [FreeBSD ports](https://cgit.freebsd.org/ports/tree/devel/gh) 驱动。
 
 ```bash
 cd /usr/ports/devel/gh/ && make install clean
 ```
 
-Or via [pkg(8)](https://www.freebsd.org/cgi/man.cgi?pkg(8)):
+或通过 [pkg(8)](https://www.freebsd.org/cgi/man.cgi?pkg(8)):
 
 ```bash
 pkg install gh
@@ -324,15 +324,15 @@ pkg install gh
 
 ### Funtoo
 
-The GitHub CLI portage is supported by the Funtoo community with updates powered by [funtoo/dev-kit](https://github.com/funtoo/dev-kit/tree/1.4-release/dev-util/github-cli).
+GitHub CLI 的 portage 由 Funtoo 社区提供支持，更新由 [funtoo/dev-kit](https://github.com/funtoo/dev-kit/tree/1.4-release/dev-util/github-cli) 驱动。
 
-To install:
+安装:
 
 ```bash
 emerge -av github-cli
 ```
 
-To upgrade:
+升级:
 
 ```bash
 ego sync
@@ -341,15 +341,15 @@ emerge -u github-cli
 
 ### Gentoo
 
-The [GitHub CLI portage](https://packages.gentoo.org/packages/dev-util/github-cli) is supported by the Gentoo community with updates powered by [Gentoo portage](https://gitweb.gentoo.org/repo/gentoo.git/tree/dev-util/github-cli).
+[GitHub CLI portage](https://packages.gentoo.org/packages/dev-util/github-cli) 由 Gentoo 社区提供支持，更新由 [Gentoo portage](https://gitweb.gentoo.org/repo/gentoo.git/tree/dev-util/github-cli) 驱动。
 
-To install:
+安装:
 
 ``` bash
 emerge -av github-cli
 ```
 
-To upgrade:
+升级:
 
 ``` bash
 emerge --sync
@@ -358,9 +358,9 @@ emerge -u github-cli
 
 ### Manjaro Linux
 
-The [GitHub CLI package](https://manjaristas.org/branch_compare?q=github-cli) is the same package produced by the [Arch Linux community](#arch-linux)
+[GitHub CLI 软件包](https://manjaristas.org/branch_compare?q=github-cli) 与 [Arch Linux 社区](#arch-linux) 制作的软件包相同
 
-To install and upgrade:
+安装和升级:
 
 ```bash
 pamac install github-cli
@@ -368,15 +368,15 @@ pamac install github-cli
 
 ### MidnightBSD
 
-The [GitHub CLI port](https://www.midnightbsd.org/mports/devel/gh/README.html) is supported by the MidnightBSD community with updates powered by [MidnightBSD/mports](https://github.com/MidnightBSD/mports/tree/master/devel/gh).
+[GitHub CLI 移植版](https://www.midnightbsd.org/mports/devel/gh/README.html) 由 MidnightBSD 社区提供支持，更新由 [MidnightBSD/mports](https://github.com/MidnightBSD/mports/tree/master/devel/gh) 驱动。
 
-To install:
+安装:
 
 ```bash
 cd /usr/mports/devel/gh/ && make install clean
 ```
 
-Or via [mport(1)](http://man.midnightbsd.org/cgi-bin/man.cgi/mport):
+或通过 [mport(1)](http://man.midnightbsd.org/cgi-bin/man.cgi/mport):
 
 ```bash
 mport install gh
@@ -384,9 +384,9 @@ mport install gh
 
 ### NetBSD/pkgsrc
 
-The [GitHub CLI package](https://pkgsrc.se/net/gh) is supported by the NetBSD community with updates powered by [NetBSD/pkgsrc](https://github.com/NetBSD/pkgsrc/tree/trunk/net/gh).
+[GitHub CLI 软件包](https://pkgsrc.se/net/gh) 由 NetBSD 社区提供支持，更新由 [NetBSD/pkgsrc](https://github.com/NetBSD/pkgsrc/tree/trunk/net/gh) 驱动。
 
-To install:
+安装:
 
 ```bash
 pkgin install gh
@@ -394,7 +394,7 @@ pkgin install gh
 
 ### Nix/NixOS
 
-The [GitHub CLI package](https://search.nixos.org/packages?query=gh&sort=relevance&show=gh) is supported by the NixOS community with updates powered by [NixOS/nixpkgs](https://github.com/NixOS/nixpkgs/tree/master/pkgs/by-name/gh/gh).
+[GitHub CLI 软件包](https://search.nixos.org/packages?query=gh&sort=relevance&show=gh) 由 NixOS 社区提供支持，更新由 [NixOS/nixpkgs](https://github.com/NixOS/nixpkgs/tree/master/pkgs/by-name/gh/gh) 驱动。
 
 For temporary use:
 
@@ -406,9 +406,9 @@ For permanent installation, see the [NixOS package instructions](https://search.
 
 ### OpenBSD
 
-The [GitHub CLI port](https://openports.pl/path/devel/github-cli) is supported by the OpenBSD community with updates powered by [OpenBSD ports](https://cvsweb.openbsd.org/ports/devel/github-cli/).
+[GitHub CLI 移植版](https://openports.pl/path/devel/github-cli) 由 OpenBSD 社区提供支持，更新由 [OpenBSD ports](https://cvsweb.openbsd.org/ports/devel/github-cli/) 驱动。
 
-To install:
+安装:
 
 ```shell
 pkg_add github-cli
@@ -416,15 +416,15 @@ pkg_add github-cli
 
 ### openSUSE Tumbleweed
 
-The [GitHub CLI package](https://software.opensuse.org/package/gh) is supported by the openSUSE community.
+[GitHub CLI 软件包](https://software.opensuse.org/package/gh) 由 openSUSE 社区提供支持。
 
-To install:
+安装:
 
 ```bash
 sudo zypper install gh
 ```
 
-To upgrade:
+升级:
 
 ```bash
 sudo zypper update gh
@@ -432,9 +432,9 @@ sudo zypper update gh
 
 ### Solus Linux
 
-The GitHub CLI package is supported by the Solus Linux community with updates powered by [getsolus/packages](https://github.com/getsolus/packages/blob/main/packages/g/github-cli/).
+GitHub CLI 软件包由 Solus Linux 社区提供支持，更新由 [getsolus/packages](https://github.com/getsolus/packages/blob/main/packages/g/github-cli/) 驱动。
 
-To install:
+安装:
 
 ```bash
 sudo eopkg install github-cli
@@ -442,34 +442,34 @@ sudo eopkg install github-cli
 
 ### Spack
 
-[Spack](https://spack.io/) is a flexible package manager supporting multiple versions, configurations, platforms, and compilers for supercomputers, Linux, and macOS.
+[Spack](https://spack.io/) 是一个灵活的软件包管理器，支持适用于超级计算机、Linux 和 macOS 的多种版本、配置、平台和编译器。
 
-The [GitHub CLI package](https://packages.spack.io/package.html?name=gh) is supported by the Spack community with updates powered by [spack/spack-packages](https://github.com/spack/spack-packages/tree/develop/repos/spack_repo/builtin/packages/gh).
+[GitHub CLI 软件包](https://packages.spack.io/package.html?name=gh) 由 Spack 社区提供支持，更新由 [spack/spack-packages](https://github.com/spack/spack-packages/tree/develop/repos/spack_repo/builtin/packages/gh) 驱动。
 
-To install:
+安装:
 
 ```shell
 spack install gh
 ```
 
-To upgrade:
+升级:
 
 ```shell
 spack uninstall gh && spack install gh
 ```
 
-### Ubuntu Community
+### Ubuntu 社区
 
-The [GitHub CLI package](https://packages.ubuntu.com/noble/gh) is synced from [upstream Debian Community package](#debian-community).
+[GitHub CLI 软件包](https://packages.ubuntu.com/noble/gh) 从 [上游 Debian 社区软件包](#debian-community) 同步而来。
 
 > [!NOTE]
-> As of November 2025, GitHub CLI maintainers strongly recommend [official Debian packages](#debian) especially as the community-distributed `2.45.x` / `2.46.x` version is broken due to deprecated GitHub APIs.
+> 截至 2025 年 11 月，GitHub CLI 维护者强烈建议使用 [官方 Debian 软件包](#debian)，尤其是因为社区分发的 `2.45.x` / `2.46.x` 版本由于 GitHub API 弃用而无法正常工作。
 
 ### Void Linux
 
-The [GitHub CLI package](https://voidlinux.org/packages/?arch=x86_64&q=github-cli): is supported by the Void Linux community with updates powered by [void-linux/void-packages](https://github.com/void-linux/void-packages/tree/master/srcpkgs/github-cli).
+[GitHub CLI 软件包](https://voidlinux.org/packages/?arch=x86_64&q=github-cli): 由 Void Linux 社区提供支持，更新由 [void-linux/void-packages](https://github.com/void-linux/void-packages/tree/master/srcpkgs/github-cli) 驱动。
 
-To install:
+安装:
 
 ```bash
 sudo xbps-install github-cli
@@ -477,27 +477,27 @@ sudo xbps-install github-cli
 
 ### Webi
 
-[Webi](https://webinstall.dev/) is a tool that aims to effortlessly install developer tools with easy-to-remember URLs from official builds quickly, without sudo or Admin, without a package manager, and without changing system file permissions.
+[Webi](https://webinstall.dev/) 是一款旨在通过易于记忆的 URL 快速、轻松地安装开发者工具的工具，无需 sudo 或管理员权限，无需软件包管理器，也无需更改系统文件权限。
 
-The [GitHub CLI package](https://webinstall.dev/gh/) is supported by the Webi community with updates powered by [webinstall/webi-installers](https://github.com/webinstall/webi-installers/tree/main/gh).
+[GitHub CLI 软件包](https://webinstall.dev/gh/) 由 Webi 社区提供支持，更新由 [webinstall/webi-installers](https://github.com/webinstall/webi-installers/tree/main/gh) 驱动。
 
-To install:
+安装:
 
 ```shell
 curl -sS https://webi.sh/gh | sh
 ```
 
-To upgrade:
+升级:
 
 ```shell
 webi gh@stable
 ```
 
-## Discouraged
+## 不推荐
 
 > [!WARNING]
-> The GitHub CLI team actively discourages use of the following methods of installation.
+> GitHub CLI 团队明确不鼓励使用以下安装方法。
 
 ### Snap
 
-The [GitHub CLI package](https://snapcraft.io/gh) has [so many issues with Snap](https://github.com/casperdcl/cli/issues/7) as a runtime mechanism for apps like GitHub CLI that our team suggests _never installing gh as a snap_.
+[GitHub CLI 软件包](https://snapcraft.io/gh) 作为像 GitHub CLI 这样的应用的运行时机制，存在 [诸多与 Snap 相关的问题](https://github.com/casperdcl/cli/issues/7)，因此我们的团队建议 _永远不要将 gh 作为 snap 安装_。

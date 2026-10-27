@@ -58,7 +58,7 @@ type finder struct {
 func NewFinder(factory *cmdutil.Factory) PRFinder {
 	if finderForRunCommandStyleTests != nil {
 		f := finderForRunCommandStyleTests
-		finderForRunCommandStyleTests = &mockFinder{err: errors.New("you must use StubFinderForRunCommandStyleTests to stub PR lookups")}
+		finderForRunCommandStyleTests = &mockFinder{err: errors.New("必须使用 StubFinderForRunCommandStyleTests 来为 PR 查找提供 stub")}
 		return f
 	}
 
@@ -74,18 +74,18 @@ func NewFinder(factory *cmdutil.Factory) PRFinder {
 
 var finderForRunCommandStyleTests PRFinder
 
-// StubFinderForRunCommandStyleTests is the NewMockFinder substitute to be used ONLY in runCommand-style tests.
+// StubFinderForRunCommandStyleTests 是 NewMockFinder 的替代品，仅可在 runCommand 风格的测试中使用。
 func StubFinderForRunCommandStyleTests(t *testing.T, selector string, pr *api.PullRequest, repo ghrepo.Interface) *mockFinder {
-	// Create a new mock finder and override the "runCommandFinder" variable so that calls to
-	// NewFinder() will return this mock. This is a bad pattern, and a result of old style runCommand
-	// tests that would ideally be replaced. The reason we need to do this is that the runCommand style tests
-	// construct the cobra command via NewCmd* functions, and then Execute them directly, providing no opportunity
-	// to inject a test double unless it's on the factory, which finder never is, because only PR commands need it.
+	// 创建一个新的 mock finder 并覆盖 "runCommandFinder" 变量，使对 NewFinder() 的调用
+	// 返回该 mock。这是一种不好的模式，是旧式 runCommand 测试的产物，理想情况下应被替换。
+	// 我们需要这样做的原因是: runCommand 风格的测试通过 NewCmd* 函数构造 cobra 命令，
+	// 然后直接执行它们，除非在 factory 上注入测试替身，否则没有机会注入；
+	// 而 finder 从不在 factory 上，因为只有 PR 命令需要它。
 	finder := NewMockFinder(selector, pr, repo)
 	finderForRunCommandStyleTests = finder
 
-	// Ensure that at the end of the test, we reset the "runCommandFinder" variable so that tests are isolated,
-	// at least if they are run sequentially.
+	// 确保测试结束时重置 "runCommandFinder" 变量，使各测试相互隔离
+	// ——至少在顺序运行时如此。
 	t.Cleanup(func() {
 		finderForRunCommandStyleTests = nil
 	})
@@ -93,14 +93,13 @@ func StubFinderForRunCommandStyleTests(t *testing.T, selector string, pr *api.Pu
 }
 
 type FindOptions struct {
-	// Selector can be a number with optional `#` prefix, a branch name with optional `<owner>:` prefix, or
-	// a PR URL.
+	// Selector 可以是带可选 `#` 前缀的编号、带可选 `<owner>:` 前缀的分支名，或 PR URL。
 	Selector string
-	// Fields lists the GraphQL fields to fetch for the PullRequest.
+	// Fields 列出要为 PullRequest 获取的 GraphQL 字段。
 	Fields []string
-	// BaseBranch is the name of the base branch to scope the PR-for-branch lookup to.
+	// BaseBranch 是将按分支查找 PR 的范围限定到的基础分支(base branch)名。
 	BaseBranch string
-	// States lists the possible PR states to scope the PR-for-branch lookup to.
+	// States 列出将按分支查找 PR 的范围限定到的可能 PR 状态。
 	States []string
 
 	DisableProgress bool
@@ -109,9 +108,9 @@ type FindOptions struct {
 }
 
 func (f *finder) Find(opts FindOptions) (*api.PullRequest, ghrepo.Interface, error) {
-	// If we have a URL, we don't need git stuff
+	// 如果我们有 URL，就不需要 git 相关的东西
 	if len(opts.Fields) == 0 {
-		return nil, nil, errors.New("Find error: no fields specified")
+		return nil, nil, errors.New("Find 错误: 未指定任何字段")
 	}
 
 	if repo, prNumber, _, err := ParseURL(opts.Selector); err == nil {
@@ -129,30 +128,30 @@ func (f *finder) Find(opts FindOptions) (*api.PullRequest, ghrepo.Interface, err
 
 	var prRefs PRFindRefs
 	if opts.Selector == "" {
-		// You must be in a git repo for this case to work
+		// 要让这种情况生效，必须处于 git 仓库中
 		currentBranchName, err := f.branchFn()
 		if err != nil {
 			return nil, nil, err
 		}
 		f.branchName = currentBranchName
 
-		// Get the branch config for the current branchName
+		// 获取当前 branchName 的分支配置
 		branchConfig, err := f.gitConfigClient.ReadBranchConfig(context.Background(), f.branchName)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		// Determine if the branch is configured to merge to a special PR ref
+		// 判断该分支是否被配置为合并到特殊的 PR ref
 		prHeadRE := regexp.MustCompile(`^refs/pull/(\d+)/head$`)
 		if m := prHeadRE.FindStringSubmatch(branchConfig.MergeRef); m != nil {
 			prNumber, _ := strconv.Atoi(m[1])
 			f.prNumber = prNumber
 		}
 
-		// Determine the PullRequestRefs from config
+		// 从配置确定 PullRequestRefs
 		if f.prNumber == 0 {
 			prRefsResolver := NewPullRequestFindRefsResolver(
-				// We requested the branch config already, so let's cache that
+				// 已经请求过分支配置，因此缓存它
 				CachedBranchConfigGitConfigClient{
 					CachedBranchConfig: branchConfig,
 					GitConfigClient:    f.gitConfigClient,
@@ -165,15 +164,13 @@ func (f *finder) Find(opts FindOptions) (*api.PullRequest, ghrepo.Interface, err
 			}
 		}
 	} else if f.prNumber == 0 {
-		// You gave me a selector but I couldn't find a PR number (it wasn't a URL)
+		// 你给了我一个 selector，但我没能从中找到 PR 编号(它不是 URL)
 
-		// Try to get a PR number from the selector
+		// 尝试从 selector 获取 PR 编号
 		prNumber, err := strconv.Atoi(strings.TrimPrefix(opts.Selector, "#"))
-		// If opts.Selector is a valid number then assume it is the
-		// PR number unless opts.BaseBranch is specified. This is a
-		// special case for PR create command which will always want
-		// to assume that a numerical selector is a branch name rather
-		// than PR number.
+		// 若 opts.Selector 是有效数字，则假定它就是 PR 编号——除非指定了 opts.BaseBranch。
+		// 这是 PR create 命令的特殊情况，该命令总是希望假定数字型 selector
+		// 是分支名而非 PR 编号。
 		if opts.BaseBranch == "" && err == nil {
 			f.prNumber = prNumber
 		} else {
@@ -192,14 +189,14 @@ func (f *finder) Find(opts FindOptions) (*api.PullRequest, ghrepo.Interface, err
 		}
 	}
 
-	// Set up HTTP client
+	// 设置 HTTP client
 	httpClient, err := f.httpClient()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// TODO: Decouple the PR finder from IO
-	// TODO(josebalius): Should we be guarding here?
+	// TODO: 将 PR finder 与 IO 解耦
+	// TODO(josebalius): 我们应该在这里做保护吗?
 	if !opts.DisableProgress && f.progress != nil {
 		f.progress.StartProgressIndicator()
 		defer f.progress.StopProgressIndicator()
@@ -207,7 +204,7 @@ func (f *finder) Find(opts FindOptions) (*api.PullRequest, ghrepo.Interface, err
 
 	fields := set.NewStringSet()
 	fields.AddValues(opts.Fields)
-	fields.AddValues([]string{"id", "number"}) // for additional preload queries below
+	fields.AddValues([]string{"id", "number"}) // 供下方的附加预加载查询使用
 
 	if fields.Contains("isInMergeQueue") || fields.Contains("isMergeQueueEnabled") {
 		if opts.Detector == nil {
@@ -232,8 +229,8 @@ func (f *finder) Find(opts FindOptions) (*api.PullRequest, ghrepo.Interface, err
 	}
 
 	// TODO projectsV1Deprecation
-	// Remove this block
-	// When removing this, remember to remove `projectCards` from the list of default fields in pr/view.go
+	// 移除此代码块
+	// 移除时，记得从 pr/view.go 的默认字段列表中移除 `projectCards`
 	if fields.Contains("projectCards") {
 		if opts.Detector == nil {
 			cachedClient := api.NewCachedHTTPClient(httpClient, time.Hour*24)
@@ -252,15 +249,14 @@ func (f *finder) Find(opts FindOptions) (*api.PullRequest, ghrepo.Interface, err
 			return pr, f.baseRefRepo, err
 		}
 	} else if prRefs.BaseRepo() != nil && f.branchName != "" {
-		// No PR number, but we have a base repo and branch name.
+		// 没有 PR 编号，但我们有基础仓库和分支名。
 		pr, err = findForRefs(httpClient, prRefs, opts.States, fields.ToSlice())
 		if err != nil {
 			return pr, f.baseRefRepo, err
 		}
 	} else {
-		// If we don't have a PR number or a base repo and branch name,
-		// we can't do anything
-		return nil, f.baseRefRepo, &NotFoundError{fmt.Errorf("no pull requests found")}
+		// 如果我们既没有 PR 编号，也没有基础仓库和分支名，那就无能为力了
+		return nil, f.baseRefRepo, &NotFoundError{fmt.Errorf("未找到任何拉取请求(PR)")}
 	}
 
 	g, _ := errgroup.WithContext(context.Background())
@@ -300,12 +296,11 @@ func (f *finder) Find(opts FindOptions) (*api.PullRequest, ghrepo.Interface, err
 
 var pullURLRE = regexp.MustCompile(`^/([^/]+)/([^/]+)/pull/(\d+)(.*$)`)
 
-// ParseURL parses a pull request URL and returns the repository, pull request
-// number, and any tailing path components. If there is no error, the returned
-// repo is not nil and will have non-empty hostname.
+// ParseURL 解析拉取请求(PR) URL，返回仓库、PR 编号以及任何尾部的路径组成部分。
+// 若没有错误，返回的 repo 不为 nil，且其主机名非空。
 func ParseURL(prURL string) (ghrepo.Interface, int, string, error) {
 	if prURL == "" {
-		return nil, 0, "", fmt.Errorf("invalid URL: %q", prURL)
+		return nil, 0, "", fmt.Errorf("无效的 URL: %q", prURL)
 	}
 
 	u, err := url.Parse(prURL)
@@ -314,12 +309,12 @@ func ParseURL(prURL string) (ghrepo.Interface, int, string, error) {
 	}
 
 	if u.Scheme != "https" && u.Scheme != "http" {
-		return nil, 0, "", fmt.Errorf("invalid scheme: %s", u.Scheme)
+		return nil, 0, "", fmt.Errorf("无效的协议(scheme): %s", u.Scheme)
 	}
 
 	m := pullURLRE.FindStringSubmatch(u.Path)
 	if m == nil {
-		return nil, 0, "", fmt.Errorf("not a pull request URL: %s", prURL)
+		return nil, 0, "", fmt.Errorf("不是拉取请求(PR) URL: %s", prURL)
 	}
 
 	repo := ghrepo.NewWithHost(m[1], m[2], u.Hostname())
@@ -330,21 +325,21 @@ func ParseURL(prURL string) (ghrepo.Interface, int, string, error) {
 
 var fullReferenceRE = regexp.MustCompile(`^(?:([^/]+)/([^/]+))#(\d+)$`)
 
-// ParseFullReference parses a short issue/pull request reference of the form
-// "owner/repo#number", where owner, repo and number are all required.
+// ParseFullReference 解析形如 "owner/repo#number" 的 issue/拉取请求(PR)短引用，
+// 其中 owner、repo 和 number 均为必填。
 func ParseFullReference(s string) (ghrepo.Interface, int, error) {
 	if s == "" {
-		return nil, 0, errors.New("empty reference")
+		return nil, 0, errors.New("引用为空")
 	}
 
 	m := fullReferenceRE.FindStringSubmatch(s)
 	if m == nil {
-		return nil, 0, fmt.Errorf("invalid reference: %q", s)
+		return nil, 0, fmt.Errorf("无效的引用: %q", s)
 	}
 
 	number, err := strconv.Atoi(m[3])
 	if err != nil {
-		return nil, 0, fmt.Errorf("invalid reference: %q; %w", s, err)
+		return nil, 0, fmt.Errorf("无效的引用: %q; %w", s, err)
 	}
 
 	owner := m[1]
@@ -397,7 +392,7 @@ func findForRefs(httpClient *http.Client, prRefs PRFindRefs, stateFilters, field
 
 	fieldSet := set.NewStringSet()
 	fieldSet.AddValues(fields)
-	// these fields are required for filtering below
+	// 这些字段是下方过滤所必需的
 	fieldSet.AddValues([]string{"state", "baseRefName", "headRefName", "isCrossRepository", "headRepositoryOwner"})
 
 	query := fmt.Sprintf(`
@@ -430,7 +425,7 @@ func findForRefs(httpClient *http.Client, prRefs PRFindRefs, stateFilters, field
 	})
 
 	for _, pr := range prs {
-		// When the head is the default branch, it doesn't really make sense to show merged or closed PRs.
+		// 当 head 是默认分支时，显示已合并或已关闭的 PR 并不合理。
 		// https://github.com/cli/cli/issues/4263
 		isNotClosedOrMergedWhenHeadIsDefault := pr.State == "OPEN" || resp.Repository.DefaultBranchRef.Name != prRefs.QualifiedHeadRef()
 		if prRefs.Matches(pr.BaseRefName, pr.HeadLabel()) && isNotClosedOrMergedWhenHeadIsDefault {
@@ -438,7 +433,7 @@ func findForRefs(httpClient *http.Client, prRefs PRFindRefs, stateFilters, field
 		}
 	}
 
-	return nil, &NotFoundError{fmt.Errorf("no pull requests found for branch %q", prRefs.QualifiedHeadRef())}
+	return nil, &NotFoundError{fmt.Errorf("未找到分支 %q 的任何拉取请求(PR)", prRefs.QualifiedHeadRef())}
 }
 
 func preloadPrReviews(httpClient *http.Client, repo ghrepo.Interface, pr *api.PullRequest) error {
@@ -624,7 +619,7 @@ func (err *NotFoundError) Unwrap() error {
 func NewMockFinder(selector string, pr *api.PullRequest, repo ghrepo.Interface) *mockFinder {
 	var err error
 	if pr == nil {
-		err = &NotFoundError{errors.New("no pull requests found")}
+		err = &NotFoundError{errors.New("未找到任何拉取请求(PR)")}
 	}
 	return &mockFinder{
 		expectSelector: selector,
@@ -648,18 +643,18 @@ func (m *mockFinder) Find(opts FindOptions) (*api.PullRequest, ghrepo.Interface,
 		return nil, nil, m.err
 	}
 	if m.expectSelector != opts.Selector {
-		return nil, nil, fmt.Errorf("mockFinder: expected selector %q, got %q", m.expectSelector, opts.Selector)
+		return nil, nil, fmt.Errorf("mockFinder: 期望的 selector 为 %q，实际为 %q", m.expectSelector, opts.Selector)
 	}
 	if len(m.expectFields) > 0 && !isEqualSet(m.expectFields, opts.Fields) {
-		return nil, nil, fmt.Errorf("mockFinder: expected fields %v, got %v", m.expectFields, opts.Fields)
+		return nil, nil, fmt.Errorf("mockFinder: 期望的字段为 %v，实际为 %v", m.expectFields, opts.Fields)
 	}
 	if m.called {
-		return nil, nil, errors.New("mockFinder used more than once")
+		return nil, nil, errors.New("mockFinder 被使用了不止一次")
 	}
 	m.called = true
 
 	if m.pr.HeadRepositoryOwner.Login == "" {
-		// pose as same-repo PR by default
+		// 默认伪装成同仓库 PR
 		m.pr.HeadRepositoryOwner.Login = m.repo.RepoOwner()
 	}
 

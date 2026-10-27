@@ -24,7 +24,7 @@ func Test_HasMinimumScopes(t *testing.T) {
 		{
 			name:    "insufficient scope",
 			header:  "repo",
-			wantErr: "missing required scope 'read:org'",
+			wantErr: "缺少所需的作用域 'read:org'",
 		},
 	}
 	for _, tt := range tests {
@@ -86,12 +86,12 @@ func Test_HeaderHasMinimumScopes(t *testing.T) {
 		{
 			name:    "insufficient scope",
 			header:  "repo",
-			wantErr: "missing required scope 'read:org'",
+			wantErr: "缺少所需的作用域 'read:org'",
 		},
 		{
 			name:    "insufficient scopes",
 			header:  "gist",
-			wantErr: "missing required scopes 'repo', 'read:org'",
+			wantErr: "缺少所需的作用域 'repo', 'read:org'",
 		},
 	}
 	for _, tt := range tests {

@@ -26,7 +26,7 @@ func TestNewCmdArchive(t *testing.T) {
 		{
 			name:    "no arguments no tty",
 			input:   "",
-			errMsg:  "--yes required when not running interactively",
+			errMsg:  "非交互模式下运行时, 需要 --yes",
 			wantErr: true,
 		},
 		{
@@ -78,9 +78,9 @@ func Test_ArchiveRun(t *testing.T) {
 	}{
 		{
 			name:       "unarchived repo tty",
-			wantStdout: "✓ Archived repository OWNER/REPO\n",
+			wantStdout: "✓ 已归档仓库 OWNER/REPO\n",
 			prompterStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterConfirm("Archive OWNER/REPO?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否归档 OWNER/REPO?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
 			},
@@ -97,10 +97,10 @@ func Test_ArchiveRun(t *testing.T) {
 		},
 		{
 			name:       "infer base repo",
-			wantStdout: "✓ Archived repository OWNER/REPO\n",
+			wantStdout: "✓ 已归档仓库 OWNER/REPO\n",
 			opts:       ArchiveOptions{},
 			prompterStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterConfirm("Archive OWNER/REPO?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否归档 OWNER/REPO?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
 			},
@@ -116,7 +116,7 @@ func Test_ArchiveRun(t *testing.T) {
 		},
 		{
 			name:       "archived repo tty",
-			wantStderr: "! Repository OWNER/REPO is already archived\n",
+			wantStderr: "! 仓库 OWNER/REPO 已处于归档状态\n",
 			opts:       ArchiveOptions{RepoArg: "OWNER/REPO"},
 			httpStubs: func(reg *httpmock.Registry) {
 				reg.Register(

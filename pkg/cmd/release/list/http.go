@@ -40,21 +40,17 @@ func (r *Release) ExportData(fields []string) map[string]any {
 
 func fetchReleases(httpClient *http.Client, repo ghrepo.Interface, limit int, excludeDrafts bool, excludePreReleases bool, order string, releaseFeatures fd.ReleaseFeatures) ([]Release, error) {
 	// TODO: immutableReleaseFullSupport
-	// This is a temporary workaround until all supported GHES versions fully
-	// support immutable releases, which would probably be when GHES 3.18 goes
-	// EOL. At that point we can remove this if statement.
+	// 这是一个临时解决方案，直到所有受支持的 GHES 版本都完全支持
+	// 不可变发布(immutable releases)，大概要等 GHES 3.18 EOL 之后。
+	// 届时可以移除这个 if 语句。
 	//
-	// Note 1: This could have been done differently by using two separate query
-	// types or even using plain text/string queries. But, both would require us
-	// to refactor them back in the future, to the single, strongly-typed query
-	// approach as it was before. So, duplicating the entire function for now
-	// seems like the lesser evil, with a quicker and less risky clean up in the
-	// near future.
+	// 注 1: 本可以用两种独立的查询类型，甚至直接用纯文本/字符串查询来实现。
+	// 但这两种方式以后都需要我们重构回之前的单一、强类型查询方式。
+	// 因此，暂时复制整个函数似乎是较小代价的做法，
+	// 未来可以在近期以更快、风险更小的方式完成清理。
 	//
-	// Note 2: We couldn't use GraphQL directives like `@include(condition)` or
-	// `@skip(condition)` here because if the field doesn't exist on the schema
-	// then the whole query would still fail regardless of the condition being
-	// met or not.
+	// 注 2: 这里无法使用 `@include(condition)` 或 `@skip(condition)` 这类 GraphQL 指令，
+	// 因为只要字段在 schema 中不存在，无论条件是否满足，整个查询都会失败。
 	// TODO immutableReleaseFullSupport
 	if !releaseFeatures.ImmutableReleases {
 		return fetchReleasesWithoutImmutableReleases(httpClient, repo, limit, excludeDrafts, excludePreReleases, order)
@@ -116,9 +112,9 @@ loop:
 }
 
 // TODO: immutableReleaseFullSupport
-// This is a temporary workaround until all supported GHES versions fully
-// support immutable releases, which would be when GHES 3.18 goes EOL. At that
-// point we can remove this function.
+// 这是一个临时解决方案，直到所有受支持的 GHES 版本都完全支持
+// 不可变发布(immutable releases)，大概要等 GHES 3.18 EOL 之后。
+// 届时可以移除此函数。
 func fetchReleasesWithoutImmutableReleases(httpClient *http.Client, repo ghrepo.Interface, limit int, excludeDrafts bool, excludePreReleases bool, order string) ([]Release, error) {
 	type releaseOld struct {
 		Name         string

@@ -27,7 +27,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:     "list",
-		Short:   "List available repository gitignore templates",
+		Short:   "列出可用的仓库 gitignore 模板",
 		Aliases: []string{"ls"},
 		Args:    cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -53,7 +53,7 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "starting pager failed: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -64,7 +64,7 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if len(gitIgnoreTemplates) == 0 {
-		return cmdutil.NewNoResultsError("No gitignore templates found")
+		return cmdutil.NewNoResultsError("未找到 gitignore 模板")
 	}
 
 	return renderGitIgnoreTemplatesTable(gitIgnoreTemplates, opts)

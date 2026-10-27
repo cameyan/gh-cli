@@ -20,7 +20,7 @@ import (
 func NewCmdShellAlias(io *iostreams.IOStreams, aliasName, aliasValue string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   aliasName,
-		Short: fmt.Sprintf("Shell alias for %q", text.Truncate(80, aliasValue)),
+		Short: fmt.Sprintf("%q 的 shell 别名", text.Truncate(80, aliasValue)),
 		RunE: func(c *cobra.Command, args []string) error {
 			expandedArgs, err := expandShellAlias(aliasValue, args, nil)
 			if err != nil {
@@ -35,7 +35,7 @@ func NewCmdShellAlias(io *iostreams.IOStreams, aliasName, aliasValue string) *co
 				if execError, ok := errors.AsType[*exec.ExitError](err); ok {
 					return &ExternalCommandExitError{execError}
 				}
-				return fmt.Errorf("failed to run external command: %w\n", err)
+				return fmt.Errorf("运行外部命令失败: %w\n", err)
 			}
 			return nil
 		},
@@ -43,9 +43,8 @@ func NewCmdShellAlias(io *iostreams.IOStreams, aliasName, aliasValue string) *co
 		DisableFlagParsing: true,
 	}
 	cmdutil.DisableAuthCheck(cmd)
-	// Aliases are user-defined names and must not be reported as telemetry
-	// dimensions, since the name itself may be sensitive (e.g. project or
-	// organization names).
+	// 别名(alias)是用户定义的名称，不得作为遥测(telemetry)维度上报，
+	// 因为名称本身可能包含敏感信息(例如项目或组织名称)。
 	cmdutil.DisableTelemetry(cmd)
 	return cmd
 }
@@ -53,7 +52,7 @@ func NewCmdShellAlias(io *iostreams.IOStreams, aliasName, aliasValue string) *co
 func NewCmdAlias(io *iostreams.IOStreams, aliasName, aliasValue string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   aliasName,
-		Short: fmt.Sprintf("Alias for %q", text.Truncate(80, aliasValue)),
+		Short: fmt.Sprintf("%q 的别名", text.Truncate(80, aliasValue)),
 		RunE: func(c *cobra.Command, args []string) error {
 			expandedArgs, err := expandAlias(aliasValue, args)
 			if err != nil {
@@ -70,14 +69,13 @@ func NewCmdAlias(io *iostreams.IOStreams, aliasName, aliasValue string) *cobra.C
 		},
 	}
 	cmdutil.DisableAuthCheck(cmd)
-	// Aliases are user-defined names and must not be reported as telemetry
-	// dimensions, since the name itself may be sensitive (e.g. project or
-	// organization names).
+	// 别名(alias)是用户定义的名称，不得作为遥测(telemetry)维度上报，
+	// 因为名称本身可能包含敏感信息(例如项目或组织名称)。
 	cmdutil.DisableTelemetry(cmd)
 	return cmd
 }
 
-// ExpandAlias processes argv to see if it should be rewritten according to a user's aliases.
+// ExpandAlias 处理 argv，判断是否应根据用户的别名(alias)进行重写。
 func expandAlias(expansion string, args []string) ([]string, error) {
 	extraArgs := []string{}
 	for i, a := range args {
@@ -90,7 +88,7 @@ func expandAlias(expansion string, args []string) ([]string, error) {
 
 	lingeringRE := regexp.MustCompile(`\$\d`)
 	if lingeringRE.MatchString(expansion) {
-		return nil, fmt.Errorf("not enough arguments for alias: %s", expansion)
+		return nil, fmt.Errorf("别名参数不足: %s", expansion)
 	}
 
 	newArgs, err := shlex.Split(expansion)
@@ -103,7 +101,7 @@ func expandAlias(expansion string, args []string) ([]string, error) {
 	return expanded, nil
 }
 
-// ExpandShellAlias processes argv to see if it should be rewritten according to a user's aliases.
+// ExpandShellAlias 处理 argv，判断是否应根据用户的别名(alias)进行重写。
 func expandShellAlias(expansion string, args []string, findShFunc func() (string, error)) ([]string, error) {
 	if findShFunc == nil {
 		findShFunc = findSh
@@ -129,9 +127,9 @@ func findSh() (string, error) {
 	if err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
 			if runtime.GOOS == "windows" {
-				return "", errors.New("unable to locate sh to execute the shell alias with. The sh.exe interpreter is typically distributed with Git for Windows.")
+				return "", errors.New("无法找到用于执行 shell 别名的 sh，sh.exe 解释器通常随 Git for Windows 一起分发。")
 			}
-			return "", errors.New("unable to locate sh to execute shell alias with")
+			return "", errors.New("无法找到用于执行 shell 别名的 sh")
 		}
 		return "", err
 	}

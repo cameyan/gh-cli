@@ -39,7 +39,7 @@ func Test_runAdd(t *testing.T) {
 					}))
 			},
 			wantStdout: "",
-			wantStderr: "✓ Public key added to your account\n",
+			wantStderr: "✓ 公钥已添加到您的账户\n",
 			wantErrMsg: "",
 			opts:       AddOptions{KeyFile: "-"},
 		},
@@ -58,7 +58,7 @@ func Test_runAdd(t *testing.T) {
 					}))
 			},
 			wantStdout: "",
-			wantStderr: "✓ Public key added to your account\n",
+			wantStderr: "✓ 公钥已添加到您的账户\n",
 			wantErrMsg: "",
 			opts:       AddOptions{KeyFile: "-", Type: "signing"},
 		},
@@ -77,7 +77,7 @@ func Test_runAdd(t *testing.T) {
 					]`))
 			},
 			wantStdout: "",
-			wantStderr: "✓ Public key already exists on your account\n",
+			wantStderr: "✓ 公钥已存在于您的账户中\n",
 			wantErrMsg: "",
 			opts:       AddOptions{KeyFile: "-"},
 		},
@@ -96,7 +96,7 @@ func Test_runAdd(t *testing.T) {
 					]`))
 			},
 			wantStdout: "",
-			wantStderr: "✓ Public key already exists on your account\n",
+			wantStderr: "✓ 公钥已存在于您的账户中\n",
 			wantErrMsg: "",
 			opts:       AddOptions{KeyFile: "-", Type: "signing"},
 		},
@@ -105,7 +105,7 @@ func Test_runAdd(t *testing.T) {
 			stdin:      "ssh-ed25519",
 			wantStdout: "",
 			wantStderr: "",
-			wantErrMsg: "provided key is not in a valid format",
+			wantErrMsg: "提供的密钥格式无效",
 			opts:       AddOptions{KeyFile: "-"},
 		},
 		{
@@ -113,7 +113,7 @@ func Test_runAdd(t *testing.T) {
 			stdin:      "ssh-ed25519",
 			wantStdout: "",
 			wantStderr: "",
-			wantErrMsg: "provided key is not in a valid format",
+			wantErrMsg: "提供的密钥格式无效",
 			opts:       AddOptions{KeyFile: "-", Type: "signing"},
 		},
 	}

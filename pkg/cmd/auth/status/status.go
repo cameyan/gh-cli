@@ -90,12 +90,12 @@ func (e authEntry) String(cs *iostreams.ColorScheme) string {
 	switch e.State {
 	case authEntryStateSuccess:
 		sb.WriteString(
-			fmt.Sprintf("  %s Logged in to %s account %s (%s)\n", cs.SuccessIcon(), e.Host, cs.Bold(e.Login), e.TokenSource),
+			fmt.Sprintf("  %s 已登录 %s 的账户 %s (%s)\n", cs.SuccessIcon(), e.Host, cs.Bold(e.Login), e.TokenSource),
 		)
 		activeStr := fmt.Sprintf("%v", e.Active)
-		sb.WriteString(fmt.Sprintf("  - Active account: %s\n", cs.Bold(activeStr)))
-		sb.WriteString(fmt.Sprintf("  - Git operations protocol: %s\n", cs.Bold(e.GitProtocol)))
-		sb.WriteString(fmt.Sprintf("  - Token: %s\n", cs.Bold(e.Token)))
+		sb.WriteString(fmt.Sprintf("  - 活跃账户: %s\n", cs.Bold(activeStr)))
+		sb.WriteString(fmt.Sprintf("  - Git 操作协议: %s\n", cs.Bold(e.GitProtocol)))
+		sb.WriteString(fmt.Sprintf("  - 令牌: %s\n", cs.Bold(e.Token)))
 
 		if e.Refreshable {
 			e.writeExpiry(&sb, cs)
@@ -105,15 +105,15 @@ func (e authEntry) String(cs *iostreams.ColorScheme) string {
 		}
 
 		if expectScopes(e.Token) {
-			sb.WriteString(fmt.Sprintf("  - Token scopes: %s\n", cs.Bold(displayScopes(e.Scopes))))
+			sb.WriteString(fmt.Sprintf("  - 令牌作用域: %s\n", cs.Bold(displayScopes(e.Scopes))))
 			if err := shared.HeaderHasMinimumScopes(e.Scopes); err != nil {
 				if missingScopesError, ok := errors.AsType[*shared.MissingScopesError](err); ok {
 					missingScopes := strings.Join(missingScopesError.MissingScopes, ",")
-					sb.WriteString(fmt.Sprintf("  %s Missing required token scopes: %s\n",
+					sb.WriteString(fmt.Sprintf("  %s 缺少所需的令牌作用域: %s\n",
 						cs.WarningIcon(),
 						cs.Bold(displayScopes(missingScopes))))
 					refreshInstructions := fmt.Sprintf("gh auth refresh -h %s", e.Host)
-					sb.WriteString(fmt.Sprintf("  - To request missing scopes, run: %s\n", cs.Bold(refreshInstructions)))
+					sb.WriteString(fmt.Sprintf("  - 若要请求缺失的作用域，请运行: %s\n", cs.Bold(refreshInstructions)))
 				}
 			}
 		}
@@ -133,28 +133,28 @@ func (e authEntry) String(cs *iostreams.ColorScheme) string {
 			break
 		}
 		if e.Login != "" {
-			sb.WriteString(fmt.Sprintf("  %s Failed to log in to %s account %s (%s)\n", cs.Red("X"), e.Host, cs.Bold(e.Login), e.TokenSource))
+			sb.WriteString(fmt.Sprintf("  %s 登录 %s 的账户 %s 失败 (%s)\n", cs.Red("X"), e.Host, cs.Bold(e.Login), e.TokenSource))
 		} else {
-			sb.WriteString(fmt.Sprintf("  %s Failed to log in to %s using token (%s)\n", cs.Red("X"), e.Host, e.TokenSource))
+			sb.WriteString(fmt.Sprintf("  %s 使用令牌登录 %s 失败 (%s)\n", cs.Red("X"), e.Host, e.TokenSource))
 		}
 		activeStr := fmt.Sprintf("%v", e.Active)
-		sb.WriteString(fmt.Sprintf("  - Active account: %s\n", cs.Bold(activeStr)))
-		sb.WriteString(fmt.Sprintf("  - The token in %s is invalid.\n", e.TokenSource))
+		sb.WriteString(fmt.Sprintf("  - 活跃账户: %s\n", cs.Bold(activeStr)))
+		sb.WriteString(fmt.Sprintf("  - %s 中的令牌无效。\n", e.TokenSource))
 		if authTokenWriteable(e.TokenSource) {
 			loginInstructions := fmt.Sprintf("gh auth login -h %s", e.Host)
 			if shared.AuthTokenRefreshable(e.Token, e.TokenSource) {
 				loginInstructions = fmt.Sprintf("gh auth refresh -h %s", e.Host)
 			}
 			logoutInstructions := fmt.Sprintf("gh auth logout -h %s -u %s", e.Host, e.Login)
-			sb.WriteString(fmt.Sprintf("  - To re-authenticate, run: %s\n", cs.Bold(loginInstructions)))
-			sb.WriteString(fmt.Sprintf("  - To forget about this account, run: %s\n", cs.Bold(logoutInstructions)))
+			sb.WriteString(fmt.Sprintf("  - 若要重新进行身份验证，请运行: %s\n", cs.Bold(loginInstructions)))
+			sb.WriteString(fmt.Sprintf("  - 若要忘记此账户，请运行: %s\n", cs.Bold(logoutInstructions)))
 		}
 
 	case authEntryStateTimeout:
 		if e.Login != "" {
-			sb.WriteString(fmt.Sprintf("  %s Timeout trying to log in to %s account %s (%s)\n", cs.Red("X"), e.Host, cs.Bold(e.Login), e.TokenSource))
+			sb.WriteString(fmt.Sprintf("  %s 登录 %s 的账户 %s 时超时 (%s)\n", cs.Red("X"), e.Host, cs.Bold(e.Login), e.TokenSource))
 		} else {
-			sb.WriteString(fmt.Sprintf("  %s Timeout trying to log in to %s using token (%s)\n", cs.Red("X"), e.Host, e.TokenSource))
+			sb.WriteString(fmt.Sprintf("  %s 使用令牌登录 %s 时超时 (%s)\n", cs.Red("X"), e.Host, e.TokenSource))
 		}
 		activeStr := fmt.Sprintf("%v", e.Active)
 		sb.WriteString(fmt.Sprintf("  - Active account: %s\n", cs.Bold(activeStr)))
@@ -211,38 +211,38 @@ func NewCmdStatus(f *cmdutil.Factory, runF func(*StatusOptions) error) *cobra.Co
 	cmd := &cobra.Command{
 		Use:   "status",
 		Args:  cobra.ExactArgs(0),
-		Short: "Display active account and authentication state on each known GitHub host",
+		Short: "显示每个已知 GitHub 主机上的活跃账户和身份验证状态",
 		Long: heredoc.Docf(`
-			Display active account and authentication state on each known GitHub host.
+			显示每个已知 GitHub 主机上的活跃账户和身份验证状态。
 
-			For each host, the authentication state of each known account is tested and any issues are included in the output.
-			Each host section will indicate the active account, which will be used when targeting that host.
+			对于每个主机，将测试每个已知账户的身份验证状态，任何问题都会包含在输出中。
+			每个主机部分将指示活跃账户，访问该主机时将使用该账户。
 
-			If an account on any host (or only the one given via %[1]s--hostname%[1]s) has authentication issues,
-			the command will exit with 1 and output to stderr. Note that when using the %[1]s--json%[1]s option, the command
-			will always exit with zero regardless of any authentication issues, unless there is a fatal error.
+			如果任何主机上的账户(或仅 %[1]s--hostname%[1]s 指定的主机上的账户)存在身份验证问题，
+			该命令将以退出码 1 退出并将结果输出到 stderr。注意，使用 %[1]s--json%[1]s 选项时，该命令
+			将始终以零退出，除非发生致命错误，与身份验证问题无关。
 
 			Any expired or near-expiry token that supports refreshing is refreshed automatically, unless %[1]s--no-refresh%[1]s is given.
 
 			To change the active account for a host, see %[1]sgh auth switch%[1]s.
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Display authentication status for all accounts on all hosts
+			# 显示所有主机上所有账户的身份验证状态
 			$ gh auth status
 
-			# Display authentication status for the active account on a specific host
+			# 显示特定主机上活跃账户的身份验证状态
 			$ gh auth status --active --hostname github.example.com
-			
-			# Display tokens in plain text
+
+			# 以纯文本显示令牌
 			$ gh auth status --show-token
 
-			# Format authentication status as JSON
+			# 将身份验证状态格式化为 JSON
 			$ gh auth status --json hosts
 
-			# Include plain text token in JSON output
+			# 在 JSON 输出中包含纯文本令牌
 			$ gh auth status --json hosts --show-token
 
-			# Format hosts as a flat JSON array
+			# 将 hosts 格式化为扁平的 JSON 数组
 			$ gh auth status --json hosts --jq '.hosts | add'
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -259,7 +259,7 @@ func NewCmdStatus(f *cmdutil.Factory, runF func(*StatusOptions) error) *cobra.Co
 	cmd.Flags().BoolVarP(&opts.Active, "active", "a", false, "Display the active account only")
 	cmd.Flags().BoolVar(&opts.NoRefresh, "no-refresh", false, "Do not automatically refresh expired tokens")
 
-	// the json flags are intentionally not given a shorthand to avoid conflict with -t/--show-token
+	// json 标志刻意不设置简写，以避免与 -t/--show-token 冲突
 	cmdutil.AddJSONFlagsWithoutShorthand(cmd, &opts.Exporter, authStatusFields)
 
 	return cmd
@@ -279,9 +279,9 @@ func statusRun(opts *StatusOptions) error {
 	hostnames := authCfg.Hosts()
 	if len(hostnames) == 0 {
 		fmt.Fprintf(stderr,
-			"You are not logged into any GitHub hosts. To log in, run: %s\n", cs.Bold("gh auth login"))
+			"您尚未登录任何 GitHub 主机。若要登录，请运行: %s\n", cs.Bold("gh auth login"))
 		if opts.Exporter != nil {
-			// In machine-friendly mode, we always exit with no error.
+			// 在机器友好模式下，我们始终以无错误状态退出。
 			opts.Exporter.Write(opts.IO, newAuthStatus())
 			return nil
 		}
@@ -290,9 +290,9 @@ func statusRun(opts *StatusOptions) error {
 
 	if opts.Hostname != "" && !slices.Contains(hostnames, opts.Hostname) {
 		fmt.Fprintf(stderr,
-			"You are not logged into any accounts on %s\n", opts.Hostname)
+			"您尚未在 %s 上登录任何账户\n", opts.Hostname)
 		if opts.Exporter != nil {
-			// In machine-friendly mode, we always exit with no error.
+			// 在机器友好模式下，我们始终以无错误状态退出。
 			opts.Exporter.Write(opts.IO, newAuthStatus())
 			return nil
 		}
@@ -364,7 +364,7 @@ func statusRun(opts *StatusOptions) error {
 		for _, host := range statuses.Hosts {
 			for i := range host {
 				if opts.Exporter != nil {
-					// In machine-readable we just drop the token
+					// 在机器可读模式中，我们直接丢弃令牌
 					host[i].Token = ""
 				} else {
 					host[i].Token = maskToken(host[i].Token)
@@ -374,7 +374,7 @@ func statusRun(opts *StatusOptions) error {
 	}
 
 	if opts.Exporter != nil {
-		// In machine-friendly mode, we always exit with no error.
+		// 在机器友好模式下，我们始终以无错误状态退出。
 		opts.Exporter.Write(opts.IO, statuses)
 		return nil
 	}
@@ -407,11 +407,11 @@ func statusRun(opts *StatusOptions) error {
 	return finalErr
 }
 
-// knownTokenPrefixes contains GitHub's token format prefixes.
-// See [GitHub token formats].
+// knownTokenPrefixes 包含 GitHub 的令牌格式前缀。
+// 参见 [GitHub token formats]。
 //
-// TODO: gh.TokenTypes now carries these same prefixes, so this list duplicates
-// it. Use that instead.
+// TODO: gh.TokenTypes 现在带有相同的前缀，因此此列表与之重复。
+// 改用那个。
 //
 // [GitHub token formats]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github#githubs-token-formats
 var knownTokenPrefixes = []string{"github_pat_", "ghp_", "gho_", "ghu_", "ghs_", "ghr_"}
@@ -427,7 +427,7 @@ func maskToken(token string) string {
 
 func displayScopes(scopes string) string {
 	if scopes == "" {
-		return "none"
+		return "无"
 	}
 	list := strings.Split(scopes, ",")
 	for i, s := range list {
@@ -436,8 +436,8 @@ func displayScopes(scopes string) string {
 	return strings.Join(list, ", ")
 }
 
-// TODO: this matches a token prefix itself. It could ask
-// gh.AuthConfig.ActiveTokenType instead.
+// TODO: 它自行匹配令牌前缀。本可以改问
+// gh.AuthConfig.ActiveTokenType。
 func expectScopes(token string) bool {
 	return strings.HasPrefix(token, "ghp_") || strings.HasPrefix(token, "gho_")
 }
@@ -482,11 +482,11 @@ func buildEntry(httpClient *http.Client, opts buildEntryOptions) authEntry {
 		return entry
 	}
 
-	// If token is not writeable, then it came from an environment variable and
-	// we need to fetch the username as it won't be stored in the config.
+	// 如果令牌不可写，则它来自环境变量，
+	// 我们需要获取用户名，因为它不会存储在配置中。
 	if !authTokenWriteable(tokenSource) {
-		// The httpClient will automatically use the correct token here as
-		// the token from the environment variable take highest precedence.
+		// httpClient 会自动使用正确的令牌，因为
+		// 来自环境变量的令牌具有最高优先级。
 		apiClient := api.NewClientFromHTTP(httpClient)
 		var err error
 		entry.Login, err = api.CurrentLoginName(apiClient, opts.hostname)

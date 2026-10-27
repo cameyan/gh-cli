@@ -31,13 +31,13 @@ func TestExpandAlias(t *testing.T) {
 			name:      "not enough arguments for expansion",
 			expansion: `issue list --author="$1" --label="$2"`,
 			args:      []string{},
-			wantErr:   `not enough arguments for alias: issue list --author="$1" --label="$2"`,
+			wantErr:   `别名参数不足: issue list --author="$1" --label="$2"`,
 		},
 		{
 			name:      "not enough arguments for expansion 2",
 			expansion: `issue list --author="$1" --label="$2"`,
 			args:      []string{"vilmibm"},
-			wantErr:   `not enough arguments for alias: issue list --author="vilmibm" --label="$2"`,
+			wantErr:   `别名参数不足: issue list --author="vilmibm" --label="$2"`,
 		},
 		{
 			name:         "satisfy expansion arguments",

@@ -43,11 +43,11 @@ func (flow *GitCredentialFlow) Prompt(hostname string, expiring bool) error {
 	// First we'll fetch the credential helper that would be used for this host
 	var configuredHelperErr error
 	flow.helper, configuredHelperErr = flow.HelperConfig.ConfiguredHelper(hostname)
-	// If the helper is gh itself, then we don't need to ask the user if they want to update their git credentials
-	// because it will happen automatically by virtue of the fact that gh will return the active token.
+	// 如果助手就是 gh 本身，则无需询问用户是否要更新其 git 凭据，
+	// 因为 gh 会返回活跃令牌，这一步会自动完成。
 	//
-	// Since gh is the helper, this token may be used for git operations, so we'll additionally request the workflow
-	// scope to ensure that git push operations that include workflow changes succeed.
+	// 由于助手是 gh，此令牌可能被用于 git 操作，因此我们将额外请求 workflow
+	// 作用域(scope)，以确保包含 workflow 变更的 git push 操作能够成功。
 	if flow.helper.IsOurs() {
 		flow.scopes = append(flow.scopes, "workflow")
 		return nil
@@ -67,23 +67,23 @@ func (flow *GitCredentialFlow) Prompt(hostname string, expiring bool) error {
 	flow.shouldSetup = result
 
 	if flow.shouldSetup {
-		// If the user does want to configure git, we'll check the error returned from fetching the configured helper
-		// above. If the error indicates that git isn't installed, we'll return an error now to ensure that the auth
-		// flow is aborted before the user goes any further.
+		// 如果用户确实想配置 git，我们将检查上面获取已配置助手时返回的错误。
+		// 如果错误表明未安装 git，我们现在就返回该错误，以确保在用户继续操作之前
+		// 中止身份验证流程。
 		//
-		// Note that this is _slightly_ naive because there may be other reasons that fetching the configured helper
-		// fails that might cause later failures but this code has existed for a long time and I don't want to change
-		// it as part of a refactoring.
+		// 请注意，这_略微_有些天真，因为获取已配置助手失败可能还有其它原因，
+		// 这些原因可能导致后续失败，但这段代码已存在很长时间了，
+		// 我不希望在重构中更改它。
 		//
-		// Refs:
+		// 参考:
 		//  * https://git-scm.com/docs/git-config#_description
 		//  * https://github.com/cli/cli/pull/4109
 		if _, ok := errors.AsType[*git.NotInstalled](configuredHelperErr); ok {
 			return configuredHelperErr
 		}
 
-		// On the other hand, if the user has requested setup we'll additionally request the workflow
-		// scope to ensure that git push operations that include workflow changes succeed.
+		// 另一方面，如果用户请求了配置，我们将额外请求 workflow
+		// 作用域(scope)，以确保包含 workflow 变更的 git push 操作能够成功。
 		flow.scopes = append(flow.scopes, "workflow")
 	}
 
