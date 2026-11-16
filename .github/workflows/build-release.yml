@@ -156,6 +156,6 @@ jobs:
           popd
           # 关联触发的 tag（如 v2.103.3-zh）创建正式版 Release，标题设为 v2.103.3
           script/label-assets dist/gh_* | xargs gh release create "$RAW_TAG" \
-	        --title "$RELEASE_TITLE" \
-	        --target "$GITHUB_SHA" \
+            --title "$RELEASE_TITLE" \
+            --target "$GITHUB_SHA" \
             --notes "自动化 CI 构建和制品发布 (tag: ${RAW_TAG}, commit_id: ${GITHUB_SHA})"
