@@ -81,7 +81,7 @@ jobs:
         shell: bash
         env:
           RAW_REF: ${{ github.ref_name }}
-          DO_SIGN_ARTIFACTS: "false"
+          DO_SIGN_ARTIFACTS: false
         run: |
           # 去掉末尾的 -zh 并拼接 7 位短提交 ID（例如 v2.103.3-a1b2c3d）
           BASE_TAG="${RAW_REF%-zh}-${GITHUB_SHA::7}"
