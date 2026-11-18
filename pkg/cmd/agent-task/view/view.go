@@ -67,9 +67,9 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view [<session-id> | <pr-number> | <pr-url> | <pr-branch>]",
-		Short: "查看 agent 任务会话(预览)",
+		Short: "查看 agent 任务会话(预览版)",
 		Long: heredoc.Doc(`
-			查看 agent 任务会话。
+			查看 agent 任务会话
 		`),
 		Example: heredoc.Doc(`
 			# 按 session ID 查看 agent 任务

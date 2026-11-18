@@ -57,8 +57,8 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 	}
 
 	cmd := &cobra.Command{
-		Use:   "create [<task description>] [flags]",
-		Short: "创建 agent 任务(预览)",
+		Use:   "create [<任务描述>] [flags]",
+		Short: "创建 agent 任务(预览版)",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// 支持 -R/--repo 覆盖
@@ -172,7 +172,7 @@ func createRun(opts *CreateOptions) error {
 
 	if opts.Follow {
 		opts.IO.StopProgressIndicator()
-		fmt.Fprintf(opts.IO.Out, "正在显示任务 %s 的会话日志。按 Ctrl+C 停止。\n", job.ID)
+		fmt.Fprintf(opts.IO.Out, "正在显示任务 %s 的会话日志，按 Ctrl+C 停止。\n", job.ID)
 		return followLogs(opts, client, job.SessionID)
 	}
 

@@ -27,12 +27,12 @@ import (
 func NewCmdPR(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pr <command>",
-		Short: "Manage pull requests",
+		Short: "管理 PR",
 		Long: heredoc.Docf(`
-			Work with GitHub pull requests.
+			使用 GitHub 拉取请求。
 
-			To wait for a pull request on %[1]sgithub.com%[1]s to be reviewed, merged, or closed, use %[1]sgh event listen%[1]s instead of polling.
-			Changes made before the listener starts are not reported, so read the pull request once it is listening.
+			要等待 %[1]sgithub.com%[1]s 上的 PR 被审查、合并或关闭，请使用 %[1]sgh event listen%[1]s 而不是轮询。
+            监听器启动前发生的变更不会被报告，因此请在监听器开始监听后读取一次 PR。
 		`, "`"),
 		Example: heredoc.Doc(`
 			$ gh pr checkout 353
@@ -41,10 +41,10 @@ func NewCmdPR(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder) *cob
 		`),
 		Annotations: map[string]string{
 			"help:arguments": heredoc.Doc(`
-				拉取请求(PR)可以以下任意格式作为参数提供:
-				- 通过编号，例如 "123";
-				- 通过 URL，例如 "https://github.com/OWNER/REPO/pull/123"; 或
-				- 通过其 head 分支名，例如 "patch-1" 或 "OWNER:patch-1"。
+				PR 可以以下任意格式作为参数提供:
+				- 通过编号，例如: "123"
+				- 通过 URL，例如: "https://github.com/OWNER/REPO/pull/123"
+				- 通过其 head 分支名，例如: "patch-1" 或 "OWNER:patch-1"
 			`),
 		},
 		GroupID: "core",

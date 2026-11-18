@@ -39,11 +39,11 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "列出 agent task(预览版)",
+		Short: "列出 agent 任务(预览版)",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Limit < 1 {
-				return cmdutil.FlagErrorf("无效的 limit: %v", opts.Limit)
+				return cmdutil.FlagErrorf("无效的限制值: %v", opts.Limit)
 			}
 			if runF != nil {
 				return runF(opts)

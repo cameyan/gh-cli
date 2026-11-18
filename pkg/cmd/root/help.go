@@ -156,7 +156,8 @@ func WriteHelp(w io.Writer, cs *iostreams.ColorScheme, command *cobra.Command) {
 	for _, g := range GroupedCommands(command) {
 		var names []string
 		for _, c := range g.Commands {
-			names = append(names, rpad(c.Name()+":", namePadding)+c.Short)
+		    // 移除命令名称后面的 : 字符  `c.Name()+":"` --> `c.Name()`
+			names = append(names, rpad(c.Name(), namePadding)+c.Short)
 		}
 		helpEntries = append(helpEntries, helpEntry{
 			Title: strings.ToUpper(g.Title),
@@ -167,13 +168,16 @@ func WriteHelp(w io.Writer, cs *iostreams.ColorScheme, command *cobra.Command) {
 	if isRootCmd(command) {
 		var helpTopics []string
 		if c := findCommand(command, "accessibility"); c != nil {
-			helpTopics = append(helpTopics, rpad(c.Name()+":", namePadding)+c.Short)
+		    // 移除命令名称后面的 : 字符  `c.Name()+":"` --> `c.Name()`
+			helpTopics = append(helpTopics, rpad(c.Name(), namePadding)+c.Short)
 		}
 		if c := findCommand(command, "actions"); c != nil {
-			helpTopics = append(helpTopics, rpad(c.Name()+":", namePadding)+c.Short)
+		    // 移除命令名称后面的 : 字符  `c.Name()+":"` --> `c.Name()`
+			helpTopics = append(helpTopics, rpad(c.Name(), namePadding)+c.Short)
 		}
 		for _, helpTopic := range HelpTopics {
-			helpTopics = append(helpTopics, rpad(helpTopic.name+":", namePadding)+helpTopic.short)
+		    // 移除命令名称后面的 : 字符  `c.Name()+":"` --> `c.Name()`
+			helpTopics = append(helpTopics, rpad(helpTopic.name, namePadding)+helpTopic.short)
 		}
 		sort.Strings(helpTopics)
 		helpEntries = append(helpEntries, helpEntry{"帮助主题:", strings.Join(helpTopics, "\n")})

@@ -431,7 +431,7 @@ var genericToolCallNamesToTitles = map[string]string{
 	"codeql_checker": "运行 CodeQL 分析",
 
 	// Playwright tools.
-	"playwright-browser_navigate":         "在 Playwright 浏览器中导航至某个 URL",
+	"playwright-browser_navigate":         "在 Playwright 浏览器中导航至某个链接",
 	"playwright-browser_navigate_back":    "在 Playwright 浏览器中返回上一页",
 	"playwright-browser_navigate_forward": "在 Playwright 浏览器中前进到下一页",
 	"playwright-browser_click":            "在 Playwright 浏览器中点击元素",

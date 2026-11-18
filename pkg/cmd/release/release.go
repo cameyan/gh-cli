@@ -18,7 +18,7 @@ import (
 func NewCmdRelease(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "release <command>",
-		Short:   "管理发布(release)",
+		Short:   "管理 release",
 		GroupID: "core",
 	}
 

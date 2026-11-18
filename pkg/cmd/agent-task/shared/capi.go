@@ -36,7 +36,7 @@ func CapiClientFunc(f *cmdutil.Factory) func() (capi.CapiClient, error) {
 		cachedClient := api.NewCachedHTTPClient(httpClient, time.Minute*10)
 		capiBaseURL, err := resolveCapiURL(cachedClient, host)
 		if err != nil {
-			return nil, fmt.Errorf("解析 Copilot API URL 失败: %w", err)
+			return nil, fmt.Errorf("解析 Copilot API 链接失败: %w", err)
 		}
 
 		// The CAPI client authenticates by setting the token header itself, which bypasses the base HTTP client's
@@ -62,7 +62,7 @@ func resolveCapiURL(httpClient *http.Client, host string) (string, error) {
 	}
 
 	if resp.Viewer.CopilotEndpoints.Api == "" {
-		return "", errors.New("返回的 Copilot API URL 为空")
+		return "", errors.New("返回的 Copilot API 链接为空")
 	}
 
 	return resp.Viewer.CopilotEndpoints.Api, nil
@@ -84,7 +84,7 @@ func ParseSessionIDFromURL(u string) (string, error) {
 
 	match := agentSessionURLRegexp.FindStringSubmatch(rest)
 	if match == nil {
-		return "", errors.New("不是有效的 agent session URL")
+		return "", errors.New("不是有效的 agent session 链接")
 	}
 	return match[1], nil
 }

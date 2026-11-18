@@ -20,7 +20,7 @@ func NewCmdAgentTask(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "agent-task <command>",
 		Aliases: []string{"agent-tasks", "agent", "agents"},
-		Short:   "操作 agent task(预览版)",
+		Short:   "操作 agent 任务(预览版)",
 		Long: heredoc.Doc(`
 			在 GitHub CLI 中操作 agent 任务目前处于预览阶段，可能会在不另行通知的情况下变更。
 		`),
@@ -31,16 +31,16 @@ func NewCmdAgentTask(f *cmdutil.Factory) *cobra.Command {
 				- 通过 session ID，例如 "12345abc-12345-12345-12345-12345abc"
 				- 通过 URL，例如 "https://github.com/OWNER/REPO/pull/123/agent-sessions/12345abc-12345-12345-12345-12345abc"
 
-				对于非交互式使用场景，不建议通过 PR 来标识 task，因为给定的 PR 可能存在多个需要区分的任务。
+				对于非交互式使用场景，不建议通过 PR 来标识任务，因为给定的 PR 可能存在多个需要区分的任务。
 			`),
 		},
 		Example: heredoc.Doc(`
 			# 列出你最近的 agent 任务
 			$ gh agent-task list
-			
+
 			# 在当前仓库创建一个新的 agent 任务
 			$ gh agent-task create "提升数据处理管道的性能"
-			
+
 			# 查看与某个 PR 关联的 agent 任务详情
 			$ gh agent-task view 123
 
