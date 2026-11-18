@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CreateOptions holds the configuration for the discussion create command.
+// CreateOptions 保存 discussion create 命令的配置。
 type CreateOptions struct {
 	IO       *iostreams.IOStreams
 	BaseRepo func() (ghrepo.Interface, error)
@@ -28,7 +28,7 @@ type CreateOptions struct {
 	Labels   []string
 }
 
-// NewCmdCreate returns a cobra command for creating a GitHub Discussion.
+// NewCmdCreate 返回用于创建 GitHub 讨论的 cobra 命令。
 func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Command {
 	opts := &CreateOptions{
 		IO:       f.IOStreams,
@@ -38,18 +38,18 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "create [flags]",
-		Short: "Create a new discussion (preview)",
+		Short: "创建新的讨论(预览版)",
 		Long: heredoc.Docf(`
-			Create a new GitHub Discussion in a repository.
+			在仓库中创建新的 GitHub 讨论。
 
-			With %[1]s--title%[1]s, %[1]s--body%[1]s (or %[1]s--body-file%[1]s), and %[1]s--category%[1]s, a discussion is created non-interactively.
-			Omitting any of these flags triggers interactive prompts when connected to a terminal.
+			当提供 %[1]s--title%[1]s、%[1]s--body%[1]s(或 %[1]s--body-file%[1]s)和 %[1]s--category%[1]s 时，将以非交互方式创建讨论。
+			在连接到终端的情况下，省略上述任一标志都会触发交互式提示。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Create interactively
+			# 交互式创建
 			$ gh discussion create
 
-			# Create non-interactively
+			# 非交互式创建
 			$ gh discussion create --title "My question" --category "Q&A" --body "Details here"
 		`),
 		Args: cmdutil.NoArgsQuoteReminder,
@@ -62,19 +62,19 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 			}
 
 			if opts.Title != "" && strings.TrimSpace(opts.Title) == "" {
-				return cmdutil.FlagErrorf("title cannot be blank")
+				return cmdutil.FlagErrorf("标题不能为空")
 			}
 			if opts.Body != "" && strings.TrimSpace(opts.Body) == "" {
-				return cmdutil.FlagErrorf("body cannot be blank")
+				return cmdutil.FlagErrorf("内容不能为空")
 			}
 			if opts.Category != "" && strings.TrimSpace(opts.Category) == "" {
-				return cmdutil.FlagErrorf("category cannot be blank")
+				return cmdutil.FlagErrorf("分类不能为空")
 			}
 
 			bodyProvided := cmd.Flags().Changed("body") || cmd.Flags().Changed("body-file")
 			needsInput := opts.Title == "" || opts.Category == "" || !bodyProvided
 			if needsInput && !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("--title, --body (or --body-file), and --category are required when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时必须指定 --title、--body(或 --body-file)和 --category")
 			}
 
 			if runF != nil {
@@ -86,11 +86,11 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 
 	cmdutil.EnableRepoOverride(cmd, f)
 
-	cmd.Flags().StringVarP(&opts.Title, "title", "t", "", "Title for the discussion")
-	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "Body for the discussion")
-	cmd.Flags().StringVarP(&opts.BodyFile, "body-file", "F", "", "Read body text from file (use \"-\" to read from stdin)")
-	cmd.Flags().StringVarP(&opts.Category, "category", "c", "", "Category name or slug for the discussion")
-	cmd.Flags().StringSliceVarP(&opts.Labels, "label", "l", nil, "Labels to apply to the discussion")
+	cmd.Flags().StringVarP(&opts.Title, "title", "t", "", "讨论的标题")
+	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "讨论的内容")
+	cmd.Flags().StringVarP(&opts.BodyFile, "body-file", "F", "", "从文件读取讨论内容(使用 \"-\" 表示从标准输入读取)")
+	cmd.Flags().StringVarP(&opts.Category, "category", "c", "", "讨论的分类名称或 slug")
+	cmd.Flags().StringSliceVarP(&opts.Labels, "label", "l", nil, "为讨论添加的标签")
 
 	return cmd
 }
@@ -114,12 +114,12 @@ func createRun(opts *CreateOptions) error {
 	}
 
 	if opts.Title == "" {
-		opts.Title, err = opts.Prompter.Input("Discussion title", "")
+		opts.Title, err = opts.Prompter.Input("讨论标题", "")
 		if err != nil {
 			return err
 		}
 		if strings.TrimSpace(opts.Title) == "" {
-			return fmt.Errorf("title cannot be blank")
+			return fmt.Errorf("标题不能为空")
 		}
 	}
 
@@ -134,7 +134,7 @@ func createRun(opts *CreateOptions) error {
 		for i, cat := range categories {
 			names[i] = cat.Name
 		}
-		idx, err := opts.Prompter.Select("Discussion category", "", names)
+		idx, err := opts.Prompter.Select("讨论分类", "", names)
 		if err != nil {
 			return err
 		}
@@ -150,12 +150,12 @@ func createRun(opts *CreateOptions) error {
 	}
 
 	if opts.Body == "" {
-		opts.Body, err = opts.Prompter.MarkdownEditor("Discussion body", "", false)
+		opts.Body, err = opts.Prompter.MarkdownEditor("讨论内容", "", false)
 		if err != nil {
 			return err
 		}
 		if strings.TrimSpace(opts.Body) == "" {
-			return fmt.Errorf("body cannot be blank")
+			return fmt.Errorf("内容不能为空")
 		}
 	}
 
@@ -190,7 +190,7 @@ func createRun(opts *CreateOptions) error {
 			fmt.Fprintln(opts.IO.ErrOut, err.Error())
 			return cmdutil.SilentError
 		}
-		return fmt.Errorf("failed to create discussion: %w", err)
+		return fmt.Errorf("创建讨论失败: %w", err)
 	}
 
 	fmt.Fprintln(opts.IO.Out, discussion.URL)

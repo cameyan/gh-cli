@@ -36,34 +36,34 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*createOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "create <keyPrefix> <urlTemplate>",
-		Short: "Create a new autolink reference",
+		Short: "创建新的自动链接引用",
 		Long: heredoc.Docf(`
-			Create a new autolink reference for a repository.
+			为仓库创建新的自动链接引用。
 
-			The %[1]skeyPrefix%[1]s argument specifies the prefix that will generate a link when it is appended by certain characters.
+			%[1]skeyPrefix%[1]s 参数指定前缀，当该前缀后追加特定字符时将生成链接。
 
-			The %[1]surlTemplate%[1]s argument specifies the target URL that will be generated when the keyPrefix is found, which
-			must contain %[1]s<num>%[1]s variable for the reference number.
+			%[1]surlTemplate%[1]s 参数指定找到 keyPrefix 时生成的目标 URL，其中必须包含表示引用编号
+			的 %[1]s<num>%[1]s 变量。
 
-			By default, autolinks are alphanumeric with %[1]s--numeric%[1]s flag used to create a numeric autolink.
+			默认情况下，自动链接为字母数字类型，可使用 %[1]s--numeric%[1]s 标志创建数字类型的自动链接。
 
-			The %[1]s<num>%[1]s variable behavior differs depending on whether the autolink is alphanumeric or numeric:
+			%[1]s<num>%[1]s 变量的行为取决于自动链接是字母数字类型还是数字类型:
 
-			- alphanumeric: matches %[1]sA-Z%[1]s (case insensitive), %[1]s0-9%[1]s, and %[1]s-%[1]s
-			- numeric: matches %[1]s0-9%[1]s
+			- 字母数字类型: 匹配 %[1]sA-Z%[1]s(不区分大小写)、%[1]s0-9%[1]s 和 %[1]s-%[1]s
+			- 数字类型: 匹配 %[1]s0-9%[1]s
 
-			If the template contains multiple instances of %[1]s<num>%[1]s, only the first will be replaced.
+			如果模板中包含多个 %[1]s<num>%[1]s 实例，仅第一个会被替换。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Create an alphanumeric autolink to example.com for the key prefix "TICKET-".
-			# Generates https://example.com/TICKET?query=123abc from "TICKET-123abc".
+			# 为键前缀 "TICKET-" 创建指向 example.com 的字母数字类型自动链接
+			# 从 "TICKET-123abc" 生成 https://example.com/TICKET?query=123abc
 			$ gh repo autolink create TICKET- "https://example.com/TICKET?query=<num>"
 
-			# Create a numeric autolink to example.com for the key prefix "STORY-".
-			# Generates https://example.com/STORY?id=123 from "STORY-123".
+			# 为键前缀 "STORY-" 创建指向 example.com 的数字类型自动链接
+			# 从 "STORY-123" 生成 https://example.com/STORY?id=123
 			$ gh repo autolink create STORY- "https://example.com/STORY?id=<num>" --numeric
 		`),
-		Args:    cmdutil.ExactArgs(2, "Cannot create autolink: keyPrefix and urlTemplate arguments are both required"),
+		Args:    cmdutil.ExactArgs(2, "无法创建自动链接: 必须同时提供 keyPrefix 和 urlTemplate 参数"),
 		Aliases: []string{"new"},
 		RunE: func(c *cobra.Command, args []string) error {
 			opts.BaseRepo = f.BaseRepo
@@ -85,7 +85,7 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*createOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.Numeric, "numeric", "n", false, "Mark autolink as numeric")
+	cmd.Flags().BoolVarP(&opts.Numeric, "numeric", "n", false, "将自动链接标记为数字类型")
 
 	return cmd
 }
@@ -104,15 +104,15 @@ func createRun(opts *createOptions) error {
 
 	autolink, err := opts.AutolinkClient.Create(repo, request)
 	if err != nil {
-		return fmt.Errorf("error creating autolink: %w", err)
+		return fmt.Errorf("创建自动链接时出错: %w", err)
 	}
 
 	cs := opts.IO.ColorScheme()
 	fmt.Fprintf(opts.IO.Out,
-		"%s Created repository autolink %s on %s\n",
+		"%s 已在仓库 %s 创建自动链接 %s\n",
 		cs.SuccessIconWithColor(cs.Green),
-		cs.Cyanf("%d", autolink.ID),
-		cs.Bold(ghrepo.FullName(repo)))
+		cs.Bold(ghrepo.FullName(repo)),
+		cs.Cyanf("%d", autolink.ID))
 
 	return nil
 }

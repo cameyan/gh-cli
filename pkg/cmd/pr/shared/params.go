@@ -22,14 +22,13 @@ func WithPrAndIssueQueryParams(client *api.Client, baseRepo ghrepo.Interface, ba
 	if state.Title != "" {
 		q.Set("title", state.Title)
 	}
-	// We always want to send the body parameter, even if it's empty, to prevent the web interface from
-	// applying the default template. Since the user has the option to select a template in the terminal,
-	// assume that empty body here means that the user either skipped it or erased its contents.
+	// 我们始终希望发送 body 参数，即使它为空，以防止 web 界面应用默认模板。
+	// 由于用户可以在终端中选择模板，这里的空正文意味着用户要么跳过了它，要么清空了其内容。
 	q.Set("body", state.Body)
 	if len(state.Assignees) > 0 {
 		q.Set("assignees", strings.Join(state.Assignees, ","))
 	}
-	// Set a template parameter if no body parameter is provided e.g. Web Mode
+	// 未提供 body 参数时设置 template 参数，例如 Web 模式
 	if len(state.Template) > 0 && len(state.Body) == 0 {
 		q.Set("template", state.Template)
 	}
@@ -39,7 +38,7 @@ func WithPrAndIssueQueryParams(client *api.Client, baseRepo ghrepo.Interface, ba
 	if len(state.ProjectTitles) > 0 {
 		projectPaths, err := api.ProjectTitlesToPaths(client, baseRepo, state.ProjectTitles, projectsV1Support)
 		if err != nil {
-			return "", fmt.Errorf("could not add to project: %w", err)
+			return "", fmt.Errorf("添加到项目(project)失败: %w", err)
 		}
 		q.Set("projects", strings.Join(projectPaths, ","))
 	}
@@ -51,7 +50,7 @@ func WithPrAndIssueQueryParams(client *api.Client, baseRepo ghrepo.Interface, ba
 	return u.String(), nil
 }
 
-// Maximum length of a URL: 8192 bytes
+// URL 的最大长度: 8192 字节
 func ValidURL(urlStr string) bool {
 	return len(urlStr) < 8192
 }
@@ -62,14 +61,14 @@ func AddMetadataToIssueParams(client *api.Client, baseRepo ghrepo.Interface, par
 	}
 
 	// TODO ApiActorsSupported
-	// When ApiActorsSupported is true, we use login-based mutation and don't need to resolve reviewer IDs.
+	// 当 ApiActorsSupported 为 true 时，我们使用基于登录名(login)的 mutation，无需解析审核者(reviewer) ID。
 	needReviewerIDs := len(tb.Reviewers) > 0 && !tb.ApiActorsSupported
 
 	// TODO ApiActorsSupported
-	// When ApiActorsSupported is true, we use login-based mutation and don't need to resolve assignee IDs.
+	// 当 ApiActorsSupported 为 true 时，我们使用基于登录名的 mutation，无需解析被指派人(assignee) ID。
 	needAssigneeIDs := len(tb.Assignees) > 0 && !tb.ApiActorsSupported
 
-	// Retrieve minimal information needed to resolve metadata if this was not previously cached from additional metadata survey.
+	// 若此前尚未通过附加元数据调查(survey)缓存，则获取解析元数据所需的最低限度信息。
 	if tb.MetadataResult == nil {
 		input := api.RepoMetadataInput{
 			Reviewers: needReviewerIDs,
@@ -91,27 +90,27 @@ func AddMetadataToIssueParams(client *api.Client, baseRepo ghrepo.Interface, par
 	}
 
 	// TODO ApiActorsSupported
-	// When ApiActorsSupported is true (github.com), pass logins directly for use with
-	// ReplaceActorsForAssignable mutation. The ID-based else branch is for GHES compatibility.
+	// 当 ApiActorsSupported 为 true (github.com)时，直接传递登录名(login)供
+	// ReplaceActorsForAssignable mutation 使用。基于 ID 的 else 分支用于 GHES 兼容。
 	if tb.ApiActorsSupported {
 		params["assigneeLogins"] = tb.Assignees
 	} else {
 		assigneeIDs, err := tb.MetadataResult.MembersToIDs(tb.Assignees)
 		if err != nil {
-			return fmt.Errorf("could not assign user: %w", err)
+			return fmt.Errorf("指派用户失败: %w", err)
 		}
 		params["assigneeIds"] = assigneeIDs
 	}
 
 	labelIDs, err := tb.MetadataResult.LabelsToIDs(tb.Labels)
 	if err != nil {
-		return fmt.Errorf("could not add label: %w", err)
+		return fmt.Errorf("添加标签(label)失败: %w", err)
 	}
 	params["labelIds"] = labelIDs
 
 	projectIDs, projectV2IDs, err := tb.MetadataResult.ProjectsTitlesToIDs(tb.ProjectTitles)
 	if err != nil {
-		return fmt.Errorf("could not add to project: %w", err)
+		return fmt.Errorf("添加到项目(project)失败: %w", err)
 	}
 	params["projectIds"] = projectIDs
 	params["projectV2Ids"] = projectV2IDs
@@ -119,7 +118,7 @@ func AddMetadataToIssueParams(client *api.Client, baseRepo ghrepo.Interface, par
 	if len(tb.Milestones) > 0 {
 		milestoneID, err := tb.MetadataResult.MilestoneToID(tb.Milestones[0])
 		if err != nil {
-			return fmt.Errorf("could not add to milestone '%s': %w", tb.Milestones[0], err)
+			return fmt.Errorf("添加到里程碑(milestone) '%s' 失败: %w", tb.Milestones[0], err)
 		}
 		params["milestoneId"] = milestoneID
 	}
@@ -142,9 +141,9 @@ func AddMetadataToIssueParams(client *api.Client, baseRepo ghrepo.Interface, par
 	}
 
 	// TODO ApiActorsSupported
-	// When ApiActorsSupported is true (github.com), pass logins directly for use with
-	// RequestReviewsByLogin mutation. The ID-based else branch can be removed once
-	// GHES supports requestReviewsByLogin.
+	// 当 ApiActorsSupported 为 true (github.com)时，直接传递登录名(login)供
+	// RequestReviewsByLogin mutation 使用。基于 ID 的 else 分支可在
+	// GHES 支持 requestReviewsByLogin 后移除。
 	if tb.ApiActorsSupported {
 		params["userReviewerLogins"] = userReviewers
 		if len(botReviewers) > 0 {
@@ -154,13 +153,13 @@ func AddMetadataToIssueParams(client *api.Client, baseRepo ghrepo.Interface, par
 	} else {
 		userReviewerIDs, err := tb.MetadataResult.MembersToIDs(userReviewers)
 		if err != nil {
-			return fmt.Errorf("could not request reviewer: %w", err)
+			return fmt.Errorf("请求审核者(reviewer)失败: %w", err)
 		}
 		params["userReviewerIds"] = userReviewerIDs
 
 		teamReviewerIDs, err := tb.MetadataResult.TeamsToIDs(teamReviewers)
 		if err != nil {
-			return fmt.Errorf("could not request reviewer: %w", err)
+			return fmt.Errorf("请求审核者(reviewer)失败: %w", err)
 		}
 		params["teamReviewerIds"] = teamReviewerIDs
 	}
@@ -281,7 +280,7 @@ func QueryHasStateClause(searchQuery string) bool {
 	return false
 }
 
-// MeReplacer resolves usages of `@me` to the handle of the currently logged in user.
+// MeReplacer 将 `@me` 的用法解析为当前登录用户的 handle。
 type MeReplacer struct {
 	apiClient *api.Client
 	hostname  string
@@ -301,7 +300,7 @@ func (r *MeReplacer) currentLogin() (string, error) {
 	}
 	login, err := api.CurrentLoginName(r.apiClient, r.hostname)
 	if err != nil {
-		return "", fmt.Errorf("failed resolving `@me` to your user handle: %w", err)
+		return "", fmt.Errorf("将 `@me` 解析为您的用户 handle 失败: %w", err)
 	}
 	r.login = login
 	return login, nil
@@ -326,16 +325,16 @@ func (r *MeReplacer) ReplaceSlice(handles []string) ([]string, error) {
 	return res, nil
 }
 
-// CopilotReplacer resolves usages of `@copilot` to either Copilot's login or name.
-// Login is generally needed for API calls; name is used when launching web browser.
+// CopilotReplacer 将 `@copilot` 的用法解析为 Copilot 的登录名(login)或名称。
+// API 调用通常需要登录名；名称用于启动 web 浏览器。
 type CopilotReplacer struct {
 	returnLogin bool
-	// copilotLogin is the login to use when replacing @copilot.
-	// Different Copilot features use different bot logins.
+	// copilotLogin 是替换 @copilot 时使用的登录名。
+	// 不同的 Copilot 特性使用不同的 bot 登录名。
 	copilotLogin string
 }
 
-// NewCopilotReplacer creates a replacer for assignee @copilot references.
+// NewCopilotReplacer 为被指派人(assignee)的 @copilot 引用创建替换器。
 func NewCopilotReplacer(returnLogin bool) *CopilotReplacer {
 	return &CopilotReplacer{
 		returnLogin:  returnLogin,
@@ -343,7 +342,7 @@ func NewCopilotReplacer(returnLogin bool) *CopilotReplacer {
 	}
 }
 
-// NewCopilotReviewerReplacer creates a replacer for reviewer @copilot references.
+// NewCopilotReviewerReplacer 为审核者(reviewer)的 @copilot 引用创建替换器。
 func NewCopilotReviewerReplacer() *CopilotReplacer {
 	return &CopilotReplacer{
 		returnLogin:  true,
@@ -361,7 +360,7 @@ func (r *CopilotReplacer) replace(handle string) string {
 	return api.CopilotActorName
 }
 
-// ReplaceSlice replaces usages of `@copilot` in a slice with Copilot's login.
+// ReplaceSlice 将切片中 `@copilot` 的用法替换为 Copilot 的登录名(login)。
 func (r *CopilotReplacer) ReplaceSlice(handles []string) []string {
 	res := make([]string, len(handles))
 	for i, h := range handles {

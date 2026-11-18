@@ -15,22 +15,22 @@ import (
 
 func NewCmdConfig(f *cmdutil.Factory) *cobra.Command {
 	longDoc := strings.Builder{}
-	longDoc.WriteString("Display or change configuration settings for gh.\n\n")
-	longDoc.WriteString("Current respected settings:\n")
+	longDoc.WriteString("显示或修改 gh 命令的配置项\n\n")
+	longDoc.WriteString("当前支持的配置项:\n")
 	for _, co := range config.Options {
 		longDoc.WriteString(fmt.Sprintf("- `%s`: %s", co.Key, co.Description))
 		if len(co.AllowedValues) > 0 {
 			longDoc.WriteString(fmt.Sprintf(" `{%s}`", strings.Join(co.AllowedValues, " | ")))
 		}
 		if co.DefaultValue != "" {
-			longDoc.WriteString(fmt.Sprintf(" (default `%s`)", co.DefaultValue))
+			longDoc.WriteString(fmt.Sprintf(" (默认 `%s`)", co.DefaultValue))
 		}
 		longDoc.WriteRune('\n')
 	}
 
 	cmd := &cobra.Command{
 		Use:   "config <command>",
-		Short: "Manage configuration for gh",
+		Short: "管理 gh 命令配置",
 		Long:  longDoc.String(),
 	}
 

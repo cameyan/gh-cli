@@ -140,11 +140,11 @@ func TestExecuteLocalRepoSyncNonCurrentBranch(t *testing.T) {
 		}
 
 		err := executeLocalRepoSync(ghrepo.New("OWNER", "REPO"), "origin", opts)
-		require.ErrorContains(t, err, `can't sync "trunk" because it's checked out in another worktree at `)
+		require.ErrorContains(t, err, `无法同步 "trunk"，因为它已在 `)
 		// Assert on the directory name rather than the full path because git reports the
 		// symlink-resolved path, which differs from t.TempDir() on macOS.
 		require.ErrorContains(t, err, filepath.Base(worktreeDir))
-		require.ErrorContains(t, err, "tip: run `gh repo sync` from that worktree instead")
+		require.ErrorContains(t, err, "提示: 请改为在该工作树中运行")
 		require.Equal(t, originalBranch, runGit(t, repoDir, "rev-parse", "trunk"))
 		require.Empty(t, runGit(t, worktreeDir, "status", "--porcelain"))
 	})
@@ -166,9 +166,9 @@ func TestExecuteLocalRepoSyncNonCurrentBranch(t *testing.T) {
 		}
 
 		err := executeLocalRepoSync(ghrepo.New("OWNER", "REPO"), "origin", opts)
-		require.ErrorContains(t, err, `can't sync "trunk" because stale worktree metadata still associates it with `)
+		require.ErrorContains(t, err, `无法同步 "trunk"，因为过期的工作树元数据仍将其关联到 `)
 		require.ErrorContains(t, err, filepath.Base(worktreeDir))
-		require.ErrorContains(t, err, "tip: run `git worktree prune` and retry")
+		require.ErrorContains(t, err, "提示: 运行 `git worktree prune` 后重试")
 	})
 
 	t.Run("fast-forwards non-current branch", func(t *testing.T) {
@@ -285,7 +285,7 @@ func Test_SyncRun(t *testing.T) {
 				mgc.On("IsDirty").Return(false, nil).Once()
 				mgc.On("MergeFastForward", "FETCH_HEAD").Return(nil).Once()
 			},
-			wantStdout: "✓ Synced the \"trunk\" branch from \"OWNER/REPO\" to local repository\n",
+			wantStdout: "✓ 已从 \"trunk\" 同步 \"OWNER/REPO\" 分支到本地仓库\n",
 		},
 		{
 			name: "sync local repo with parent - notty",
@@ -318,7 +318,7 @@ func Test_SyncRun(t *testing.T) {
 				mgc.On("IsDirty").Return(false, nil).Once()
 				mgc.On("MergeFastForward", "FETCH_HEAD").Return(nil).Once()
 			},
-			wantStdout: "✓ Synced the \"trunk\" branch from \"OWNER2/REPO2\" to local repository\n",
+			wantStdout: "✓ 已从 \"trunk\" 同步 \"OWNER2/REPO2\" 分支到本地仓库\n",
 		},
 		{
 			name: "sync local repo with parent and force specified",
@@ -335,7 +335,7 @@ func Test_SyncRun(t *testing.T) {
 				mgc.On("IsDirty").Return(false, nil).Once()
 				mgc.On("ResetHard", "FETCH_HEAD").Return(nil).Once()
 			},
-			wantStdout: "✓ Synced the \"trunk\" branch from \"OWNER/REPO\" to local repository\n",
+			wantStdout: "✓ 已从 \"trunk\" 同步 \"OWNER/REPO\" 分支到本地仓库\n",
 		},
 		{
 			name: "sync local repo with specified source repo and force specified",
@@ -353,7 +353,7 @@ func Test_SyncRun(t *testing.T) {
 				mgc.On("IsDirty").Return(false, nil).Once()
 				mgc.On("ResetHard", "FETCH_HEAD").Return(nil).Once()
 			},
-			wantStdout: "✓ Synced the \"trunk\" branch from \"OWNER2/REPO2\" to local repository\n",
+			wantStdout: "✓ 已从 \"trunk\" 同步 \"OWNER2/REPO2\" 分支到本地仓库\n",
 		},
 		{
 			name: "sync local repo with parent and not fast forward merge",
@@ -367,7 +367,7 @@ func Test_SyncRun(t *testing.T) {
 				mgc.On("IsAncestor", "trunk", "FETCH_HEAD").Return(false, nil).Once()
 			},
 			wantErr: true,
-			errMsg:  "can't sync because there are diverging changes; use `--force` to overwrite the destination branch",
+			errMsg:  "无法同步，因为存在分歧的变更；使用 `--force` 覆盖目标分支",
 		},
 		{
 			name: "sync local repo with specified source repo and not fast forward merge",
@@ -382,7 +382,7 @@ func Test_SyncRun(t *testing.T) {
 				mgc.On("IsAncestor", "trunk", "FETCH_HEAD").Return(false, nil).Once()
 			},
 			wantErr: true,
-			errMsg:  "can't sync because there are diverging changes; use `--force` to overwrite the destination branch",
+			errMsg:  "无法同步，因为存在分歧的变更；使用 `--force` 覆盖目标分支",
 		},
 		{
 			name: "sync local repo with parent and local changes",
@@ -398,7 +398,7 @@ func Test_SyncRun(t *testing.T) {
 				mgc.On("IsDirty").Return(true, nil).Once()
 			},
 			wantErr: true,
-			errMsg:  "refusing to sync due to uncommitted/untracked local changes\ntip: use `git stash --all` before retrying the sync and run `git stash pop` afterwards",
+			errMsg:  "拒绝同步，因为存在未提交/未跟踪的本地变更\n提示: 重试同步前使用 `git stash --all`，之后运行 `git stash pop`",
 		},
 		{
 			name: "sync local repo with parent - existing branch, non-current",
@@ -413,7 +413,7 @@ func Test_SyncRun(t *testing.T) {
 				mgc.On("CurrentBranch").Return("test", nil).Once()
 				mgc.On("UpdateBranch", "trunk", "FETCH_HEAD").Return(nil).Once()
 			},
-			wantStdout: "✓ Synced the \"trunk\" branch from \"OWNER/REPO\" to local repository\n",
+			wantStdout: "✓ 已从 \"trunk\" 同步 \"OWNER/REPO\" 分支到本地仓库\n",
 		},
 		{
 			name: "sync local repo with parent - existing branch checked out in another worktree",
@@ -430,7 +430,7 @@ func Test_SyncRun(t *testing.T) {
 				mgc.On("Worktrees").Return([]git.Worktree{{Path: "/path/to/worktree", Ref: "refs/heads/trunk"}}, nil).Once()
 			},
 			wantErr: true,
-			errMsg:  "can't sync \"trunk\" because it's checked out in another worktree at /path/to/worktree\ntip: run `gh repo sync` from that worktree instead",
+			errMsg:  "无法同步 \"trunk\"，因为它已在 /path/to/worktree 处的另一个工作树中检出\n提示: 请改为在该工作树中运行 `gh repo sync`",
 		},
 		{
 			name: "sync local repo with parent - existing branch associated with prunable worktree",
@@ -447,7 +447,7 @@ func Test_SyncRun(t *testing.T) {
 				mgc.On("Worktrees").Return([]git.Worktree{{Path: "/path/to/missing-worktree", Ref: "refs/heads/trunk", Prunable: true}}, nil).Once()
 			},
 			wantErr: true,
-			errMsg:  "can't sync \"trunk\" because stale worktree metadata still associates it with /path/to/missing-worktree\ntip: run `git worktree prune` and retry",
+			errMsg:  "无法同步 \"trunk\"，因为过期的工作树元数据仍将其关联到 /path/to/missing-worktree\n提示: 运行 `git worktree prune` 后重试",
 		},
 		{
 			name: "sync local repo with parent - create new branch",
@@ -461,7 +461,7 @@ func Test_SyncRun(t *testing.T) {
 				mgc.On("CurrentBranch").Return("test", nil).Once()
 				mgc.On("CreateBranch", "trunk", "FETCH_HEAD", "origin/trunk").Return(nil).Once()
 			},
-			wantStdout: "✓ Synced the \"trunk\" branch from \"OWNER/REPO\" to local repository\n",
+			wantStdout: "✓ 已从 \"trunk\" 同步 \"OWNER/REPO\" 分支到本地仓库\n",
 		},
 		{
 			name: "sync remote fork with parent with new api - tty",
@@ -477,7 +477,7 @@ func Test_SyncRun(t *testing.T) {
 					httpmock.REST("POST", "repos/FORKOWNER/REPO-FORK/merge-upstream"),
 					httpmock.StatusStringResponse(200, `{"base_branch": "OWNER:trunk"}`))
 			},
-			wantStdout: "✓ Synced the \"FORKOWNER:trunk\" branch from \"OWNER:trunk\"\n",
+			wantStdout: "✓ 已从 \"FORKOWNER\" 同步 \"trunk:OWNER:trunk\" 分支\n",
 		},
 		{
 			name: "sync remote fork with parent using api fallback - tty",
@@ -502,7 +502,7 @@ func Test_SyncRun(t *testing.T) {
 					httpmock.REST("PATCH", "repos/FORKOWNER/REPO-FORK/git/refs/heads%2Ftrunk"),
 					httpmock.StringResponse(`{}`))
 			},
-			wantStdout: "✓ Synced the \"FORKOWNER:trunk\" branch from \"OWNER:trunk\"\n",
+			wantStdout: "✓ 已从 \"FORKOWNER\" 同步 \"trunk:OWNER:trunk\" 分支\n",
 		},
 		{
 			name: "sync remote fork with parent - notty",
@@ -536,7 +536,7 @@ func Test_SyncRun(t *testing.T) {
 					httpmock.StringResponse(`{"data":{"repository":{"parent":null}}}`))
 			},
 			wantErr: true,
-			errMsg:  "can't determine source repository for OWNER/REPO because repository is not fork",
+			errMsg:  "无法确定 OWNER/REPO 的源仓库，因为该仓库不是 fork 仓库",
 		},
 		{
 			name: "sync remote repo with specified source repo",
@@ -551,7 +551,7 @@ func Test_SyncRun(t *testing.T) {
 					httpmock.REST("POST", "repos/OWNER/REPO/merge-upstream"),
 					httpmock.StatusStringResponse(200, `{"base_branch": "OWNER2:trunk"}`))
 			},
-			wantStdout: "✓ Synced the \"OWNER:trunk\" branch from \"OWNER2:trunk\"\n",
+			wantStdout: "✓ 已从 \"OWNER\" 同步 \"trunk:OWNER2:trunk\" 分支\n",
 		},
 		{
 			name: "sync remote fork with parent and specified branch",
@@ -565,7 +565,7 @@ func Test_SyncRun(t *testing.T) {
 					httpmock.REST("POST", "repos/OWNER/REPO-FORK/merge-upstream"),
 					httpmock.StatusStringResponse(200, `{"base_branch": "OWNER:test"}`))
 			},
-			wantStdout: "✓ Synced the \"OWNER:test\" branch from \"OWNER:test\"\n",
+			wantStdout: "✓ 已从 \"OWNER\" 同步 \"test:OWNER:test\" 分支\n",
 		},
 		{
 			name: "sync remote fork with parent and force specified",
@@ -591,7 +591,7 @@ func Test_SyncRun(t *testing.T) {
 					httpmock.REST("PATCH", "repos/OWNER/REPO-FORK/git/refs/heads%2Ftrunk"),
 					httpmock.StringResponse(`{}`))
 			},
-			wantStdout: "✓ Synced the \"OWNER:trunk\" branch from \"OWNER:trunk\"\n",
+			wantStdout: "✓ 已从 \"OWNER\" 同步 \"trunk:OWNER:trunk\" 分支\n",
 		},
 		{
 			name: "sync remote fork with parent and not fast forward merge",
@@ -624,7 +624,7 @@ func Test_SyncRun(t *testing.T) {
 					})
 			},
 			wantErr: true,
-			errMsg:  "can't sync because there are diverging changes; use `--force` to overwrite the destination branch",
+			errMsg:  "HTTP 422: Update is not a fast forward (https://api.github.com/repos/OWNER/REPO-FORK/git/refs/heads%2Ftrunk)",
 		},
 		{
 			name: "sync remote fork with parent and no existing branch on fork",
@@ -657,7 +657,7 @@ func Test_SyncRun(t *testing.T) {
 					})
 			},
 			wantErr: true,
-			errMsg:  "trunk branch does not exist on OWNER/REPO-FORK repository",
+			errMsg:  "HTTP 422: Reference does not exist (https://api.github.com/repos/OWNER/REPO-FORK/git/refs/heads%2Ftrunk)",
 		},
 		{
 			name: "sync remote fork with missing workflow scope on OAuth App token",
@@ -675,7 +675,7 @@ func Test_SyncRun(t *testing.T) {
 					}{Message: "refusing to allow an OAuth App to create or update workflow `.github/workflows/unimportant.yml` without `workflow` scope"}))
 			},
 			wantErr: true,
-			errMsg:  "Upstream commits contain workflow changes, which require the `workflow` scope or permission to merge. To request it, run: gh auth refresh -s workflow",
+			errMsg:  "上游提交包含 workflow 变更，合并需要 `workflow` 作用域或权限。若要请求该权限，请运行: gh auth refresh -s workflow",
 		},
 		{
 			name: "sync remote fork with missing workflow permission on GitHub App token",
@@ -693,7 +693,7 @@ func Test_SyncRun(t *testing.T) {
 					}{Message: "refusing to allow a GitHub App to create or update workflow `.github/workflows/unimportant.yml` without `workflows` permission"}))
 			},
 			wantErr: true,
-			errMsg:  "Upstream commits contain workflow changes, which require the `workflow` scope or permission to merge. To request it, run: gh auth refresh -s workflow",
+			errMsg:  "上游提交包含 workflow 变更，合并需要 `workflow` 作用域或权限。若要请求该权限，请运行: gh auth refresh -s workflow",
 		},
 		{
 			name: "sync remote fork with missing workflow scope on personal access token",
@@ -711,7 +711,7 @@ func Test_SyncRun(t *testing.T) {
 					}{Message: "refusing to allow a Personal Access Token to create or update workflow `.github/workflows/unimportant.yml` without `workflow` scope"}))
 			},
 			wantErr: true,
-			errMsg:  "Upstream commits contain workflow changes, which require the `workflow` scope or permission to merge. To request it, run: gh auth refresh -s workflow",
+			errMsg:  "上游提交包含 workflow 变更，合并需要 `workflow` 作用域或权限。若要请求该权限，请运行: gh auth refresh -s workflow",
 		},
 	}
 	for _, tt := range tests {

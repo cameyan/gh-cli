@@ -14,7 +14,7 @@ import (
 	"github.com/cli/cli/v2/pkg/cmdutil"
 )
 
-// Options captures the options for the verify command
+// Options 捕获 verify 命令的选项
 type Options struct {
 	ArtifactPath          string
 	BundlePath            string
@@ -42,55 +42,55 @@ type Options struct {
 	SigstoreVerifier      verification.SigstoreVerifier
 	exporter              cmdutil.Exporter
 	Hostname              string
-	// Tenant is only set when tenancy is used
+	// 仅在使用租户(tenancy)模式时才会设置 Tenant
 	Tenant string
 }
 
-// Clean cleans the file path option values
+// Clean 清理文件路径选项值
 func (opts *Options) Clean() {
 	if opts.BundlePath != "" {
 		opts.BundlePath = filepath.Clean(opts.BundlePath)
 	}
 }
 
-// FetchAttestationsFromGitHubAPI returns true if the command should fetch attestations from the GitHub API
-// It checks that a bundle path is not provided and that the "use bundle from registry" flag is not set
+// FetchAttestationsFromGitHubAPI 返回该命令是否应从 GitHub API 获取证明(attestation)
+// 它会检查未提供 bundle 路径，且未设置 "use bundle from registry" 标志(flag)
 func (opts *Options) FetchAttestationsFromGitHubAPI() bool {
 	return opts.BundlePath == "" && !opts.UseBundleFromRegistry
 }
 
-// AreFlagsValid checks that the provided flag combination is valid
-// and returns an error otherwise
+// AreFlagsValid 检查提供的标志(flag)组合是否有效，
+// 否则返回错误
 func (opts *Options) AreFlagsValid() error {
-	// If provided, check that the Repo option is in the expected format <OWNER>/<REPO>
+	// 如果提供了 Repo，检查其格式是否符合预期的 <OWNER>/<REPO>
 	if opts.Repo != "" && !isProvidedRepoValid(opts.Repo) {
-		return fmt.Errorf("invalid value provided for repo: %s", opts.Repo)
+		return fmt.Errorf("为 repo 提供的值无效: %s", opts.Repo)
 	}
 
-	// If provided, check that the SignerRepo option is in the expected format <OWNER>/<REPO>
+	// 如果提供了 SignerRepo，检查其格式是否符合预期的 <OWNER>/<REPO>
 	if opts.SignerRepo != "" && !isProvidedRepoValid(opts.SignerRepo) {
-		return fmt.Errorf("invalid value provided for signer-repo: %s", opts.SignerRepo)
+		return fmt.Errorf("为 signer-repo 提供的值无效: %s", opts.SignerRepo)
 	}
 
-	// Check that limit is between 1 and 1000
+	// 检查 limit 是否介于 1 和 1000 之间
 	if opts.Limit < 1 || opts.Limit > 1000 {
-		return fmt.Errorf("limit %d not allowed, must be between 1 and 1000", opts.Limit)
+		return fmt.Errorf("不允许使用 limit %d，必须介于 1 和 1000 之间", opts.Limit)
 	}
 
-	// Check that the bundle-from-oci flag is only used with OCI artifact paths
+	// 检查 bundle-from-oci 标志(flag)是否仅与 OCI 制品(artifact)路径一起使用
 	if opts.UseBundleFromRegistry && !strings.HasPrefix(opts.ArtifactPath, "oci://") {
-		return fmt.Errorf("bundle-from-oci flag can only be used with OCI artifact paths")
+		return fmt.Errorf("bundle-from-oci 标志只能用于 OCI 制品路径")
 	}
 
-	// Check that both the bundle-from-oci and bundle-path flags are not used together
+	// 检查 bundle-from-oci 和 bundle-path 标志(flag)是否未被同时使用
 	if opts.UseBundleFromRegistry && opts.BundlePath != "" {
-		return fmt.Errorf("bundle-from-oci flag cannot be used with bundle-path flag")
+		return fmt.Errorf("bundle-from-oci 标志不能与 bundle-path 标志一起使用")
 	}
 
-	// Verify provided hostname
+	// 验证提供的主机名(hostname)
 	if opts.Hostname != "" {
 		if err := ghinstance.HostnameValidator(opts.Hostname); err != nil {
-			return fmt.Errorf("error parsing hostname: %w", err)
+			return fmt.Errorf("解析主机名出错: %w", err)
 		}
 	}
 
@@ -98,7 +98,7 @@ func (opts *Options) AreFlagsValid() error {
 }
 
 func isProvidedRepoValid(repo string) bool {
-	// we expect a provided repository argument be in the format <OWNER>/<REPO>
+	// 我们期望提供的仓库(repository)参数格式为 <OWNER>/<REPO>
 	splitRepo := strings.Split(repo, "/")
 	return len(splitRepo) == 2
 }

@@ -36,47 +36,46 @@ func NewCmdCode(f *cmdutil.Factory, runF func(*CodeOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "code <query>",
-		Short: "Search within code",
+		Short: "在代码中搜索",
 		Long: heredoc.Docf(`
-			Search within code in GitHub repositories.
+			在 GitHub 仓库的代码中搜索。
 
-			The search syntax is documented at:
+			搜索语法文档见:
 			<https://docs.github.com/search-github/searching-on-github/searching-code>
 
-			Note that these search results are powered by what is now a legacy GitHub code search engine.
-			The results might not match what is seen on %[1]sgithub.com%[1]s, and new features like regex search
-			are not yet available via the GitHub API.
+			注意: 这些搜索结果由现已属于遗留的 GitHub 代码搜索引擎提供。
+			结果可能与 %[1]sgithub.com%[1]s 上看到的不一致，且正则搜索等新功能尚未通过 GitHub API 提供。
 
-			For more information on handling search queries containing a hyphen, run %[1]sgh search --help%[1]s.
+			有关处理包含连字符的搜索查询的更多信息，请运行 %[1]sgh search --help%[1]s。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Search code matching "react" and "lifecycle"
+			# 搜索同时匹配 "react" 和 "lifecycle" 的代码
 			$ gh search code react lifecycle
 
-			# Search code matching "error handling"
+			# 搜索匹配 "error handling" 的代码
 			$ gh search code "error handling"
 
-			# Search code using raw search qualifiers as separate arguments
+			# 以独立参数的形式使用原始搜索限定符搜索代码
 			$ gh search code panic path:pkg language:go
 
-			# Search code matching "deque" in Python files
+			# 在 Python 文件中搜索匹配 "deque" 的代码
 			$ gh search code deque --language=python
 
-			# Search code matching "cli" in repositories owned by microsoft organization
+			# 在 microsoft 组织拥有的仓库中搜索匹配 "cli" 的代码
 			$ gh search code cli --owner=microsoft
 
-			# Search code matching "panic" in the GitHub CLI repository
+			# 在 GitHub CLI 仓库中搜索匹配 "panic" 的代码
 			$ gh search code panic --repo cli/cli
 
-			# Search code matching keyword "lint" in package.json files
+			# 在 package.json 文件中搜索关键字 "lint"
 			$ gh search code lint --filename package.json
 		`),
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) == 0 && c.Flags().NFlag() == 0 {
-				return cmdutil.FlagErrorf("specify search keywords or flags")
+				return cmdutil.FlagErrorf("请指定搜索关键字或 flag")
 			}
 			if opts.Query.Limit < 1 || opts.Query.Limit > shared.SearchMaxResults {
-				return cmdutil.FlagErrorf("`--limit` must be between 1 and 1000")
+				return cmdutil.FlagErrorf("`--limit` 必须在 1 到 1000 之间")
 			}
 			opts.Query.Keywords = args
 			if runF != nil {
@@ -91,21 +90,21 @@ func NewCmdCode(f *cmdutil.Factory, runF func(*CodeOptions) error) *cobra.Comman
 		},
 	}
 
-	// Output flags
+	// 输出 flags
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, search.CodeFields)
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "Open the search query in the web browser")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在 web 浏览器中打开搜索查询")
 
-	// Query parameter flags
-	cmd.Flags().IntVarP(&opts.Query.Limit, "limit", "L", 30, "Maximum number of code results to fetch")
+	// 查询参数 flags
+	cmd.Flags().IntVarP(&opts.Query.Limit, "limit", "L", 30, "获取代码结果的最大数量")
 
-	// Query qualifier flags
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Extension, "extension", "", "Filter on file extension")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Filename, "filename", "", "Filter on filename")
-	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.In, "match", "", nil, []string{"file", "path"}, "Restrict search to file contents or file path")
-	cmd.Flags().StringVarP(&opts.Query.Qualifiers.Language, "language", "", "", "Filter results by language")
-	cmd.Flags().StringSliceVarP(&opts.Query.Qualifiers.Repo, "repo", "R", nil, "Filter on repository, in `OWNER/REPO` format")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Size, "size", "", "Filter on size range, in kilobytes")
-	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.User, "owner", nil, "Filter on owner")
+	// 查询限定符(qualifier) flags
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Extension, "extension", "", "按文件扩展名过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Filename, "filename", "", "按文件名过滤")
+	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.In, "match", "", nil, []string{"file", "path"}, "将搜索限制在文件内容或文件路径")
+	cmd.Flags().StringVarP(&opts.Query.Qualifiers.Language, "language", "", "", "按编程语言过滤结果")
+	cmd.Flags().StringSliceVarP(&opts.Query.Qualifiers.Repo, "repo", "R", nil, "按仓库过滤，格式为 `OWNER/REPO`")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Size, "size", "", "按大小范围过滤，单位为千字节(KB)")
+	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.User, "owner", nil, "按仓库所有者过滤")
 
 	return cmd
 }
@@ -113,15 +112,15 @@ func NewCmdCode(f *cmdutil.Factory, runF func(*CodeOptions) error) *cobra.Comman
 func codeRun(opts *CodeOptions) error {
 	io := opts.IO
 	if opts.WebMode {
-		// Convert `filename` and `extension` legacy search qualifiers to the new code search's `path`
-		// qualifier when used with `--web` because they are incompatible.
+		// 将 `filename` 和 `extension` 遗留搜索限定符转换为新代码搜索的 `path`
+		// 限定符，因为它们与 `--web` 不兼容。
 		if opts.Query.Qualifiers.Filename != "" || opts.Query.Qualifiers.Extension != "" {
 			cfg, err := opts.Config()
 			if err != nil {
 				return err
 			}
 			host, _ := cfg.Authentication().DefaultHost()
-			// FIXME: Remove this check once GHES supports the new `path` search qualifier.
+			// FIXME: 一旦 GHES 支持新的 `path` 搜索限定符，就移除此检查。
 			if !ghauth.IsEnterprise(host) {
 				filename := opts.Query.Qualifiers.Filename
 				extension := opts.Query.Qualifiers.Extension
@@ -135,7 +134,7 @@ func codeRun(opts *CodeOptions) error {
 		}
 		url := opts.Searcher.URL(opts.Query)
 		if io.IsStdoutTTY() {
-			fmt.Fprintf(io.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(url))
+			fmt.Fprintf(io.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(url))
 		}
 		return opts.Browser.Browse(url)
 	}
@@ -146,12 +145,12 @@ func codeRun(opts *CodeOptions) error {
 		return err
 	}
 	if len(results.Items) == 0 && opts.Exporter == nil {
-		return cmdutil.NewNoResultsError("no code results matched your search")
+		return cmdutil.NewNoResultsError("没有匹配您搜索的代码结果")
 	}
 	if err := io.StartPager(); err == nil {
 		defer io.StopPager()
 	} else {
-		fmt.Fprintf(io.ErrOut, "failed to start pager: %v\n", err)
+		fmt.Fprintf(io.ErrOut, "启动分页器失败: %v\n", err)
 	}
 	if opts.Exporter != nil {
 		return opts.Exporter.Write(io, results.Items)
@@ -163,7 +162,7 @@ func codeRun(opts *CodeOptions) error {
 func displayResults(io *iostreams.IOStreams, results search.CodeResult) error {
 	cs := io.ColorScheme()
 	if io.IsStdoutTTY() {
-		fmt.Fprintf(io.Out, "\nShowing %d of %d results\n\n", len(results.Items), results.Total)
+		fmt.Fprintf(io.Out, "\n显示 %d 条，共 %d 条结果\n\n", len(results.Items), results.Total)
 		for i, code := range results.Items {
 			if i > 0 {
 				fmt.Fprint(io.Out, "\n")

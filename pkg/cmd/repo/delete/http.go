@@ -49,12 +49,12 @@ func deleteRepo(httpClient *http.Client, repo ghrepo.Interface) error {
 		return err
 	}
 
-	// If the repo is renamed (and we're using the old name), the API will return
-	// an HTTP 307 (temporary redirect), which is a METHOD-preserving redirection.
-	// That is, upon receiving a 307, the HTTP client will repeat the same HTTP
-	// method (in this case, DELETE) but against the new location. We don't want
-	// such an implicit behaviour, so we pass the `api.WithoutFollowingRedirects`
-	// to make sure an error is returned.
+	// 若仓库已被更名(而我们仍在使用旧名称), API 将返回 HTTP 307(临时重定向),
+	// 这是一种保留 HTTP 方法的重定向。也就是说, 收到 307 后, HTTP 客户端会
+	// 针对新位置重复相同的 HTTP 方法(此处为 DELETE)。我们不希望这种隐式行为,
+	// 因此传入 `api.WithoutFollowingRedirects` 以确保返回错误。
+
+
 	resp, err := api.NewClientFromHTTP(httpClient).Request(repo.RepoHost(), http.MethodDelete, p.String(), nil,
 		api.WithEndpointScopes("delete_repo"),
 		api.WithoutFollowingRedirects(),

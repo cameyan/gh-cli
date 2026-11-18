@@ -36,7 +36,7 @@ import (
 )
 
 type CreateOptions struct {
-	// This struct stores user input and factory functions
+	// 该结构体存储用户输入与工厂函数
 	Detector         fd.Detector
 	HttpClient       func() (*http.Client, error)
 	GitClient        *git.Client
@@ -87,22 +87,20 @@ type CreateOptions struct {
 	InvokingAgent string
 }
 
-// creationRefs is an interface that provides the necessary information for creating a pull request in the API.
-// Upcasting to concrete implementations can provide further context on other operations (forking and pushing).
+// creationRefs 是一个接口，提供通过 API 创建拉取请求(PR)所需的信息。
+// 向上转型(upcasting)为具体实现可提供其他操作(fork 与 push)的更多上下文。
 type creationRefs interface {
-	// QualifiedHeadRef returns a stringified form of the head ref, varying depending
-	// on whether the head ref is in the same repository as the base ref. If they are
-	// the same repository, we return the branch name only. If they are different repositories,
-	// we return the owner and branch name in the form <owner>:<branch>.
+	// QualifiedHeadRef 返回源分支(head ref)的字符串形式，取决于源 ref 与基础 ref
+	// 是否位于同一仓库。若为同一仓库，仅返回分支名。若为不同仓库，
+	// 则以 <owner>:<branch> 的形式返回所有者与分支名。
 	QualifiedHeadRef() string
-	// UnqualifiedHeadRef returns a head ref in the form of the branch name only.
+	// UnqualifiedHeadRef 返回仅含分支名的源分支(head ref)。
 	UnqualifiedHeadRef() string
-	//BaseRef returns the base branch name.
+	//BaseRef 返回基础分支(base branch)名。
 	BaseRef() string
 
-	// While the only thing really required from an api.Repository is the repository ID, changing that
-	// would require changing the API function signatures, and the refactor that introduced this refs
-	// type is already large enough.
+	// 虽然从 api.Repository 真正需要的只有仓库 ID，但改动这一点
+	// 需要修改 API 函数签名，而引入此 refs 类型的重构已经足够大了。
 	BaseRepo() *api.Repository
 }
 
@@ -119,7 +117,7 @@ func (r baseRefs) BaseRepo() *api.Repository {
 	return r.baseRepo
 }
 
-// skipPushRefs indicate to handlePush that no pushing is required.
+// skipPushRefs 向 handlePush 表明无需 push。
 type skipPushRefs struct {
 	baseRefs
 
@@ -134,9 +132,8 @@ func (r skipPushRefs) UnqualifiedHeadRef() string {
 	return r.qualifiedHeadRef.BranchName()
 }
 
-// pushableRefs indicate to handlePush that pushing is required,
-// and provide further information (HeadRepo) on where that push
-// should go.
+// pushableRefs 向 handlePush 表明需要 push，
+// 并提供该 push 应去向何处(HeadRepo)的更多信息。
 type pushableRefs struct {
 	baseRefs
 
@@ -159,11 +156,10 @@ func (r pushableRefs) HeadRepo() ghrepo.Interface {
 	return r.headRepo
 }
 
-// forkableRefs indicate to handlePush that forking is required before
-// pushing. The expectation is that after forking, this is converted to
-// pushableRefs. We could go very OOP and have a Fork method on this
-// struct that returns a pushableRefs but then we'd need to embed an API client
-// and it just seems nice that it is a simple bag of data.
+// forkableRefs 向 handlePush 表明在 push 之前需要先 fork。
+// 预期是在 fork 之后将其转换为 pushableRefs。我们本可以走非常面向对象(OOP)的路线，
+// 在该结构体上提供一个返回 pushableRefs 的 Fork 方法，但那样就需要嵌入一个 API client，
+// 而让它保持为一个简单的数据结构看起来更好。
 type forkableRefs struct {
 	baseRefs
 
@@ -178,9 +174,9 @@ func (r forkableRefs) UnqualifiedHeadRef() string {
 	return r.qualifiedHeadRef.BranchName()
 }
 
-// isSameRef checks if the head and base refs point to the same ref in the same repository.
-// For cross-repository PRs (e.g., from a fork), the qualified head ref will contain
-// an owner prefix (owner:branch), so even if branch names match, they refer to different repos.
+// isSameRef 检查源分支(head)与基础分支(base)的 ref 是否指向同一仓库中的同一 ref。
+// 对于跨仓库的 PR(例如来自 fork)，限定形式的源 ref 会包含所有者前缀(owner:branch)，
+// 因此即使分支名相同，它们指向的也是不同的仓库。
 func isSameRef(refs creationRefs) bool {
 	if strings.Contains(refs.QualifiedHeadRef(), ":") {
 		return false
@@ -188,15 +184,12 @@ func isSameRef(refs creationRefs) bool {
 	return refs.UnqualifiedHeadRef() == refs.BaseRef()
 }
 
-// CreateContext stores contextual data about the creation process and is for building up enough
-// data to create a pull request.
+// CreateContext 存储创建过程的上下文数据，用于积累创建拉取请求(PR)所需的足够数据。
 type CreateContext struct {
 	ResolvedRemotes *ghContext.ResolvedRemotes
 	PRRefs          creationRefs
-	// BaseTrackingBranch is perhaps a slightly leaky abstraction in the presence
-	// of PRRefs, but a huge amount of refactoring was done to introduce that struct,
-	// and this is a small price to pay for the convenience of not having to do a lot
-	// more design.
+	// 在 PRRefs 存在的情况下，BaseTrackingBranch 或许是个稍微有些泄漏的抽象，
+	// 但为引入该结构体已做了大量重构，为不必做更多设计而付出的这点代价是值得的。
 	BaseTrackingBranch string
 	Client             *api.Client
 	GitClient          *git.Client
@@ -220,35 +213,32 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create a pull request",
+		Short: "创建拉取请求(PR)",
 		Long: heredoc.Docf(`
-			Create a pull request on GitHub.
+			在 GitHub 上创建拉取请求(PR)。
 
-			Upon success, the URL of the created pull request will be printed.
+			成功后，将打印所创建拉取请求(PR)的 URL。
 
-			When the current branch isn't fully pushed to a git remote, a prompt will ask where
-			to push the branch and offer an option to fork the base repository. Any fork created this
-			way will only have the default branch of the upstream repository. Use %[1]s--head%[1]s to
-			explicitly skip any forking or pushing behavior.
+			当当前分支尚未完整推送到 git 远端时，会提示询问将分支推送到何处，
+			并提供 fork 基础仓库的选项。以此方式创建的任何 fork 只会包含上游仓库的默认分支。
+			使用 %[1]s--head%[1]s 可显式跳过任何 fork 或 push 行为。
 
-			%[1]s--head%[1]s supports %[1]s<user>:<branch>%[1]s syntax to select a head repo owned by %[1]s<user>%[1]s.
-			Using an organization as the %[1]s<user>%[1]s is currently not supported.
-			For more information, see <https://github.com/cli/cli/issues/10093>
+			%[1]s--head%[1]s 支持 %[1]s<user>:<branch>%[1]s 语法，用于选择 %[1]s<user>%[1]s 拥有的源仓库(head repo)。
+			目前不支持将组织作为 %[1]s<user>%[1]s 使用。
+			更多信息请参见 <https://github.com/cli/cli/issues/10093>
 
-			A prompt will also ask for the title and the body of the pull request. Use %[1]s--title%[1]s and
-			%[1]s--body%[1]s to skip this, or use %[1]s--fill%[1]s to autofill these values from git commits.
-			It's important to notice that if the %[1]s--title%[1]s and/or %[1]s--body%[1]s are also provided
-			alongside %[1]s--fill%[1]s, the values specified by %[1]s--title%[1]s and/or %[1]s--body%[1]s will
-			take precedence and overwrite any autofilled content.
+			还会提示输入拉取请求(PR)的标题和正文。使用 %[1]s--title%[1]s 和
+			%[1]s--body%[1]s 可跳过此步骤，或使用 %[1]s--fill%[1]s 从 git 提交中自动填充这些值。
+			需要注意，如果 %[1]s--title%[1]s 和/或 %[1]s--body%[1]s 与 %[1]s--fill%[1]s 同时提供，
+			%[1]s--title%[1]s 和/或 %[1]s--body%[1]s 指定的值将优先生效，并覆盖任何自动填充的内容。
 
-			The base branch for the created PR can be specified using the %[1]s--base%[1]s flag. If not provided,
-			the value of %[1]sgh-merge-base%[1]s git branch config will be used. If not configured, the repository's
-			default branch will be used. Run %[1]sgit config branch.{current}.gh-merge-base {base}%[1]s to configure
-			the current branch to use the specified merge base.
+			可使用 %[1]s--base%[1]s flag 指定所创建 PR 的基础分支(base branch)。若未提供，
+			将使用 %[1]sgh-merge-base%[1]s git 分支(branch)配置的值。若未配置，则使用仓库的默认分支。
+			运行 %[1]sgit config branch.{current}.gh-merge-base {base}%[1]s 可将当前分支配置为使用指定的合并基点(merge base)。
 
-			Link an issue to the pull request by referencing the issue in the body of the pull
-			request. If the body text mentions %[1]sFixes #123%[1]s or %[1]sCloses #123%[1]s, the referenced issue
-			will automatically get closed when the pull request gets merged.
+			在拉取请求(PR)的正文中引用某个 issue，即可将该 issue 关联到该 PR。
+			如果正文提及 %[1]sFixes #123%[1]s 或 %[1]sCloses #123%[1]s，当该拉取请求(PR)被合并时，
+			被引用的 issue 将自动关闭。
 
 			Use %[1]s--attach%[1]s to upload an image or video. The attachment is appended to the
 			body. If the body references an attached file, such as %[1]s![alt](./login.png)%[1]s, that
@@ -256,20 +246,19 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 			%[1]s--body-file%[1]s are relative to its directory, falling back to the working directory.
 			You can attach up to 50 files per command.
 
-			Alt text for an image follows the path after %[1]s#%[1]s, as in
-			%[1]s--attach './login.png#The login error state'%[1]s. Without it the filename is used.
-			A reference already in the body keeps the alt text written there. Video renders
-			as a player and has no alt text, so it cannot be given any.
+			图片的替代文本(alt text)为 %[1]s#%[1]s 之后的路径内容，如
+			%[1]s--attach './login.png#The login error state'%[1]s。未提供时使用文件名。
+			正文中已有的引用会保留其中书写的替代文本。视频以播放器形式呈现且没有替代文本，
+			因此无法为其指定。
 
-			If some attachments upload and others fail, the pull request is still created with the
-			ones that succeeded. The command then exits with a non-zero status, but the new pull
-			request's URL is still printed to stdout.
+			如果部分附件上传成功而其他失败，拉取请求(PR)仍会携带成功上传的那些创建。
+			随后该命令以非零状态退出，但新拉取请求(PR)的 URL 仍会打印到标准输出。
 
-			By default, users with write access to the base repository can push new commits to the
-			head branch of the pull request. Disable this with %[1]s--no-maintainer-edit%[1]s.
+			默认情况下，对基础仓库具有写权限的用户可以向拉取请求(PR)的源分支(head branch)推送新提交。
+			使用 %[1]s--no-maintainer-edit%[1]s 可禁用此能力。
 
-			Adding a pull request to projects requires authorization with the %[1]sproject%[1]s scope.
-			To authorize, run %[1]sgh auth refresh -s project%[1]s.
+			将拉取请求(PR)添加到项目(project)需要以 %[1]sproject%[1]s 权限范围(scope)授权。
+			如需授权，请运行 %[1]sgh auth refresh -s project%[1]s。
 		`, "`"),
 		Example: heredoc.Doc(`
 			$ gh pr create --title "The bug is fixed" --body "Everything works again"
@@ -287,8 +276,8 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 
 			opts.TitleProvided = cmd.Flags().Changed("title")
 			opts.RepoOverride, _ = cmd.Flags().GetString("repo")
-			// Workaround: Due to the way this command is implemented, we need to manually check GH_REPO.
-			// Commands should use the standard BaseRepoOverride functionality to handle this behavior instead.
+			// 变通方法: 由于该命令的实现方式，我们需要手动检查 GH_REPO。
+			// 命令应使用标准的 BaseRepoOverride 功能来处理此行为。
 			if opts.RepoOverride == "" {
 				opts.RepoOverride = os.Getenv("GH_REPO")
 			}
@@ -297,35 +286,35 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 			opts.MaintainerCanModify = !noMaintainerEdit
 
 			if !opts.IO.CanPrompt() && opts.RecoverFile != "" {
-				return cmdutil.FlagErrorf("`--recover` only supported when running interactively")
+				return cmdutil.FlagErrorf("`--recover` 仅在交互式运行时支持")
 			}
 
 			if opts.IsDraft && opts.WebMode {
-				return cmdutil.FlagErrorf("the `--draft` flag is not supported with `--web`")
+				return cmdutil.FlagErrorf("`--draft` flag 不支持与 `--web` 同时使用")
 			}
 
 			if len(opts.Reviewers) > 0 && opts.WebMode {
-				return cmdutil.FlagErrorf("the `--reviewer` flag is not supported with `--web`")
+				return cmdutil.FlagErrorf("`--reviewer` flag 不支持与 `--web` 同时使用")
 			}
 
 			if cmd.Flags().Changed("no-maintainer-edit") && opts.WebMode {
-				return cmdutil.FlagErrorf("the `--no-maintainer-edit` flag is not supported with `--web`")
+				return cmdutil.FlagErrorf("`--no-maintainer-edit` flag 不支持与 `--web` 同时使用")
 			}
 
 			if opts.Autofill && opts.FillFirst {
-				return cmdutil.FlagErrorf("`--fill` is not supported with `--fill-first`")
+				return cmdutil.FlagErrorf("`--fill` 不支持与 `--fill-first` 同时使用")
 			}
 
 			if opts.FillVerbose && opts.FillFirst {
-				return cmdutil.FlagErrorf("`--fill-verbose` is not supported with `--fill-first`")
+				return cmdutil.FlagErrorf("`--fill-verbose` 不支持与 `--fill-first` 同时使用")
 			}
 
 			if opts.FillVerbose && opts.Autofill {
-				return cmdutil.FlagErrorf("`--fill-verbose` is not supported with `--fill`")
+				return cmdutil.FlagErrorf("`--fill-verbose` 不支持与 `--fill` 同时使用")
 			}
 
 			if err := cmdutil.MutuallyExclusive(
-				"specify only one of `--editor` or `--web`",
+				"只能指定 `--editor` 或 `--web` 之一",
 				opts.EditorMode,
 				opts.WebMode,
 			); err != nil {
@@ -348,19 +337,19 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 			}
 
 			if opts.Template != "" && opts.BodyProvided {
-				return cmdutil.FlagErrorf("`--template` is not supported when using `--body` or `--body-file`")
+				return cmdutil.FlagErrorf("`--template` 不支持与 `--body` 或 `--body-file` 同时使用")
 			}
 
 			if !opts.IO.CanPrompt() && !opts.WebMode && !(opts.FillVerbose || opts.Autofill || opts.FillFirst) && (!opts.TitleProvided || !opts.BodyProvided) {
-				return cmdutil.FlagErrorf("must provide `--title` and `--body` (or `--fill` or `fill-first` or `--fillverbose`) when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时必须提供 `--title` 和 `--body` (或 `--fill` 或 `fill-first` 或 `--fillverbose`)")
 			}
 
 			if opts.DryRun && opts.WebMode {
-				return cmdutil.FlagErrorf("`--dry-run` is not supported when using `--web`")
+				return cmdutil.FlagErrorf("`--dry-run` 不支持与 `--web` 同时使用")
 			}
 
 			if err := cmdutil.MutuallyExclusive(
-				"`--attach` is not supported when using `--web`",
+				"`--attach` 不支持与 `--web` 同时使用",
 				opts.AttachFlag.Changed(),
 				opts.WebMode,
 			); err != nil {
@@ -368,7 +357,7 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 			}
 
 			if err := cmdutil.MutuallyExclusive(
-				"`--attach` is not supported when using `--dry-run`",
+				"`--attach` 不支持与 `--dry-run` 同时使用",
 				opts.AttachFlag.Changed(),
 				opts.DryRun,
 			); err != nil {
@@ -389,26 +378,26 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 	}
 
 	fl := cmd.Flags()
-	fl.BoolVarP(&opts.IsDraft, "draft", "d", false, "Mark pull request as a draft")
-	fl.StringVarP(&opts.Title, "title", "t", "", "Title for the pull request")
-	fl.StringVarP(&opts.Body, "body", "b", "", "Body for the pull request")
-	fl.StringVarP(&bodyFile, "body-file", "F", "", "Read body text from `file` (use \"-\" to read from standard input)")
-	fl.StringVarP(&opts.BaseBranch, "base", "B", "", "The `branch` into which you want your code merged")
-	fl.StringVarP(&opts.HeadBranch, "head", "H", "", "The `branch` that contains commits for your pull request (default [current branch])")
-	fl.BoolVarP(&opts.EditorMode, "editor", "e", false, "Skip prompts and open the text editor to write the title and body in. The first line is the title and the remaining text is the body.")
-	fl.BoolVarP(&opts.WebMode, "web", "w", false, "Open the web browser to create a pull request")
-	fl.BoolVarP(&opts.FillVerbose, "fill-verbose", "", false, "Use commits msg+body for description")
-	fl.BoolVarP(&opts.Autofill, "fill", "f", false, "Use commit info for title and body")
-	fl.BoolVar(&opts.FillFirst, "fill-first", false, "Use first commit info for title and body")
-	fl.StringSliceVarP(&opts.Reviewers, "reviewer", "r", nil, "Request reviews from people or teams by their `handle`")
-	fl.StringSliceVarP(&opts.Assignees, "assignee", "a", nil, "Assign people by their `login`. Use \"@me\" to self-assign.")
-	fl.StringSliceVarP(&opts.Labels, "label", "l", nil, "Add labels by `name`")
-	fl.StringSliceVarP(&opts.Projects, "project", "p", nil, "Add the pull request to projects by `title`")
-	fl.StringVarP(&opts.Milestone, "milestone", "m", "", "Add the pull request to a milestone by `name`")
-	fl.Bool("no-maintainer-edit", false, "Disable maintainer's ability to modify pull request")
-	fl.StringVar(&opts.RecoverFile, "recover", "", "Recover input from a failed run of create")
-	fl.StringVarP(&opts.Template, "template", "T", "", "Template `file` to use as starting body text")
-	fl.BoolVar(&opts.DryRun, "dry-run", false, "Print details instead of creating the PR. May still push git changes.")
+	fl.BoolVarP(&opts.IsDraft, "draft", "d", false, "将拉取请求(PR)标记为草稿(draft)")
+	fl.StringVarP(&opts.Title, "title", "t", "", "拉取请求(PR)的标题")
+	fl.StringVarP(&opts.Body, "body", "b", "", "拉取请求(PR)的正文")
+	fl.StringVarP(&bodyFile, "body-file", "F", "", "从 `file` 读取正文文本 (使用 \"-\" 从标准输入读取)")
+	fl.StringVarP(&opts.BaseBranch, "base", "B", "", "希望将代码合并入的 `branch`")
+	fl.StringVarP(&opts.HeadBranch, "head", "H", "", "包含拉取请求(PR)提交的 `branch` (默认 [当前分支])")
+	fl.BoolVarP(&opts.EditorMode, "editor", "e", false, "跳过提示，打开文本编辑器撰写标题与正文。第一行为标题，其余文本为正文。")
+	fl.BoolVarP(&opts.WebMode, "web", "w", false, "打开 web 浏览器创建拉取请求(PR)")
+	fl.BoolVarP(&opts.FillVerbose, "fill-verbose", "", false, "使用提交的提交信息+正文(msg+body)作为描述")
+	fl.BoolVarP(&opts.Autofill, "fill", "f", false, "使用提交信息作为标题和正文")
+	fl.BoolVar(&opts.FillFirst, "fill-first", false, "使用首个提交的信息作为标题和正文")
+	fl.StringSliceVarP(&opts.Reviewers, "reviewer", "r", nil, "按 `handle` 请求个人或团队进行审核(review)")
+	fl.StringSliceVarP(&opts.Assignees, "assignee", "a", nil, "按 `login` 指派人员。使用 \"@me\" 指派给自己。")
+	fl.StringSliceVarP(&opts.Labels, "label", "l", nil, "按 `name` 添加标签(label)")
+	fl.StringSliceVarP(&opts.Projects, "project", "p", nil, "按 `title` 将拉取请求(PR)添加到项目(project)")
+	fl.StringVarP(&opts.Milestone, "milestone", "m", "", "按 `name` 将拉取请求(PR)添加到里程碑(milestone)")
+	fl.Bool("no-maintainer-edit", false, "禁用维护者(maintainer)修改拉取请求(PR)的能力")
+	fl.StringVar(&opts.RecoverFile, "recover", "", "从一次失败的 create 运行中恢复输入")
+	fl.StringVarP(&opts.Template, "template", "T", "", "用作起始正文的模板 `file`")
+	fl.BoolVar(&opts.DryRun, "dry-run", false, "打印详细信息而不创建 PR。仍可能推送 git 变更。")
 	opts.AttachFlag = attachments.AddFlag(cmd)
 
 	_ = cmdutil.RegisterBranchCompletionFlags(f.GitClient, cmd, "base", "head")
@@ -431,7 +420,7 @@ func createRun(opts *CreateOptions) error {
 	}
 
 	if isSameRef(ctx.PRRefs) {
-		return fmt.Errorf("head branch %q is the same as base branch %q, cannot create a pull request", ctx.PRRefs.UnqualifiedHeadRef(), ctx.PRRefs.BaseRef())
+		return fmt.Errorf("源分支(head branch) %q 与基础分支(base branch) %q 相同，无法创建拉取请求(PR)", ctx.PRRefs.UnqualifiedHeadRef(), ctx.PRRefs.BaseRef())
 	}
 
 	httpClient, err := opts.HttpClient()
@@ -440,7 +429,7 @@ func createRun(opts *CreateOptions) error {
 	}
 
 	// TODO projectsV1Deprecation
-	// Remove this section as we should no longer need to detect
+	// 移除此部分，因为我们应当不再需要检测
 	if opts.Detector == nil {
 		cachedClient := api.NewCachedHTTPClient(httpClient, time.Hour*24)
 		opts.Detector = fd.NewDetector(cachedClient, ctx.PRRefs.BaseRepo().RepoHost())
@@ -450,8 +439,8 @@ func createRun(opts *CreateOptions) error {
 
 	client := ctx.Client
 
-	// Detect ApiActorsSupported feature to determine if we can use search-based
-	// reviewer selection (github.com) or need to use legacy ID-based selection (GHES)
+	// 检测 ApiActorsSupported 特性，以判断能否使用基于搜索的审核者(reviewer)选择
+	// (github.com)，还是需要使用基于遗留 ID 的选择(GHES)
 	issueFeatures, err := opts.Detector.IssueFeatures()
 	if err != nil {
 		return err
@@ -504,7 +493,7 @@ func createRun(opts *CreateOptions) error {
 			return err
 		}
 		if !shared.ValidURL(openURL) {
-			err = fmt.Errorf("cannot open in browser: maximum URL length exceeded")
+			err = fmt.Errorf("无法在浏览器中打开: 超出了最大 URL 长度")
 			return err
 		}
 		return previewPR(*opts, openURL)
@@ -526,14 +515,14 @@ func createRun(opts *CreateOptions) error {
 	})
 	var notFound *shared.NotFoundError
 	if err != nil && !errors.As(err, &notFound) {
-		return fmt.Errorf("error checking for existing pull request: %w", err)
+		return fmt.Errorf("检查已有拉取请求(PR)出错: %w", err)
 	}
 	if err == nil {
-		return fmt.Errorf("a pull request for branch %q into branch %q already exists:\n%s",
+		return fmt.Errorf("从分支(branch) %q 到分支 %q 的拉取请求(PR)已存在:\n%s",
 			ctx.PRRefs.QualifiedHeadRef(), ctx.PRRefs.BaseRef(), existingPR.URL)
 	}
 
-	// Built before the prompts, so a run that cannot upload stops early.
+	// 在提示之前构建，使无法上传的运行可以尽早停止。
 	var uploader *attachments.Uploader
 	if len(opts.Assets) > 0 {
 		baseRepo := ctx.PRRefs.BaseRepo()
@@ -543,12 +532,12 @@ func createRun(opts *CreateOptions) error {
 		}
 	}
 
-	message := "\nCreating pull request for %s into %s in %s\n\n"
+	message := "\n正在创建从 %s 到 %s (位于 %s)的拉取请求(PR)\n\n"
 	if state.Draft {
-		message = "\nCreating draft pull request for %s into %s in %s\n\n"
+		message = "\n正在创建从 %s 到 %s (位于 %s)的草稿(draft)拉取请求(PR)\n\n"
 	}
 	if opts.DryRun {
-		message = "\nDry Running pull request for %s into %s in %s\n\n"
+		message = "\n正在试运行(dry run)从 %s 到 %s (位于 %s)的拉取请求(PR)\n\n"
 	}
 
 	cs := opts.IO.ColorScheme()
@@ -571,7 +560,7 @@ func createRun(opts *CreateOptions) error {
 	if opts.RecoverFile != "" {
 		err = shared.FillFromJSON(opts.IO, opts.RecoverFile, state)
 		if err != nil {
-			return fmt.Errorf("failed to recover input: %w", err)
+			return fmt.Errorf("恢复输入失败: %w", err)
 		}
 	}
 
@@ -600,7 +589,7 @@ func createRun(opts *CreateOptions) error {
 			return err
 		}
 		if state.Title == "" {
-			err = fmt.Errorf("title can't be blank")
+			err = fmt.Errorf("标题不能为空")
 			return err
 		}
 	} else {
@@ -647,12 +636,12 @@ func createRun(opts *CreateOptions) error {
 			return err
 		}
 
-		// Preview opens the browser, which cannot carry an upload.
+		// 预览会打开浏览器，无法携带上传。
 		allowPreview := !state.HasMetadata() && shared.ValidURL(openURL) && !opts.DryRun && len(opts.Assets) == 0
 		allowMetadata := ctx.PRRefs.BaseRepo().ViewerCanTriage()
 		action, err = shared.ConfirmPRSubmission(opts.Prompter, allowPreview, allowMetadata, state.Draft)
 		if err != nil {
-			return fmt.Errorf("unable to confirm: %w", err)
+			return fmt.Errorf("无法确认: %w", err)
 		}
 
 		if action == shared.MetadataAction {
@@ -675,7 +664,7 @@ func createRun(opts *CreateOptions) error {
 	}
 
 	if action == shared.CancelAction {
-		fmt.Fprintln(opts.IO.ErrOut, "Discarding.")
+		fmt.Fprintln(opts.IO.ErrOut, "正在丢弃。")
 		err = cmdutil.CancelError
 		return err
 	}
@@ -698,7 +687,7 @@ func createRun(opts *CreateOptions) error {
 		return submitPR(*opts, *ctx, *state, projectsV1Support, uploader)
 	}
 
-	err = errors.New("expected to cancel, preview, or submit")
+	err = errors.New("预期应取消、预览或提交")
 	return err
 }
 
@@ -791,8 +780,8 @@ func NewCreateContext(opts *CreateOptions) (*CreateContext, error) {
 		if r, ok := br.(*api.Repository); ok {
 			baseRepo = r
 		} else {
-			// TODO: if RepoNetwork is going to be requested anyway in `repoContext.HeadRepos()`,
-			// consider piggybacking on that result instead of performing a separate lookup
+			// TODO: 如果 `repoContext.HeadRepos()` 反正都会请求 RepoNetwork，
+			// 可以考虑搭那趟便车，而不是执行单独的查询
 			baseRepo, err = api.GitHubRepo(client, br)
 			if err != nil {
 				return nil, err
@@ -802,18 +791,16 @@ func NewCreateContext(opts *CreateOptions) (*CreateContext, error) {
 		return nil, err
 	}
 
-	// This closure provides an easy way to instantiate a CreateContext with everything other than
-	// the refs. This probably indicates that CreateContext could do with some rework, but the refactor
-	// to introduce PRRefs is already large enough.
+	// 该闭包提供了一种便捷方式，用于实例化一个除 refs 之外一切齐备的 CreateContext。
+	// 这可能表明 CreateContext 有必要做些重构，但为引入 PRRefs 所做的重构已经足够大了。
 	var newCreateContext = func(refs creationRefs) *CreateContext {
 		baseTrackingBranch := refs.BaseRef()
 
-		// The baseTrackingBranch is used later for a command like:
-		// `git commit upstream/main feature` in order to create a PR message showing the commits
-		// between these two refs. I'm not really sure what is expected to happen if we don't have a remote,
-		// which seems like it would be possible with a command `gh pr create --repo owner/repo-that-is-not-a-remote`.
-		// In that case, we might just have a mess? In any case, this is what the old code did, so I don't want to change
-		// it as part of an already large refactor.
+		// baseTrackingBranch 稍后用于类似 `git commit upstream/main feature` 的命令，
+		// 以便生成显示这两个 ref 之间提交的 PR 信息。我不太确定如果没有远端会发生什么，
+		// 而这在使用 `gh pr create --repo owner/repo-that-is-not-a-remote` 这样的命令时似乎是有可能的。
+		// 那种情况下，结果可能是一团糟？无论如何，旧代码就是这么做的，所以我不想在
+		// 本已很大的重构中改变它。
 		baseRemote, _ := resolvedRemotes.RemoteForRepo(baseRepo)
 		if baseRemote != nil {
 			baseTrackingBranch = fmt.Sprintf("%s/%s", baseRemote.Name, baseTrackingBranch)
@@ -828,15 +815,14 @@ func NewCreateContext(opts *CreateOptions) (*CreateContext, error) {
 		}
 	}
 
-	// If the user provided a head branch we're going to use that without any interrogation
-	// of git. The value can take the form of <branch> or <user>:<branch>. In the former case, the
-	// PR base and head repos are the same. In the latter case we don't know the head repo
-	// (though we could look it up in the API) but fortunately we don't need to because the API
-	// will resolve this for us when we create the pull request. This is possible because
-	// users can only have a single fork in their namespace, and organizations don't work at all with this ref format.
+	// 如果用户提供了源分支(head branch)，我们将直接使用它，而不对 git 做任何探究。
+	// 该值可以是 <branch> 或 <user>:<branch> 形式。前者表示 PR 的基础仓库和源仓库相同。
+	// 后者我们不知道源仓库(head repo)是什么(虽然可以通过 API 查询)，但幸运的是我们无需这样做，
+	// 因为在创建拉取请求(PR)时 API 会替我们解析。这是可行的，因为用户在其命名空间下
+	// 只能有一个 fork，而且组织根本无法使用这种 ref 格式。
 	//
-	// Note that providing the head branch in this way indicates that we shouldn't push the branch,
-	// and we indicate that via the returned type as well.
+	// 注意: 以这种方式提供源分支意味着我们不应推送该分支，
+	// 我们也通过返回的类型来表明这一点。
 	if opts.HeadBranch != "" {
 		qualifiedHeadRef, err := shared.ParseQualifiedHeadRef(opts.HeadBranch)
 		if err != nil {
@@ -867,11 +853,11 @@ func NewCreateContext(opts *CreateOptions) (*CreateContext, error) {
 		fmt.Fprintf(opts.IO.ErrOut, "Warning: %s\n", text.Pluralize(ucc, "uncommitted change"))
 	}
 
-	// If the user didn't provide a head branch then we're gettin' real. We're going to interrogate git
-	// and try to create refs that are pushable.
+	// 如果用户未提供源分支(head branch)，那就要来真的了。我们将探究 git，
+	// 并尝试创建可推送的 refs。
 	currentBranch, err := opts.Branch()
 	if err != nil {
-		return nil, fmt.Errorf("could not determine the current branch: %w", err)
+		return nil, fmt.Errorf("无法确定当前分支(branch): %w", err)
 	}
 
 	branchConfig, err := opts.GitClient.ReadBranchConfig(context.Background(), currentBranch)
@@ -887,10 +873,9 @@ func NewCreateContext(opts *CreateOptions) (*CreateContext, error) {
 		baseBranch = baseRepo.DefaultBranchRef.Name
 	}
 
-	// First we check with the git information we have to see if we can figure out the default
-	// head repo and remote branch name.
+	// 首先根据手头的 git 信息，尝试确定默认的源仓库(head repo)与远端分支(branch)名。
 	defaultPRHead, err := shared.TryDetermineDefaultPRHead(
-		// We requested the branch config already, so let's cache that
+		// 已经请求过分支(branch)配置，因此缓存它
 		shared.CachedBranchConfigGitConfigClient{
 			CachedBranchConfig: branchConfig,
 			GitConfigClient:    opts.GitClient,
@@ -902,18 +887,18 @@ func NewCreateContext(opts *CreateOptions) (*CreateContext, error) {
 		return nil, err
 	}
 
-	// The baseRefs are always going to be the same from now on. If I could make this immutable I would!
+	// 从现在起 baseRefs 将始终相同。如果能让它不可变就好了!
 	baseRefs := baseRefs{
 		baseRepo:       baseRepo,
 		baseBranchName: baseBranch,
 	}
 
-	// If we were able to determine a head repo, then let's check that the remote tracking ref matches the SHA of
-	// HEAD. If it does, then we don't need to push, otherwise we'll need to ask the user to tell us where to push.
+	// 如果我们能够确定源仓库(head repo)，那么检查远端跟踪(remote tracking) ref 是否与 HEAD 的
+	// SHA 匹配。若匹配则无需 push，否则需要询问用户要推送到哪里。
 	if headRepo, present := defaultPRHead.Repo.Value(); present {
-		// We may not find a remote because the git branch config may have a URL rather than a remote name.
-		// Ideally, we would return a sentinel error from RemoteForRepo that we could compare to, but the
-		// refactor that introduced this code was already large enough.
+		// 我们可能找不到远端，因为 git 分支(branch)配置中可能是 URL 而非远端名称。
+		// 理想情况下，RemoteForRepo 应返回一个可供比较的哨兵(sentinel)错误，
+		// 但引入这段代码的重构已经足够大了。
 		headRemote, _ := resolvedRemotes.RemoteForRepo(headRepo)
 		if headRemote != nil {
 			resolvedRefs, _ := opts.GitClient.ShowRefs(
@@ -924,8 +909,8 @@ func NewCreateContext(opts *CreateOptions) (*CreateContext, error) {
 				},
 			)
 
-			// Two refs returned means we can compare HEAD to the remote tracking branch.
-			// If we had a matching ref, then we can skip pushing.
+			// 返回两个 ref 意味着可以将 HEAD 与远端跟踪(remote tracking)分支(branch)比较。
+			// 若有一个匹配的 ref，则可以跳过推送(push)。
 			refsMatch := len(resolvedRefs) == 2 && resolvedRefs[0].Hash == resolvedRefs[1].Hash
 			if refsMatch {
 				qualifiedHeadRef := shared.NewQualifiedHeadRefWithoutOwner(defaultPRHead.BranchName)
@@ -941,40 +926,38 @@ func NewCreateContext(opts *CreateOptions) (*CreateContext, error) {
 		}
 	}
 
-	// If we didn't determine that the git indicated repo had the correct ref, we'll take a look at the other
-	// remotes and see whether any of them have the same SHA as HEAD. Now, at this point, you might be asking yourself:
-	// "Why didn't we collect all the SHAs with a single ShowRefs command above, for use in both cases?"
+	// 如果我们尚未确定 git 指示的仓库拥有正确的 ref，那么查看其他远端，
+	// 看它们中是否有与 HEAD 相同 SHA 的。此时你可能会问:
+	// "为什么不在上面用一个 ShowRefs 命令收集所有 SHA，供两种情况共用?"
 	// ...
-	// That's because the code below has a bug that I've ported from the old code, in order to preserve the existing
-	// behaviour, and to limit the scope of an already large refactor. The intention of the original code was to loop
-	// over all the returned refs. However, as it turns out, our implementation of ShowRefs doesn't do that correctly.
-	// Since it provides the --verify flag, git will return the SHAs for refs up until it hits a ref that doesn't exist,
-	// at which point it bails out.
+	// 这是因为下面的代码有一个我从旧代码移植过来的缺陷，以便保留既有行为，
+	// 并限制本已很大的重构的范围。原代码的意图是遍历所有返回的 ref。
+	// 然而，事实证明我们的 ShowRefs 实现并不能正确做到这一点。
+	// 由于它提供了 --verify flag，git 会返回各 ref 的 SHA，直到遇到一个不存在的 ref，
+	// 然后中止。
 	//
-	// Imagine you have a remotes "upstream" and "origin", and you have pushed your branch "feature" to "origin". Since
-	// the order of remotes is always guaranteed "upstream", "github", "origin", and then everything else unstably sorted,
-	// we will never get a SHA for origin, as refs/remotes/upstream/feature doesn't exist.
+	// 设想你有 "upstream" 和 "origin" 两个远端，并且已将分支(branch) "feature" 推送到 "origin"。
+	// 由于远端顺序总是固定为 "upstream"、"github"、"origin"，之后其余的以不稳定方式排序，
+	// 我们永远拿不到 origin 的 SHA，因为 refs/remotes/upstream/feature 不存在。
 	//
-	// Furthermore, when you really think about it, this code is a bit eager. What happens if you have the same SHA on
-	// remotes "origin" and "colleague", this will always offer origin. If it were "colleague-a" and "colleague-b", no
-	// order would be guaranteed between different invocations of pr create, because the order of remotes after "origin"
-	// is unstable sorted.
+	// 此外，仔细想想，这段代码有点急于求成。如果 "origin" 和 "colleague" 远端上有相同的 SHA，
+	// 总是会给出 origin。如果是 "colleague-a" 和 "colleague-b"，由于 "origin" 之后的远端顺序
+	// 是不稳定排序，不同调用之间无法保证顺序。
 	//
-	// All that said, this has been the behaviour for a long, long time, and I do not want to make other behavioural changes
-	// in what is mostly a refactor.
+	// 尽管如此，这一行为已经存在很久很久了，我不想在这次以重构为主的改动中引入其他行为变更。
 	refsToLookup := []string{"HEAD"}
 	for _, remote := range remotes {
 		refsToLookup = append(refsToLookup, fmt.Sprintf("refs/remotes/%s/%s", remote.Name, currentBranch))
 	}
 
-	// Ignoring the error in this case is allowed because we may get refs and an error (see: --verify flag above).
-	// Ideally there would be a typed error to allow us to distinguish between an execution error and some refs
-	// not existing. However, this is too much to take on in an already large refactor.
+	// 在此情况下忽略该错误是允许的，因为我们可能同时得到 refs 和一个错误(参见上文的 --verify flag)。
+	// 理想情况下应有一个类型化的错误，让我们能够区分执行错误与某些 ref 不存在。
+	// 不过，这对于本已很大的重构来说有些力不从心。
 	refs, _ := opts.GitClient.ShowRefs(context.Background(), refsToLookup)
 	if len(refs) > 1 {
 		headRef := refs[0]
 		var firstMatchingRef o.Option[git.RemoteTrackingRef]
-		// Loop over all the refs, trying to find one that matches the SHA of HEAD.
+		// 遍历所有 ref，尝试找到与 HEAD 的 SHA 匹配的那个。
 		for _, r := range refs[1:] {
 			if r.Hash == headRef.Hash {
 				remoteTrackingRef, err := git.ParseRemoteTrackingRef(r.Name)
@@ -987,7 +970,7 @@ func NewCreateContext(opts *CreateOptions) (*CreateContext, error) {
 			}
 		}
 
-		// If we found a matching ref, then we don't need to push.
+		// 如果找到了匹配的 ref，那么无需推送(push)。
 		if ref, present := firstMatchingRef.Value(); present {
 			remote, err := remotes.FindByName(ref.Remote)
 			if err != nil {
@@ -1006,21 +989,21 @@ func NewCreateContext(opts *CreateOptions) (*CreateContext, error) {
 		}
 	}
 
-	// If we haven't got a repo by now, and we can't prompt then it's game over.
+	// 如果到现在还没有确定仓库，且无法交互提示，那就到此为止了。
 	if !opts.IO.CanPrompt() {
-		fmt.Fprintln(opts.IO.ErrOut, "aborted: you must first push the current branch to a remote, or use the --head flag")
+		fmt.Fprintln(opts.IO.ErrOut, "已中止: 必须先将当前分支(branch)推送到远端，或使用 --head flag")
 		return nil, cmdutil.SilentError
 	}
 
-	// Otherwise, hooray, prompting!
+	// 否则，好耶，可以交互提示了!
 
-	// First, we're going to look at our remotes and decide whether there are any repos we can push to.
+	// 首先，我们查看自己的远端，判断是否有可以推送(push)的仓库。
 	pushableRepos, err := resolvedRemotes.HeadRepos()
 	if err != nil {
 		return nil, err
 	}
 
-	// If we couldn't find any pushable repos, then find forks of the base repo.
+	// 如果找不到任何可推送的仓库，则查找基础仓库的 fork。
 	if len(pushableRepos) == 0 {
 		pushableRepos, err = api.RepoFindForks(client, baseRepo, 3)
 		if err != nil {
@@ -1043,36 +1026,35 @@ func NewCreateContext(opts *CreateOptions) (*CreateContext, error) {
 	}
 
 	if !hasOwnFork {
-		pushOptions = append(pushOptions, fmt.Sprintf("Create a fork of %s", ghrepo.FullName(baseRepo)))
+		pushOptions = append(pushOptions, fmt.Sprintf("创建 %s 的 fork", ghrepo.FullName(baseRepo)))
 	}
-	pushOptions = append(pushOptions, "Skip pushing the branch")
-	pushOptions = append(pushOptions, "Cancel")
+	pushOptions = append(pushOptions, "跳过推送该分支(branch)")
+	pushOptions = append(pushOptions, "取消")
 
-	selectedOption, err := opts.Prompter.Select(fmt.Sprintf("Where should we push the '%s' branch?", currentBranch), "", pushOptions)
+	selectedOption, err := opts.Prompter.Select(fmt.Sprintf("应将 '%s' 分支推送到哪里?", currentBranch), "", pushOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	if selectedOption < len(pushableRepos) {
-		// A repository has been selected to push to.
+		// 已选择要推送(push)到的仓库。
 		return newCreateContext(pushableRefs{
 			headRepo:       pushableRepos[selectedOption],
 			headBranchName: currentBranch,
 			baseRefs:       baseRefs,
 		}), nil
-	} else if pushOptions[selectedOption] == "Skip pushing the branch" {
-		// We're going to skip pushing the branch altogether, meaning, use whatever SHA is already pushed.
-		// It's not exactly clear what repo the user expects to use here for the HEAD, and maybe we should
-		// make that clear in the UX somehow, but in the old implementation as far as I can tell, this
-		// always meant "use the base repo".
+	} else if pushOptions[selectedOption] == "跳过推送该分支(branch)" {
+		// 我们将完全跳过推送(push)，也就是说，使用已经推送的任何 SHA。
+		// 目前尚不完全清楚用户期望此处 HEAD 使用哪个仓库，或许应通过某种 UX 方式加以明确，
+		// 但据我所知，在旧实现中这始终意味着"使用基础仓库(base repo)"。
 		return newCreateContext(skipPushRefs{
 			qualifiedHeadRef: shared.NewQualifiedHeadRefWithoutOwner(currentBranch),
 			baseRefs:         baseRefs,
 		}), nil
-	} else if pushOptions[selectedOption] == "Cancel" {
+	} else if pushOptions[selectedOption] == "取消" {
 		return nil, cmdutil.CancelError
 	} else {
-		// A fork should be created.
+		// 应创建一个 fork。
 		return newCreateContext(forkableRefs{
 			qualifiedHeadRef: shared.NewQualifiedHeadRef(currentLogin, currentBranch),
 			baseRefs:         baseRefs,
@@ -1081,11 +1063,11 @@ func NewCreateContext(opts *CreateOptions) (*CreateContext, error) {
 }
 
 func getRemotes(opts *CreateOptions) (ghContext.Remotes, error) {
-	// TODO: consider obtaining remotes from GitClient instead
+	// TODO: 考虑改为从 GitClient 获取远端(remotes)
 	remotes, err := opts.Remotes()
 	if err != nil {
-		// When a repo override value is given, ignore errors when fetching git remotes
-		// to support using this command outside of git repos.
+		// 给定了仓库覆盖(repo override)值时，获取 git 远端(remotes)出错可忽略，
+		// 以支持在 git 仓库之外使用该命令。
 		if opts.RepoOverride == "" {
 			return nil, err
 		}
@@ -1106,7 +1088,7 @@ func submitPR(opts CreateOptions, ctx CreateContext, state shared.IssueMetadataS
 	}
 
 	if params["title"] == "" {
-		return errors.New("pull request title must not be blank")
+		return errors.New("拉取请求(PR)标题不能为空")
 	}
 
 	err := shared.AddMetadataToIssueParams(client, ctx.PRRefs.BaseRepo(), params, &state, projectV1Support)
@@ -1126,12 +1108,11 @@ func submitPR(opts CreateOptions, ctx CreateContext, state shared.IssueMetadataS
 	if uploader != nil {
 		body, uploadResult, err := uploader.UploadAndAttach(context.Background(), state.Body, opts.BodyDir, opts.Assets)
 		opts.AttachEvent.RecordOperations(uploadResult)
-		// With nothing uploaded, a body that lost the files it was written
-		// around is not what the caller asked to create. The branch is already
-		// pushed by now, so the message says what was not created rather than
-		// claiming the run had no effect.
+		// 如果没有上传任何文件，而正文失去了围绕它编写的文件引用，
+		// 那就不是调用方要求创建的内容。此时分支已经推送，因此消息说明
+		// 未创建什么，而不是声称本次运行没有任何效果。
 		if err != nil && uploadResult.Uploaded == 0 {
-			return fmt.Errorf("%w\nno pull request was created", err)
+			return fmt.Errorf("%w\n未创建任何拉取请求(PR)", err)
 		}
 		uploadErr = err
 		params["body"] = body
@@ -1145,13 +1126,12 @@ func submitPR(opts CreateOptions, ctx CreateContext, state shared.IssueMetadataS
 	}
 	if err != nil {
 		if pr != nil {
-			err = fmt.Errorf("pull request update failed: %w", err)
+			err = fmt.Errorf("拉取请求(PR)更新失败: %w", err)
 		} else {
-			err = fmt.Errorf("pull request create failed: %w", err)
+			err = fmt.Errorf("拉取请求(PR)创建失败: %w", err)
 		}
-		// A failed upload and a failed create have different remedies, and a
-		// failed create leaves the uploaded assets referenced by nothing, so
-		// that error reads first.
+		// 上传失败与创建失败的补救措施不同，且创建失败会让已上传的资产(asset)
+		// 变成无引用的孤儿，因此该错误放在前面读。
 		return errors.Join(uploadErr, err)
 	}
 	if opts.InvokingAgent != "" {
@@ -1161,7 +1141,7 @@ func submitPR(opts CreateOptions, ctx CreateContext, state shared.IssueMetadataS
 }
 
 func renderPullRequestPlain(w io.Writer, params map[string]any, state *shared.IssueMetadataState) error {
-	fmt.Fprint(w, "Would have created a Pull Request with:\n")
+	fmt.Fprint(w, "本将创建包含以下内容的拉取请求(PR):\n")
 	fmt.Fprintf(w, "title:\t%s\n", params["title"])
 	fmt.Fprintf(w, "draft:\t%t\n", params["draft"])
 	fmt.Fprintf(w, "base:\t%s\n", params["baseRefName"])
@@ -1193,34 +1173,34 @@ func renderPullRequestTTY(io *iostreams.IOStreams, params map[string]any, state 
 	cs := io.ColorScheme()
 	out := io.Out
 
-	fmt.Fprint(out, "Would have created a Pull Request with:\n")
-	fmt.Fprintf(out, "%s: %s\n", cs.Bold("Title"), params["title"].(string))
-	fmt.Fprintf(out, "%s: %t\n", cs.Bold("Draft"), params["draft"])
-	fmt.Fprintf(out, "%s: %s\n", cs.Bold("Base"), params["baseRefName"])
-	fmt.Fprintf(out, "%s: %s\n", cs.Bold("Head"), params["headRefName"])
+	fmt.Fprint(out, "本将创建包含以下内容的拉取请求(PR):\n")
+	fmt.Fprintf(out, "%s: %s\n", cs.Bold("标题"), params["title"].(string))
+	fmt.Fprintf(out, "%s: %t\n", cs.Bold("草稿(draft)"), params["draft"])
+	fmt.Fprintf(out, "%s: %s\n", cs.Bold("基础分支(base)"), params["baseRefName"])
+	fmt.Fprintf(out, "%s: %s\n", cs.Bold("源分支(head)"), params["headRefName"])
 	if len(state.Labels) != 0 {
-		fmt.Fprintf(out, "%s: %s\n", cs.Bold("Labels"), strings.Join(state.Labels, ", "))
+		fmt.Fprintf(out, "%s: %s\n", cs.Bold("标签(labels)"), strings.Join(state.Labels, ", "))
 	}
 	if len(state.Reviewers) != 0 {
-		fmt.Fprintf(out, "%s: %s\n", cs.Bold("Reviewers"), strings.Join(state.Reviewers, ", "))
+		fmt.Fprintf(out, "%s: %s\n", cs.Bold("审核者(reviewers)"), strings.Join(state.Reviewers, ", "))
 	}
 	if len(state.Assignees) != 0 {
-		fmt.Fprintf(out, "%s: %s\n", cs.Bold("Assignees"), strings.Join(state.Assignees, ", "))
+		fmt.Fprintf(out, "%s: %s\n", cs.Bold("被指派人(assignees)"), strings.Join(state.Assignees, ", "))
 	}
 	if len(state.Milestones) != 0 {
-		fmt.Fprintf(out, "%s: %s\n", cs.Bold("Milestones"), strings.Join(state.Milestones, ", "))
+		fmt.Fprintf(out, "%s: %s\n", cs.Bold("里程碑(milestones)"), strings.Join(state.Milestones, ", "))
 	}
 	if len(state.ProjectTitles) != 0 {
-		fmt.Fprintf(out, "%s: %s\n", cs.Bold("Projects"), strings.Join(state.ProjectTitles, ", "))
+		fmt.Fprintf(out, "%s: %s\n", cs.Bold("项目(projects)"), strings.Join(state.ProjectTitles, ", "))
 	}
-	fmt.Fprintf(out, "%s: %t\n", cs.Bold("MaintainerCanModify"), params["maintainerCanModify"])
+	fmt.Fprintf(out, "%s: %t\n", cs.Bold("维护者可修改(MaintainerCanModify)"), params["maintainerCanModify"])
 
-	fmt.Fprintf(out, "%s\n", cs.Bold("Body:"))
-	// Body
+	fmt.Fprintf(out, "%s\n", cs.Bold("正文:"))
+	// 正文
 	var md string
 	var err error
 	if len(params["body"].(string)) == 0 {
-		md = fmt.Sprintf("%s\n", cs.Muted("No description provided"))
+		md = fmt.Sprintf("%s\n", cs.Muted("未提供描述"))
 	} else {
 		md, err = markdown.Render(params["body"].(string),
 			markdown.WithTheme(io.TerminalTheme()),
@@ -1236,7 +1216,7 @@ func renderPullRequestTTY(io *iostreams.IOStreams, params map[string]any, state 
 
 func previewPR(opts CreateOptions, openURL string) error {
 	if opts.IO.IsStdinTTY() && opts.IO.IsStdoutTTY() {
-		fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(openURL))
+		fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
 	}
 	return opts.Browser.Browse(openURL)
 }
@@ -1249,7 +1229,7 @@ func handlePush(opts CreateOptions, ctx CreateContext) error {
 		forkedRepo, err := api.ForkRepo(ctx.Client, forkableRefs.BaseRepo(), "", "", true)
 		opts.IO.StopProgressIndicator()
 		if err != nil {
-			return fmt.Errorf("error forking repo: %w", err)
+			return fmt.Errorf("fork 仓库出错: %w", err)
 		}
 
 		refs = pushableRefs{
@@ -1260,21 +1240,19 @@ func handlePush(opts CreateOptions, ctx CreateContext) error {
 		}
 	}
 
-	// We may have upcast to pushableRefs on fork, or we may have been passed an instance
-	// already. But if we haven't, then there's nothing more to do.
+	// 我们可能在 fork 时向上转型(upcast)为 pushableRefs，也可能本来就传入了一个实例。
+	// 但如果两者都不是，那么无需再做任何事。
 	pushableRefs, ok := refs.(pushableRefs)
 	if !ok {
 		return nil
 	}
 
-	// There are two cases when an existing remote for the head repo will be
-	// missing (and an error will be returned):
-	// 1. the head repo was just created by auto-forking;
-	// 2. an existing fork was discovered by querying the API.
-	// In either case, we want to add the head repo as a new git remote so we
-	// can push to it. We will try to add the head repo as the "origin" remote
-	// and fallback to the "fork" remote if it is unavailable. Also, if the
-	// base repo is the "origin" remote we will rename it "upstream".
+	// 源仓库(head repo)的已有远端会缺失(并返回错误)的情况有两种:
+	// 1. 源仓库刚由自动 fork 创建;
+	// 2. 通过查询 API 发现了一个已有的 fork。
+	// 无论哪种情况，我们都要将源仓库添加为新的 git 远端(remote)，以便向其推送(push)。
+	// 我们会尝试将源仓库添加为 "origin" 远端，若该名称不可用则回退到 "fork" 远端。
+	// 此外，如果基础仓库正是 "origin" 远端，我们会将其重命名为 "upstream"。
 	headRemote, _ := ctx.ResolvedRemotes.RemoteForRepo(pushableRefs.HeadRepo())
 	if headRemote == nil {
 		cfg, err := opts.Config()
@@ -1305,29 +1283,29 @@ func handlePush(opts CreateOptions, ctx CreateContext) error {
 				return err
 			}
 			if _, err = renameCmd.Output(); err != nil {
-				return fmt.Errorf("error renaming origin remote: %w", err)
+				return fmt.Errorf("重命名 origin 远端(remote)出错: %w", err)
 			}
 			remoteName = "origin"
-			fmt.Fprintf(opts.IO.ErrOut, "Changed %s remote to %q\n", ghrepo.FullName(pushableRefs.BaseRepo()), upstreamName)
+			fmt.Fprintf(opts.IO.ErrOut, "已将 %s 远端更改为 %q\n", ghrepo.FullName(pushableRefs.BaseRepo()), upstreamName)
 		}
 
 		gitRemote, err := gitClient.AddRemote(context.Background(), remoteName, headRepoURL, []string{})
 		if err != nil {
-			return fmt.Errorf("error adding remote: %w", err)
+			return fmt.Errorf("添加远端(remote)出错: %w", err)
 		}
 
-		fmt.Fprintf(opts.IO.ErrOut, "Added %s as remote %q\n", ghrepo.FullName(pushableRefs.HeadRepo()), remoteName)
+		fmt.Fprintf(opts.IO.ErrOut, "已将 %s 添加为远端(remote) %q\n", ghrepo.FullName(pushableRefs.HeadRepo()), remoteName)
 
-		// Only mark `upstream` remote as default if `gh pr create` created the remote.
+		// 仅当 `gh pr create` 创建了该远端时，才将 `upstream` 远端标记为默认。
 		if requiresFork {
 			err := gitClient.SetRemoteResolution(context.Background(), upstreamName, "base")
 			if err != nil {
-				return fmt.Errorf("error setting upstream as default: %w", err)
+				return fmt.Errorf("设置 upstream 为默认失败: %w", err)
 			}
 
 			if opts.IO.IsStdoutTTY() {
 				cs := opts.IO.ColorScheme()
-				fmt.Fprintf(opts.IO.ErrOut, "%s Repository %s set as the default repository. To learn more about the default repository, run: gh repo set-default --help\n", cs.WarningIcon(), cs.Bold(ghrepo.FullName(pushableRefs.HeadRepo())))
+				fmt.Fprintf(opts.IO.ErrOut, "%s 仓库 %s 已设为默认仓库。要了解默认仓库的更多信息，请运行: gh repo set-default --help\n", cs.WarningIcon(), cs.Bold(ghrepo.FullName(pushableRefs.HeadRepo())))
 			}
 		}
 
@@ -1337,7 +1315,7 @@ func handlePush(opts CreateOptions, ctx CreateContext) error {
 		}
 	}
 
-	// automatically push the branch if it hasn't been pushed anywhere yet
+	// 若该分支(branch)尚未推送到任何地方，则自动推送它
 	pushBranch := func() error {
 		w := NewRegexpWriter(opts.IO.ErrOut, gitPushRegexp, "")
 		defer w.Flush()
@@ -1346,9 +1324,9 @@ func handlePush(opts CreateOptions, ctx CreateContext) error {
 		root := context.Background()
 		return backoff.Retry(func() error {
 			if err := ctx.GitClient.Push(root, headRemote.Name, ref, git.WithStderr(w)); err != nil {
-				// Only retry if we have forked the repo else the push should succeed the first time.
+				// 仅在已 fork 该仓库时重试，否则首次推送(push)就应成功。
 				if requiresFork {
-					fmt.Fprintf(opts.IO.ErrOut, "waiting 2 seconds before retrying...\n")
+					fmt.Fprintf(opts.IO.ErrOut, "等待 2 秒后重试...\n")
 					return err
 				}
 				return backoff.Permanent(err)
@@ -1372,7 +1350,7 @@ func generateCompareURL(ctx CreateContext, state shared.IssueMetadataState, proj
 	return url, nil
 }
 
-// Humanize returns a copy of the string s that replaces all instance of '-' and '_' with spaces.
+// Humanize 返回字符串 s 的副本，将其中所有的 '-' 和 '_' 替换为空格。
 func humanize(s string) string {
 	replace := "_-"
 	h := func(r rune) rune {

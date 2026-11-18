@@ -17,18 +17,18 @@ func httpRequest(client *http.Client, hostname string, apiHost string, method st
 	isGraphQL := p == "graphql"
 	var requestURL string
 	if strings.Contains(p, "://") {
-		// Absolute URLs are used as-is; api_host is never applied to them.
+		// 绝对 URL 原样使用; api_host 永远不会作用于它们。
 		requestURL = p
 	} else if isGraphQL {
-		// First we determine the GQL endpoint for the canonical host, which depends on what type of host it is
-		// e.g github.com will be at https://api.github.com/graphql and GHES myghes.com will be at https://myghes.com/api/graphql.
+		// 首先我们确定规范主机对应的 GQL 端点, 这取决于主机类型
+		// 例如 github.com 的端点为 https://api.github.com/graphql, 而 GHES 的 myghes.com 端点为 https://myghes.com/api/graphql。
 		requestURL = ghinstance.GraphQLEndpoint(hostname)
 		if apiHost != "" {
 			requestURL = swapURLHost(requestURL, apiHost)
 		}
 	} else {
-		// Note that the gh api command takes the path verbatim from the user, so we
-		// intentionally do not route it through safeurl and do not escape it here.
+		// 注意 gh api 命令从用户输入中原样获取路径, 因此我们
+		// 刻意不将其路由经过 safeurl, 也不在此处对其进行转义。
 		requestURL = ghinstance.RESTPrefix(hostname) + strings.TrimPrefix(p, "/")
 		if apiHost != "" {
 			requestURL = swapURLHost(requestURL, apiHost)
@@ -48,7 +48,7 @@ func httpRequest(client *http.Client, hostname string, apiHost string, method st
 			}
 			b, err := json.Marshal(pp)
 			if err != nil {
-				return nil, fmt.Errorf("error serializing parameters: %w", err)
+				return nil, fmt.Errorf("序列化参数时出错: %w", err)
 			}
 			body = bytes.NewBuffer(b)
 			bodyIsJSON = true
@@ -58,7 +58,7 @@ func httpRequest(client *http.Client, hostname string, apiHost string, method st
 	case nil:
 		body = nil
 	default:
-		return nil, fmt.Errorf("unrecognized parameters type: %v", params)
+		return nil, fmt.Errorf("无法识别的参数类型: %v", params)
 	}
 
 	req, err := http.NewRequest(strings.ToUpper(method), requestURL, body)
@@ -69,7 +69,7 @@ func httpRequest(client *http.Client, hostname string, apiHost string, method st
 	for _, h := range headers {
 		idx := strings.IndexRune(h, ':')
 		if idx == -1 {
-			return nil, fmt.Errorf("header %q requires a value separated by ':'", h)
+			return nil, fmt.Errorf("请求头 %q 需要以 ':' 分隔的值", h)
 		}
 		name, value := h[0:idx], strings.TrimSpace(h[idx+1:])
 		if strings.EqualFold(name, "Content-Length") {
@@ -142,7 +142,7 @@ func addQueryParam(query url.Values, key string, value any) error {
 		query.Add(key, fmt.Sprintf("%v", v))
 	case map[string]any:
 		for subkey, value := range v {
-			// support for nested subkeys can be added here if that is ever necessary
+			// 如有必要, 可在此处添加对嵌套子键的支持
 			if err := addQueryParam(query, subkey, value); err != nil {
 				return err
 			}
@@ -154,20 +154,20 @@ func addQueryParam(query url.Values, key string, value any) error {
 			}
 		}
 	default:
-		return fmt.Errorf("unknown type %v", v)
+		return fmt.Errorf("未知类型 %v", v)
 	}
 	return nil
 }
 
-// swapURLHost replaces the host component of rawURL with newHost, preserving
-// scheme, port (if already present in rawURL), path, and query unchanged.
+// swapURLHost 将 rawURL 的 host 部分替换为 newHost, 同时保持
+// scheme、端口(如 rawURL 中已存在)、path 和 query 不变。
 func swapURLHost(rawURL, newHost string) string {
 	u, err := url.Parse(rawURL)
 	if err != nil {
-		// rawURL is always a well-formed URL built by ghinstance.GraphQLEndpoint
-		// or ghinstance.RESTPrefix, so this error is unreachable in practice. If it
-		// did occur, returning the input unchanged leaves the request pointed at the
-		// original host, which is safe (no host swap, but request still succeeds).
+		// rawURL 始终是由 ghinstance.GraphQLEndpoint 或
+		// ghinstance.RESTPrefix 构建的结构合法的 URL, 因此该错误在实践中不可达。若它
+		// 确实发生了, 原样返回输入会使请求仍指向
+		// 原始主机, 这是安全的(不替换主机, 但请求仍会成功)。
 		return rawURL
 	}
 	u.Host = newHost

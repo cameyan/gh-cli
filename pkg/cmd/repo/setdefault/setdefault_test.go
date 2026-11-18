@@ -51,7 +51,7 @@ func TestNewCmdSetDefault(t *testing.T) {
 			},
 			input:   "some_invalid_format",
 			wantErr: true,
-			errMsg:  `given arg is not a valid repo or git remote: expected the "[HOST/]OWNER/REPO" format, got "some_invalid_format"`,
+			errMsg:  `给定参数不是有效的仓库或 git 远程: expected the "[HOST/]OWNER/REPO" format, got "some_invalid_format"`,
 		},
 		{
 			name: "view flag",
@@ -79,7 +79,7 @@ func TestNewCmdSetDefault(t *testing.T) {
 			input:   "",
 			nonTTY:  true,
 			wantErr: true,
-			errMsg:  "repository required when not running interactively",
+			errMsg:  "非交互式运行时必须指定仓库",
 		},
 		{
 			name: "run from non-git directory",
@@ -88,7 +88,7 @@ func TestNewCmdSetDefault(t *testing.T) {
 			},
 			input:   "",
 			wantErr: true,
-			errMsg:  "must be run from inside a git repository",
+			errMsg:  "必须在 git 仓库内运行",
 		},
 		{
 			name: "remote name argument",
@@ -209,7 +209,7 @@ func TestDefaultRun(t *testing.T) {
 			gitStubs: func(cs *run.CommandStubber) {
 				cs.Register(`git config --unset remote.origin.gh-resolved`, 0, "")
 			},
-			wantStdout: "✓ Unset OWNER/REPO as default repository\n",
+			wantStdout: "✓ 已取消将 OWNER/REPO 设为默认仓库\n",
 		},
 		{
 			name: "unset mode no current default",
@@ -221,7 +221,7 @@ func TestDefaultRun(t *testing.T) {
 					Repo:   repo1,
 				},
 			},
-			wantStdout: "no default repository has been set\n",
+			wantStdout: "尚未设置默认仓库\n",
 		},
 		{
 			name: "tty view mode no current default",
@@ -233,7 +233,7 @@ func TestDefaultRun(t *testing.T) {
 					Repo:   repo1,
 				},
 			},
-			wantStderr: "X No default remote repository has been set. To learn more about the default repository, run: gh repo set-default --help\n",
+			wantStderr: "X 尚未设置默认远程仓库。若要了解默认仓库的更多信息，请运行: gh repo set-default --help\n",
 		},
 		{
 			name: "view mode no current default",
@@ -245,7 +245,7 @@ func TestDefaultRun(t *testing.T) {
 					Repo:   repo1,
 				},
 			},
-			wantStderr: "X No default remote repository has been set. To learn more about the default repository, run: gh repo set-default --help\n",
+			wantStderr: "X 尚未设置默认远程仓库。若要了解默认仓库的更多信息，请运行: gh repo set-default --help\n",
 		},
 		{
 			name: "view mode with base resolved current default",
@@ -292,7 +292,7 @@ func TestDefaultRun(t *testing.T) {
 			gitStubs: func(cs *run.CommandStubber) {
 				cs.Register(`git config --add remote.upstream.gh-resolved base`, 0, "")
 			},
-			wantStdout: "✓ Set OWNER2/REPO2 as the default repository for the current directory\n",
+			wantStdout: "✓ 已将 OWNER2/REPO2 设为当前目录的默认仓库\n",
 		},
 		{
 			name: "tty non-interactive mode set non-base default",
@@ -317,7 +317,7 @@ func TestDefaultRun(t *testing.T) {
 			gitStubs: func(cs *run.CommandStubber) {
 				cs.Register(`git config --add remote.upstream.gh-resolved OWNER2/REPO2`, 0, "")
 			},
-			wantStdout: "✓ Set OWNER2/REPO2 as the default repository for the current directory\n",
+			wantStdout: "✓ 已将 OWNER2/REPO2 设为当前目录的默认仓库\n",
 		},
 		{
 			name: "non-tty non-interactive mode no current default",
@@ -367,7 +367,7 @@ func TestDefaultRun(t *testing.T) {
 				cs.Register(`git config --unset remote.origin.gh-resolved`, 0, "")
 				cs.Register(`git config --add remote.upstream.gh-resolved base`, 0, "")
 			},
-			wantStdout: "✓ Set OWNER2/REPO2 as the default repository for the current directory\n",
+			wantStdout: "✓ 已将 OWNER2/REPO2 设为当前目录的默认仓库\n",
 		},
 		{
 			name: "non-interactive mode no known hosts",
@@ -385,7 +385,7 @@ func TestDefaultRun(t *testing.T) {
 				)
 			},
 			wantErr: true,
-			errMsg:  "none of the git remotes correspond to a valid remote repository",
+			errMsg:  "没有任何 git 远程对应有效的远程仓库",
 		},
 		{
 			name: "non-interactive mode no matching remotes",
@@ -403,7 +403,7 @@ func TestDefaultRun(t *testing.T) {
 				)
 			},
 			wantErr: true,
-			errMsg:  "OWNER2/REPO2 does not correspond to any git remotes",
+			errMsg:  "OWNER2/REPO2 不对应任何 git 远程",
 		},
 		{
 			name: "interactive mode",
@@ -431,7 +431,7 @@ func TestDefaultRun(t *testing.T) {
 			prompterStubs: func(pm *prompter.PrompterMock) {
 				pm.SelectFunc = func(p, d string, opts []string) (int, error) {
 					switch p {
-					case "Which repository should be the default?":
+					case "哪个仓库应作为默认仓库？":
 						prompter.AssertOptions(t, []string{"OWNER/REPO", "OWNER2/REPO2"}, opts)
 						return prompter.IndexFor(opts, "OWNER2/REPO2")
 					default:
@@ -439,7 +439,7 @@ func TestDefaultRun(t *testing.T) {
 					}
 				}
 			},
-			wantStdout: "This command sets the default remote repository to use when querying the\nGitHub API for the locally cloned repository.\n\ngh uses the default repository for things like:\n\n - viewing and creating pull requests\n - viewing and creating issues\n - viewing and creating releases\n - working with GitHub Actions\n\n### NOTE: gh does not use the default repository for managing repository and environment secrets.\n\n✓ Set OWNER2/REPO2 as the default repository for the current directory\n",
+			wantStdout: "此命令设置本地克隆仓库在查询 GitHub API 时使用的默认远程仓库。\n\ngh 在以下场景使用默认仓库:\n\n - 查看和创建 PR\n - 查看和创建 issue\n - 查看和创建 release\n - 使用 GitHub Actions\n\n### 注意: gh 在管理仓库和环境密钥时不使用默认仓库。\n\n✓ 已将 OWNER2/REPO2 设为当前目录的默认仓库\n",
 		},
 		{
 			name: "interactive mode only one known host",
@@ -464,7 +464,7 @@ func TestDefaultRun(t *testing.T) {
 			gitStubs: func(cs *run.CommandStubber) {
 				cs.Register(`git config --add remote.upstream.gh-resolved base`, 0, "")
 			},
-			wantStdout: "Found only one known remote repo, OWNER2/REPO2 on github.com.\n✓ Set OWNER2/REPO2 as the default repository for the current directory\n",
+			wantStdout: "仅发现一个已知远程仓库，即 OWNER2/REPO2 上的 github.com。\n✓ 已将 OWNER2/REPO2 设为当前目录的默认仓库\n",
 		},
 		{
 			name: "interactive mode more than five remotes",
@@ -505,7 +505,7 @@ func TestDefaultRun(t *testing.T) {
 			prompterStubs: func(pm *prompter.PrompterMock) {
 				pm.SelectFunc = func(p, d string, opts []string) (int, error) {
 					switch p {
-					case "Which repository should be the default?":
+					case "哪个仓库应作为默认仓库？":
 						prompter.AssertOptions(t, []string{"OWNER/REPO", "OWNER2/REPO2", "OWNER3/REPO3", "OWNER4/REPO4", "OWNER5/REPO5", "OWNER6/REPO6"}, opts)
 						return prompter.IndexFor(opts, "OWNER2/REPO2")
 					default:
@@ -513,7 +513,7 @@ func TestDefaultRun(t *testing.T) {
 					}
 				}
 			},
-			wantStdout: "This command sets the default remote repository to use when querying the\nGitHub API for the locally cloned repository.\n\ngh uses the default repository for things like:\n\n - viewing and creating pull requests\n - viewing and creating issues\n - viewing and creating releases\n - working with GitHub Actions\n\n### NOTE: gh does not use the default repository for managing repository and environment secrets.\n\n✓ Set OWNER2/REPO2 as the default repository for the current directory\n",
+			wantStdout: "此命令设置本地克隆仓库在查询 GitHub API 时使用的默认远程仓库。\n\ngh 在以下场景使用默认仓库:\n\n - 查看和创建 PR\n - 查看和创建 issue\n - 查看和创建 release\n - 使用 GitHub Actions\n\n### 注意: gh 在管理仓库和环境密钥时不使用默认仓库。\n\n✓ 已将 OWNER2/REPO2 设为当前目录的默认仓库\n",
 		},
 	}
 

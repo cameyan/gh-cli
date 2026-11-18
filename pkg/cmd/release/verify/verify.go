@@ -42,24 +42,24 @@ func NewCmdVerify(f *cmdutil.Factory, runF func(config *VerifyConfig) error) *co
 
 	cmd := &cobra.Command{
 		Use:   "verify [<tag>]",
-		Short: "Verify the attestation for a release",
+		Short: "校验发布(release)的证明(attestation)",
 		Args:  cobra.MaximumNArgs(1),
 		Long: heredoc.Doc(`
-			Verify that a GitHub Release is accompanied by a valid cryptographically signed attestation.
+			校验 GitHub Release 是否附带有效的、经密码学签名的证明(attestation)。
 
-			An attestation is a claim made by GitHub regarding a release and its assets.
+			证明(attestation)是 GitHub 就某个发布(release)及其资产所作的声明。
 
-			This command checks that the specified release (or the latest release, if no tag is given) has a valid attestation. 
-			It fetches the attestation for the release and prints metadata about all assets referenced in the attestation, including their digests.
+			该命令检查指定的发布(release)(若未提供 tag，则为最新发布)是否具有有效证明。
+			它会获取该发布对应的证明，并打印证明中引用的所有资产(asset)的元数据，包括其摘要(digest)。
 		`),
 		Example: heredoc.Doc(`
-			# Verify the latest release
+			# 校验最新发布(release)
 			gh release verify
-			
-			# Verify a specific release by tag
+
+			# 按标签(tag)校验指定发布
 			gh release verify v1.2.3
 
-			# Verify a specific release by tag and output the attestation in JSON format
+			# 按标签校验指定发布，并以 JSON 格式输出证明
 			gh release verify v1.2.3 --format json
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -69,7 +69,7 @@ func NewCmdVerify(f *cmdutil.Factory, runF func(config *VerifyConfig) error) *co
 
 			baseRepo, err := f.BaseRepo()
 			if err != nil {
-				return fmt.Errorf("failed to determine base repository: %w", err)
+				return fmt.Errorf("确定基础仓库失败: %w", err)
 			}
 
 			opts.BaseRepo = baseRepo
@@ -109,7 +109,7 @@ func NewCmdVerify(f *cmdutil.Factory, runF func(config *VerifyConfig) error) *co
 		},
 	}
 	cmdutil.AddFormatFlags(cmd, &opts.Exporter)
-	cmd.Flags().StringVarP(&opts.TrustedRoot, "custom-trusted-root", "", "", "Path to a trusted_root.jsonl file; likely for offline verification.")
+	cmd.Flags().StringVarP(&opts.TrustedRoot, "custom-trusted-root", "", "", "trusted_root.jsonl 文件的路径; 通常用于离线校验。")
 	cmd.Flags().MarkHidden("custom-trusted-root")
 
 	return cmd
@@ -129,7 +129,7 @@ func verifyRun(config *VerifyConfig) error {
 		tagName = release.TagName
 	}
 
-	// Retrieve the ref for the release tag
+	// 获取发布标签(tag)的 ref
 	ref, err := shared.FetchRefSHA(ctx, config.HttpClient, baseRepo, tagName)
 	if err != nil {
 		return err
@@ -137,53 +137,52 @@ func verifyRun(config *VerifyConfig) error {
 
 	releaseRefDigest := artifact.NewDigestedArtifactForRelease(ref, shared.DigestAlgForRef(ref))
 
-	// Find all the attestations for the release tag SHA
+	// 查找发布标签(tag) SHA 对应的全部证明(attestation)
 	attestations, err := config.AttClient.GetByDigest(api.FetchParams{
 		Digest:        releaseRefDigest.DigestWithAlg(),
 		PredicateType: "release",
 		Owner:         baseRepo.RepoOwner(),
 		Repo:          baseRepo.RepoOwner() + "/" + baseRepo.RepoName(),
 		Initiator:     "github",
-		// TODO: Allow this value to be set via a flag.
-		// The limit is set to 100 to ensure we fetch all attestations for a given SHA.
-		// While multiple attestations can exist for a single SHA,
-		// only one attestation is associated with each release tag.
+		// TODO: 允许通过 flag 设置该值。
+		// 上限设为 100 以确保获取给定 SHA 的全部证明(attestation)。
+		// 虽然一个 SHA 可以对应多个证明，但每个发布标签(tag)只关联一个证明。
 		Limit: 100,
 	})
 	if err != nil {
-		return fmt.Errorf("no attestations for tag %s (%s)", tagName, releaseRefDigest.DigestWithAlg())
+		return fmt.Errorf("未找到标签(tag) %s (%s) 的证明(attestation)", tagName, releaseRefDigest.DigestWithAlg())
 	}
 
-	// Filter attestations by tag name
+	// 按标签(tag)名过滤证明(attestation)
 	filteredAttestations, err := shared.FilterAttestationsByTag(attestations, tagName)
 	if err != nil {
-		return fmt.Errorf("error parsing attestations for tag %s: %w", tagName, err)
+		return fmt.Errorf("解析标签(tag) %s 的证明(attestation)出错: %w", tagName, err)
 	}
 
 	if len(filteredAttestations) == 0 {
-		return fmt.Errorf("no attestations found for release %s in %s", tagName, baseRepo.RepoName())
+		return fmt.Errorf("在 %s 中未找到发布(release) %s 的证明(attestation)", baseRepo.RepoName(), tagName)
 	}
 
 	if len(filteredAttestations) > 1 {
-		return fmt.Errorf("duplicate attestations found for release %s in %s", tagName, baseRepo.RepoName())
+		return fmt.Errorf("在 %s 中发现发布(release) %s 的重复证明(attestation)", baseRepo.RepoName(), tagName)
 	}
 
-	// Verify attestation
+	// 校验证明(attestation)
 	verified, err := config.AttVerifier.VerifyAttestation(releaseRefDigest, filteredAttestations[0])
 	if err != nil {
-		return fmt.Errorf("failed to verify attestations for tag %s: %w", tagName, err)
+		return fmt.Errorf("校验标签(tag) %s 的证明(attestation)失败: %w", tagName, err)
 	}
 
-	// If an exporter is provided with the --json flag, write the results to the terminal in JSON format
+	// 如果通过 --json flag 提供了导出器(exporter)，则以 JSON 格式将结果写入终端
 	if opts.Exporter != nil {
 		return opts.Exporter.Write(config.IO, verified)
 	}
 
 	io := config.IO
 	cs := io.ColorScheme()
-	fmt.Fprintf(io.Out, "Resolved tag %s to %s\n", tagName, releaseRefDigest.DigestWithAlg())
-	fmt.Fprint(io.Out, "Loaded attestation from GitHub API\n")
-	fmt.Fprintf(io.Out, cs.Green("%s Release %s verified!\n"), cs.SuccessIcon(), tagName)
+	fmt.Fprintf(io.Out, "已将标签(tag) %s 解析为 %s\n", tagName, releaseRefDigest.DigestWithAlg())
+	fmt.Fprint(io.Out, "已从 GitHub API 加载证明(attestation)\n")
+	fmt.Fprintf(io.Out, cs.Green("%s 发布(release) %s 校验通过!\n"), cs.SuccessIcon(), tagName)
 	fmt.Fprintln(io.Out)
 
 	if err := printVerifiedSubjects(io, verified); err != nil {
@@ -205,13 +204,13 @@ func printVerifiedSubjects(io *iostreams.IOStreams, att *verification.Attestatio
 		return err
 	}
 
-	// If there aren't at least two subjects, there are no assets to display
+	// 若 subject 少于两个，则没有可展示的资产(asset)
 	if len(statementData.Subject) < 2 {
 		return nil
 	}
 
-	fmt.Fprintln(w, cs.Bold("Assets"))
-	table := tableprinter.New(io, tableprinter.WithHeader("Name", "Digest"))
+	fmt.Fprintln(w, cs.Bold("资产(asset)"))
+	table := tableprinter.New(io, tableprinter.WithHeader("名称", "摘要(digest)"))
 
 	for _, s := range statementData.Subject {
 		name := s.Name

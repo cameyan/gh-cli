@@ -100,7 +100,7 @@ func TestRenameRun(t *testing.T) {
 	}{
 		{
 			name:    "no such gist",
-			wantOut: "gist not found: 1234",
+			wantOut: "gist 未找到: 1234",
 		},
 		{
 			name: "rename from old.txt to new.txt",

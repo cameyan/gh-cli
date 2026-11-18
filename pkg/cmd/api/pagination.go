@@ -109,8 +109,8 @@ func addPerPage(p string, perPage int, params map[string]any) string {
 	return fmt.Sprintf("%s%sper_page=%d", p, sep, perPage)
 }
 
-// paginatedArrayReader wraps a Reader to omit the opening and/or the closing square bracket of a
-// JSON array in order to apply pagination context between multiple API requests.
+// paginatedArrayReader 对 Reader 进行包装, 以省略 JSON 数组的前方括号和/或
+// 后方括号, 从而在多个 API 请求之间应用分页上下文。
 type paginatedArrayReader struct {
 	io.Reader
 	isFirstPage bool
@@ -133,15 +133,15 @@ func (r *paginatedArrayReader) Read(p []byte) (int, error) {
 	}
 	if !r.isSubsequentRead && !r.isFirstPage && n > 0 && p[0] == '[' {
 		if n > 1 && p[1] == ']' {
-			// empty array case
+			// 空数组的情况
 			p[0] = ' '
 		} else {
-			// avoid starting a new array and continue with a comma instead
+			// 避免开启新数组, 改用逗号继续
 			p[0] = ','
 		}
 	}
 	if !r.isLastPage && n > 0 && p[n-1] == ']' {
-		// avoid closing off an array in case we determine we are at EOF
+		// 避免关闭数组, 以防我们随后判定已处于 EOF
 		r.cachedByte = p[n-1]
 		n -= 1
 	}
@@ -149,8 +149,8 @@ func (r *paginatedArrayReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// jsonArrayWriter wraps a Writer which writes multiple pages of both JSON arrays
-// and objects. Call Close to write the end of the array.
+// jsonArrayWriter 对 Writer 进行包装, 以写入多页 JSON 数组
+// 和对象。调用 Close 以写入数组的结尾。
 type jsonArrayWriter struct {
 	io.Writer
 	started bool
@@ -164,8 +164,8 @@ func (w *jsonArrayWriter) Preface() []json.Delim {
 	return nil
 }
 
-// ReadFrom implements io.ReaderFrom to write more data than read,
-// which otherwise results in an error from io.Copy().
+// ReadFrom 实现 io.ReaderFrom, 以写入多于读取的数据量,
+// 否则会导致 io.Copy() 报错。
 func (w *jsonArrayWriter) ReadFrom(r io.Reader) (int64, error) {
 	var written int64
 	buf := make([]byte, 4069)

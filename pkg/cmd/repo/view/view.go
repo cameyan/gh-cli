@@ -44,15 +44,15 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view [<repository>]",
-		Short: "View a repository",
+		Short: "查看仓库",
 		Long: heredoc.Docf(`
-			Display the description and the README of a GitHub repository.
+			显示 GitHub 仓库的描述和 README。
 
-			With no argument, the repository for the current directory is displayed.
+			未提供参数时，显示当前目录对应的仓库。
 
-			With %[1]s--web%[1]s, open the repository in a web browser instead.
+			使用 %[1]s--web%[1]s 时，改为在网页浏览器中打开仓库。
 
-			With %[1]s--branch%[1]s, view a specific branch of the repository.
+			使用 %[1]s--branch%[1]s 时，查看仓库的特定分支。
 		`, "`"),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(c *cobra.Command, args []string) error {
@@ -66,8 +66,8 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "Open a repository in the browser")
-	cmd.Flags().StringVarP(&opts.Branch, "branch", "b", "", "View a specific branch of the repository")
+	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "在浏览器中打开仓库")
+	cmd.Flags().StringVarP(&opts.Branch, "branch", "b", "", "查看仓库的特定分支")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, api.RepositoryFields)
 
 	_ = cmdutil.RegisterBranchCompletionFlags(f.GitClient, cmd, "branch")
@@ -107,7 +107,7 @@ func viewRun(opts *ViewOptions) error {
 		}
 		toView, err = ghrepo.FromFullName(viewURL)
 		if err != nil {
-			return fmt.Errorf("argument error: %w", err)
+			return fmt.Errorf("参数错误: %w", err)
 		}
 	}
 
@@ -132,7 +132,7 @@ func viewRun(opts *ViewOptions) error {
 	openURL := generateBranchURL(toView, opts.Branch)
 	if opts.Web {
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(openURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(openURL))
 		}
 		return opts.Browser.Browse(openURL)
 	}
@@ -141,7 +141,7 @@ func viewRun(opts *ViewOptions) error {
 	if err := opts.IO.StartPager(); err == nil {
 		defer opts.IO.StopPager()
 	} else {
-		fmt.Fprintf(opts.IO.ErrOut, "failed to start pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 
 	if opts.Exporter != nil {
@@ -152,8 +152,8 @@ func viewRun(opts *ViewOptions) error {
 	stdout := opts.IO.Out
 
 	if !opts.IO.IsStdoutTTY() {
-		fmt.Fprintf(stdout, "name:\t%s\n", fullName)
-		fmt.Fprintf(stdout, "description:\t%s\n", repo.Description)
+		fmt.Fprintf(stdout, "仓库名称:\t%s\n", fullName)
+		fmt.Fprintf(stdout, "仓库描述:\t%s\n", repo.Description)
 		if readme != nil {
 			fmt.Fprintln(stdout, "--")
 			fmt.Fprint(stdout, readme.Content)
@@ -181,7 +181,7 @@ func viewRun(opts *ViewOptions) error {
 
 	var readmeContent string
 	if readme == nil {
-		readmeContent = cs.Muted("This repository does not have a README")
+		readmeContent = cs.Muted("该仓库没有 README")
 	} else if isMarkdownFile(readme.Filename) {
 		var err error
 		readmeContent, err = markdown.Render(readme.Content,
@@ -189,7 +189,7 @@ func viewRun(opts *ViewOptions) error {
 			markdown.WithWrap(opts.IO.TerminalWidth()),
 			markdown.WithBaseURL(readme.BaseURL))
 		if err != nil {
-			return fmt.Errorf("error rendering markdown: %w", err)
+			return fmt.Errorf("渲染 markdown 时出错: %w", err)
 		}
 	} else {
 		readmeContent = readme.Content
@@ -197,7 +197,7 @@ func viewRun(opts *ViewOptions) error {
 
 	description := repo.Description
 	if description == "" {
-		description = cs.Muted("No description provided")
+		description = cs.Muted("未提供描述")
 	}
 
 	repoData := struct {
@@ -209,15 +209,15 @@ func viewRun(opts *ViewOptions) error {
 		FullName:    cs.Bold(fullName),
 		Description: description,
 		Readme:      readmeContent,
-		View:        cs.Mutedf("View this repository on GitHub: %s", openURL),
+		View:        cs.Mutedf("在 GitHub 上查看此仓库: %s", openURL),
 	}
 
 	return tmpl.Execute(stdout, repoData)
 }
 
 func isMarkdownFile(filename string) bool {
-	// kind of gross, but i'm assuming that 90% of the time the suffix will just be .md. it didn't
-	// seem worth executing a regex for this given that assumption.
+	// 有点粗糙，但我假设 90% 的情况下后缀就是 .md。基于这个假设，
+	// 似乎不值得为它执行一次正则匹配。
 	return strings.HasSuffix(filename, ".md") ||
 		strings.HasSuffix(filename, ".markdown") ||
 		strings.HasSuffix(filename, ".mdown") ||

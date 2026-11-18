@@ -27,16 +27,15 @@ func NewCmdPrs(f *cmdutil.Factory, runF func(*shared.IssuesOptions) error) *cobr
 
 	cmd := &cobra.Command{
 		Use:   "prs [<query>]",
-		Short: "Search for pull requests",
+		Short: "搜索 PR",
 		// TODO advancedIssueSearchCleanup
-		// Update the links and remove the mention at GHES 3.17 version.
+		// 在 GHES 3.17 版本更新链接并移除此说明。
 		Long: heredoc.Docf(`
-			Search for pull requests on GitHub.
+			在 GitHub 上搜索 PR
 
-			The command supports constructing queries using the GitHub search syntax,
-			using the parameter and qualifier flags, or a combination of the two.
+			该命令支持使用 GitHub 搜索语法、参数与限定符 flags，或两者的组合来构造查询。
 
-			GitHub search syntax is documented at:
+			GitHub 搜索语法文档见:
 			<https://docs.github.com/search-github/searching-on-github/searching-issues-and-pull-requests>
 
 			On supported GitHub hosts, advanced issue search syntax can be used in the
@@ -46,42 +45,42 @@ func NewCmdPrs(f *cmdutil.Factory, runF func(*shared.IssuesOptions) error) *cobr
 			%[1]s--web%[1]s. For more information about advanced issue search, see:
 			<https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/filtering-and-searching-issues-and-pull-requests#building-advanced-filters-for-issues>
 
-			For more information on handling search queries containing a hyphen, run %[1]sgh search --help%[1]s.
+			有关处理包含连字符的搜索查询的更多信息，请运行 %[1]sgh search --help%[1]s。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Search pull requests matching set of keywords "fix" and "bug"
+			# 搜索匹配关键字集合 "fix" 和 "bug" 的 PR
 			$ gh search prs fix bug
 
-			# Search draft pull requests in cli repository
+			# 搜索 cli 仓库中的草稿 PR
 			$ gh search prs --repo=cli/cli --draft
 
-			# Search pull requests using raw search qualifiers as separate arguments
+			# 以独立参数的形式使用原始搜索限定符搜索 PR
 			$ gh search prs is:merged author:monalisa
 
-			# Search open pull requests requesting your review
+			# 搜索请求您审核的 open 状态 PR
 			$ gh search prs --review-requested=@me --state=open
 
-			# Search merged pull requests assigned to yourself
+			# 搜索指派给自己的已合并 PR
 			$ gh search prs --assignee=@me --merged
 
-			# Search pull requests with numerous reactions
+			# 搜索回应较多的 PR
 			$ gh search prs --reactions=">100"
 
-			# Search pull requests without label "bug"
+			# 搜索没有 "bug" 标签的 PR
 			$ gh search prs -- -label:bug
 
-			# Search pull requests only from un-archived repositories (default is all repositories)
+			# 仅搜索未归档仓库中的 PR (默认搜索所有仓库)
 			$ gh search prs --owner github --archived=false
 		`),
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) == 0 && c.Flags().NFlag() == 0 {
-				return cmdutil.FlagErrorf("specify search keywords or flags")
+				return cmdutil.FlagErrorf("请指定搜索关键字或 flag")
 			}
 			if opts.Query.Limit < 1 || opts.Query.Limit > shared.SearchMaxResults {
-				return cmdutil.FlagErrorf("`--limit` must be between 1 and 1000")
+				return cmdutil.FlagErrorf("`--limit` 必须在 1 到 1000 之间")
 			}
 			if c.Flags().Changed("author") && c.Flags().Changed("app") {
-				return cmdutil.FlagErrorf("specify only `--author` or `--app`")
+				return cmdutil.FlagErrorf("只能指定 `--author` 或 `--app` 之一")
 			}
 			if c.Flags().Changed("app") {
 				opts.Query.Qualifiers.Author = fmt.Sprintf("app/%s", appAuthor)
@@ -138,13 +137,13 @@ func NewCmdPrs(f *cmdutil.Factory, runF func(*shared.IssuesOptions) error) *cobr
 		},
 	}
 
-	// Output flags
+	// 输出 flags
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, search.PullRequestFields)
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "Open the search query in the web browser")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在 web 浏览器中打开搜索查询")
 
-	// Query parameter flags
-	cmd.Flags().IntVarP(&opts.Query.Limit, "limit", "L", 30, "Maximum number of results to fetch")
-	cmdutil.StringEnumFlag(cmd, &order, "order", "", "desc", []string{"asc", "desc"}, "Order of results returned, ignored unless '--sort' flag is specified")
+	// 查询参数 flags
+	cmd.Flags().IntVarP(&opts.Query.Limit, "limit", "L", 30, "获取结果的最大数量")
+	cmdutil.StringEnumFlag(cmd, &order, "order", "", "desc", []string{"asc", "desc"}, "返回结果的排序方向，除非指定 '--sort' 选项，否则将被忽略")
 	cmdutil.StringEnumFlag(cmd, &sort, "sort", "", "best-match",
 		[]string{
 			"comments",
@@ -158,48 +157,48 @@ func NewCmdPrs(f *cmdutil.Factory, runF func(*shared.IssuesOptions) error) *cobr
 			"interactions",
 			"created",
 			"updated",
-		}, "Sort fetched results")
+		}, "对获取的结果排序")
 
-	// Issue query qualifier flags
-	cmd.Flags().StringVar(&appAuthor, "app", "", "Filter by GitHub App author")
-	cmdutil.NilBoolFlag(cmd, &opts.Query.Qualifiers.Archived, "archived", "", "Filter based on the repository archived state {true|false}")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Assignee, "assignee", "", "Filter by assignee")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Author, "author", "", "Filter by author (use --app to filter by a GitHub App)")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Closed, "closed", "", "Filter on closed at `date`")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Commenter, "commenter", "", "Filter based on comments by `user`")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Comments, "comments", "", "Filter on `number` of comments")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Created, "created", "", "Filter based on created at `date`")
-	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.In, "match", "", nil, []string{"title", "body", "comments"}, "Restrict search to specific field of issue")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Interactions, "interactions", "", "Filter on `number` of reactions and comments")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Involves, "involves", "", "Filter based on involvement of `user`")
-	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.Is, "visibility", "", nil, []string{"public", "private", "internal"}, "Filter based on repository visibility")
-	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.Label, "label", nil, "Filter on label")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Language, "language", "", "Filter based on the coding language")
-	cmd.Flags().BoolVar(&locked, "locked", false, "Filter on locked conversation status")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Mentions, "mentions", "", "Filter based on `user` mentions")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Milestone, "milestone", "", "Filter by milestone `title`")
-	cmd.Flags().BoolVar(&noAssignee, "no-assignee", false, "Filter on missing assignee")
-	cmd.Flags().BoolVar(&noLabel, "no-label", false, "Filter on missing label")
-	cmd.Flags().BoolVar(&noMilestone, "no-milestone", false, "Filter on missing milestone")
-	cmd.Flags().BoolVar(&noProject, "no-project", false, "Filter on missing project")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Project, "project", "", "Filter on project board `owner/number`")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Reactions, "reactions", "", "Filter on `number` of reactions")
-	cmd.Flags().StringSliceVarP(&opts.Query.Qualifiers.Repo, "repo", "R", nil, "Filter on repository, in `OWNER/REPO` format")
-	cmdutil.StringEnumFlag(cmd, &opts.Query.Qualifiers.State, "state", "", "", []string{"open", "closed"}, "Filter based on state")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Team, "team-mentions", "", "Filter based on team mentions")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Updated, "updated", "", "Filter on last updated at `date`")
-	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.User, "owner", nil, "Filter on repository owner")
+	// issue 查询限定符(qualifier) flags
+	cmd.Flags().StringVar(&appAuthor, "app", "", "按 GitHub App 作者过滤")
+	cmdutil.NilBoolFlag(cmd, &opts.Query.Qualifiers.Archived, "archived", "", "按仓库归档状态过滤 {true|false}")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Assignee, "assignee", "", "按被指派人过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Author, "author", "", "按作者过滤(使用 --app 按 GitHub App 过滤)")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Closed, "closed", "", "按关闭的 `date` 过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Commenter, "commenter", "", "按 `user` 的评论过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Comments, "comments", "", "按评论 `number` 过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Created, "created", "", "按创建的 `date` 过滤")
+	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.In, "match", "", nil, []string{"title", "body", "comments"}, "将搜索限制在 issue 的特定字段")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Interactions, "interactions", "", "按回复和评论的 `number` 过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Involves, "involves", "", "按 `user` 的参与过滤")
+	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.Is, "visibility", "", nil, []string{"public", "private", "internal"}, "按仓库可见性过滤")
+	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.Label, "label", nil, "按标签过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Language, "language", "", "按编程语言过滤")
+	cmd.Flags().BoolVar(&locked, "locked", false, "按会话锁定状态过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Mentions, "mentions", "", "按 `user` 提及过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Milestone, "milestone", "", "按里程碑 `title` 过滤")
+	cmd.Flags().BoolVar(&noAssignee, "no-assignee", false, "按缺少被指派人过滤")
+	cmd.Flags().BoolVar(&noLabel, "no-label", false, "按缺少标签过滤")
+	cmd.Flags().BoolVar(&noMilestone, "no-milestone", false, "按缺少里程碑过滤")
+	cmd.Flags().BoolVar(&noProject, "no-project", false, "按缺少项目过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Project, "project", "", "按项目看板 `owner/number` 过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Reactions, "reactions", "", "按回复的 `number` 过滤")
+	cmd.Flags().StringSliceVarP(&opts.Query.Qualifiers.Repo, "repo", "R", nil, "按仓库过滤，格式为 `OWNER/REPO`")
+	cmdutil.StringEnumFlag(cmd, &opts.Query.Qualifiers.State, "state", "", "", []string{"open", "closed"}, "按状态过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Team, "team-mentions", "", "按团队提及过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Updated, "updated", "", "按最后更新的 `date` 过滤")
+	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.User, "owner", nil, "按仓库所有者过滤")
 
-	// Pull request query qualifier flags
-	cmd.Flags().StringVarP(&opts.Query.Qualifiers.Base, "base", "B", "", "Filter on base branch name")
-	cmdutil.NilBoolFlag(cmd, &opts.Query.Qualifiers.Draft, "draft", "", "Filter based on draft state")
-	cmd.Flags().StringVarP(&opts.Query.Qualifiers.Head, "head", "H", "", "Filter on head branch name")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Merged, "merged-at", "", "Filter on merged at `date`")
-	cmd.Flags().BoolVar(&merged, "merged", false, "Filter based on merged state")
-	cmdutil.StringEnumFlag(cmd, &opts.Query.Qualifiers.Review, "review", "", "", []string{"none", "required", "approved", "changes_requested"}, "Filter based on review status")
-	cmd.Flags().StringVar(&requestedReviewer, "review-requested", "", "Filter on `user` or team requested to review")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.ReviewedBy, "reviewed-by", "", "Filter on `user` who reviewed")
-	cmdutil.StringEnumFlag(cmd, &opts.Query.Qualifiers.Status, "checks", "", "", []string{"pending", "success", "failure"}, "Filter based on status of the checks")
+	// 拉取请求(PR)查询限定符(qualifier) flags
+	cmd.Flags().StringVarP(&opts.Query.Qualifiers.Base, "base", "B", "", "按基准分支名称过滤")
+	cmdutil.NilBoolFlag(cmd, &opts.Query.Qualifiers.Draft, "draft", "", "按草稿状态过滤")
+	cmd.Flags().StringVarP(&opts.Query.Qualifiers.Head, "head", "H", "", "按源分支名称过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Merged, "merged-at", "", "按合并的 `date` 过滤")
+	cmd.Flags().BoolVar(&merged, "merged", false, "按合并状态过滤")
+	cmdutil.StringEnumFlag(cmd, &opts.Query.Qualifiers.Review, "review", "", "", []string{"none", "required", "approved", "changes_requested"}, "按审核状态过滤")
+	cmd.Flags().StringVar(&requestedReviewer, "review-requested", "", "按被请求审核的 `user` 或团队过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.ReviewedBy, "reviewed-by", "", "按进行审核的 `user` 过滤")
+	cmdutil.StringEnumFlag(cmd, &opts.Query.Qualifiers.Status, "checks", "", "", []string{"pending", "success", "failure"}, "按检查状态过滤")
 
 	_ = cmdutil.RegisterBranchCompletionFlags(f.GitClient, cmd, "base", "head")
 

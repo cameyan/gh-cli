@@ -90,7 +90,7 @@ func TestAutolinkCreator_Create(t *testing.T) {
 				"status": "404"
 			}`,
 			expectErr:      true,
-			expectedErrMsg: "HTTP 404: Must have admin rights to Repository. (https://api.github.com/repos/OWNER/REPO/autolinks)",
+			expectedErrMsg: "HTTP 404: 必须拥有仓库的管理员权限 (https://api.github.com/repos/OWNER/REPO/autolinks)",
 			expectedStatus: http.StatusNotFound,
 		},
 		{

@@ -134,7 +134,7 @@ func TestSwitchRun(t *testing.T) {
 				activeUser:   "inactive-user",
 				activeToken:  "inactive-user-token",
 				hostsCfg:     "github.com:\n    git_protocol: ssh\n    users:\n        inactive-user:\n        active-user:\n    user: inactive-user\n",
-				stderr:       "✓ Switched active account for github.com to inactive-user",
+				stderr:       "✓ 已将 github.com 的活跃账户切换为 inactive-user",
 			},
 		},
 		{
@@ -154,7 +154,7 @@ func TestSwitchRun(t *testing.T) {
 				activeUser:   "inactive-user-2",
 				activeToken:  "inactive-user-2-token",
 				hostsCfg:     "github.com:\n    git_protocol: ssh\n    users:\n        inactive-user-1:\n        inactive-user-2:\n        active-user:\n    user: inactive-user-2\n",
-				stderr:       "✓ Switched active account for github.com to inactive-user-2",
+				stderr:       "✓ 已将 github.com 的活跃账户切换为 inactive-user-2",
 			},
 		},
 		{
@@ -178,7 +178,7 @@ func TestSwitchRun(t *testing.T) {
 				activeUser:   "inactive-user",
 				activeToken:  "inactive-user-token",
 				hostsCfg:     "github.com:\n    git_protocol: ssh\n    users:\n        inactive-user:\n        active-user:\n    user: active-user\nghe.io:\n    git_protocol: ssh\n    users:\n        inactive-user:\n        active-user:\n    user: inactive-user\n",
-				stderr:       "✓ Switched active account for ghe.io to inactive-user",
+				stderr:       "✓ 已将 ghe.io 的活跃账户切换为 inactive-user",
 			},
 		},
 		{
@@ -186,7 +186,7 @@ func TestSwitchRun(t *testing.T) {
 			opts:     SwitchOptions{},
 			cfgHosts: []hostUsers{},
 			expectedFailure: failedExpectation{
-				err: errors.New("not logged in to any hosts"),
+				err: errors.New("未登录任何主机"),
 			},
 		},
 		{
@@ -205,7 +205,7 @@ func TestSwitchRun(t *testing.T) {
 				}},
 			},
 			expectedFailure: failedExpectation{
-				err: errors.New("unable to determine which account to switch to, please specify `--hostname` and `--user`"),
+				err: errors.New("无法确定要切换到哪个账户，请指定 `--hostname` 和 `--user`"),
 			},
 		},
 		{
@@ -221,7 +221,7 @@ func TestSwitchRun(t *testing.T) {
 				}},
 			},
 			expectedFailure: failedExpectation{
-				err: errors.New("unable to determine which account to switch to, please specify `--hostname` and `--user`"),
+				err: errors.New("无法确定要切换到哪个账户，请指定 `--hostname` 和 `--user`"),
 			},
 		},
 		{
@@ -236,7 +236,7 @@ func TestSwitchRun(t *testing.T) {
 			env: map[string]string{"GH_TOKEN": "unimportant-test-value"},
 			expectedFailure: failedExpectation{
 				err:    cmdutil.SilentError,
-				stderr: "The value of the GH_TOKEN environment variable is being used for authentication.",
+				stderr: "环境变量 GH_TOKEN 的值正在用于身份验证",
 			},
 		},
 		{
@@ -251,7 +251,7 @@ func TestSwitchRun(t *testing.T) {
 				}},
 			},
 			expectedFailure: failedExpectation{
-				err: errors.New("not logged in to ghe.io"),
+				err: errors.New("未登录 ghe.io"),
 			},
 		},
 		{
@@ -267,7 +267,7 @@ func TestSwitchRun(t *testing.T) {
 				}},
 			},
 			expectedFailure: failedExpectation{
-				err: errors.New("not logged in to github.com account non-existent-user"),
+				err: errors.New("未登录 github.com 的账户 non-existent-user"),
 			},
 		},
 		{
@@ -284,7 +284,7 @@ func TestSwitchRun(t *testing.T) {
 				}},
 			},
 			expectedFailure: failedExpectation{
-				err: errors.New("no accounts matched that criteria"),
+				err: errors.New("没有账户符合该条件"),
 			},
 		},
 		{
@@ -302,12 +302,12 @@ func TestSwitchRun(t *testing.T) {
 			},
 			prompterStubs: func(pm *prompter.PrompterMock) {
 				pm.SelectFunc = func(prompt, _ string, opts []string) (int, error) {
-					require.Equal(t, "What account do you want to switch to?", prompt)
+					require.Equal(t, "要切换到哪个账户？", prompt)
 					require.Equal(t, []string{
 						"inactive-user (github.com)",
-						"active-user (github.com) - active",
+						"active-user (github.com) - 活跃",
 						"inactive-user (ghe.io)",
-						"active-user (ghe.io) - active",
+						"active-user (ghe.io) - 活跃",
 					}, opts)
 
 					return prompter.IndexFor(opts, "inactive-user (ghe.io)")
@@ -318,7 +318,7 @@ func TestSwitchRun(t *testing.T) {
 				activeUser:   "inactive-user",
 				activeToken:  "inactive-user-token",
 				hostsCfg:     "github.com:\n    git_protocol: ssh\n    users:\n        inactive-user:\n        active-user:\n    user: active-user\nghe.io:\n    git_protocol: ssh\n    users:\n        inactive-user:\n        active-user:\n    user: inactive-user\n",
-				stderr:       "✓ Switched active account for ghe.io to inactive-user",
+				stderr:       "✓ 已将 ghe.io 的活跃账户切换为 inactive-user",
 			},
 		},
 		{
@@ -335,11 +335,11 @@ func TestSwitchRun(t *testing.T) {
 			},
 			prompterStubs: func(pm *prompter.PrompterMock) {
 				pm.SelectFunc = func(prompt, _ string, opts []string) (int, error) {
-					require.Equal(t, "What account do you want to switch to?", prompt)
+					require.Equal(t, "要切换到哪个账户？", prompt)
 					require.Equal(t, []string{
 						"inactive-user (github.com)",
-						"active-user (github.com) - active",
-						"active-user (ghe.io) - active",
+						"active-user (github.com) - 活跃",
+						"active-user (ghe.io) - 活跃",
 					}, opts)
 
 					return prompter.IndexFor(opts, "inactive-user (github.com)")
@@ -350,7 +350,7 @@ func TestSwitchRun(t *testing.T) {
 				activeUser:   "inactive-user",
 				activeToken:  "inactive-user-token",
 				hostsCfg:     "github.com:\n    git_protocol: ssh\n    users:\n        inactive-user:\n        active-user:\n    user: inactive-user\nghe.io:\n    git_protocol: ssh\n    users:\n        active-user:\n    user: active-user\n",
-				stderr:       "✓ Switched active account for github.com to inactive-user",
+				stderr:       "✓ 已将 github.com 的活跃账户切换为 inactive-user",
 			},
 		},
 		{
@@ -366,7 +366,7 @@ func TestSwitchRun(t *testing.T) {
 			},
 			expectedFailure: failedExpectation{
 				err:    fmt.Errorf("no token found for %s", userWithMissingToken),
-				stderr: fmt.Sprintf("X Failed to switch account for github.com to %s", userWithMissingToken),
+				stderr: fmt.Sprintf("X 将 github.com 的账户切换为 %s", userWithMissingToken),
 			},
 		},
 	}

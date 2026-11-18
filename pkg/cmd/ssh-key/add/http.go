@@ -13,7 +13,7 @@ import (
 	"github.com/cli/cli/v2/pkg/cmd/ssh-key/shared"
 )
 
-// Uploads the provided SSH key. Returns true if the key was uploaded, false if it was not.
+// 上传提供的 SSH 密钥。若密钥已上传则返回 true，否则返回 false。
 func SSHKeyUpload(httpClient *http.Client, hostname string, keyFile io.Reader, title string) (bool, error) {
 	u, err := safeurl.JoinPath("user", "keys")
 	if err != nil {
@@ -28,7 +28,7 @@ func SSHKeyUpload(httpClient *http.Client, hostname string, keyFile io.Reader, t
 	fullUserKey := string(keyBytes)
 	splitKey := strings.Fields(fullUserKey)
 	if len(splitKey) < 2 {
-		return false, errors.New("provided key is not in a valid format")
+		return false, errors.New("提供的密钥格式无效")
 	}
 
 	keyToCompare := splitKey[0] + " " + splitKey[1]
@@ -58,7 +58,7 @@ func SSHKeyUpload(httpClient *http.Client, hostname string, keyFile io.Reader, t
 	return true, nil
 }
 
-// Uploads the provided SSH Signing key. Returns true if the key was uploaded, false if it was not.
+// 上传提供的 SSH 签名密钥。若密钥已上传则返回 true，否则返回 false。
 func SSHSigningKeyUpload(httpClient *http.Client, hostname string, keyFile io.Reader, title string) (bool, error) {
 	u, err := safeurl.JoinPath("user", "ssh_signing_keys")
 	if err != nil {
@@ -73,7 +73,7 @@ func SSHSigningKeyUpload(httpClient *http.Client, hostname string, keyFile io.Re
 	fullUserKey := string(keyBytes)
 	splitKey := strings.Fields(fullUserKey)
 	if len(splitKey) < 2 {
-		return false, errors.New("provided key is not in a valid format")
+		return false, errors.New("提供的密钥格式无效")
 	}
 
 	keyToCompare := splitKey[0] + " " + splitKey[1]
@@ -110,7 +110,7 @@ func keyUpload(httpClient *http.Client, hostname string, u safeurl.SafeURL, payl
 	}
 
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 作为后续工作，考虑是否可以将 api client 注入到此调用点，而不是在此构造
 	return api.NewClientFromHTTP(httpClient).REST(hostname, http.MethodPost, u.String(), bytes.NewBuffer(payloadBytes), nil)
 }

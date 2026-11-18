@@ -61,24 +61,19 @@ func NewCmdRefresh(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder,
 	cmd := &cobra.Command{
 		Use:   "refresh",
 		Args:  cobra.ExactArgs(0),
-		Short: "Refresh stored authentication credentials",
+		Short: "刷新已存储的身份验证凭据",
 		Long: heredoc.Docf(`
-			Expand or fix the permission scopes for stored credentials for active account.
+			为活跃账户扩展或修复已存储凭据的权限作用域。
 
-			The %[1]s--scopes%[1]s flag accepts a comma separated list of scopes you want
-			your gh credentials to have. If no scopes are provided, the command
-			maintains previously added scopes.
+			%[1]s--scopes%[1]s 标志接受以逗号分隔的作用域列表，即您希望 gh 凭据拥有的作用域。
+			若未提供任何作用域，该命令将保留之前添加的作用域。
 
-			The %[1]s--remove-scopes%[1]s flag accepts a comma separated list of scopes you
-			want to remove from your gh credentials. Scope removal is idempotent.
-			The minimum set of scopes (%[1]srepo%[1]s, %[1]sread:org%[1]s, and %[1]sgist%[1]s) cannot be removed.
+			%[1]s--remove-scopes%[1]s 标志接受以逗号分隔的作用域列表，即您希望从 gh 凭据中
+			移除的作用域。移除作用域是幂等的。
 
-			The %[1]s--reset-scopes%[1]s flag resets the scopes for your gh credentials to
-			the default set of scopes for your auth flow.
+			最低作用域集合(%[1]srepo%[1]s、%[1]sread:org%[1]s 和 %[1]sgist%[1]s)无法被移除。
 
-			If you have multiple accounts in %[1]sgh auth status%[1]s and want to refresh the credentials for an
-			inactive account, you will have to use %[1]sgh auth switch%[1]s to that account first before using
-			this command, and then switch back when you are done.
+			%[1]s--reset-scopes%[1]s 标志将 gh 凭据的作用域重置为您身份验证流程的默认作用域集合。
 
 			Use %[1]s--expiring%[1]s to prefer expiring credentials that gh refreshes automatically, or
 			%[1]s--expiring=false%[1]s to prefer a non-expiring token. This is a preference, not a guarantee:
@@ -94,19 +89,19 @@ func NewCmdRefresh(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder,
 			<https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps/>.
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Open a browser to add write:org and read:public_key scopes
+			# 打开浏览器添加 write:org 和 read:public_key 作用域
 			$ gh auth refresh --scopes write:org,read:public_key
 
-			# Open a browser to ensure your authentication credentials have the correct minimum scopes
+			# 打开浏览器确保您的身份验证凭据具有正确的最低作用域
 			$ gh auth refresh
 
-			# Open a browser to idempotently remove the delete_repo scope
+			# 打开浏览器幂等地移除 delete_repo 作用域
 			$ gh auth refresh --remove-scopes delete_repo
 
-			# Open a browser to re-authenticate with the default minimum scopes
+			# 打开浏览器使用默认最低作用域重新进行身份验证
 			$ gh auth refresh --reset-scopes
 
-			# Open a browser to re-authenticate and copy one-time OAuth code to clipboard
+			# 打开浏览器重新进行身份验证，并将一次性 OAuth 码复制到剪贴板
 			$ gh auth refresh --clipboard
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -117,7 +112,7 @@ func NewCmdRefresh(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder,
 			opts.Interactive = opts.IO.CanPrompt()
 
 			if !opts.Interactive && opts.Hostname == "" {
-				return cmdutil.FlagErrorf("--hostname required when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时必须提供 --hostname 标志")
 			}
 
 			opts.MainExecutable = f.ExecutablePath
@@ -128,14 +123,14 @@ func NewCmdRefresh(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder,
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "The GitHub host to use for authentication")
-	cmd.Flags().StringSliceVarP(&opts.Scopes, "scopes", "s", nil, "Additional authentication scopes for gh to have")
-	cmd.Flags().StringSliceVarP(&opts.RemoveScopes, "remove-scopes", "r", nil, "Authentication scopes to remove from gh")
-	cmd.Flags().BoolVar(&opts.ResetScopes, "reset-scopes", false, "Reset authentication scopes to the default minimum set of scopes")
-	cmdutil.NilBoolFlag(cmd, &opts.Clipboard, "clipboard", "c", "Copy one-time OAuth device code to clipboard")
-	// secure storage became the default on 2023/4/04; this flag is left as a no-op for backwards compatibility
+	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "用于身份验证的 GitHub 主机")
+	cmd.Flags().StringSliceVarP(&opts.Scopes, "scopes", "s", nil, "gh 要拥有的额外身份验证作用域")
+	cmd.Flags().StringSliceVarP(&opts.RemoveScopes, "remove-scopes", "r", nil, "要从 gh 移除的身份验证作用域")
+	cmd.Flags().BoolVar(&opts.ResetScopes, "reset-scopes", false, "将身份验证作用域重置为默认的最低作用域集合")
+	cmdutil.NilBoolFlag(cmd, &opts.Clipboard, "clipboard", "c", "将一次性 OAuth 设备码复制到剪贴板")
+	// 安全存储(secure storage)于 2023/4/04 起成为默认；此标志保留为无操作(no-op)以保持向后兼容
 	var secureStorage bool
-	cmd.Flags().BoolVar(&secureStorage, "secure-storage", false, "Save authentication credentials in secure credential store")
+	cmd.Flags().BoolVar(&secureStorage, "secure-storage", false, "将身份验证凭据保存在安全的凭据存储中")
 	_ = cmd.Flags().MarkHidden("secure-storage")
 
 	cmd.Flags().BoolVarP(&opts.InsecureStorage, "insecure-storage", "", false, "Save authentication credentials in plain text instead of credential store")
@@ -159,7 +154,7 @@ func refreshRun(opts *RefreshOptions) error {
 
 	candidates := authCfg.Hosts()
 	if len(candidates) == 0 {
-		return fmt.Errorf("not logged in to any hosts. Use 'gh auth login' to authenticate with a host")
+		return fmt.Errorf("未登录任何主机。请使用 'gh auth login' 向主机进行身份验证")
 	}
 
 	hostname := opts.Hostname
@@ -167,14 +162,14 @@ func refreshRun(opts *RefreshOptions) error {
 		if len(candidates) == 1 {
 			hostname = candidates[0]
 		} else {
-			selected, err := opts.Prompter.Select("What account do you want to refresh auth for?", "", candidates)
+			selected, err := opts.Prompter.Select("要刷新哪个账户的身份验证？", "", candidates)
 			if err != nil {
-				return fmt.Errorf("could not prompt: %w", err)
+				return fmt.Errorf("无法显示提示: %w", err)
 			}
 			hostname = candidates[selected]
 		}
 	} else if !slices.Contains(candidates, hostname) {
-		return fmt.Errorf("not logged in to %s. use 'gh auth login' to authenticate with this host", hostname)
+		return fmt.Errorf("未登录 %s。请使用 'gh auth login' 向此主机进行身份验证", hostname)
 	}
 
 	// Resolve whether to request an expiring token. An explicit --expiring or --expiring=false wins; otherwise refresh
@@ -189,8 +184,8 @@ func refreshRun(opts *RefreshOptions) error {
 	}
 
 	if src, writeable := shared.AuthTokenWriteable(authCfg, hostname); !writeable {
-		fmt.Fprintf(opts.IO.ErrOut, "The value of the %s environment variable is being used for authentication.\n", src)
-		fmt.Fprint(opts.IO.ErrOut, "To refresh credentials stored in GitHub CLI, first clear the value from the environment.\n")
+		fmt.Fprintf(opts.IO.ErrOut, "环境变量 %s 的值正在用于身份验证\n", src)
+		fmt.Fprint(opts.IO.ErrOut, "若要刷新 GitHub CLI 中存储的凭据，请先从环境中清除该值\n")
 		return cmdutil.SilentError
 	}
 

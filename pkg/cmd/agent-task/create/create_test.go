@@ -49,22 +49,22 @@ func TestNewCmdCreate(t *testing.T) {
 		{
 			name:    "empty arg",
 			args:    "''",
-			wantErr: "task description cannot be empty",
+			wantErr: "任务描述不能为空",
 		},
 		{
 			name:    "whitespace arg",
 			args:    "'   '",
-			wantErr: "task description cannot be empty",
+			wantErr: "任务描述不能为空",
 		},
 		{
 			name:    "whitespace and newline arg",
 			args:    "'\n'",
-			wantErr: "task description cannot be empty",
+			wantErr: "任务描述不能为空",
 		},
 		{
 			name:    "mutually exclusive arg and file",
 			args:    "'some task inline' -F foo.md",
-			wantErr: "only one of -F or arg can be provided",
+			wantErr: "-F 和位置参数只能提供一个",
 		},
 		{
 			name: "base branch sets baseBranch field",
@@ -164,7 +164,7 @@ func Test_createRun(t *testing.T) {
 	tests := []struct {
 		name             string
 		isTTY            bool
-		opts             *CreateOptions // input options (IO & BackOff set later)
+		opts             *CreateOptions // 输入选项 (稍后设置 IO 和 BackOff)
 		capiStubs        func(*testing.T, *capi.CapiClientMock)
 		logRendererStubs func(*testing.T, *shared.LogRendererMock)
 		wantStdout       string
@@ -249,7 +249,7 @@ func Test_createRun(t *testing.T) {
 				},
 				Prompter: &prompter.PrompterMock{
 					MarkdownEditorFunc: func(prompt, defaultValue string, blankAllowed bool) (string, error) {
-						require.Equal(t, "Enter the task description", prompt)
+						require.Equal(t, "请输入任务描述", prompt)
 						return "From editor", nil
 					},
 				},
@@ -275,7 +275,7 @@ func Test_createRun(t *testing.T) {
 					},
 				},
 			},
-			wantErr: "a task description is required",
+			wantErr: "需要提供任务描述",
 		},
 		{
 			name: "missing repo returns error",
@@ -283,7 +283,7 @@ func Test_createRun(t *testing.T) {
 				BaseRepo: func() (ghrepo.Interface, error) {
 					return nil, nil
 				}},
-			wantErr: "a repository is required; re-run in a repository or supply one with --repo owner/name",
+			wantErr: "需要提供仓库；请在仓库中重新运行，或使用 --repo owner/name 提供仓库",
 		},
 		{
 			name: "problem statement loaded from arg non-interactively doesn't prompt or return error",
@@ -365,7 +365,7 @@ func Test_createRun(t *testing.T) {
 				}
 			},
 			wantStdErr: "some error\n",
-			wantStdout: "job job123 queued. View progress: https://github.com/copilot/agents\n",
+			wantStdout: "任务 job123 已排队，查看进度: https://github.com/copilot/agents\n",
 		},
 		{
 			name: "success with immediate PR",
@@ -436,7 +436,7 @@ func Test_createRun(t *testing.T) {
 					return &createdJobSuccess, nil
 				}
 			},
-			wantStdout: "job job123 queued. View progress: https://github.com/copilot/agents\n",
+			wantStdout: "任务 job123 已排队，查看进度: https://github.com/copilot/agents\n",
 		},
 		{
 			name: "success with follow logs and delayed PR after polling",
@@ -488,7 +488,7 @@ func Test_createRun(t *testing.T) {
 				}
 			},
 			wantStdout: heredoc.Doc(`
-				Displaying session logs for job job123. Press Ctrl+C to stop.
+				正在显示任务 job123 的会话日志。按 Ctrl+C 停止。
 				(rendered:) <raw-logs-one>
 				(rendered:) <raw-logs-two>
 			`),
@@ -514,7 +514,7 @@ func Test_createRun(t *testing.T) {
 				return capiClientMock, nil
 			}
 
-			// fast backoff
+			// 快速退避
 			tt.opts.BackOff = backoff.WithMaxRetries(&backoff.ZeroBackOff{}, 3)
 
 			logRenderer := &shared.LogRendererMock{}

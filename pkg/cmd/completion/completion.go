@@ -14,60 +14,58 @@ func NewCmdCompletion(io *iostreams.IOStreams) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "completion -s <shell>",
-		Short: "Generate shell completion scripts",
+		Short: "生成 shell 补全脚本",
 		Long: heredoc.Docf(`
-			Generate shell completion scripts for GitHub CLI commands.
+			为 GitHub CLI 命令生成 shell 补全脚本。
 
-			When installing GitHub CLI through a package manager, it's possible that
-			no additional shell configuration is necessary to gain completion support. For
-			Homebrew, see <https://docs.brew.sh/Shell-Completion>
+			通过包管理器安装 GitHub CLI 时，可能无需额外的 shell 配置即可获得补全支持。
+			对于 Homebrew，参见 <https://docs.brew.sh/Shell-Completion>
 
-			If you need to set up completions manually, follow the instructions below. The exact
-			config file locations might vary based on your system. Make sure to restart your
-			shell before testing whether completions are working.
+			如果需要手动设置补全，请按照以下说明操作。配置文件的确切位置可能因系统而异。
+			在测试补全是否生效之前，请确保已重启 shell。
 
 			### bash
 
-			First, ensure that you install %[1]sbash-completion%[1]s using your package manager.
+			首先，确保使用包管理器安装 %[1]sbash-completion%[1]s。
 
-			After, add this to your %[1]s~/.bash_profile%[1]s:
+			然后，将以下内容添加到你的 %[1]s~/.bash_profile%[1]s:
 
 				eval "$(gh completion -s bash)"
 
 			### zsh
 
-			Generate a %[1]s_gh%[1]s completion script and put it somewhere in your %[1]s$fpath%[1]s:
+			生成 %[1]s_gh%[1]s 补全脚本，并将其放到 %[1]s$fpath%[1]s 中的某个位置:
 
 				gh completion -s zsh > /usr/local/share/zsh/site-functions/_gh
 
-			Ensure that the following is present in your %[1]s~/.zshrc%[1]s:
+			确保 %[1]s~/.zshrc%[1]s 中包含以下内容:
 
 				autoload -U compinit
 				compinit -i
 
-			Zsh version 5.7 or later is recommended.
+			建议使用 Zsh 5.7 或更高版本。
 
 			### fish
 
-			Generate a %[1]sgh.fish%[1]s completion script:
+			生成 %[1]sgh.fish%[1]s 补全脚本:
 
 				gh completion -s fish > ~/.config/fish/completions/gh.fish
 
 			### PowerShell
 
-			Open your profile script with:
+			使用以下命令打开你的 profile 脚本:
 
 				mkdir -Path (Split-Path -Parent $profile) -ErrorAction SilentlyContinue
 				notepad $profile
 
-			Add the line and save the file:
+			添加以下内容并保存文件:
 
 				Invoke-Expression -Command $(gh completion -s powershell | Out-String)
 		`, "`"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if shellType == "" {
 				if io.IsStdoutTTY() {
-					return cmdutil.FlagErrorf("error: the value for `--shell` is required")
+					return cmdutil.FlagErrorf("错误: `--shell` 的值是必需的")
 				}
 				shellType = "bash"
 			}
@@ -85,14 +83,14 @@ func NewCmdCompletion(io *iostreams.IOStreams) *cobra.Command {
 			case "fish":
 				return rootCmd.GenFishCompletion(w, true)
 			default:
-				return fmt.Errorf("unsupported shell type %q", shellType)
+				return fmt.Errorf("不支持的 shell 类型 %q", shellType)
 			}
 		},
 		DisableFlagsInUseLine: true,
 	}
 
 	cmdutil.DisableAuthCheck(cmd)
-	cmdutil.StringEnumFlag(cmd, &shellType, "shell", "s", "", []string{"bash", "zsh", "fish", "powershell"}, "Shell type")
+	cmdutil.StringEnumFlag(cmd, &shellType, "shell", "s", "", []string{"bash", "zsh", "fish", "powershell"}, "Shell 类型")
 	cmdutil.DisableTelemetry(cmd)
 
 	return cmd

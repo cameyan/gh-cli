@@ -1,6 +1,6 @@
 package codespace
 
-// This file defines the 'gh cs ssh' and 'gh cs cp' subcommands.
+// 本文件定义 'gh cs ssh' 与 'gh cs cp' 子命令。
 
 import (
 	"context"
@@ -26,13 +26,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// In 2.13.0 these commands started automatically generating key pairs named 'codespaces' and 'codespaces.pub'
-// which could collide with suggested the ssh config also named 'codespaces'. We now use 'codespaces.auto'
-// and 'codespaces.auto.pub' in order to avoid that collision.
+// 在 2.13.0 版本中，这些命令开始自动生成名为 'codespaces' 和 'codespaces.pub' 的密钥对，
+// 这可能与同样名为 'codespaces' 的建议 ssh 配置冲突。现在改用 'codespaces.auto'
+// 和 'codespaces.auto.pub' 以避免该冲突。
 const automaticPrivateKeyNameOld = "codespaces"
 const automaticPrivateKeyName = "codespaces.auto"
 
-var errKeyFileNotFound = errors.New("SSH key file does not exist")
+var errKeyFileNotFound = errors.New("SSH 密钥文件不存在")
 
 type sshOptions struct {
 	selector         *CodespaceSelector
@@ -43,7 +43,7 @@ type sshOptions struct {
 	debugFile        string
 	stdio            bool
 	config           bool
-	scpArgs          []string // scp arguments, for 'cs cp' (nil for 'cs ssh')
+	scpArgs          []string // scp 参数，用于 'cs cp' ('cs ssh' 时为 nil)
 }
 
 func newSSHCmd(app *App) *cobra.Command {
@@ -51,33 +51,32 @@ func newSSHCmd(app *App) *cobra.Command {
 
 	sshCmd := &cobra.Command{
 		Use:   "ssh [<flags>...] [-- <ssh-flags>...] [<command>]",
-		Short: "SSH into a codespace",
+		Short: "通过 SSH 连接到 codespace",
 		Long: heredoc.Docf(`
-			The %[1]sssh%[1]s command is used to SSH into a codespace. In its simplest form, you can
-			run %[1]sgh cs ssh%[1]s, select a codespace interactively, and connect.
+			%[1]sssh%[1]s 命令用于通过 SSH 连接到 codespace。最简单的用法是运行
+			%[1]sgh cs ssh%[1]s，交互式选择一个 codespace 并连接。
 
-			The %[1]sssh%[1]s command will automatically create a public/private ssh key pair in the
-			%[1]s~/.ssh%[1]s directory if you do not have an existing valid key pair. When selecting the
-			key pair to use, the preferred order is:
+			如果你没有现有的有效密钥对，%[1]sssh%[1]s 命令会在 %[1]s~/.ssh%[1]s 目录中
+			自动创建一个公钥/私钥对。选择要使用的密钥对时，优先顺序如下:
 
-			1. Key specified by %[1]s-i%[1]s in %[1]s<ssh-flags>%[1]s
-			2. Automatic key, if it already exists
-			3. First valid key pair in ssh config (according to %[1]sssh -G%[1]s)
-			4. Automatic key, newly created
+			1. 在 %[1]s<ssh-flags>%[1]s 中通过 %[1]s-i%[1]s 指定的密钥
+			2. 自动密钥 (若已存在)
+			3. ssh 配置中的第一个有效密钥对 (依据 %[1]sssh -G%[1]s)
+			4. 自动密钥 (新创建)
 
-			The %[1]sssh%[1]s command also supports deeper integration with OpenSSH using a %[1]s--config%[1]s
-			option that generates per-codespace ssh configuration in OpenSSH format.
-			Including this configuration in your %[1]s~/.ssh/config%[1]s improves the user experience
-			of tools that integrate with OpenSSH, such as Bash/Zsh completion of ssh hostnames,
-			remote path completion for %[1]sscp/rsync/sshfs%[1]s, %[1]sgit%[1]s ssh remotes, and so on.
+			%[1]sssh%[1]s 命令还通过 %[1]s--config%[1]s 选项支持与 OpenSSH 的深度集成，
+			该选项以 OpenSSH 格式生成每个 codespace 的 ssh 配置。
+			将该配置包含在 %[1]s~/.ssh/config%[1]s 中，可以改善与 OpenSSH 集成的
+			工具的使用体验，例如 ssh 主机名的 Bash/Zsh 补全、
+			%[1]sscp/rsync/sshfs%[1]s 的远程路径补全、%[1]sgit%[1]s 的 ssh 远程等。
 
-			Once that is set up (see the second example below), you can ssh to codespaces as
-			if they were ordinary remote hosts (using %[1]sssh%[1]s, not %[1]sgh cs ssh%[1]s).
+			完成该设置后 (参见下方第二个示例)，你就可以像连接普通远程主机一样
+			通过 SSH 连接 codespace (使用 %[1]sssh%[1]s，而非 %[1]sgh cs ssh%[1]s)。
 
-			Note that the codespace you are connecting to must have an SSH server pre-installed.
-			If the docker image being used for the codespace does not have an SSH server,
-			install it in your %[1]sDockerfile%[1]s or, for codespaces that use Debian-based images,
-			you can add the following to your %[1]sdevcontainer.json%[1]s:
+			注意: 要连接的 codespace 必须预装 SSH 服务器。
+			如果 codespace 使用的 docker 镜像没有 SSH 服务器，
+			请在 %[1]sDockerfile%[1]s 中安装；对于使用 Debian 系镜像的 codespace，
+			可以在 %[1]sdevcontainer.json%[1]s 中添加以下内容:
 
 				"features": {
 					"ghcr.io/devcontainers/features/sshd:1": {
@@ -94,24 +93,24 @@ func newSSHCmd(app *App) *cobra.Command {
 		PreRunE: func(c *cobra.Command, args []string) error {
 			if opts.stdio {
 				if opts.selector.codespaceName == "" {
-					return errors.New("`--stdio` requires explicit `--codespace`")
+					return errors.New("`--stdio` 需要显式指定 `--codespace`")
 				}
 				if opts.config {
-					return errors.New("cannot use `--stdio` with `--config`")
+					return errors.New("`--stdio` 不能与 `--config` 同时使用")
 				}
 				if opts.serverPort != 0 {
-					return errors.New("cannot use `--stdio` with `--server-port`")
+					return errors.New("`--stdio` 不能与 `--server-port` 同时使用")
 				}
 				if opts.profile != "" {
-					return errors.New("cannot use `--stdio` with `--profile`")
+					return errors.New("`--stdio` 不能与 `--profile` 同时使用")
 				}
 			}
 			if opts.config {
 				if opts.profile != "" {
-					return errors.New("cannot use `--config` with `--profile`")
+					return errors.New("`--config` 不能与 `--profile` 同时使用")
 				}
 				if opts.serverPort != 0 {
-					return errors.New("cannot use `--config` with `--server-port`")
+					return errors.New("`--config` 不能与 `--server-port` 同时使用")
 				}
 			}
 			return nil
@@ -129,13 +128,13 @@ func newSSHCmd(app *App) *cobra.Command {
 		DisableFlagsInUseLine: true,
 	}
 
-	sshCmd.Flags().StringVarP(&opts.profile, "profile", "", "", "Name of the SSH profile to use")
-	sshCmd.Flags().IntVarP(&opts.serverPort, "server-port", "", 0, "SSH server port number (0 => pick unused)")
+	sshCmd.Flags().StringVarP(&opts.profile, "profile", "", "", "要使用的 SSH 配置名称")
+	sshCmd.Flags().IntVarP(&opts.serverPort, "server-port", "", 0, "SSH 服务器端口 (0 => 自动选择未用端口)")
 	opts.selector = AddCodespaceSelector(sshCmd, app.apiClient)
-	sshCmd.Flags().BoolVarP(&opts.debug, "debug", "d", false, "Log debug data to a file")
-	sshCmd.Flags().StringVarP(&opts.debugFile, "debug-file", "", "", "Path of the file log to")
-	sshCmd.Flags().BoolVarP(&opts.config, "config", "", false, "Write OpenSSH configuration to stdout")
-	sshCmd.Flags().BoolVar(&opts.stdio, "stdio", false, "Proxy sshd connection to stdio")
+	sshCmd.Flags().BoolVarP(&opts.debug, "debug", "d", false, "将调试数据记录到文件")
+	sshCmd.Flags().StringVarP(&opts.debugFile, "debug-file", "", "", "日志文件路径")
+	sshCmd.Flags().BoolVarP(&opts.config, "config", "", false, "将 OpenSSH 配置写入 stdout")
+	sshCmd.Flags().BoolVar(&opts.stdio, "stdio", false, "将 sshd 连接代理到 stdio")
 	if err := sshCmd.Flags().MarkHidden("stdio"); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 	}
@@ -161,9 +160,9 @@ func (crwc *combinedReadWriteHalfCloser) CloseWrite() error {
 	return crwc.WriteCloser.Close()
 }
 
-// SSH opens an ssh session or runs an ssh command in a codespace.
+// SSH 在 codespace 中打开 ssh 会话或执行 ssh 命令。
 func (a *App) SSH(ctx context.Context, sshArgs []string, opts sshOptions) (err error) {
-	// Ensure all child tasks (e.g. port forwarding) terminate before return.
+	// 确保所有子任务 (如端口转发) 在返回前结束。
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -177,13 +176,13 @@ func (a *App) SSH(ctx context.Context, sshArgs []string, opts sshOptions) (err e
 
 	keyPair, shouldAddArg, err := selectSSHKeys(ctx, sshContext, args, opts)
 	if err != nil {
-		return fmt.Errorf("selecting ssh keys: %w", err)
+		return fmt.Errorf("选择 SSH 密钥失败: %w", err)
 	}
 
 	startSSHOptions.UserPublicKeyFile = keyPair.PublicKeyPath
 
 	if shouldAddArg {
-		// For both cp and ssh, flags need to come first in the args (before a command in ssh and files in cp), so prepend this flag
+		// 对 cp 和 ssh 而言，标志需要放在参数最前面 (在 ssh 的命令和 cp 的文件之前)，因此前置该标志
 		args = append([]string{"-i", keyPair.PrivateKeyPath}, args...)
 	}
 
@@ -194,12 +193,12 @@ func (a *App) SSH(ctx context.Context, sshArgs []string, opts sshOptions) (err e
 
 	codespaceConnection, err := codespaces.GetCodespaceConnection(ctx, a, a.apiClient, codespace)
 	if err != nil {
-		return fmt.Errorf("error connecting to codespace: %w", err)
+		return fmt.Errorf("连接 codespace 时出错: %w", err)
 	}
 
 	fwd, err := portforwarder.NewPortForwarder(ctx, codespaceConnection)
 	if err != nil {
-		return fmt.Errorf("failed to create port forwarder: %w", err)
+		return fmt.Errorf("创建端口转发器失败: %w", err)
 	}
 	defer safeClose(fwd, &err)
 
@@ -208,7 +207,7 @@ func (a *App) SSH(ctx context.Context, sshArgs []string, opts sshOptions) (err e
 		remoteSSHServerPort int
 		sshUser             string
 	)
-	err = a.RunWithProgress("Fetching SSH Details", func() (err error) {
+	err = a.RunWithProgress("正在获取 SSH 详情", func() (err error) {
 		invoker, err = rpc.CreateInvoker(ctx, fwd)
 		if err != nil {
 			return
@@ -221,7 +220,7 @@ func (a *App) SSH(ctx context.Context, sshArgs []string, opts sshOptions) (err e
 		defer safeClose(invoker, &err)
 	}
 	if err != nil {
-		return fmt.Errorf("error getting ssh server details: %w", err)
+		return fmt.Errorf("获取 SSH 服务器详情时出错: %w", err)
 	}
 
 	if opts.stdio {
@@ -233,18 +232,20 @@ func (a *App) SSH(ctx context.Context, sshArgs []string, opts sshOptions) (err e
 		}
 
 		// Forward the port
+		// 转发端口
 		err = fwd.ForwardPort(ctx, opts)
 		if err != nil {
-			return fmt.Errorf("failed to forward port: %w", err)
+			return fmt.Errorf("转发端口失败: %w", err)
 		}
 
 		// Connect to the forwarded port
+		// 连接到转发后的端口
 		err = fwd.ConnectToForwardedPort(ctx, stdio, opts)
 		if err != nil {
-			return fmt.Errorf("failed to connect to forwarded port: %w", err)
+			return fmt.Errorf("连接转发端口失败: %w", err)
 		}
 
-		return fmt.Errorf("tunnel closed: %w", err)
+		return fmt.Errorf("隧道已关闭: %w", err)
 	}
 
 	localSSHServerPort := opts.serverPort
@@ -252,6 +253,9 @@ func (a *App) SSH(ctx context.Context, sshArgs []string, opts sshOptions) (err e
 	// Ensure local port is listening before client (Shell) connects.
 	// Unless the user specifies a server port, localSSHServerPort is 0
 	// and thus the client will pick a random port.
+	// 在客户端 (Shell) 连接之前，确保本地端口已开始监听。
+	// 用户未指定服务器端口时 localSSHServerPort 为 0，
+	// 因此客户端会随机选择一个端口。
 	listen, localSSHServerPort, err := codespaces.ListenTCP(localSSHServerPort, false)
 	if err != nil {
 		return err
@@ -555,7 +559,7 @@ func (a *App) printOpenSSHConfig(ctx context.Context, opts sshOptions) (err erro
 
 	var csList []*api.Codespace
 	if opts.selector.codespaceName == "" {
-		err = a.RunWithProgress("Fetching codespaces", func() (err error) {
+		err = a.RunWithProgress("正在获取 codespace", func() (err error) {
 			csList, err = a.apiClient.ListCodespaces(ctx, api.ListCodespacesOptions{})
 			return
 		})
@@ -565,12 +569,12 @@ func (a *App) printOpenSSHConfig(ctx context.Context, opts sshOptions) (err erro
 		csList = []*api.Codespace{codespace}
 	}
 	if err != nil {
-		return fmt.Errorf("error getting codespace info: %w", err)
+		return fmt.Errorf("获取 codespace 信息时出错: %w", err)
 	}
 
 	type sshResult struct {
 		codespace *api.Codespace
-		user      string // on success, the remote ssh username; else nil
+		user      string // 成功时为远程 ssh 用户名；否则为 nil
 		err       error
 	}
 
@@ -579,7 +583,7 @@ func (a *App) printOpenSSHConfig(ctx context.Context, opts sshOptions) (err erro
 	var status error
 	for _, cs := range csList {
 		if cs.State != "Available" && opts.selector.codespaceName == "" {
-			fmt.Fprintf(os.Stderr, "skipping unavailable codespace %s: %s\n", cs.Name, cs.State)
+			fmt.Fprintf(os.Stderr, "跳过不可用的 codespace %s: %s\n", cs.Name, cs.State)
 			status = cmdutil.SilentError
 			continue
 		}
@@ -591,14 +595,14 @@ func (a *App) printOpenSSHConfig(ctx context.Context, opts sshOptions) (err erro
 
 			codespaceConnection, err := codespaces.GetCodespaceConnection(ctx, a, a.apiClient, cs)
 			if err != nil {
-				result.err = fmt.Errorf("error connecting to codespace: %w", err)
+				result.err = fmt.Errorf("连接 codespace 时出错: %w", err)
 				sshUsers <- result
 				return
 			}
 
 			fwd, err := portforwarder.NewPortForwarder(ctx, codespaceConnection)
 			if err != nil {
-				result.err = fmt.Errorf("failed to create port forwarder: %w", err)
+				result.err = fmt.Errorf("创建端口转发器失败: %w", err)
 				sshUsers <- result
 				return
 			}
@@ -606,7 +610,7 @@ func (a *App) printOpenSSHConfig(ctx context.Context, opts sshOptions) (err erro
 
 			invoker, err := rpc.CreateInvoker(ctx, fwd)
 			if err != nil {
-				result.err = fmt.Errorf("error connecting to codespace: %w", err)
+				result.err = fmt.Errorf("连接 codespace 时出错: %w", err)
 				sshUsers <- result
 				return
 			}
@@ -614,7 +618,7 @@ func (a *App) printOpenSSHConfig(ctx context.Context, opts sshOptions) (err erro
 
 			_, result.user, err = invoker.StartSSHServer(ctx)
 			if err != nil {
-				result.err = fmt.Errorf("error getting ssh server details: %w", err)
+				result.err = fmt.Errorf("获取 SSH 服务器详情时出错: %w", err)
 				sshUsers <- result
 				return
 			}
@@ -641,13 +645,13 @@ func (a *App) printOpenSSHConfig(ctx context.Context, opts sshOptions) (err erro
 
 	`))
 	if err != nil {
-		return fmt.Errorf("error formatting template: %w", err)
+		return fmt.Errorf("格式化模板时出错: %w", err)
 	}
 
 	sshContext := ssh.Context{}
 	automaticIdentityFilePath, err := automaticPrivateKeyPath(sshContext)
 	if err != nil {
-		return fmt.Errorf("error finding .ssh directory: %w", err)
+		return fmt.Errorf("查找 .ssh 目录时出错: %w", err)
 	}
 
 	ghExec := a.executable.Executable()
@@ -658,23 +662,23 @@ func (a *App) printOpenSSHConfig(ctx context.Context, opts sshOptions) (err erro
 			continue
 		}
 
-		// codespaceSSHConfig contains values needed to write an OpenSSH host
-		// configuration for a single codespace. For example:
+		// codespaceSSHConfig 包含为单个 codespace 编写 OpenSSH 主机
+		// 配置所需的值。例如:
 		//
 		// Host {{Name}}.{{EscapedRef}
 		//   User {{SSHUser}
 		//   ProxyCommand {{GHExec}} cs ssh -c {{Name}} --stdio
 		//
-		// EscapedRef is included in the name to help distinguish between codespaces
-		// when tab-completing ssh hostnames. '/' characters in EscapedRef are
-		// flattened to '-' to prevent problems with tab completion or when the
-		// hostname appears in ControlMaster socket paths.
+		// 名称中包含 EscapedRef 是为了在按 Tab 补全 ssh 主机名时
+		// 更容易区分不同 codespace。EscapedRef 中的 '/' 字符会被
+		// 压平为 '-'，以避免 Tab 补全出现问题，或主机名出现在
+		// ControlMaster 套接字路径中时出问题。
 		type codespaceSSHConfig struct {
-			Name                      string // the codespace name, passed to `ssh -c`
-			EscapedRef                string // the currently checked-out branch
-			SSHUser                   string // the remote ssh username
-			GHExec                    string // path used for invoking the current `gh` binary
-			AutomaticIdentityFilePath string // path used for automatic private key `gh cs ssh` would generate
+			Name                      string // codespace 名称，传给 `ssh -c`
+			EscapedRef                string // 当前检出的分支
+			SSHUser                   string // 远程 ssh 用户名
+			GHExec                    string // 用于调用当前 `gh` 二进制的路径
+			AutomaticIdentityFilePath string // 自动生成私钥时 `gh cs ssh` 使用的路径
 		}
 
 		conf := codespaceSSHConfig{
@@ -712,28 +716,26 @@ func newCpCmd(app *App) *cobra.Command {
 
 	cpCmd := &cobra.Command{
 		Use:   "cp [-e] [-r] [-- [<scp flags>...]] <sources>... <dest>",
-		Short: "Copy files between local and remote file systems",
+		Short: "在本地与远程文件系统之间复制文件",
 		Long: heredoc.Docf(`
-			The %[1]scp%[1]s command copies files between the local and remote file systems.
+			%[1]scp%[1]s 命令在本地与远程文件系统之间复制文件。
 
-			As with the UNIX %[1]scp%[1]s command, the first argument specifies the source and the last
-			specifies the destination; additional sources may be specified after the first,
-			if the destination is a directory.
+			与 UNIX %[1]sscp%[1]s 命令一样，第一个参数指定源，最后一个参数指定
+			目标；若目标为目录，则第一个参数之后还可以指定更多源。
 
-			The %[1]s--recursive%[1]s flag is required if any source is a directory.
+			任一源为目录时必须使用 %[1]s--recursive%[1]s 标志。
 
-			A %[1]sremote:%[1]s prefix on any file name argument indicates that it refers to
-			the file system of the remote (Codespace) machine. It is resolved relative
-			to the home directory of the remote user.
+			文件名参数带 %[1]sremote:%[1]s 前缀表示引用远程 (Codespace) 机器的
+			文件系统，相对远程用户主目录解析。
 
-			By default, remote file names are interpreted literally. With the %[1]s--expand%[1]s flag,
-			each such argument is treated in the manner of %[1]sscp%[1]s, as a Bash expression to
-			be evaluated on the remote machine, subject to expansion of tildes, braces, globs,
-			environment variables, and backticks. For security, do not use this flag with arguments
-			provided by untrusted users; see <https://lwn.net/Articles/835962/> for discussion.
+			默认按字面解释远程文件名。使用 %[1]s--expand%[1]s 标志时，
+			每个此类参数会按 %[1]sscp%[1]s 的方式处理，作为在远程机器上求值的
+			Bash 表达式，可进行波浪号、花括号、glob、环境变量和反引号展开。
+			出于安全考虑，不要将此标志用于不可信用户提供的参数；
+			相关讨论见 <https://lwn.net/Articles/835962/>。
 
-			By default, the %[1]scp%[1]s command will create a public/private ssh key pair to authenticate with
-			the codespace inside the %[1]s~/.ssh directory%[1]s.
+			默认情况下，%[1]scp%[1]s 命令会在 %[1]s~/.ssh 目录%[1]s 中创建
+			公钥/私钥对，用于向 codespace 进行身份验证。
 		`, "`"),
 		Example: heredoc.Doc(`
 			$ gh codespace cp -e README.md 'remote:/workspaces/$RepositoryName/'
@@ -748,18 +750,19 @@ func newCpCmd(app *App) *cobra.Command {
 	}
 
 	// We don't expose all sshOptions.
-	cpCmd.Flags().BoolVarP(&opts.recursive, "recursive", "r", false, "Recursively copy directories")
-	cpCmd.Flags().BoolVarP(&opts.expand, "expand", "e", false, "Expand remote file names on remote shell")
+	// 不对外暴露全部 sshOptions。
+	cpCmd.Flags().BoolVarP(&opts.recursive, "recursive", "r", false, "递归复制目录")
+	cpCmd.Flags().BoolVarP(&opts.expand, "expand", "e", false, "在远程 shell 上展开远程文件名")
 	opts.selector = AddCodespaceSelector(cpCmd, app.apiClient)
-	cpCmd.Flags().StringVarP(&opts.profile, "profile", "p", "", "Name of the SSH profile to use")
+	cpCmd.Flags().StringVarP(&opts.profile, "profile", "p", "", "要使用的 SSH 配置名称")
 	return cpCmd
 }
 
-// Copy copies files between the local and remote file systems.
-// The mechanics are similar to 'ssh' but using 'scp'.
+// Copy 在本地与远程文件系统之间复制文件。
+// 机制与 'ssh' 类似，但使用 'scp'。
 func (a *App) Copy(ctx context.Context, args []string, opts cpOptions) error {
 	if len(args) < 2 {
-		return fmt.Errorf("cp requires source and destination arguments")
+		return fmt.Errorf("cp 需要源参数和目标参数")
 	}
 	if opts.recursive {
 		opts.scpArgs = append(opts.scpArgs, "-r")
@@ -775,6 +778,10 @@ func (a *App) Copy(ctx context.Context, args []string, opts cpOptions) error {
 			// security risk (see https://lwn.net/Articles/835962/), we
 			// disable them by shell-escaping the argument unless the user
 			// provided the -e flag.
+			// scp 会将每个文件名参数视为 shell 表达式，对其进行环境变量、
+			// 花括号、波浪号、反引号、glob 等展开。由于这会带来安全风险
+			// (见 https://lwn.net/Articles/835962/)，除非用户提供了 -e 标志，
+			// 否则我们会对参数做 shell 转义以禁用这些展开。
 			if !opts.expand {
 				arg = `remote:'` + strings.Replace(rest, `'`, `'\''`, -1) + `'`
 			}
@@ -783,6 +790,9 @@ func (a *App) Copy(ctx context.Context, args []string, opts cpOptions) error {
 			// scp treats a colon in the first path segment as a host identifier.
 			// Escape it by prepending "./".
 			// TODO(adonovan): test on Windows, including with a c:\\foo path.
+			// scp 会将第一个路径段中的冒号视为主机标识符。
+			// 通过前置 "./" 进行转义。
+			// TODO(adonovan): 在 Windows 上测试，包括 c:\\foo 这类路径。
 			const sep = string(os.PathSeparator)
 			first, _, _ := strings.Cut(filepath.ToSlash(arg), sep)
 			if strings.Contains(first, ":") {
@@ -792,7 +802,7 @@ func (a *App) Copy(ctx context.Context, args []string, opts cpOptions) error {
 		opts.scpArgs = append(opts.scpArgs, arg)
 	}
 	if !hasRemote {
-		return cmdutil.FlagErrorf("at least one argument must have a 'remote:' prefix")
+		return cmdutil.FlagErrorf("至少一个参数必须带有 'remote:' 前缀")
 	}
 	return a.SSH(ctx, nil, opts.sshOptions)
 }

@@ -27,7 +27,7 @@ func TestNewCmdRepos(t *testing.T) {
 			name:    "no arguments",
 			input:   "",
 			wantErr: true,
-			errMsg:  "specify search keywords or flags",
+			errMsg:  "请指定搜索关键字或 flag",
 		},
 		{
 			name:  "keyword arguments",
@@ -53,7 +53,7 @@ func TestNewCmdRepos(t *testing.T) {
 			name:    "invalid limit flag",
 			input:   "--limit 1001",
 			wantErr: true,
-			errMsg:  "`--limit` must be between 1 and 1000",
+			errMsg:  "`--limit` 必须在 1 到 1000 之间",
 		},
 		{
 			name:  "order flag",
@@ -188,7 +188,7 @@ func TestReposRun(t *testing.T) {
 				},
 			},
 			tty:        true,
-			wantStdout: "\nShowing 3 of 300 repositories\n\nNAME         DESCRIPTION  VISIBILITY         UPDATED\ntest/cli     of course    private, archived  about 1 year ago\ntest/cliing  wow          public, fork       about 1 year ago\ncli/cli      so much      internal           about 1 year ago\n",
+			wantStdout: "\n显示 3 条，共 300 条仓库\n\n名称         描述       可见性           更新时间\ntest/cli     of course  private, 已归档  about 1 year ago\ntest/cliing  wow        public, fork     about 1 year ago\ncli/cli      so much    internal         about 1 year ago\n",
 		},
 		{
 			name: "displays results notty",
@@ -208,7 +208,7 @@ func TestReposRun(t *testing.T) {
 					},
 				},
 			},
-			wantStdout: "test/cli\tof course\tprivate, archived\t2021-02-28T12:30:00Z\ntest/cliing\twow\tpublic, fork\t2021-02-28T12:30:00Z\ncli/cli\tso much\tinternal\t2021-02-28T12:30:00Z\n",
+			wantStdout: "test/cli\tof course\tprivate, 已归档\t2021-02-28T12:30:00Z\ntest/cliing\twow\tpublic, fork\t2021-02-28T12:30:00Z\ncli/cli\tso much\tinternal\t2021-02-28T12:30:00Z\n",
 		},
 		{
 			name: "displays no results",
@@ -221,7 +221,7 @@ func TestReposRun(t *testing.T) {
 				},
 			},
 			wantErr: true,
-			errMsg:  "no repositories matched your search",
+			errMsg:  "没有匹配您搜索的仓库",
 		},
 		{
 			name: "displays search error",
@@ -249,7 +249,7 @@ func TestReposRun(t *testing.T) {
 				WebMode: true,
 			},
 			tty:        true,
-			wantStderr: "Opening https://github.com/search in your browser.\n",
+			wantStderr: "正在浏览器中打开 https://github.com/search\n",
 		},
 		{
 			name: "opens browser for web mode notty",

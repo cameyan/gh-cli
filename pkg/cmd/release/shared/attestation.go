@@ -18,7 +18,7 @@ import (
 )
 
 type Verifier interface {
-	// VerifyAttestation verifies the attestation for a given artifact
+	// VerifyAttestation 校验给定制品(artifact)的证明(attestation)
 	VerifyAttestation(art *artifact.DigestedArtifact, att *api.Attestation) (*verification.AttestationProcessingResult, error)
 }
 
@@ -62,7 +62,7 @@ func FilterAttestationsByTag(attestations []*api.Attestation, tagName string) ([
 		var statementData v1.Statement
 		err := protojson.Unmarshal([]byte(statement), &statementData)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal statement: %w", err)
+			return nil, fmt.Errorf("反序列化 statement 失败: %w", err)
 		}
 		tagValue := statementData.Predicate.GetFields()["tag"].GetStringValue()
 
@@ -81,7 +81,7 @@ func FilterAttestationsByFileDigest(attestations []*api.Attestation, fileDigest 
 		err := protojson.Unmarshal([]byte(statement), &statementData)
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal statement: %w", err)
+			return nil, fmt.Errorf("反序列化 statement 失败: %w", err)
 		}
 		subjects := statementData.Subject
 		for _, subject := range subjects {
@@ -98,13 +98,13 @@ func FilterAttestationsByFileDigest(attestations []*api.Attestation, fileDigest 
 	return filtered, nil
 }
 
-// buildVerificationPolicy constructs a verification policy for GitHub releases
+// buildVerificationPolicy 为 GitHub 发布(release)构造校验策略
 func buildVerificationPolicy(a artifact.DigestedArtifact, trustDomain string) verify.PolicyBuilder {
-	// If no trust domain is specified, default to "dotcom"
+	// 如果未指定信任域(trust domain)，默认为 "dotcom"
 	if trustDomain == "" {
 		trustDomain = "dotcom"
 	}
-	// SAN must match the GitHub releases domain. No issuer extension (match anything)
+	// SAN 必须匹配 GitHub releases 域名。无签发者(issuer)扩展(匹配任意值)
 	sanMatcher, _ := verify.NewSANMatcher("", fmt.Sprintf("^https://%s\\.releases\\.github\\.com$", trustDomain))
 	issuerMatcher, _ := verify.NewIssuerMatcher("", ".*")
 	certId, _ := verify.NewCertificateIdentity(sanMatcher, issuerMatcher, certificate.Extensions{})

@@ -70,7 +70,7 @@ func TestNewCmdDelete(t *testing.T) {
 				Selector: "",
 			},
 			wantErr:    true,
-			wantErrMsg: "--yes required when not running interactively",
+			wantErrMsg: "非交互式运行时必须指定 --yes",
 		},
 		{
 			name: "no ID supplied with --yes, no tty",
@@ -80,7 +80,7 @@ func TestNewCmdDelete(t *testing.T) {
 				Selector: "",
 			},
 			wantErr:    true,
-			wantErrMsg: "id or url argument required in non-interactive mode",
+			wantErrMsg: "非交互式模式下必须指定 id 或 url 参数",
 		},
 	}
 
@@ -141,7 +141,7 @@ func Test_deleteRun(t *testing.T) {
 				reg.Register(httpmock.REST("DELETE", "gists/1234"),
 					httpmock.StatusStringResponse(200, "{}"))
 			},
-			wantStdout: "✓ Gist \"cool.txt\" deleted\n",
+			wantStdout: "✓ gist \"cool.txt\" 已删除\n",
 		},
 		{
 			name: "successfully delete with prompt",
@@ -153,7 +153,7 @@ func Test_deleteRun(t *testing.T) {
 					httpmock.StatusStringResponse(200, "{}"))
 			},
 			mockPromptGists: true,
-			wantStdout:      "✓ Gist \"cool.txt\" deleted\n",
+			wantStdout:      "✓ gist \"cool.txt\" 已删除\n",
 		},
 		{
 			name: "successfully delete with --yes",
@@ -167,7 +167,7 @@ func Test_deleteRun(t *testing.T) {
 				reg.Register(httpmock.REST("DELETE", "gists/1234"),
 					httpmock.StatusStringResponse(200, "{}"))
 			},
-			wantStdout: "✓ Gist \"cool.txt\" deleted\n",
+			wantStdout: "✓ gist \"cool.txt\" 已删除\n",
 		},
 		{
 			name: "successfully delete with prompt and --yes",
@@ -180,7 +180,7 @@ func Test_deleteRun(t *testing.T) {
 					httpmock.StatusStringResponse(200, "{}"))
 			},
 			mockPromptGists: true,
-			wantStdout:      "✓ Gist \"cool.txt\" deleted\n",
+			wantStdout:      "✓ gist \"cool.txt\" 已删除\n",
 		},
 		{
 			name: "cancel delete with id",
@@ -228,7 +228,7 @@ func Test_deleteRun(t *testing.T) {
 					httpmock.StatusStringResponse(404, "{}"))
 			},
 			wantErr:    true,
-			wantStderr: "unable to delete gist \"cool.txt\": either the gist is not found or it is not owned by you",
+			wantStderr: "无法删除 gist \"cool.txt\": 要么该 gist 未找到，要么它不属于你",
 		},
 		{
 			name: "not found",
@@ -250,14 +250,14 @@ func Test_deleteRun(t *testing.T) {
 			httpStubs:       func(reg *httpmock.Registry) {},
 			mockPromptGists: true,
 			noGists:         true,
-			wantStdout:      "No gists found.\n",
+			wantStdout:      "未找到 gist。\n",
 		},
 	}
 
 	for _, tt := range tests {
 		pm := prompter.NewMockPrompter(t)
 		if !tt.opts.Confirmed {
-			pm.RegisterConfirm("Delete \"cool.txt\" gist?", func(_ string, _ bool) (bool, error) {
+			pm.RegisterConfirm("删除 gist \"cool.txt\" 吗?", func(_ string, _ bool) (bool, error) {
 				return !tt.cancel, nil
 			})
 		}
@@ -288,7 +288,7 @@ func Test_deleteRun(t *testing.T) {
 						sixHoursAgo.Format(time.RFC3339),
 					)),
 				)
-				pm.RegisterSelect("Select a gist", []string{"cool.txt  about 6 hours ago"}, func(_, _ string, _ []string) (int, error) {
+				pm.RegisterSelect("选择 gist", []string{"cool.txt  about 6 hours ago"}, func(_, _ string, _ []string) (int, error) {
 					return 0, nil
 				})
 			}

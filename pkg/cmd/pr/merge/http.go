@@ -39,7 +39,7 @@ type mergePayload struct {
 	authorEmail     string
 }
 
-// TODO: drop after githubv4 gets updated
+// TODO: 待 githubv4 更新后移除
 type EnablePullRequestAutoMergeInput struct {
 	githubv4.MergePullRequestInput
 }
@@ -146,7 +146,7 @@ func getMergeText(client *http.Client, repo ghrepo.Interface, prID string, merge
 	gql := api.NewClientFromHTTP(client)
 	err := gql.Query(repo.RepoHost(), "PullRequestMergeText", &query, variables)
 	if err != nil {
-		// Tolerate this API missing in older GitHub Enterprise
+		// 在较旧的 GitHub Enterprise 上容许该 API 缺失
 		if strings.Contains(err.Error(), "Field 'viewerMergeHeadlineText' doesn't exist") ||
 			strings.Contains(err.Error(), "Field 'viewerMergeBodyText' doesn't exist") {
 			return "", "", nil

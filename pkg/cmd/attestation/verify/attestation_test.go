@@ -22,13 +22,13 @@ func TestGetAttestations_OCIRegistry_PredicateTypeFiltering(t *testing.T) {
 	}
 	attestations, msg, err := getAttestations(o, *artifact)
 	require.NoError(t, err)
-	require.Contains(t, msg, "Loaded 2 attestations from OCI registry")
+	require.Contains(t, msg, "已从 OCI 镜像仓库加载 2 attestations")
 	require.Len(t, attestations, 2)
 
 	o.PredicateType = "custom predicate type"
 	attestations, msg, err = getAttestations(o, *artifact)
 	require.Error(t, err)
-	require.Contains(t, msg, "no attestations found with predicate type")
+	require.Contains(t, msg, "未找到具有谓词类型的证明")
 	require.Nil(t, attestations)
 }
 

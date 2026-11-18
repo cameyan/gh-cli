@@ -97,7 +97,7 @@ func (l *lister) List(opts ListOptions) (*api.PullRequestAndTotalCount, error) {
 	case "all":
 		variables["state"] = []string{"OPEN", "CLOSED", "MERGED"}
 	default:
-		return nil, fmt.Errorf("invalid state: %s", opts.State)
+		return nil, fmt.Errorf("无效的状态: %s", opts.State)
 	}
 
 	if opts.BaseBranch != "" {
@@ -169,7 +169,7 @@ func (m *mockLister) List(opt ListOptions) (*api.PullRequestAndTotalCount, error
 	if m.expectFields != nil {
 
 		if !isEqualSet(m.expectFields, opt.Fields) {
-			return nil, fmt.Errorf("unexpected fields: %v", opt.Fields)
+			return nil, fmt.Errorf("意外的字段: %v", opt.Fields)
 		}
 	}
 

@@ -26,7 +26,7 @@ func TestNewInspectCmd_PrintOutputJSONFormat(t *testing.T) {
 		},
 	}
 
-	t.Run("Print output in JSON format", func(t *testing.T) {
+	t.Run("以 JSON 格式打印输出", func(t *testing.T) {
 		var opts *Options
 		cmd := NewInspectCmd(f, func(o *Options) error {
 			opts = o

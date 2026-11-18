@@ -70,16 +70,16 @@ func printSummary(io *iostreams.IOStreams, counts checkCounts) {
 	summary := ""
 	if counts.Failed+counts.Passed+counts.Skipping+counts.Pending+counts.Canceled > 0 {
 		if counts.Failed > 0 {
-			summary = "Some checks were not successful"
+			summary = "部分检查未成功"
 		} else if counts.Pending > 0 {
-			summary = "Some checks are still pending"
+			summary = "部分检查仍在等待中"
 		} else if counts.Canceled > 0 {
-			summary = "Some checks were cancelled"
+			summary = "部分检查已被取消"
 		} else {
-			summary = "All checks were successful"
+			summary = "所有检查均已成功"
 		}
 
-		tallies := fmt.Sprintf("%d cancelled, %d failing, %d successful, %d skipped, and %d pending checks",
+		tallies := fmt.Sprintf("%d 个已取消，%d 个失败，%d 个成功，%d 个已跳过，%d 个等待中",
 			counts.Canceled, counts.Failed, counts.Passed, counts.Skipping, counts.Pending)
 
 		summary = fmt.Sprintf("%s\n%s", io.ColorScheme().Bold(summary), tallies)
@@ -94,9 +94,9 @@ func printSummary(io *iostreams.IOStreams, counts checkCounts) {
 func printTable(io *iostreams.IOStreams, checks []check) error {
 	var headers []string
 	if io.IsStdoutTTY() {
-		headers = []string{"", "NAME", "DESCRIPTION", "ELAPSED", "URL"}
+		headers = []string{"", "名称", "描述", "耗时", "URL"}
 	} else {
-		headers = []string{"NAME", "STATUS", "ELAPSED", "URL", "DESCRIPTION"}
+		headers = []string{"名称", "状态", "耗时", "URL", "描述"}
 	}
 
 	tp := tableprinter.New(io, tableprinter.WithHeader(headers...))

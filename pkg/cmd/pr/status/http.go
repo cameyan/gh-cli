@@ -54,7 +54,7 @@ func pullRequestStatus(httpClient *http.Client, repo ghrepo.Interface, options r
 	if len(options.Fields) > 0 {
 		fields := set.NewStringSet()
 		fields.AddValues(options.Fields)
-		// these are always necessary to find the PR for the current branch
+		// 为查找当前分支的 PR，这些字段始终是必需的
 		fields.AddValues([]string{"isCrossRepository", "headRepositoryOwner", "headRefName"})
 		gr := api.PullRequestGraphQL(fields.ToSlice())
 		fragments = fmt.Sprintf("fragment pr on PullRequest{%s}fragment prWithReviews on PullRequest{...pr}", gr)
@@ -165,7 +165,7 @@ func pullRequestStatus(httpClient *http.Client, repo ghrepo.Interface, options r
 		for _, edge := range resp.Repository.PullRequests.Edges {
 			if edge.Node.HeadLabel() == currentPRHeadRef {
 				currentPR = &edge.Node
-				break // Take the most recent PR for the current branch
+				break // 取当前分支最近的一个 PR
 			}
 		}
 	}

@@ -26,23 +26,23 @@ func newListCmd(app *App) *cobra.Command {
 
 	listCmd := &cobra.Command{
 		Use:   "list",
-		Short: "List codespaces",
+		Short: "列出 codespace",
 		Long: heredoc.Doc(`
-			List codespaces of the authenticated user.
+			列出已认证用户的 codespace。
 
-			Alternatively, organization administrators may list all codespaces billed to the organization.
+			此外，组织管理员可以列出由该组织付费的所有 codespace。
 		`),
 		Aliases: []string{"ls"},
 		Args:    noArgsConstraint,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if opts.repo != "" {
 				if err := validateNWO(opts.repo); err != nil {
-					return cmdutil.FlagErrorf("invalid value for --repo: %v", err)
+					return cmdutil.FlagErrorf("--repo 的值无效: %v", err)
 				}
 			}
 
 			if err := cmdutil.MutuallyExclusive(
-				"using `--org` or `--user` with `--repo` is not allowed",
+				"`--org` 或 `--user` 不能与 `--repo` 同时使用",
 				opts.repo != "",
 				opts.orgName != "" || opts.userName != "",
 			); err != nil {
@@ -50,7 +50,7 @@ func newListCmd(app *App) *cobra.Command {
 			}
 
 			if err := cmdutil.MutuallyExclusive(
-				"using `--web` with `--org` or `--user` is not supported, please use with `--repo` instead",
+				"`--web` 不能与 `--org` 或 `--user` 同时使用，请改为配合 `--repo` 使用",
 				opts.useWeb,
 				opts.orgName != "" || opts.userName != "",
 			); err != nil {
@@ -58,7 +58,7 @@ func newListCmd(app *App) *cobra.Command {
 			}
 
 			if opts.limit < 1 {
-				return cmdutil.FlagErrorf("invalid limit: %v", opts.limit)
+				return cmdutil.FlagErrorf("无效的 limit: %v", opts.limit)
 			}
 			return nil
 		},
@@ -67,17 +67,17 @@ func newListCmd(app *App) *cobra.Command {
 		},
 	}
 
-	listCmd.Flags().IntVarP(&opts.limit, "limit", "L", 30, "Maximum number of codespaces to list")
-	listCmd.Flags().StringVarP(&opts.repo, "repo", "R", "", "Repository name with owner: user/repo")
+	listCmd.Flags().IntVarP(&opts.limit, "limit", "L", 30, "要列出的 codespace 数量上限")
+	listCmd.Flags().StringVarP(&opts.repo, "repo", "R", "", "带所有者的仓库名称: user/repo")
 	if err := addDeprecatedRepoShorthand(listCmd, &opts.repo); err != nil {
 		fmt.Fprintf(app.io.ErrOut, "%v\n", err)
 	}
 
-	listCmd.Flags().StringVarP(&opts.orgName, "org", "o", "", "The `login` handle of the organization to list codespaces for (admin-only)")
-	listCmd.Flags().StringVarP(&opts.userName, "user", "u", "", "The `username` to list codespaces for (used with --org)")
+	listCmd.Flags().StringVarP(&opts.orgName, "org", "o", "", "要列出其 codespace 的组织的 `login` 句柄 (仅限管理员)")
+	listCmd.Flags().StringVarP(&opts.userName, "user", "u", "", "要列出其 codespace 的 `username` (与 --org 配合使用)")
 	cmdutil.AddJSONFlags(listCmd, &exporter, api.ListCodespaceFields)
 
-	listCmd.Flags().BoolVarP(&opts.useWeb, "web", "w", false, "List codespaces in the web browser, cannot be used with --user or --org")
+	listCmd.Flags().BoolVarP(&opts.useWeb, "web", "w", false, "在网页浏览器中列出 codespace，不能与 --user 或 --org 同时使用")
 
 	return listCmd
 }
@@ -88,12 +88,12 @@ func (a *App) List(ctx context.Context, opts *listOptions, exporter cmdutil.Expo
 	}
 
 	var codespaces []*api.Codespace
-	err := a.RunWithProgress("Fetching codespaces", func() (err error) {
+	err := a.RunWithProgress("正在获取 codespace", func() (err error) {
 		codespaces, err = a.apiClient.ListCodespaces(ctx, api.ListCodespacesOptions{Limit: opts.limit, RepoName: opts.repo, OrgName: opts.orgName, UserName: opts.userName})
 		return
 	})
 	if err != nil {
-		return fmt.Errorf("error getting codespaces: %w", err)
+		return fmt.Errorf("获取 codespace 时出错: %w", err)
 	}
 
 	hasNonProdVSCSTarget := false
@@ -105,7 +105,7 @@ func (a *App) List(ctx context.Context, opts *listOptions, exporter cmdutil.Expo
 	}
 
 	if err := a.io.StartPager(); err != nil {
-		a.errLogger.Printf("error starting pager: %v", err)
+		a.errLogger.Printf("启动分页器出错: %v", err)
 	}
 	defer a.io.StopPager()
 
@@ -114,7 +114,7 @@ func (a *App) List(ctx context.Context, opts *listOptions, exporter cmdutil.Expo
 	}
 
 	if len(codespaces) == 0 {
-		return cmdutil.NewNoResultsError("no codespaces found")
+		return cmdutil.NewNoResultsError("未找到 codespace")
 	}
 
 	if opts.useWeb && codespaces[0].Repository.ID > 0 {
@@ -176,7 +176,7 @@ func (a *App) List(ctx context.Context, opts *listOptions, exporter cmdutil.Expo
 
 		ct, err := time.Parse(time.RFC3339, c.CreatedAt)
 		if err != nil {
-			return fmt.Errorf("error parsing date %q: %w", c.CreatedAt, err)
+			return fmt.Errorf("解析日期 %q 时出错: %w", c.CreatedAt, err)
 		}
 		tp.AddTimeField(time.Now(), ct, cs.Muted)
 

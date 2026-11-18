@@ -23,28 +23,28 @@ func TestNewCmdList(t *testing.T) {
 		wantsErr string
 	}{
 		{
-			name: "no arguments",
+			name: "无参数",
 			cli:  "",
 			wants: ListOptions{
 				Limit: 30,
 			},
 		},
 		{
-			name: "with limit",
+			name: "带 limit 参数",
 			cli:  "-L 101",
 			wants: ListOptions{
 				Limit: 101,
 			},
 		},
 		{
-			name:     "too many arguments",
+			name:     "参数过多",
 			cli:      "123 456",
 			wantsErr: "accepts at most 1 arg(s), received 2",
 		},
 		{
-			name:     "invalid limit",
+			name:     "无效的 limit 值",
 			cli:      "-L 0",
-			wantsErr: "invalid limit: 0",
+			wantsErr: "无效的 limit 值: 0",
 		},
 	}
 
@@ -85,7 +85,7 @@ func TestListRun(t *testing.T) {
 		wantOut string
 	}{
 		{
-			name: "no organizations found",
+			name: "未找到任何组织",
 			opts: ListOptions{HttpClient: func() (*http.Client, error) {
 				r := &httpmock.Registry{}
 
@@ -107,12 +107,12 @@ func TestListRun(t *testing.T) {
 			isTTY: true,
 			wantOut: heredoc.Doc(`
 
-There are no organizations associated with @octocat
+@octocat 没有关联任何组织
 
 `),
 		},
 		{
-			name: "default behavior",
+			name: "默认行为",
 			opts: ListOptions{HttpClient: func() (*http.Client, error) {
 				r := &httpmock.Registry{}
 
@@ -141,14 +141,14 @@ There are no organizations associated with @octocat
 			isTTY: true,
 			wantOut: heredoc.Doc(`
 
-Showing 2 of 2 organizations
+正在显示 2 个组织（共 2 个）
 
 github
 cli
 `),
 		},
 		{
-			name: "with limit",
+			name: "带 limit 参数",
 			opts: ListOptions{Limit: 1, HttpClient: func() (*http.Client, error) {
 				r := &httpmock.Registry{}
 
@@ -177,13 +177,13 @@ cli
 			isTTY: true,
 			wantOut: heredoc.Doc(`
 
-Showing 1 of 2 organizations
+正在显示 1 个组织（共 2 个）
 
 github
 `),
 		},
 		{
-			name: "nontty output",
+			name: "非 TTY 输出",
 			opts: ListOptions{HttpClient: func() (*http.Client, error) {
 				r := &httpmock.Registry{}
 

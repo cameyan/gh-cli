@@ -27,7 +27,7 @@ func TestNewCmdDelete(t *testing.T) {
 			name:       "no argument",
 			input:      "",
 			wantErr:    true,
-			wantErrMsg: "cannot delete label: name argument required",
+			wantErrMsg: "无法删除标签: 需要提供 name 参数",
 		},
 		{
 			name:   "name argument",
@@ -44,7 +44,7 @@ func TestNewCmdDelete(t *testing.T) {
 			name:       "confirm no tty",
 			input:      "test",
 			wantErr:    true,
-			wantErrMsg: "--yes required when not running interactively",
+			wantErrMsg: "非交互模式下必须提供 --yes",
 		},
 	}
 
@@ -107,7 +107,7 @@ func TestDeleteRun(t *testing.T) {
 					return nil
 				}
 			},
-			wantStdout: "✓ Label \"test\" deleted from OWNER/REPO\n",
+			wantStdout: "✓ 已从 test 中删除标签 \"OWNER/REPO\"\n",
 		},
 		{
 			name: "deletes label notty",

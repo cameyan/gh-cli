@@ -343,14 +343,14 @@ func TestNewCmdComment(t *testing.T) {
 			input:            fmt.Sprintf("1 --web --attach '%s'", tmpImage),
 			isTTY:            true,
 			wantsErr:         true,
-			wantsErrContains: "`--attach` is not supported when using `--web`",
+			wantsErrContains: "`--attach` 不支持与 `--web` 同时使用",
 		},
 		{
 			name:             "--attach is rejected with --delete-last",
 			input:            fmt.Sprintf("1 --delete-last --attach '%s'", tmpImage),
 			isTTY:            true,
 			wantsErr:         true,
-			wantsErrContains: "`--attach` is not supported when using `--delete-last`",
+			wantsErrContains: "`--attach` 不支持与 `--delete-last` 同时使用",
 		},
 		{
 			// Only the prefix, since the rest comes from the operating system.
@@ -645,7 +645,7 @@ func Test_commentRun(t *testing.T) {
 				mockCommentCreate(t, reg)
 			},
 			emptyComments: true,
-			stderr:        "No comments found. Creating a new comment.\n",
+			stderr:        "未找到任何评论。正在创建新评论。\n",
 			stdout:        "https://github.com/OWNER/REPO/issues/123#issuecomment-456\n",
 		},
 		{
@@ -658,7 +658,7 @@ func Test_commentRun(t *testing.T) {
 				OpenInBrowser: func(string) error { return nil },
 			},
 			emptyComments: true,
-			stderr:        "Opening https://github.com/OWNER/REPO/issues/123 in your browser.\n",
+			stderr:        "正在浏览器中打开 https://github.com/OWNER/REPO/issues/123。\n",
 		},
 		{
 			name: "updating last comment with non-interactive web opens issue in browser focusing on the last comment",
@@ -674,7 +674,7 @@ func Test_commentRun(t *testing.T) {
 				},
 			},
 			emptyComments: false,
-			stderr:        "Opening https://github.com/OWNER/REPO/issues/123 in your browser.\n",
+			stderr:        "正在浏览器中打开 https://github.com/OWNER/REPO/issues/123。\n",
 		},
 		{
 			name: "updating last comment with non-interactive web errors because there are no comments",
@@ -820,7 +820,7 @@ func Test_commentRun(t *testing.T) {
 			httpStubs: func(t *testing.T, reg *httpmock.Registry) {
 				mockCommentDelete(t, reg)
 			},
-			stderr: "Comment deleted\n",
+			stderr: "评论已删除\n",
 		},
 		{
 			name: "deleting last comment interactively and pre-confirmed",
@@ -835,7 +835,7 @@ func Test_commentRun(t *testing.T) {
 			httpStubs: func(t *testing.T, reg *httpmock.Registry) {
 				mockCommentDelete(t, reg)
 			},
-			stderr: "Comment deleted\n",
+			stderr: "评论已删除\n",
 		},
 		{
 			name: "deleting last comment interactively and confirmed",
@@ -856,8 +856,8 @@ func Test_commentRun(t *testing.T) {
 			httpStubs: func(t *testing.T, reg *httpmock.Registry) {
 				mockCommentDelete(t, reg)
 			},
-			stdout: "! Deleted comments cannot be recovered.\n",
-			stderr: "Comment deleted\n",
+			stdout: "! 已删除的评论无法恢复。\n",
+			stderr: "评论已删除\n",
 		},
 		{
 			name: "deleting last comment interactively and confirmation declined",
@@ -898,8 +898,8 @@ func Test_commentRun(t *testing.T) {
 				{ID: "id1", Author: api.CommentAuthor{Login: "octocat"}, URL: "https://github.com/OWNER/REPO/pull/123#issuecomment-111", ViewerDidAuthor: true, Body: "Lorem ipsum dolor sit amet, consectet lorem ipsum again"},
 			}},
 			wantsErr: false,
-			stdout:   "! Deleted comments cannot be recovered.\n",
-			stderr:   "Comment deleted\n",
+			stdout:   "! 已删除的评论无法恢复。\n",
+			stderr:   "评论已删除\n",
 		},
 	}
 	for _, tt := range tests {

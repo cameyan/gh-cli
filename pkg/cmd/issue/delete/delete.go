@@ -39,7 +39,7 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "delete {<number> | <url>}",
-		Short: "Delete issue",
+		Short: "删除 issue",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			issueNumber, baseRepo, err := shared.ParseIssueFromArg(args[0])
@@ -47,13 +47,13 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 				return err
 			}
 
-			// If the args provided the base repo then use that directly.
+			// 如果参数提供了基础仓库，则直接使用它。
 			if baseRepo, present := baseRepo.Value(); present {
 				opts.BaseRepo = func() (ghrepo.Interface, error) {
 					return baseRepo, nil
 				}
 			} else {
-				// support `-R, --repo` override
+				// 支持 `-R, --repo` 覆盖
 				opts.BaseRepo = f.BaseRepo
 			}
 
@@ -67,9 +67,9 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.Confirmed, "confirm", false, "Confirm deletion without prompting")
-	_ = cmd.Flags().MarkDeprecated("confirm", "use `--yes` instead")
-	cmd.Flags().BoolVar(&opts.Confirmed, "yes", false, "Confirm deletion without prompting")
+	cmd.Flags().BoolVar(&opts.Confirmed, "confirm", false, "无需提示直接确认删除")
+	_ = cmd.Flags().MarkDeprecated("confirm", "请改用 `--yes`")
+	cmd.Flags().BoolVar(&opts.Confirmed, "yes", false, "无需提示直接确认删除")
 	return cmd
 }
 
@@ -91,14 +91,14 @@ func deleteRun(opts *DeleteOptions) error {
 		return err
 	}
 	if issue.IsPullRequest() {
-		return fmt.Errorf("issue %s#%d is a pull request and cannot be deleted", ghrepo.FullName(baseRepo), issue.Number)
+		return fmt.Errorf("issue %s#%d 是一个 PR，无法删除", ghrepo.FullName(baseRepo), issue.Number)
 	}
 
-	// When executed in an interactive shell, require confirmation, unless
-	// already provided. Otherwise skip confirmation.
+	// 在交互式 shell 中执行时需要确认，
+	// 除非已提供。否则跳过确认。
 	if opts.IO.CanPrompt() && !opts.Confirmed {
 		cs := opts.IO.ColorScheme()
-		fmt.Printf("%s Deleted issues cannot be recovered.\n", cs.WarningIcon())
+		fmt.Printf("%s 已删除的 issue 无法恢复\n", cs.WarningIcon())
 		err := opts.Prompter.ConfirmDeletion(fmt.Sprintf("%d", issue.Number))
 		if err != nil {
 			return err
@@ -110,7 +110,7 @@ func deleteRun(opts *DeleteOptions) error {
 	}
 
 	if opts.IO.IsStdoutTTY() {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Deleted issue %s#%d (%s).\n", cs.Red("✔"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 已删除 issue %s#%d (%s)\n", cs.Red("✔"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
 	}
 
 	return nil

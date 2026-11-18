@@ -29,7 +29,7 @@ func TestNewCmdCode(t *testing.T) {
 			name:    "no arguments",
 			input:   "",
 			wantErr: true,
-			errMsg:  "specify search keywords or flags",
+			errMsg:  "请指定搜索关键字或 flag",
 		},
 		{
 			name:  "keyword arguments",
@@ -69,7 +69,7 @@ func TestNewCmdCode(t *testing.T) {
 			name:    "invalid limit flag",
 			input:   "--limit 1001",
 			wantErr: true,
-			errMsg:  "`--limit` must be between 1 and 1000",
+			errMsg:  "`--limit` 必须在 1 到 1000 之间",
 		},
 		{
 			name: "qualifier flags",
@@ -209,7 +209,7 @@ func TestCodeRun(t *testing.T) {
 				},
 			},
 			tty:        true,
-			wantStdout: "\nShowing 2 of 2 results\n\ncli/cli context/context.go\n\trepoMap := map[string]bool{}\n\ncli/cli pkg/cmd/pr/pr.go\n\tAnnotations: map[string]string{\n",
+			wantStdout: "\n显示 2 条，共 2 条结果\n\ncli/cli context/context.go\n\trepoMap := map[string]bool{}\n\ncli/cli pkg/cmd/pr/pr.go\n\tAnnotations: map[string]string{\n",
 		},
 		{
 			name: "displays results notty",
@@ -281,7 +281,7 @@ func TestCodeRun(t *testing.T) {
 				},
 			},
 			wantErr: true,
-			errMsg:  "no code results matched your search",
+			errMsg:  "没有匹配您搜索的代码结果",
 		},
 		{
 			name: "displays search error",
@@ -308,7 +308,7 @@ func TestCodeRun(t *testing.T) {
 				WebMode: true,
 			},
 			tty:        true,
-			wantStderr: "Opening https://github.com/search in your browser.\n",
+			wantStderr: "正在浏览器中打开 https://github.com/search\n",
 			wantBrowse: "https://github.com/search?type=code&q=map+repo%3Acli%2Fcli",
 		},
 		{

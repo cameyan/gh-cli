@@ -20,7 +20,7 @@ func Test_listOrgs(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name: "default",
+			name: "默认",
 			args: args{
 				limit: 30,
 			},
@@ -42,7 +42,7 @@ func Test_listOrgs(t *testing.T) {
 			},
 		},
 		{
-			name: "with limit",
+			name: "带 limit 参数",
 			args: args{
 				limit: 1,
 			},

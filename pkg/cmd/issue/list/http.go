@@ -22,7 +22,7 @@ func listIssues(client *api.Client, repo ghrepo.Interface, filters prShared.Filt
 	case "all":
 		states = []string{"OPEN", "CLOSED"}
 	default:
-		return nil, fmt.Errorf("invalid state: %s", filters.State)
+		return nil, fmt.Errorf("无效的状态: %s", filters.State)
 	}
 
 	fragments := fmt.Sprintf("fragment issue on Issue {%s}", api.IssueGraphQL(filters.Fields))
@@ -60,10 +60,10 @@ func listIssues(client *api.Client, repo ghrepo.Interface, filters prShared.Filt
 	}
 
 	if filters.Milestone != "" {
-		// The "milestone" filter in the GraphQL connection doesn't work as documented and accepts neither a
-		// milestone number nor a title. It does accept a numeric database ID, but we cannot obtain one
-		// using the GraphQL API.
-		return nil, fmt.Errorf("cannot filter by milestone using the `Repository.issues` GraphQL connection")
+		// GraphQL 连接中的 "milestone" 过滤器行为与文档不符，既不接受
+		// 里程碑编号也不接受标题。它确实接受数字数据库 ID，但我们无法
+		// 通过 GraphQL API 获取该 ID。
+		return nil, fmt.Errorf("无法使用 `Repository.issues` GraphQL 连接按里程碑过滤")
 	}
 
 	type responseData struct {
@@ -93,7 +93,7 @@ loop:
 			return nil, err
 		}
 		if !response.Repository.HasIssuesEnabled {
-			return nil, fmt.Errorf("the '%s' repository has disabled issues", ghrepo.FullName(repo))
+			return nil, fmt.Errorf("仓库 '%s' 已禁用 issue", ghrepo.FullName(repo))
 		}
 		totalCount = response.Repository.Issues.TotalCount
 
@@ -118,13 +118,12 @@ loop:
 
 func searchIssues(client *api.Client, detector fd.Detector, repo ghrepo.Interface, filters prShared.FilterOptions, limit int) (*api.IssuesAndTotalCount, error) {
 	if pullRequestSearchQualifierRE.MatchString(filters.Search) {
-		return nil, fmt.Errorf("cannot use pull request search qualifiers with `gh issue list`; use `gh pr list` instead")
+		return nil, fmt.Errorf("不能在 `gh issue list` 中使用 PR 搜索限定符，请改用 `gh pr list`")
 	}
 
 	// TODO advancedIssueSearchCleanup
-	// We won't need feature detection when GHES 3.17 support ends, since
-	// the advanced issue search is the only available search backend for
-	// issues.
+	// 当 GHES 3.17 支持终止后，我们将不再需要功能检测，因为高级议题
+	// 搜索是议题唯一可用的搜索后端。
 	features, err := detector.SearchFeatures()
 	if err != nil {
 		return nil, err
@@ -196,7 +195,7 @@ loop:
 		}
 
 		if !resp.Repository.HasIssuesEnabled {
-			return nil, fmt.Errorf("the '%s' repository has disabled issues", ghrepo.FullName(repo))
+			return nil, fmt.Errorf("仓库 '%s' 已禁用 issue", ghrepo.FullName(repo))
 		}
 
 		ic.TotalCount = resp.Search.IssueCount

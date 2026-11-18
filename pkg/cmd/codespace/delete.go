@@ -47,29 +47,31 @@ func newDeleteCmd(app *App) *cobra.Command {
 
 	deleteCmd := &cobra.Command{
 		Use:   "delete",
-		Short: "Delete codespaces",
+		Short: "删除 codespace",
 		Long: heredoc.Doc(`
-			Delete codespaces based on selection criteria.
+			根据选择条件删除 codespace。
 
-			All codespaces for the authenticated user can be deleted, as well as codespaces for a
-			specific repository. Alternatively, only codespaces older than N days can be deleted.
+			可以删除已认证用户的所有 codespace，也可以删除特定仓库的
+			codespace。此外，还可以只删除超过 N 天的 codespace。
 
-			Organization administrators may delete any codespace billed to the organization.
+			组织管理员可以删除由该组织付费的任何 codespace。
 		`),
 		Args: noArgsConstraint,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// TODO: ideally we would use the selector directly, but the logic here is too intertwined with other flags to do so elegantly
 			// After the admin subcommand is added (see https://github.com/cli/cli/pull/6944#issuecomment-1419553639) we can revisit this.
+			// TODO: 理想情况下应直接使用选择器，但这里的逻辑与其他标志交织过深，难以优雅地这样做
+			// 待 admin 子命令添加后 (见 https://github.com/cli/cli/pull/6944#issuecomment-1419553639) 再重新审视。
 			opts.codespaceName = selector.codespaceName
 			opts.repoFilter = selector.repoName
 			opts.repoOwner = selector.repoOwner
 
 			if opts.deleteAll && opts.repoFilter != "" {
-				return cmdutil.FlagErrorf("both `--all` and `--repo` is not supported")
+				return cmdutil.FlagErrorf("`--all` 和 `--repo` 不能同时使用")
 			}
 
 			if opts.orgName != "" && opts.codespaceName != "" && opts.userName == "" {
-				return cmdutil.FlagErrorf("using `--org` with `--codespace` requires `--user`")
+				return cmdutil.FlagErrorf("`--org` 与 `--codespace` 同时使用时需要 `--user`")
 			}
 			return app.Delete(cmd.Context(), opts)
 		},
@@ -80,11 +82,11 @@ func newDeleteCmd(app *App) *cobra.Command {
 		fmt.Fprintf(app.io.ErrOut, "%v\n", err)
 	}
 
-	deleteCmd.Flags().BoolVar(&opts.deleteAll, "all", false, "Delete all codespaces")
-	deleteCmd.Flags().BoolVarP(&opts.skipConfirm, "force", "f", false, "Skip confirmation for codespaces that contain unsaved changes")
-	deleteCmd.Flags().Uint16Var(&opts.keepDays, "days", 0, "Delete codespaces older than `N` days")
-	deleteCmd.Flags().StringVarP(&opts.orgName, "org", "o", "", "The `login` handle of the organization (admin-only)")
-	deleteCmd.Flags().StringVarP(&opts.userName, "user", "u", "", "The `username` to delete codespaces for (used with --org)")
+	deleteCmd.Flags().BoolVar(&opts.deleteAll, "all", false, "删除所有 codespace")
+	deleteCmd.Flags().BoolVarP(&opts.skipConfirm, "force", "f", false, "对包含未保存更改的 codespace 跳过确认")
+	deleteCmd.Flags().Uint16Var(&opts.keepDays, "days", 0, "删除超过 `N` 天的 codespace")
+	deleteCmd.Flags().StringVarP(&opts.orgName, "org", "o", "", "组织的 `login` 句柄 (仅限管理员)")
+	deleteCmd.Flags().StringVarP(&opts.userName, "user", "u", "", "要删除其 codespace 的 `username` (与 --org 配合使用)")
 
 	return deleteCmd
 }
@@ -93,7 +95,7 @@ func (a *App) Delete(ctx context.Context, opts deleteOptions) (err error) {
 	var codespaces []*api.Codespace
 	nameFilter := opts.codespaceName
 	if nameFilter == "" {
-		err = a.RunWithProgress("Fetching codespaces", func() (fetchErr error) {
+		err = a.RunWithProgress("正在获取 codespace", func() (fetchErr error) {
 			userName := opts.userName
 			if userName == "" && opts.orgName != "" {
 				currentUser, fetchErr := a.apiClient.GetUser(ctx)
@@ -109,20 +111,20 @@ func (a *App) Delete(ctx context.Context, opts deleteOptions) (err error) {
 			return
 		})
 		if err != nil {
-			return fmt.Errorf("error getting codespaces: %w", err)
+			return fmt.Errorf("获取 codespace 时出错: %w", err)
 		}
 
 		if !opts.deleteAll && opts.repoFilter == "" {
 			includeUsername := opts.orgName != ""
 			c, err := chooseCodespaceFromList(ctx, codespaces, includeUsername, false)
 			if err != nil {
-				return fmt.Errorf("error choosing codespace: %w", err)
+				return fmt.Errorf("选择 codespace 时出错: %w", err)
 			}
 			nameFilter = c.Name
 		}
 	} else {
 		var codespace *api.Codespace
-		err := a.RunWithProgress("Fetching codespace", func() (fetchErr error) {
+		err := a.RunWithProgress("正在获取 codespace", func() (fetchErr error) {
 			if opts.orgName == "" || opts.userName == "" {
 				codespace, fetchErr = a.apiClient.GetCodespace(ctx, nameFilter, false)
 			} else {
@@ -131,7 +133,7 @@ func (a *App) Delete(ctx context.Context, opts deleteOptions) (err error) {
 			return
 		})
 		if err != nil {
-			return fmt.Errorf("error fetching codespace information: %w", err)
+			return fmt.Errorf("获取 codespace 信息时出错: %w", err)
 		}
 
 		codespaces = []*api.Codespace{codespace}
@@ -150,7 +152,7 @@ func (a *App) Delete(ctx context.Context, opts deleteOptions) (err error) {
 		if opts.keepDays > 0 {
 			t, err := time.Parse(time.RFC3339, c.LastUsedAt)
 			if err != nil {
-				return fmt.Errorf("error parsing last_used_at timestamp %q: %w", c.LastUsedAt, err)
+				return fmt.Errorf("解析 last_used_at 时间戳 %q 时出错: %w", c.LastUsedAt, err)
 			}
 			if t.After(lastUpdatedCutoffTime) {
 				continue
@@ -159,7 +161,7 @@ func (a *App) Delete(ctx context.Context, opts deleteOptions) (err error) {
 		if !opts.skipConfirm {
 			confirmed, err := confirmDeletion(opts.prompter, c, opts.isInteractive)
 			if err != nil {
-				return fmt.Errorf("unable to confirm: %w", err)
+				return fmt.Errorf("无法确认: %w", err)
 			}
 			if !confirmed {
 				continue
@@ -169,12 +171,12 @@ func (a *App) Delete(ctx context.Context, opts deleteOptions) (err error) {
 	}
 
 	if len(codespacesToDelete) == 0 {
-		return errors.New("no codespaces to delete")
+		return errors.New("没有要删除的 codespace")
 	}
 
-	progressLabel := "Deleting codespace"
+	progressLabel := "正在删除 codespace"
 	if len(codespacesToDelete) > 1 {
-		progressLabel = "Deleting codespaces"
+		progressLabel = "正在删除 codespace"
 	}
 
 	var deletedCodespaces uint32
@@ -184,7 +186,7 @@ func (a *App) Delete(ctx context.Context, opts deleteOptions) (err error) {
 			codespaceName := c.Name
 			g.Go(func() error {
 				if err := a.apiClient.DeleteCodespace(ctx, codespaceName, opts.orgName, opts.userName); err != nil {
-					a.errLogger.Printf("error deleting codespace %q: %v\n", codespaceName, err)
+					a.errLogger.Printf("删除 codespace %q 时出错: %v\n", codespaceName, err)
 					return err
 				}
 				atomic.AddUint32(&deletedCodespaces, 1)
@@ -193,13 +195,13 @@ func (a *App) Delete(ctx context.Context, opts deleteOptions) (err error) {
 		}
 
 		if err := g.Wait(); err != nil {
-			return fmt.Errorf("%d codespace(s) failed to delete", len(codespacesToDelete)-int(deletedCodespaces))
+			return fmt.Errorf("%d 个 codespace 删除失败", len(codespacesToDelete)-int(deletedCodespaces))
 		}
 		return nil
 	})
 
 	if a.io.IsStdoutTTY() && deletedCodespaces > 0 {
-		successMsg := fmt.Sprintf("%d codespace(s) deleted successfully\n", deletedCodespaces)
+		successMsg := fmt.Sprintf("成功删除 %d 个 codespace\n", deletedCodespaces)
 		fmt.Fprint(a.io.ErrOut, successMsg)
 	}
 
@@ -212,9 +214,9 @@ func confirmDeletion(p prompter, apiCodespace *api.Codespace, isInteractive bool
 		return true, nil
 	}
 	if !isInteractive {
-		return false, fmt.Errorf("codespace %s has unsaved changes (use --force to override)", cs.Name)
+		return false, fmt.Errorf("codespace %s 有未保存的更改 (使用 --force 强制执行)", cs.Name)
 	}
-	return p.Confirm(fmt.Sprintf("Codespace %s has unsaved changes. OK to delete?", cs.Name))
+	return p.Confirm(fmt.Sprintf("Codespace %s 有未保存的更改。确定删除吗？", cs.Name))
 }
 
 type surveyPrompter struct{}
@@ -233,7 +235,7 @@ func (p *surveyPrompter) Confirm(message string) (bool, error) {
 		},
 	}
 	if err := prompter.Ask(q, &confirmed); err != nil {
-		return false, fmt.Errorf("failed to prompt: %w", err)
+		return false, fmt.Errorf("提示输入失败: %w", err)
 	}
 
 	return confirmed.Confirmed, nil

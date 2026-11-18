@@ -26,7 +26,7 @@ func NewCmdConfigGet(f *cmdutil.Factory, runF func(*GetOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "get <key>",
-		Short: "Print the value of a given configuration key",
+		Short: "打印给定配置键的值",
 		Example: heredoc.Doc(`
 			$ gh config get git_protocol
 		`),
@@ -47,17 +47,17 @@ func NewCmdConfigGet(f *cmdutil.Factory, runF func(*GetOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Hostname, "host", "h", "", "Get per-host setting")
+	cmd.Flags().StringVarP(&opts.Hostname, "host", "h", "", "获取按主机划分的配置项")
 
 	return cmd
 }
 
 func getRun(opts *GetOptions) error {
-	// search keyring storage when fetching the `oauth_token` value
+	// 获取 `oauth_token` 值时搜索密钥环(keyring)存储
 	if opts.Hostname != "" && opts.Key == "oauth_token" {
 		token := opts.Config.Authentication().ActiveToken(opts.Hostname).Token
 		if token == "" {
-			return errors.New(`could not find key "oauth_token"`)
+			return errors.New(`找不到键 "oauth_token"`)
 		}
 		fmt.Fprintf(opts.IO.Out, "%s\n", token)
 		return nil
@@ -80,5 +80,5 @@ type nonExistentKeyError struct {
 }
 
 func (e nonExistentKeyError) Error() string {
-	return fmt.Sprintf("could not find key \"%s\"", e.key)
+	return fmt.Sprintf("找不到键 \"%s\"", e.key)
 }

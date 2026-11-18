@@ -31,7 +31,7 @@ func TestNewCmdRename(t *testing.T) {
 		{
 			name:    "no arguments no tty",
 			input:   "",
-			errMsg:  "new name argument required when not running interactively",
+			errMsg:  "非交互式运行时必须提供新名称参数",
 			wantErr: true,
 		},
 		{
@@ -44,7 +44,7 @@ func TestNewCmdRename(t *testing.T) {
 		{
 			name:    "one argument no tty",
 			input:   "REPO",
-			errMsg:  "--yes required when passing a single argument",
+			errMsg:  "传入单个参数时必须提供 --yes 标志",
 			wantErr: true,
 		},
 		{
@@ -118,9 +118,9 @@ func TestRenameRun(t *testing.T) {
 	}{
 		{
 			name:    "none argument",
-			wantOut: "✓ Renamed repository OWNER/NEW_REPO\n✓ Updated the \"origin\" remote\n",
+			wantOut: "✓ 已重命名仓库 OWNER/NEW_REPO\n✓ 已更新 \"origin\" 远程\n",
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterInput("Rename OWNER/REPO to:", func(_, _ string) (string, error) {
+				pm.RegisterInput("将 OWNER/REPO 重命名为:", func(_, _ string) (string, error) {
 					return "NEW_REPO", nil
 				})
 			},
@@ -139,9 +139,9 @@ func TestRenameRun(t *testing.T) {
 			opts: RenameOptions{
 				HasRepoOverride: true,
 			},
-			wantOut: "✓ Renamed repository OWNER/NEW_REPO\n",
+			wantOut: "✓ 已重命名仓库 OWNER/NEW_REPO\n",
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterInput("Rename OWNER/REPO to:", func(_, _ string) (string, error) {
+				pm.RegisterInput("将 OWNER/REPO 重命名为:", func(_, _ string) (string, error) {
 					return "NEW_REPO", nil
 				})
 			},
@@ -157,7 +157,7 @@ func TestRenameRun(t *testing.T) {
 			opts: RenameOptions{
 				newRepoSelector: "NEW_REPO",
 			},
-			wantOut: "✓ Renamed repository OWNER/NEW_REPO\n✓ Updated the \"origin\" remote\n",
+			wantOut: "✓ 已重命名仓库 OWNER/NEW_REPO\n✓ 已更新 \"origin\" 远程\n",
 			httpStubs: func(reg *httpmock.Registry) {
 				reg.Register(
 					httpmock.REST("PATCH", "repos/OWNER/REPO"),
@@ -189,9 +189,9 @@ func TestRenameRun(t *testing.T) {
 				newRepoSelector: "NEW_REPO",
 				DoConfirm:       true,
 			},
-			wantOut: "✓ Renamed repository OWNER/NEW_REPO\n✓ Updated the \"origin\" remote\n",
+			wantOut: "✓ 已重命名仓库 OWNER/NEW_REPO\n✓ 已更新 \"origin\" 远程\n",
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterConfirm("Rename OWNER/REPO to NEW_REPO?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("将 OWNER/REPO 重命名为 NEW_REPO？", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
 			},
@@ -213,7 +213,7 @@ func TestRenameRun(t *testing.T) {
 				DoConfirm:       true,
 			},
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterConfirm("Rename OWNER/REPO to NEW_REPO?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("将 OWNER/REPO 重命名为 NEW_REPO？", func(_ string, _ bool) (bool, error) {
 					return false, nil
 				})
 			},
@@ -227,7 +227,7 @@ func TestRenameRun(t *testing.T) {
 				newRepoSelector: "org/new-name",
 			},
 			wantErr: true,
-			errMsg:  "New repository name cannot contain '/' character - to transfer a repository to a new owner, see <https://docs.github.com/en/repositories/creating-and-managing-repositories/transferring-a-repository>.",
+			errMsg:  "新仓库名称不能包含 '/' 字符 - 若要将仓库转移给新所有者，请参见 <https://docs.github.com/en/repositories/creating-and-managing-repositories/transferring-a-repository>。",
 		},
 	}
 

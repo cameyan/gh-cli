@@ -50,19 +50,22 @@ func NewCmdStatus(f *cmdutil.Factory, runF func(*StatusOptions) error) *cobra.Co
 	opts.IO = f.IOStreams
 	cmd := &cobra.Command{
 		Use:   "status",
-		Short: "Print information about relevant issues, pull requests, and notifications across repositories",
+		Short: "打印跨仓库的相关 issue、PR 和通知信息",
 		Long: heredoc.Doc(`
-			The status command prints information about your work on GitHub across all the repositories you're subscribed to, including:
+			status 命令打印你在 GitHub 上所订阅的所有仓库中的工作信息，包括:
 
-			- Assigned Issues
-			- Assigned Pull Requests
-			- Review Requests
-			- Mentions
-			- Repository Activity (new issues/pull requests, comments)
+			- 被指派的 Issue
+			- 被指派的 Pull Request
+			- 审核请求
+			- 提及
+			- 仓库活动(新 issue/PR、评论)
 		`),
 		Example: heredoc.Doc(`
-			$ gh status -e cli/cli -e cli/go-gh # Exclude multiple repositories
-			$ gh status -o cli # Limit results to a single organization
+		    # 排除多个仓库
+			$ gh status -e cli/cli -e cli/go-gh
+
+			# 将结果限定在单个组织内
+			$ gh status -o cli
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := f.Config()
@@ -80,8 +83,8 @@ func NewCmdStatus(f *cmdutil.Factory, runF func(*StatusOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Org, "org", "o", "", "Report status within an organization")
-	cmd.Flags().StringSliceVarP(&opts.Exclude, "exclude", "e", []string{}, "Comma separated list of repos to exclude in owner/name format")
+	cmd.Flags().StringVarP(&opts.Org, "org", "o", "", "报告某个组织内的状态")
+	cmd.Flags().StringSliceVarP(&opts.Exclude, "exclude", "e", []string{}, "以 owner/name 格式指定的要排除的仓库列表(逗号分隔)")
 
 	return cmd
 }
@@ -105,9 +108,9 @@ type Notification struct {
 
 type StatusItem struct {
 	Repository string // owner/repo
-	Identifier string // eg cli/cli#1234 or just 1234
-	preview    string // eg This is the truncated body of something...
-	Reason     string // only used in repo activity
+	Identifier string // 例如 cli/cli#1234 或仅 1234
+	preview    string // 例如某段被截断的内容...
+	Reason     string // 仅在仓库活动中使用
 	index      int
 }
 
@@ -223,7 +226,7 @@ func (s *StatusGetter) CurrentUsername() (string, error) {
 	cachingAPIClient := api.NewClientFromHTTP(cachedClient)
 	currentUsername, err := api.CurrentLoginName(cachingAPIClient, s.hostname())
 	if err != nil {
-		return "", fmt.Errorf("failed to get current username: %w", err)
+		return "", fmt.Errorf("获取当前用户名失败: %w", err)
 	}
 
 	s.currentUsername = currentUsername
@@ -236,8 +239,7 @@ func (s *StatusGetter) ActualMention(commentURL safeurl.SafeURL) (string, error)
 		return "", err
 	}
 
-	// long cache period since once a comment is looked up, it never needs to be
-	// consulted again.
+	// 长缓存周期，因为一条评论一旦被查询过，就再也不需要查询它了。
 	cachedClient := s.CachedClient(time.Hour * 24 * 30)
 	c := api.NewClientFromHTTP(cachedClient)
 	resp := struct {
@@ -254,10 +256,9 @@ func (s *StatusGetter) ActualMention(commentURL safeurl.SafeURL) (string, error)
 	return "", nil
 }
 
-// These are split up by endpoint since it is along that boundary we parallelize
-// work
+// 按端点拆分这些方法，因为并行化工作正是沿着这一边界进行的
 
-// Populate .Mentions
+// 填充 .Mentions
 func (s *StatusGetter) LoadNotifications() error {
 	perPage := 100
 	c := api.NewClientFromHTTP(s.Client)
@@ -296,12 +297,12 @@ func (s *StatusGetter) LoadNotifications() error {
 							return nil
 						default:
 							abortFetching()
-							return fmt.Errorf("could not fetch comment: %w", err)
+							return fmt.Errorf("无法获取评论: %w", err)
 						}
 					}
 
 					if actual != "" {
-						// I'm so sorry
+						// 我很抱歉(此处逻辑较为混乱)
 						split := strings.Split(n.Subject.URL, "/")
 						fetched <- StatusItem{
 							Repository: n.Repository.FullName,
@@ -323,11 +324,9 @@ func (s *StatusGetter) LoadNotifications() error {
 		close(doneCh)
 	}()
 
-	// this sucks, having to fetch so much :/ but it was the only way in my
-	// testing to really get enough mentions. I would love to be able to just
-	// filter for mentions but it does not seem like the notifications API can
-	// do that. I'd switch to the GraphQL version, but to my knowledge that does
-	// not work with PATs right now.
+	// 这种方式很糟糕，不得不获取这么多数据 :/ 但在我的测试中，这是唯一能真正获取
+	// 到足够多提及(mention)的方式。我很希望能直接过滤提及，但通知 API 似乎做不到。
+	// 我本想换成 GraphQL 版本，但据我所知，它目前不支持 PAT。
 	nIndex := 0
 	u, err := safeurl.JoinPath("notifications")
 	if err != nil {
@@ -343,7 +342,7 @@ func (s *StatusGetter) LoadNotifications() error {
 		if err != nil {
 			var httpErr api.HTTPError
 			if !errors.As(err, &httpErr) || httpErr.StatusCode != 404 {
-				return fmt.Errorf("could not get notifications: %w", err)
+				return fmt.Errorf("无法获取通知: %w", err)
 			}
 		}
 
@@ -411,7 +410,7 @@ query AssignedSearch($searchAssigns: String!, $searchReviews: String!, $limit: I
 	}
 }`
 
-// Populate .AssignedPRs, .AssignedIssues, .ReviewRequests
+// 填充 .AssignedPRs, .AssignedIssues, .ReviewRequests
 func (s *StatusGetter) LoadSearchResults() error {
 	c := api.NewClientFromHTTP(s.Client)
 
@@ -444,7 +443,7 @@ func (s *StatusGetter) LoadSearchResults() error {
 	if err != nil {
 		if gqlErrResponse, ok := errors.AsType[api.GraphQLError](err); ok {
 			gqlErrors := make([]ghAPI.GraphQLErrorItem, 0, len(gqlErrResponse.Errors))
-			// Exclude any FORBIDDEN errors and show status for what we can.
+			// 排除所有 FORBIDDEN 错误，并尽可能展示可得的状态。
 			for _, gqlErr := range gqlErrResponse.Errors {
 				if gqlErr.Type == "FORBIDDEN" {
 					s.addAuthError(gqlErr.Message, factory.SSOURL())
@@ -463,7 +462,7 @@ func (s *StatusGetter) LoadSearchResults() error {
 			}
 		}
 		if err != nil {
-			return fmt.Errorf("could not search for assignments: %w", err)
+			return fmt.Errorf("无法搜索指派结果: %w", err)
 		}
 	}
 
@@ -473,7 +472,7 @@ func (s *StatusGetter) LoadSearchResults() error {
 
 	for _, node := range resp.Assignments.Nodes {
 		if node == nil {
-			continue // likely due to FORBIDDEN results
+			continue // 很可能是 FORBIDDEN 结果所致
 		}
 		switch node.Type {
 		case "Issue":
@@ -481,13 +480,13 @@ func (s *StatusGetter) LoadSearchResults() error {
 		case "PullRequest":
 			prs = append(prs, *node)
 		default:
-			return fmt.Errorf("unknown Assignments type: %q", node.Type)
+			return fmt.Errorf("未知的 Assignments 类型: %q", node.Type)
 		}
 	}
 
 	for _, node := range resp.ReviewRequested.Nodes {
 		if node == nil {
-			continue // likely due to FORBIDDEN results
+			continue // 很可能是 FORBIDDEN 结果所致
 		}
 		reviewRequested = append(reviewRequested, *node)
 	}
@@ -527,7 +526,7 @@ func (s *StatusGetter) LoadSearchResults() error {
 	return nil
 }
 
-// Populate .RepoActivity
+// 填充 .RepoActivity
 func (s *StatusGetter) LoadEvents() error {
 	perPage := 100
 	c := api.NewClientFromHTTP(s.Client)
@@ -551,7 +550,7 @@ func (s *StatusGetter) LoadEvents() error {
 		if err != nil {
 			var httpErr api.HTTPError
 			if !errors.As(err, &httpErr) || httpErr.StatusCode != 404 {
-				return fmt.Errorf("could not get events: %w", err)
+				return fmt.Errorf("无法获取事件: %w", err)
 			}
 		}
 		events = append(events, resp...)
@@ -579,22 +578,22 @@ func (s *StatusGetter) LoadEvents() error {
 			if e.Payload.Action != "opened" {
 				continue
 			}
-			si.Reason = "new issue"
+			si.Reason = "新 issue"
 			si.preview = e.Payload.Issue.Title
 			number = e.Payload.Issue.Number
 		case "PullRequestEvent":
 			if e.Payload.Action != "opened" {
 				continue
 			}
-			si.Reason = "new PR"
+			si.Reason = "新 PR"
 			si.preview = e.Payload.PullRequest.Title
 			number = e.Payload.PullRequest.Number
 		case "PullRequestReviewCommentEvent":
-			si.Reason = "comment on " + e.Payload.PullRequest.Title
+			si.Reason = "评论于 " + e.Payload.PullRequest.Title
 			si.preview = e.Payload.Comment.Body
 			number = e.Payload.PullRequest.Number
 		case "IssueCommentEvent":
-			si.Reason = "comment on " + e.Payload.Issue.Title
+			si.Reason = "评论于 " + e.Payload.Issue.Title
 			si.preview = e.Payload.Comment.Body
 			number = e.Payload.Issue.Number
 		default:
@@ -617,7 +616,7 @@ func (s *StatusGetter) addAuthError(msg, ssoURL string) {
 	}
 
 	if ssoURL != "" {
-		s.authErrors.Add(fmt.Sprintf("%s\nAuthorize in your web browser:  %s", msg, ssoURL))
+		s.authErrors.Add(fmt.Sprintf("%s\n请在浏览器中授权: %s", msg, ssoURL))
 	} else {
 		s.authErrors.Add(msg)
 	}
@@ -633,31 +632,31 @@ func (s *StatusGetter) HasAuthErrors() bool {
 func statusRun(opts *StatusOptions) error {
 	client, err := opts.HttpClient()
 	if err != nil {
-		return fmt.Errorf("could not create client: %w", err)
+		return fmt.Errorf("无法创建客户端: %w", err)
 	}
 
 	hostname, _ := opts.HostConfig.DefaultHost()
 
 	sg := NewStatusGetter(client, hostname, opts)
 
-	// TODO break out sections into individual subcommands
+	// TODO 将各部分拆分为独立的子命令
 
 	g := new(errgroup.Group)
 	g.Go(func() error {
 		if err := sg.LoadNotifications(); err != nil {
-			return fmt.Errorf("could not load notifications: %w", err)
+			return fmt.Errorf("无法加载通知: %w", err)
 		}
 		return nil
 	})
 	g.Go(func() error {
 		if err := sg.LoadEvents(); err != nil {
-			return fmt.Errorf("could not load events: %w", err)
+			return fmt.Errorf("无法加载事件: %w", err)
 		}
 		return nil
 	})
 	g.Go(func() error {
 		if err := sg.LoadSearchResults(); err != nil {
-			return fmt.Errorf("failed to search: %w", err)
+			return fmt.Errorf("搜索失败: %w", err)
 		}
 		return nil
 	})
@@ -683,7 +682,7 @@ func statusRun(opts *StatusOptions) error {
 		tableOut := &bytes.Buffer{}
 		fmt.Fprintln(tableOut, cs.Bold(header))
 		if len(items) == 0 {
-			fmt.Fprintln(tableOut, "Nothing here ^_^")
+			fmt.Fprintln(tableOut, "这里什么都没有 ^_^")
 		} else {
 			//nolint:staticcheck // SA1019: Headers distract from numerous nested tables.
 			tp := tableprinter.NewWithWriter(tableOut, opts.IO.IsStdoutTTY(), width, cs, tableprinter.NoHeader)
@@ -708,33 +707,33 @@ func statusRun(opts *StatusOptions) error {
 		return tableOut.String(), nil
 	}
 
-	mSection, err := section("Mentions", sg.Mentions, halfWidth, 5)
+	mSection, err := section("提及", sg.Mentions, halfWidth, 5)
 	if err != nil {
-		return fmt.Errorf("failed to render 'Mentions': %w", err)
+		return fmt.Errorf("渲染 '提及' 失败: %w", err)
 	}
 	mSection = rightHalfStyle.Render(mSection)
 
-	rrSection, err := section("Review Requests", sg.ReviewRequests, halfWidth, 5)
+	rrSection, err := section("审核请求", sg.ReviewRequests, halfWidth, 5)
 	if err != nil {
-		return fmt.Errorf("failed to render 'Review Requests': %w", err)
+		return fmt.Errorf("渲染 '审核请求' 失败: %w", err)
 	}
 	rrSection = leftHalfStyle.Render(rrSection)
 
-	prSection, err := section("Assigned Pull Requests", sg.AssignedPRs, halfWidth, 5)
+	prSection, err := section("被指派的 Pull Request", sg.AssignedPRs, halfWidth, 5)
 	if err != nil {
-		return fmt.Errorf("failed to render 'Assigned Pull Requests': %w", err)
+		return fmt.Errorf("渲染 '被指派的 Pull Request' 失败: %w", err)
 	}
 	prSection = rightHalfStyle.Render(prSection)
 
-	issueSection, err := section("Assigned Issues", sg.AssignedIssues, halfWidth, 5)
+	issueSection, err := section("被指派的 Issue", sg.AssignedIssues, halfWidth, 5)
 	if err != nil {
-		return fmt.Errorf("failed to render 'Assigned Issues': %w", err)
+		return fmt.Errorf("渲染 '被指派的 Issue' 失败: %w", err)
 	}
 	issueSection = leftHalfStyle.Render(issueSection)
 
-	raSection, err := section("Repository Activity", sg.RepoActivity, fullWidth, 10)
+	raSection, err := section("仓库活动", sg.RepoActivity, fullWidth, 10)
 	if err != nil {
-		return fmt.Errorf("failed to render 'Repository Activity': %w", err)
+		return fmt.Errorf("渲染 '仓库活动' 失败: %w", err)
 	}
 
 	fmt.Fprintln(out, lipgloss.JoinHorizontal(lipgloss.Top, issueSection, prSection))
@@ -745,9 +744,10 @@ func statusRun(opts *StatusOptions) error {
 		errs := sg.authErrors.ToSlice()
 		sort.Strings(errs)
 		for _, msg := range errs {
-			fmt.Fprintln(out, cs.Mutedf("warning: %s", msg))
+			fmt.Fprintln(out, cs.Mutedf("警告: %s", msg))
 		}
 	}
 
 	return nil
 }
+

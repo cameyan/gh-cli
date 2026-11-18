@@ -34,13 +34,13 @@ type PreviewOptions struct {
 
 	RepoArg         string
 	SkillName       string
-	Version         string // resolved from @suffix on SkillName
-	AllowHiddenDirs bool   // include skills in dot-prefixed directories
+	Version         string // 从 SkillName 的 @ 后缀解析
+	AllowHiddenDirs bool   // 包含点前缀目录中的技能
 
 	repo ghrepo.Interface
 }
 
-// NewCmdPreview creates the "skills preview" command.
+// NewCmdPreview 创建 "skills preview" 命令。
 func NewCmdPreview(f *cmdutil.Factory, telemetry ghtelemetry.EventRecorder, runF func(*PreviewOptions) error) *cobra.Command {
 	opts := &PreviewOptions{
 		IO:             f.IOStreams,
@@ -55,43 +55,40 @@ func NewCmdPreview(f *cmdutil.Factory, telemetry ghtelemetry.EventRecorder, runF
 
 	cmd := &cobra.Command{
 		Use:   "preview <repository> [<skill>]",
-		Short: "Preview a skill from a GitHub repository (preview)",
+		Short: "从 GitHub 仓库预览技能 (预览版)",
 		Long: heredoc.Docf(`
-			Render a skill's %[1]sSKILL.md%[1]s content in the terminal. This fetches the
-			skill file from the repository and displays it using the configured
-			pager, without installing anything.
+			在终端中渲染技能的 %[1]sSKILL.md%[1]s 内容。该命令会从仓库获取
+			技能文件，并使用配置的分页器显示，不会安装任何内容。
 
-			A file tree is shown first, followed by the rendered %[1]sSKILL.md%[1]s content.
-			When running interactively and the skill contains additional files
-			(scripts, references, etc.), a file picker lets you browse them
-			individually.
+			先显示文件树，随后显示渲染后的 %[1]sSKILL.md%[1]s 内容。
+			交互运行且技能包含其他文件 (脚本、参考资料等) 时，
+			会提供文件选择器，可逐个浏览这些文件。
 
-			When run with only a repository argument, lists available skills and
-			prompts for selection.
+			仅提供仓库参数运行时，会列出可用技能并提示选择。
 
-			The skill argument can be a name, a namespaced name (%[1]sauthor/skill%[1]s),
-			or an exact path within the repository (%[1]sskills/author/skill%[1]s,
-			%[1]spackages/agent-skills/code-review%[1]s, or any %[1]s.../SKILL.md%[1]s path).
-			Namespaced names with one slash are matched by name. Use a %[1]sSKILL.md%[1]s
-			suffix to force a one-directory path outside the standard conventions.
+			技能参数可以是名称、带命名空间的名称 (%[1]sauthor/skill%[1]s)，
+			或仓库内的精确路径 (%[1]sskills/author/skill%[1]s、
+			%[1]spackages/agent-skills/code-review%[1]s，或任何 %[1]s.../SKILL.md%[1]s 路径)。
+			带一个斜杠的命名空间名称按名称匹配。使用 %[1]sSKILL.md%[1]s
+			后缀可强制匹配标准约定之外的单层目录路径。
 
-			To preview a specific version of the skill, append %[1]s@VERSION%[1]s to the
-			skill name. The version is resolved as a git tag, branch, or commit SHA.
+			要预览技能的特定版本，可在技能名后追加 %[1]s@VERSION%[1]s。
+			版本将解析为 git 标签、分支或 commit SHA。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Preview a specific skill
+			# 预览指定技能
 			$ gh skill preview github/awesome-copilot documentation-writer
 
-			# Preview a skill at a specific version
+			# 预览特定版本的技能
 			$ gh skill preview github/awesome-copilot documentation-writer@v1.2.0
 
-			# Preview a skill at a specific commit SHA
+			# 预览特定 commit SHA 的技能
 			$ gh skill preview github/awesome-copilot documentation-writer@abc123def456
 
-			# Preview from a non-standard nested path (efficient, skips full discovery)
+			# 从非标准嵌套路径预览 (高效，跳过完整发现)
 			$ gh skill preview monalisa/skills-repo packages/agent-skills/code-review
 
-			# Browse and preview interactively
+			# 交互式浏览和预览
 			$ gh skill preview github/awesome-copilot
 		`),
 		Aliases: []string{"show"},
@@ -120,7 +117,7 @@ func NewCmdPreview(f *cmdutil.Factory, telemetry ghtelemetry.EventRecorder, runF
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.AllowHiddenDirs, "allow-hidden-dirs", false, "Include skills in hidden directories (e.g. .claude/skills/, .agents/skills/)")
+	cmd.Flags().BoolVar(&opts.AllowHiddenDirs, "allow-hidden-dirs", false, "包含隐藏目录中的技能 (如 .claude/skills/、.agents/skills/)")
 
 	return cmd
 }
@@ -145,6 +142,8 @@ func previewRun(opts *PreviewOptions) error {
 	// Kick off the visibility fetch in parallel with the preview work so
 	// the extra API roundtrip doesn't add latency on the critical path.
 	// The result is consumed when the telemetry event is emitted below.
+	// 将仓库可见性查询与预览工作并行发起，避免额外的 API 往返
+	// 增加关键路径上的延迟。结果在下方发出遥测事件时消费。
 	type visResult struct {
 		vis discovery.RepoVisibility
 		err error
@@ -155,16 +154,16 @@ func previewRun(opts *PreviewOptions) error {
 		visCh <- visResult{vis: vis, err: err}
 	}()
 
-	opts.IO.StartProgressIndicatorWithLabel(fmt.Sprintf("Resolving %s/%s", owner, repoName))
+	opts.IO.StartProgressIndicatorWithLabel(fmt.Sprintf("正在解析 %s/%s", owner, repoName))
 	resolved, err := discovery.ResolveRef(apiClient, hostname, owner, repoName, opts.Version)
 	opts.IO.StopProgressIndicator()
 	if err != nil {
-		return fmt.Errorf("could not resolve version: %w", err)
+		return fmt.Errorf("无法解析版本: %w", err)
 	}
 
 	var skill discovery.Skill
 	if discovery.IsSkillPath(opts.SkillName) {
-		opts.IO.StartProgressIndicatorWithLabel("Looking up skill")
+		opts.IO.StartProgressIndicatorWithLabel("正在查找技能")
 		found, err := discovery.DiscoverSkillByPathWithOptions(apiClient, hostname, owner, repoName, resolved.SHA, opts.SkillName, discovery.DiscoverSkillByPathOptions{SkipDescription: true})
 		opts.IO.StopProgressIndicator()
 		if err != nil {
@@ -172,7 +171,7 @@ func previewRun(opts *PreviewOptions) error {
 		}
 		skill = *found
 	} else {
-		opts.IO.StartProgressIndicatorWithLabel("Discovering skills")
+		opts.IO.StartProgressIndicatorWithLabel("正在发现技能")
 		allSkills, err := discovery.DiscoverSkillsWithOptions(apiClient, hostname, owner, repoName, resolved.SHA, discovery.DiscoverOptions{})
 		opts.IO.StopProgressIndicator()
 		if err != nil {
@@ -194,12 +193,12 @@ func previewRun(opts *PreviewOptions) error {
 		}
 	}
 
-	opts.IO.StartProgressIndicatorWithLabel("Fetching skill content")
+	opts.IO.StartProgressIndicatorWithLabel("正在获取技能内容")
 	var files []discovery.SkillFile
 	if skill.TreeSHA != "" {
 		files, err = discovery.ListSkillFiles(apiClient, hostname, owner, repoName, skill.TreeSHA)
 		if err != nil {
-			fmt.Fprintf(opts.IO.ErrOut, "warning: could not list skill files: %v\n", err)
+			fmt.Fprintf(opts.IO.ErrOut, "警告: 无法列出技能文件: %v\n", err)
 			files = nil
 		}
 	}
@@ -255,22 +254,20 @@ func previewRun(opts *PreviewOptions) error {
 	return nil
 }
 
-// visibilityWaitTimeout is how long to wait at telemetry-emit time for
-// the in-flight repo visibility fetch before giving up and emitting
-// repo_visibility="unknown". By this point the command has already done
-// several serial API calls and rendering work, so the fetch has almost
-// always completed; this budget is a short safety net for the case
-// where that single REST call has stalled.
+// visibilityWaitTimeout 是在发出遥测事件时等待进行中的仓库可见性查询
+// 的最长时间，超时则放弃并以 repo_visibility="unknown" 发出。到这一步时
+// 命令已完成了多次串行 API 调用和渲染工作，该查询几乎总是已完成；
+// 此预算仅为该单个 REST 调用停滞的情况提供一个短暂的安全兜底。
 const visibilityWaitTimeout = 200 * time.Millisecond
 
-// renderAllFiles dumps the tree, SKILL.md, and all extra files through the pager.
+// renderAllFiles 将文件树、SKILL.md 和所有其他文件输出到分页器。
 func renderAllFiles(opts *PreviewOptions, cs *iostreams.ColorScheme, skill discovery.Skill,
 	files []discovery.SkillFile, rendered string, extraFiles []discovery.SkillFile,
 	apiClient *api.Client, hostname, owner, repo string) {
 
 	opts.IO.DetectTerminalTheme()
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "starting pager failed: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -291,16 +288,16 @@ func renderAllFiles(opts *PreviewOptions, cs *iostreams.ColorScheme, skill disco
 	totalBytes := 0
 	for _, f := range extraFiles {
 		if fetched >= maxFiles {
-			fmt.Fprintf(out, "\n%s\n", cs.Muted(fmt.Sprintf("(skipped remaining files, showing first %d)", maxFiles)))
+			fmt.Fprintf(out, "\n%s\n", cs.Muted(fmt.Sprintf("(已跳过其余文件，仅显示前 %d 个)", maxFiles)))
 			break
 		}
 		if totalBytes+f.Size > maxTotalBytes {
-			fmt.Fprintf(out, "\n%s\n", cs.Muted("(skipped remaining files, size limit reached)"))
+			fmt.Fprintf(out, "\n%s\n", cs.Muted("(已跳过其余文件，达到大小上限)"))
 			break
 		}
 		fileContent, fetchErr := discovery.FetchBlob(apiClient, hostname, owner, repo, f.SHA)
 		if fetchErr != nil {
-			fmt.Fprintf(out, "\n%s\n\n%s\n", cs.Bold("── "+f.Path+" ──"), cs.Muted("(could not fetch file)"))
+			fmt.Fprintf(out, "\n%s\n\n%s\n", cs.Bold("── "+f.Path+" ──"), cs.Muted("(无法获取文件)"))
 			continue
 		}
 		fetched++
@@ -314,17 +311,19 @@ func renderAllFiles(opts *PreviewOptions, cs *iostreams.ColorScheme, skill disco
 	}
 }
 
-// renderInteractive shows the file tree, then a picker to browse individual files.
+// renderInteractive 显示文件树，然后提供选择器逐个浏览文件。
 func renderInteractive(opts *PreviewOptions, cs *iostreams.ColorScheme, skill discovery.Skill,
 	files []discovery.SkillFile, renderedSkillMD string, extraFiles []discovery.SkillFile,
 	apiClient *api.Client, hostname, owner, repo string) {
 
 	// Show the file tree to stderr so it persists above the prompt
+	// 将文件树输出到 stderr，使其保留在提示符上方
 	fmt.Fprintf(opts.IO.ErrOut, "\n%s\n", cs.Bold(skill.DisplayName()+"/"))
 	renderFileTree(opts.IO.ErrOut, cs, files)
 	fmt.Fprintln(opts.IO.ErrOut)
 
 	// Build choices: SKILL.md first, then extra files
+	// 构建选项: SKILL.md 在前，其余文件在后
 	choices := make([]string, 0, len(extraFiles)+1)
 	choices = append(choices, "SKILL.md")
 	for _, f := range extraFiles {
@@ -333,15 +332,19 @@ func renderInteractive(opts *PreviewOptions, cs *iostreams.ColorScheme, skill di
 
 	// Save original stdout. StopPager closes IO.Out, so we need to
 	// restore a working writer before each StartPager call.
+	// 保存原始 stdout。StopPager 会关闭 IO.Out，
+	// 因此每次 StartPager 前都需要恢复一个可用的写入器。
 	originalOut := opts.IO.Out
 
 	for {
 		// Restore original Out before each pager cycle. StartPager replaces
 		// IO.Out with a pipe; StopPager closes that pipe but does not
 		// restore the original. The original writer remains valid.
+		// 每次分页器周期前恢复原始 Out。StartPager 会将 IO.Out 替换为管道；
+		// StopPager 关闭该管道但不恢复原始值。原始写入器仍然有效。
 		opts.IO.Out = originalOut
 
-		idx, err := opts.Prompter.Select("View a file (Esc to exit):", "", choices)
+		idx, err := opts.Prompter.Select("查看文件 (按 Esc 退出):", "", choices)
 		if err != nil {
 			return // Prompter returns error on Esc/Ctrl-C; treat as graceful exit
 		}
@@ -354,9 +357,10 @@ func renderInteractive(opts *PreviewOptions, cs *iostreams.ColorScheme, skill di
 			selectedFile := extraFiles[idx-1]
 
 			// Fetch on demand; don't hold blob data in memory
+			// 按需获取；不在内存中保留 blob 数据
 			fileContent, fetchErr := discovery.FetchBlob(apiClient, hostname, owner, repo, selectedFile.SHA)
 			if fetchErr != nil {
-				fmt.Fprintf(opts.IO.ErrOut, "%s could not fetch %s: %v\n", cs.Red("!"), selectedFile.Path, fetchErr)
+				fmt.Fprintf(opts.IO.ErrOut, "%s 无法获取 %s: %v\n", cs.Red("!"), selectedFile.Path, fetchErr)
 				continue
 			}
 			content = renderSelectedFilePreview(opts, selectedFile.Path, fileContent.String())
@@ -366,7 +370,7 @@ func renderInteractive(opts *PreviewOptions, cs *iostreams.ColorScheme, skill di
 		}
 
 		if err := opts.IO.StartPager(); err != nil {
-			fmt.Fprintf(opts.IO.ErrOut, "starting pager failed: %v\n", err)
+			fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 		}
 		fmt.Fprint(opts.IO.Out, content)
 		opts.IO.StopPager()
@@ -417,18 +421,16 @@ func isMarkdownFile(filePath string) bool {
 	}
 }
 
-// filterHiddenDirSkills applies the --allow-hidden-dirs flag logic. When the
-// flag is set, all skills are returned with a warning. Otherwise, hidden-dir
-// skills are excluded with a hint or error.
+// filterHiddenDirSkills 应用 --allow-hidden-dirs 标志的逻辑。设置该标志时，
+// 返回所有技能并给出警告；否则以提示或错误排除隐藏目录中的技能。
 func filterHiddenDirSkills(opts *PreviewOptions, allSkills []discovery.Skill) ([]discovery.Skill, error) {
 	cs := opts.IO.ColorScheme()
 
 	if opts.AllowHiddenDirs {
 		if discovery.HasHiddenDirSkills(allSkills) {
 			fmt.Fprint(opts.IO.ErrOut, heredoc.Docf(`
-				%[1]s Skills in hidden directories (e.g. .claude/, .agents/) may be installed
-				  copies from another publisher. Verify the skill's origin and check for a
-				  canonical source.
+				%[1]s 隐藏目录 (如 .claude/、.agents/) 中的技能可能是从其他发布者
+				  复制的副本。请核实技能的来源并检查是否存在权威来源。
 			`, cs.WarningIcon()))
 		}
 		return allSkills, nil
@@ -438,12 +440,12 @@ func filterHiddenDirSkills(opts *PreviewOptions, allSkills []discovery.Skill) ([
 	if r.HiddenCount > 0 {
 		if len(r.Standard) == 0 {
 			return nil, fmt.Errorf(
-				"no standard skills found, but %d skill(s) exist in hidden directories\n"+
-					"  Use --allow-hidden-dirs to include them",
+				"未找到标准技能，但存在 %d 个位于隐藏目录中的技能\n"+
+					"  使用 --allow-hidden-dirs 可包含它们",
 				r.HiddenCount,
 			)
 		}
-		fmt.Fprintf(opts.IO.ErrOut, "%s %d skill(s) in hidden directories were excluded, use --%s to include them\n",
+		fmt.Fprintf(opts.IO.ErrOut, "%s 已排除 %d 个位于隐藏目录中的技能，使用 --%s 可包含它们\n",
 			cs.Yellow("!"), r.HiddenCount, "allow-hidden-dirs")
 	}
 
@@ -457,18 +459,18 @@ func selectSkill(opts *PreviewOptions, skills []discovery.Skill) (discovery.Skil
 				return s, nil
 			}
 		}
-		// Fall back to InstallName so that namespaced identifiers produced
-		// by the post-install hint (e.g. "namespace/skill") are accepted.
+		// 回退到 InstallName，以接受安装后提示生成的带命名空间
+		// 标识符 (如 "namespace/skill")。
 		for _, s := range skills {
 			if s.InstallName() == opts.SkillName {
 				return s, nil
 			}
 		}
-		return discovery.Skill{}, fmt.Errorf("skill %q not found in %s", opts.SkillName, ghrepo.FullName(opts.repo))
+		return discovery.Skill{}, fmt.Errorf("在 %s 中未找到技能 %q", ghrepo.FullName(opts.repo), opts.SkillName)
 	}
 
 	if !opts.IO.CanPrompt() {
-		return discovery.Skill{}, fmt.Errorf("must specify a skill name when not running interactively")
+		return discovery.Skill{}, fmt.Errorf("非交互运行时必须指定技能名")
 	}
 
 	choices := make([]string, len(skills))
@@ -476,7 +478,7 @@ func selectSkill(opts *PreviewOptions, skills []discovery.Skill) (discovery.Skil
 		choices[i] = s.DisplayName()
 	}
 
-	idx, err := opts.Prompter.Select("Select a skill to preview:", "", choices)
+	idx, err := opts.Prompter.Select("选择要预览的技能:", "", choices)
 	if err != nil {
 		return discovery.Skill{}, err
 	}
@@ -484,20 +486,20 @@ func selectSkill(opts *PreviewOptions, skills []discovery.Skill) (discovery.Skil
 	return skills[idx], nil
 }
 
-// treeNode represents a file or directory in the tree for rendering.
+// treeNode 表示渲染用文件树中的文件或目录。
 type treeNode struct {
 	name     string
 	children []*treeNode
 	isDir    bool
 }
 
-// renderFileTree prints a tree of skill files using box-drawing characters.
+// renderFileTree 使用制表符绘制字符打印技能文件的树状结构。
 func renderFileTree(w io.Writer, cs *iostreams.ColorScheme, files []discovery.SkillFile) {
 	root := buildTree(files)
 	printTree(w, cs, root.children, "")
 }
 
-// buildTree constructs a tree structure from flat file paths.
+// buildTree 从扁平的文件路径构建树结构。
 func buildTree(files []discovery.SkillFile) *treeNode {
 	root := &treeNode{isDir: true}
 	for _, f := range files {

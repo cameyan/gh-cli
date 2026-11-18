@@ -25,7 +25,7 @@ func TestNewCmdClone(t *testing.T) {
 			name:    "no argument",
 			input:   "",
 			wantErr: true,
-			errMsg:  "cannot clone labels: source-repository argument required",
+			errMsg:  "无法克隆标签: 需要提供 source-repository 参数",
 		},
 		{
 			name:  "source-repository argument",
@@ -151,7 +151,7 @@ func TestCloneRun(t *testing.T) {
 					}`),
 				)
 			},
-			wantStdout: "✓ Cloned 2 labels from cli/cli to OWNER/REPO\n",
+			wantStdout: "✓ 已将 2 labels 从 cli/cli 克隆到 OWNER/REPO\n",
 		},
 		{
 			name: "clones one label",
@@ -192,7 +192,7 @@ func TestCloneRun(t *testing.T) {
 					}`),
 				)
 			},
-			wantStdout: "✓ Cloned 1 label from cli/cli to OWNER/REPO\n",
+			wantStdout: "✓ 已将 1 label 从 cli/cli 克隆到 OWNER/REPO\n",
 		},
 		{
 			name: "has no labels",
@@ -218,7 +218,7 @@ func TestCloneRun(t *testing.T) {
 					}`),
 				)
 			},
-			wantStdout: "✓ Cloned 0 labels from cli/cli to OWNER/REPO\n",
+			wantStdout: "✓ 已将 0 labels 从 cli/cli 克隆到 OWNER/REPO\n",
 		},
 		{
 			name: "clones some labels",
@@ -271,7 +271,7 @@ func TestCloneRun(t *testing.T) {
 					),
 				)
 			},
-			wantStdout: "! Cloned 1 label of 2 from cli/cli to OWNER/REPO\n",
+			wantStdout: "! 已将 2 个标签中的 1 label 从 cli/cli 克隆到 OWNER/REPO\n",
 		},
 		{
 			name: "clones no labels",
@@ -323,7 +323,7 @@ func TestCloneRun(t *testing.T) {
 					),
 				)
 			},
-			wantStdout: "! Cloned 0 labels of 2 from cli/cli to OWNER/REPO\n",
+			wantStdout: "! 已将 2 个标签中的 0 labels 从 cli/cli 克隆到 OWNER/REPO\n",
 		},
 		{
 			name: "overwrites all labels",
@@ -390,7 +390,7 @@ func TestCloneRun(t *testing.T) {
 					}`),
 				)
 			},
-			wantStdout: "✓ Cloned 2 labels from cli/cli to OWNER/REPO\n",
+			wantStdout: "✓ 已将 2 labels 从 cli/cli 克隆到 OWNER/REPO\n",
 		},
 		{
 			name: "list error",
@@ -548,7 +548,7 @@ func TestCloneRun(t *testing.T) {
 					}`),
 				)
 			},
-			wantStdout: "✓ Cloned 2 labels from cli/cli to OWNER/REPO\n",
+			wantStdout: "✓ 已将 2 labels 从 cli/cli 克隆到 OWNER/REPO\n",
 		},
 	}
 

@@ -37,8 +37,8 @@ func NewCmdRename(f *cmdutil.Factory, runf func(*RenameOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "rename {<id> | <url>} <old-filename> <new-filename>",
-		Short: "Rename a file in a gist",
-		Long:  heredoc.Doc(`Rename a file in the given gist ID / URL.`),
+		Short: "重命名 gist 中的文件",
+		Long:  heredoc.Doc(`重命名指定 gist ID / URL 中的文件。`),
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Selector = args[0]
@@ -84,7 +84,7 @@ func renameRun(opts *RenameOptions) error {
 	gist, err := shared.GetGist(client, host, gistID)
 	if err != nil {
 		if errors.Is(err, shared.NotFoundErr) {
-			return fmt.Errorf("gist not found: %s", gistID)
+			return fmt.Errorf("gist 未找到: %s", gistID)
 		}
 		return err
 	}
@@ -94,17 +94,17 @@ func renameRun(opts *RenameOptions) error {
 	}
 
 	if username != gist.Owner.Login {
-		return errors.New("you do not own this gist")
+		return errors.New("你不拥有此 gist")
 	}
 
 	_, ok := gist.Files[opts.OldFileName]
 	if !ok {
-		return fmt.Errorf("File %s not found in gist", opts.OldFileName)
+		return fmt.Errorf("gist 中未找到文件 %s", opts.OldFileName)
 	}
 
 	_, ok = gist.Files[opts.NewFileName]
 	if ok {
-		return fmt.Errorf("File %s already exists in gist", opts.NewFileName)
+		return fmt.Errorf("文件 %s 已存在于 gist 中", opts.NewFileName)
 	}
 
 	gist.Files[opts.NewFileName] = gist.Files[opts.OldFileName]

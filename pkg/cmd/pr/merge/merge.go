@@ -54,8 +54,8 @@ type MergeOptions struct {
 	MatchHeadCommit         string
 }
 
-// ErrAlreadyInMergeQueue indicates that the pull request is already in a merge queue
-var ErrAlreadyInMergeQueue = errors.New("already in merge queue")
+// ErrAlreadyInMergeQueue 表示该拉取请求(PR)已在合并队列(merge queue)中
+var ErrAlreadyInMergeQueue = errors.New("已在合并队列中")
 
 func NewCmdMerge(f *cmdutil.Factory, runF func(*MergeOptions) error) *cobra.Command {
 	opts := &MergeOptions{
@@ -77,24 +77,23 @@ func NewCmdMerge(f *cmdutil.Factory, runF func(*MergeOptions) error) *cobra.Comm
 
 	cmd := &cobra.Command{
 		Use:   "merge [<number> | <url> | <branch>]",
-		Short: "Merge a pull request",
+		Short: "合并一个拉取请求(PR)",
 		Long: heredoc.Docf(`
-			Merge a pull request on GitHub.
+			在 GitHub 上合并一个拉取请求(PR)。
 
-			Without an argument, the pull request that belongs to the current branch
-			is selected.
+			若未提供参数，将选择属于当前分支的拉取请求(PR)。
 
-			When targeting a branch that requires a merge queue, no merge strategy is required.
-			If required checks have not yet passed, auto-merge will be enabled.
-			If required checks have passed, the pull request will be added to the merge queue.
-			To bypass a merge queue and merge directly, pass the %[1]s--admin%[1]s flag.
+			当目标分支需要合并队列(merge queue)时，无需指定合并策略。
+			若必须(required)检查尚未通过，将启用自动合并(auto-merge)。
+			若必须检查已通过，该拉取请求(PR)将被加入合并队列。
+			若要绕过合并队列直接合并，请传入 %[1]s--admin%[1]s flag。
 		`, "`"),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Finder = shared.NewFinder(f)
 
 			if repoOverride, _ := cmd.Flags().GetString("repo"); repoOverride != "" && len(args) == 0 {
-				return cmdutil.FlagErrorf("argument required when using the --repo flag")
+				return cmdutil.FlagErrorf("使用 --repo flag 时必须提供位置参数")
 			}
 
 			if len(args) > 0 {
@@ -117,7 +116,7 @@ func NewCmdMerge(f *cmdutil.Factory, runF func(*MergeOptions) error) *cobra.Comm
 			if methodFlags == 0 {
 				opts.MergeStrategyEmpty = true
 			} else if methodFlags > 1 {
-				return cmdutil.FlagErrorf("only one of --merge, --rebase, or --squash can be enabled")
+				return cmdutil.FlagErrorf("只能启用 --merge、--rebase 或 --squash 之一")
 			}
 
 			opts.IsDeleteBranchIndicated = cmd.Flags().Changed("delete-branch")
@@ -127,7 +126,7 @@ func NewCmdMerge(f *cmdutil.Factory, runF func(*MergeOptions) error) *cobra.Comm
 			bodyFileProvided := bodyFile != ""
 
 			if err := cmdutil.MutuallyExclusive(
-				"specify only one of `--auto`, `--disable-auto`, or `--admin`",
+				"只能指定 `--auto`、`--disable-auto` 或 `--admin` 之一",
 				opts.AutoMergeEnable,
 				opts.AutoMergeDisable,
 				opts.UseAdmin,
@@ -136,7 +135,7 @@ func NewCmdMerge(f *cmdutil.Factory, runF func(*MergeOptions) error) *cobra.Comm
 			}
 
 			if err := cmdutil.MutuallyExclusive(
-				"specify only one of `--body` or `--body-file`",
+				"只能指定 `--body` 或 `--body-file` 之一",
 				bodyProvided,
 				bodyFileProvided,
 			); err != nil {
@@ -171,22 +170,22 @@ func NewCmdMerge(f *cmdutil.Factory, runF func(*MergeOptions) error) *cobra.Comm
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.UseAdmin, "admin", false, "Use administrator privileges to merge a pull request that does not meet requirements")
-	cmd.Flags().BoolVarP(&opts.DeleteBranch, "delete-branch", "d", false, "Delete the local and remote branch after merge")
-	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "Body `text` for the merge commit")
-	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "Read body text from `file` (use \"-\" to read from standard input)")
-	cmd.Flags().StringVarP(&opts.Subject, "subject", "t", "", "Subject `text` for the merge commit")
-	cmd.Flags().BoolVarP(&flagMerge, "merge", "m", false, "Merge the commits with the base branch")
-	cmd.Flags().BoolVarP(&flagRebase, "rebase", "r", false, "Rebase the commits onto the base branch")
-	cmd.Flags().BoolVarP(&flagSquash, "squash", "s", false, "Squash the commits into one commit and merge it into the base branch")
-	cmd.Flags().BoolVar(&opts.AutoMergeEnable, "auto", false, "Automatically merge only after necessary requirements are met")
-	cmd.Flags().BoolVar(&opts.AutoMergeDisable, "disable-auto", false, "Disable auto-merge for this pull request")
-	cmd.Flags().StringVar(&opts.MatchHeadCommit, "match-head-commit", "", "Commit `SHA` that the pull request head must match to allow merge")
-	cmd.Flags().StringVarP(&opts.AuthorEmail, "author-email", "A", "", "Email `text` for merge commit author")
+	cmd.Flags().BoolVar(&opts.UseAdmin, "admin", false, "使用管理员权限合并不满足要求的拉取请求(PR)")
+	cmd.Flags().BoolVarP(&opts.DeleteBranch, "delete-branch", "d", false, "合并后删除本地与远端分支(branch)")
+	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "合并提交(merge commit)的正文 `text`")
+	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "从 `file` 读取正文文本 (使用 \"-\" 从标准输入读取)")
+	cmd.Flags().StringVarP(&opts.Subject, "subject", "t", "", "合并提交(merge commit)的主题 `text`")
+	cmd.Flags().BoolVarP(&flagMerge, "merge", "m", false, "将这些提交与基础分支(base branch)合并")
+	cmd.Flags().BoolVarP(&flagRebase, "rebase", "r", false, "将这些提交变基(rebase)到基础分支上")
+	cmd.Flags().BoolVarP(&flagSquash, "squash", "s", false, "将这些提交压缩(squash)为一个提交并合并入基础分支")
+	cmd.Flags().BoolVar(&opts.AutoMergeEnable, "auto", false, "仅在满足全部必要条件后自动合并")
+	cmd.Flags().BoolVar(&opts.AutoMergeDisable, "disable-auto", false, "禁用该拉取请求(PR)的自动合并(auto-merge)")
+	cmd.Flags().StringVar(&opts.MatchHeadCommit, "match-head-commit", "", "允许合并时拉取请求(PR)源分支(head)必须匹配的提交(commit) `SHA`")
+	cmd.Flags().StringVarP(&opts.AuthorEmail, "author-email", "A", "", "合并提交(merge commit)作者的邮箱 `text`")
 	return cmd
 }
 
-// mergeContext contains state and dependencies to merge a pull request.
+// mergeContext 包含合并拉取请求(PR)所需的状态与依赖。
 type mergeContext struct {
 	pr                 *api.PullRequest
 	baseRepo           ghrepo.Interface
@@ -202,25 +201,25 @@ type mergeContext struct {
 	mergeQueueRequired bool
 }
 
-// Attempt to disable auto merge on the pull request.
+// 尝试在该拉取请求(PR)上禁用自动合并(auto merge)。
 func (m *mergeContext) disableAutoMerge() error {
 	if err := disableAutoMerge(m.httpClient, m.baseRepo, m.pr.ID); err != nil {
 		return err
 	}
-	return m.infof("%s Auto-merge disabled for pull request %s#%d\n", m.cs.SuccessIconWithColor(m.cs.Green), ghrepo.FullName(m.baseRepo), m.pr.Number)
+	return m.infof("%s 已为拉取请求(PR) %s#%d 禁用自动合并(auto-merge)\n", m.cs.SuccessIconWithColor(m.cs.Green), ghrepo.FullName(m.baseRepo), m.pr.Number)
 }
 
-// Check if this pull request is in a merge queue
+// 检查该拉取请求(PR)是否在合并队列(merge queue)中
 func (m *mergeContext) inMergeQueue() error {
-	// if the pull request is in a merge queue no further action is possible
+	// 如果拉取请求(PR)已在合并队列中，则无法执行任何后续操作
 	if m.pr.IsInMergeQueue {
-		_ = m.warnf("%s Pull request %s#%d is already queued to merge\n", m.cs.WarningIcon(), ghrepo.FullName(m.baseRepo), m.pr.Number)
+		_ = m.warnf("%s 拉取请求(PR) %s#%d 已在合并(merge)队列中\n", m.cs.WarningIcon(), ghrepo.FullName(m.baseRepo), m.pr.Number)
 		return ErrAlreadyInMergeQueue
 	}
 	return nil
 }
 
-// Warn if the pull request and the remote branch have diverged.
+// 若拉取请求(PR)与远端分支(branch)已产生分歧，则发出警告。
 func (m *mergeContext) warnIfDiverged() {
 	if m.opts.SelectorArg != "" || len(m.pr.Commits.Nodes) == 0 {
 		return
@@ -235,20 +234,19 @@ func (m *mergeContext) warnIfDiverged() {
 		return
 	}
 
-	_ = m.warnf("%s Pull request %s#%d (%s) has diverged from local branch\n", m.cs.Yellow("!"), ghrepo.FullName(m.baseRepo), m.pr.Number, m.pr.Title)
+	_ = m.warnf("%s 拉取请求(PR) %s#%d (%s) 已与本地分支(branch)产生分歧\n", m.cs.Yellow("!"), ghrepo.FullName(m.baseRepo), m.pr.Number, m.pr.Title)
 }
 
-// Check if the current state of the pull request allows for merging
+// 检查拉取请求(PR)的当前状态是否允许合并
 func (m *mergeContext) canMerge() error {
 	if m.mergeQueueRequired {
-		// Requesting branch deletion on a PR with a merge queue
-		// policy is not allowed. Doing so can unexpectedly
-		// delete branches before merging, close the PR, and remove
-		// the PR from the merge queue.
+		// 对启用了合并队列(merge queue)策略的 PR 请求删除分支是不允许的。
+		// 这样做可能意外地在合并前删除分支、关闭 PR，
+		// 并将 PR 从合并队列中移除。
 		if m.opts.DeleteBranch {
-			return fmt.Errorf("%s Cannot use `-d` or `--delete-branch` when merge queue enabled", m.cs.FailureIcon())
+			return fmt.Errorf("%s 启用合并队列(merge queue)时不能使用 `-d` 或 `--delete-branch`", m.cs.FailureIcon())
 		}
-		// Otherwise, a pull request can always be added to the merge queue
+		// 否则，拉取请求(PR)总是可以被加入合并队列
 		return nil
 	}
 
@@ -258,8 +256,8 @@ func (m *mergeContext) canMerge() error {
 		return nil
 	}
 
-	_ = m.warnf("%s Pull request %s#%d is not mergeable: %s.\n", m.cs.FailureIcon(), ghrepo.FullName(m.baseRepo), m.pr.Number, reason)
-	_ = m.warnf("To have the pull request merged after all the requirements have been met, add the `--auto` flag.\n")
+	_ = m.warnf("%s 拉取请求(PR) %s#%d 当前无法合并: %s。\n", m.cs.FailureIcon(), ghrepo.FullName(m.baseRepo), m.pr.Number, reason)
+	_ = m.warnf("若要在满足全部条件后自动合并该拉取请求(PR)，请添加 `--auto` flag。\n")
 	if remote := remoteForMergeConflictResolution(m.baseRepo, m.pr, m.opts); remote != nil {
 		mergeOrRebase := "merge"
 		if m.opts.MergeMethod == PullRequestMergeMethodRebase {
@@ -268,16 +266,16 @@ func (m *mergeContext) canMerge() error {
 		fetchBranch := fmt.Sprintf("%s %s", remote.Name, m.pr.BaseRefName)
 		mergeBranch := fmt.Sprintf("%s %s/%s", mergeOrRebase, remote.Name, m.pr.BaseRefName)
 		cmd := fmt.Sprintf("gh pr checkout %d && git fetch %s && git %s", m.pr.Number, fetchBranch, mergeBranch)
-		_ = m.warnf("Run the following to resolve the merge conflicts locally:\n  %s\n", m.cs.Bold(cmd))
+		_ = m.warnf("运行以下命令以在本地解决合并冲突(merge conflict):\n  %s\n", m.cs.Bold(cmd))
 	}
 	if !m.opts.UseAdmin && allowsAdminOverride(m.pr.MergeStateStatus) {
-		// TODO: show this flag only to repo admins
-		_ = m.warnf("To use administrator privileges to immediately merge the pull request, add the `--admin` flag.\n")
+		// TODO: 仅对仓库管理员显示该 flag
+		_ = m.warnf("若要使用管理员权限立即合并该拉取请求(PR)，请添加 `--admin` flag。\n")
 	}
 	return cmdutil.SilentError
 }
 
-// Merge the pull request. May prompt the user for input parameters for the merge.
+// 合并拉取请求(PR)。可能提示用户输入合并所需的参数。
 func (m *mergeContext) merge() error {
 	if m.merged {
 		return nil
@@ -297,19 +295,19 @@ func (m *mergeContext) merge() error {
 
 	if m.shouldAddToMergeQueue() {
 		if !m.opts.MergeStrategyEmpty {
-			// only warn for now
-			_ = m.warnf("%s The merge strategy for %s is set by the merge queue\n", m.cs.Yellow("!"), m.pr.BaseRefName)
+			// 目前仅发出警告
+			_ = m.warnf("%s %s 的合并策略由合并队列(merge queue)设定\n", m.cs.Yellow("!"), m.pr.BaseRefName)
 		}
-		// auto merge will either enable auto merge or add to the merge queue
+		// 自动合并要么启用 auto merge，要么加入合并队列
 		payload.auto = true
 	} else {
-		// get user input if not already given
+		// 若尚未提供，则获取用户输入
 		if m.opts.MergeStrategyEmpty {
 			if !m.opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("--merge, --rebase, or --squash required when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时必须提供 --merge、--rebase 或 --squash")
 			}
 
-			_ = m.infof("Merging pull request %s#%d (%s)\n", ghrepo.FullName(m.baseRepo), m.pr.Number, m.pr.Title)
+			_ = m.infof("正在合并拉取请求(PR) %s#%d (%s)\n", ghrepo.FullName(m.baseRepo), m.pr.Number, m.pr.Title)
 
 			apiClient := api.NewClientFromHTTP(m.httpClient)
 			r, err := api.GitHubRepo(apiClient, m.baseRepo)
@@ -331,7 +329,7 @@ func (m *mergeContext) merge() error {
 			for {
 				action, err := confirmSurvey(m.opts.Prompter, allowEditMsg)
 				if err != nil {
-					return fmt.Errorf("unable to confirm: %w", err)
+					return fmt.Errorf("无法确认: %w", err)
 				}
 
 				submit, err := confirmSubmission(m.httpClient, m.opts, action, &payload)
@@ -351,7 +349,7 @@ func (m *mergeContext) merge() error {
 	}
 
 	if m.shouldAddToMergeQueue() {
-		_ = m.infof("%s Pull request %s#%d will be added to the merge queue for %s when ready\n", m.cs.SuccessIconWithColor(m.cs.Green), ghrepo.FullName(m.baseRepo), m.pr.Number, m.pr.BaseRefName)
+		_ = m.infof("%s 拉取请求(PR) %s#%d 就绪后将被加入 %s 的合并队列(merge queue)\n", m.cs.SuccessIconWithColor(m.cs.Green), ghrepo.FullName(m.baseRepo), m.pr.Number, m.pr.BaseRefName)
 		return nil
 	}
 
@@ -359,24 +357,24 @@ func (m *mergeContext) merge() error {
 		method := ""
 		switch payload.method {
 		case PullRequestMergeMethodRebase:
-			method = " via rebase"
+			method = " (通过 rebase)"
 		case PullRequestMergeMethodSquash:
-			method = " via squash"
+			method = " (通过 squash)"
 		}
-		return m.infof("%s Pull request %s#%d will be automatically merged%s when all requirements are met\n", m.cs.SuccessIconWithColor(m.cs.Green), ghrepo.FullName(m.baseRepo), m.pr.Number, method)
+		return m.infof("%s 拉取请求(PR) %s#%d 将在满足全部条件后自动合并(auto merge)%s\n", m.cs.SuccessIconWithColor(m.cs.Green), ghrepo.FullName(m.baseRepo), m.pr.Number, method)
 	}
 
-	action := "Merged"
+	action := "已合并(Merged)"
 	switch payload.method {
 	case PullRequestMergeMethodRebase:
-		action = "Rebased and merged"
+		action = "已变基并合并(Rebased and merged)"
 	case PullRequestMergeMethodSquash:
-		action = "Squashed and merged"
+		action = "已压缩并合并(Squashed and merged)"
 	}
-	return m.infof("%s %s pull request %s#%d (%s)\n", m.cs.SuccessIconWithColor(m.cs.Magenta), action, ghrepo.FullName(m.baseRepo), m.pr.Number, m.pr.Title)
+	return m.infof("%s %s拉取请求(PR) %s#%d (%s)\n", m.cs.SuccessIconWithColor(m.cs.Magenta), action, ghrepo.FullName(m.baseRepo), m.pr.Number, m.pr.Title)
 }
 
-// Delete local branch if requested and if allowed.
+// 若被请求且被允许，删除本地分支(branch)。
 func (m *mergeContext) deleteLocalBranch() error {
 	if m.autoMerge {
 		return nil
@@ -384,14 +382,14 @@ func (m *mergeContext) deleteLocalBranch() error {
 
 	if m.merged {
 		if m.opts.IO.CanPrompt() && !m.opts.IsDeleteBranchIndicated {
-			message := fmt.Sprintf("Pull request %s#%d was already merged. Delete the branch locally?", ghrepo.FullName(m.baseRepo), m.pr.Number)
+			message := fmt.Sprintf("拉取请求(PR) %s#%d 已被合并。在本地删除该分支(branch)?", ghrepo.FullName(m.baseRepo), m.pr.Number)
 			confirmed, err := m.opts.Prompter.Confirm(message, false)
 			if err != nil {
-				return fmt.Errorf("could not prompt: %w", err)
+				return fmt.Errorf("无法显示提示: %w", err)
 			}
 			m.deleteBranch = confirmed
 		} else {
-			_ = m.warnf("%s Pull request %s#%d was already merged\n", m.cs.WarningIcon(), ghrepo.FullName(m.baseRepo), m.pr.Number)
+			_ = m.warnf("%s 拉取请求(PR) %s#%d 已被合并\n", m.cs.WarningIcon(), ghrepo.FullName(m.baseRepo), m.pr.Number)
 		}
 	}
 
@@ -403,13 +401,13 @@ func (m *mergeContext) deleteLocalBranch() error {
 
 	worktrees, err := m.opts.GitClient.Worktrees(ctx)
 	if err != nil {
-		_ = m.warnf("%s Could not inspect worktrees; skipping local branch delete: %s\n", m.cs.WarningIcon(), err)
+		_ = m.warnf("%s 无法检查工作树(worktree); 跳过删除本地分支(branch): %s\n", m.cs.WarningIcon(), err)
 		return nil
 	}
 
 	currentWorkdir, err := m.opts.GitClient.ToplevelDir(ctx)
 	if err != nil {
-		_ = m.warnf("%s Could not determine the current worktree; skipping local branch delete: %s\n", m.cs.WarningIcon(), err)
+		_ = m.warnf("%s 无法确定当前工作树(worktree); 跳过删除本地分支(branch): %s\n", m.cs.WarningIcon(), err)
 		return nil
 	}
 
@@ -417,40 +415,40 @@ func (m *mergeContext) deleteLocalBranch() error {
 	headWorktree := git.WorktreeForBranch(worktrees, m.pr.HeadRefName)
 	if headWorktree != nil && headWorktree.Prunable {
 		if err := m.opts.GitClient.WorktreePrune(ctx); err != nil {
-			_ = m.warnf("%s Could not prune stale worktree metadata for %s; skipping local branch delete: %s\n", m.cs.WarningIcon(), headWorktree.Path, err)
+			_ = m.warnf("%s 无法为 %s 清理过期的工作树(worktree)元数据; 跳过删除本地分支(branch): %s\n", m.cs.WarningIcon(), headWorktree.Path, err)
 			return nil
 		}
-		_ = m.infof("%s Pruned stale worktree metadata for %s\n", m.cs.SuccessIconWithColor(m.cs.Red), headWorktree.Path)
+		_ = m.infof("%s 已清理 %s 的过期工作树(worktree)元数据\n", m.cs.SuccessIconWithColor(m.cs.Red), headWorktree.Path)
 		headWorktree = nil
 	}
 	if headWorktree != nil {
 		mainWorktree := &worktrees[0]
 
 		switch {
-		// The head is checked out in the current linked worktree.
+		// 源分支(head)在当前关联的工作树(worktree)中检出。
 		case headWorktree.Path == currentWorkdir && headWorktree.Path != mainWorktree.Path:
-			_ = m.warnf("%s Branch %s is checked out in the current worktree (%s); skipping local delete\n",
+			_ = m.warnf("%s 分支(branch) %s 已在当前工作树(%s)中检出; 跳过本地删除\n",
 				m.cs.WarningIcon(), m.cs.Cyan(m.pr.HeadRefName), currentWorkdir)
-			_ = m.warnf("  To finish cleanup, first navigate out of the worktree, then run:\n")
+			_ = m.warnf("  要完成清理，请先退出该工作树，然后运行:\n")
 			_ = m.warnf("  git worktree remove %s && git branch -D %s\n",
 				currentWorkdir, m.pr.HeadRefName)
 			return nil
 
-		// The head is checked out in the current main worktree.
+		// 源分支(head)在当前主工作树中检出。
 		case headWorktree.Path == currentWorkdir:
 			baseWorktree := git.WorktreeForBranch(worktrees, m.pr.BaseRefName)
 			if baseWorktree != nil && baseWorktree.Prunable {
 				if err := m.opts.GitClient.WorktreePrune(ctx); err != nil {
-					_ = m.warnf("%s Could not prune stale worktree metadata for %s; skipping local branch delete: %s\n", m.cs.WarningIcon(), baseWorktree.Path, err)
+					_ = m.warnf("%s 无法为 %s 清理过期的工作树(worktree)元数据; 跳过删除本地分支(branch): %s\n", m.cs.WarningIcon(), baseWorktree.Path, err)
 					return nil
 				}
-				_ = m.infof("%s Pruned stale worktree metadata for %s\n", m.cs.SuccessIconWithColor(m.cs.Red), baseWorktree.Path)
+				_ = m.infof("%s 已清理 %s 的过期工作树(worktree)元数据\n", m.cs.SuccessIconWithColor(m.cs.Red), baseWorktree.Path)
 				baseWorktree = nil
 			}
 			if baseWorktree != nil && baseWorktree.Path != currentWorkdir {
-				_ = m.warnf("%s Base branch %s is checked out in another worktree (%s); skipping local delete\n",
+				_ = m.warnf("%s 基础分支(base branch) %s 已在另一个工作树(%s)中检出; 跳过本地删除\n",
 					m.cs.WarningIcon(), m.cs.Cyan(m.pr.BaseRefName), baseWorktree.Path)
-				_ = m.warnf("  To finish cleanup, switch the worktree at %s off %s, then run in the current path:\n",
+				_ = m.warnf("  要完成清理，请将 %s 处的工作树切离 %s，然后在当前路径下运行:\n",
 					baseWorktree.Path, m.cs.Cyan(m.pr.BaseRefName))
 				_ = m.warnf("  git checkout %s && git branch -D %s\n", m.pr.BaseRefName, m.pr.HeadRefName)
 				return nil
@@ -478,44 +476,44 @@ func (m *mergeContext) deleteLocalBranch() error {
 			}
 
 			if err := m.opts.GitClient.Pull(ctx, baseRemote.Name, targetBranch); err != nil {
-				_ = m.warnf("%s warning: not possible to fast-forward to: %q\n", m.cs.WarningIcon(), targetBranch)
+				_ = m.warnf("%s 警告: 无法快进(fast-forward)到: %q\n", m.cs.WarningIcon(), targetBranch)
 			}
 
 			switchedToBranch = targetBranch
 
-		// The head is checked out in the main worktree, but the command is running elsewhere.
+		// 源分支(head)在主工作树中检出，但该命令在其他位置运行。
 		case headWorktree.Path == mainWorktree.Path:
-			_ = m.warnf("%s Branch %s is checked out in the main worktree (%s); skipping local delete\n",
+			_ = m.warnf("%s 分支(branch) %s 已在主工作树(%s)中检出; 跳过本地删除\n",
 				m.cs.WarningIcon(), m.cs.Cyan(m.pr.HeadRefName), mainWorktree.Path)
-			_ = m.warnf("  To finish cleanup, switch the main worktree off %s, then run:\n", m.cs.Cyan(m.pr.HeadRefName))
+			_ = m.warnf("  要完成清理，请将主工作树切离 %s，然后运行:\n", m.cs.Cyan(m.pr.HeadRefName))
 			_ = m.warnf("  git branch -D %s\n", m.pr.HeadRefName)
 			return nil
 
-		// The head is checked out in another linked worktree.
+		// 源分支(head)在另一个关联的工作树(worktree)中检出。
 		default:
 			if err := m.opts.GitClient.WorktreeRemove(ctx, headWorktree.Path); err != nil {
-				_ = m.warnf("%s Could not remove worktree %s; skipping local branch delete: %s\n", m.cs.WarningIcon(), headWorktree.Path, err)
+				_ = m.warnf("%s 无法移除工作树(worktree) %s; 跳过删除本地分支(branch): %s\n", m.cs.WarningIcon(), headWorktree.Path, err)
 				return nil
 			}
-			_ = m.infof("%s Removed worktree %s\n", m.cs.SuccessIconWithColor(m.cs.Red), headWorktree.Path)
+			_ = m.infof("%s 已移除工作树(worktree) %s\n", m.cs.SuccessIconWithColor(m.cs.Red), headWorktree.Path)
 		}
 	}
 
 	if err := m.opts.GitClient.DeleteLocalBranch(ctx, m.pr.HeadRefName); err != nil {
-		return fmt.Errorf("failed to delete local branch %s: %w", m.cs.Cyan(m.pr.HeadRefName), err)
+		return fmt.Errorf("删除本地分支(branch) %s 失败: %w", m.cs.Cyan(m.pr.HeadRefName), err)
 	}
 
 	switchedStatement := ""
 	if switchedToBranch != "" {
-		switchedStatement = fmt.Sprintf(" and switched to branch %s", m.cs.Cyan(switchedToBranch))
+		switchedStatement = fmt.Sprintf(" 并已切换到分支(branch) %s", m.cs.Cyan(switchedToBranch))
 	}
 
-	return m.infof("%s Deleted local branch %s%s\n", m.cs.SuccessIconWithColor(m.cs.Red), m.cs.Cyan(m.pr.HeadRefName), switchedStatement)
+	return m.infof("%s 已删除本地分支(branch) %s%s\n", m.cs.SuccessIconWithColor(m.cs.Red), m.cs.Cyan(m.pr.HeadRefName), switchedStatement)
 }
 
-// Delete the remote branch if requested and if allowed.
+// 若被请求且被允许，删除远端分支(branch)。
 func (m *mergeContext) deleteRemoteBranch() error {
-	// the user was already asked if they want to delete the branch if they didn't provide the flag
+	// 如果用户未提供 flag，则此前已被询问过是否要删除该分支(branch)
 	if !m.deleteBranch || m.crossRepoPR || m.autoMerge {
 		return nil
 	}
@@ -524,29 +522,28 @@ func (m *mergeContext) deleteRemoteBranch() error {
 		apiClient := api.NewClientFromHTTP(m.httpClient)
 		err := api.BranchDeleteRemote(apiClient, m.baseRepo, m.pr.HeadRefName)
 		if err != nil {
-			// Normally, the API returns 422, with the message "Reference does not exist"
-			// when the branch has already been deleted. It also returns 404 with the same
-			// message, but that rarely happens. In both cases, we should not return an
-			// error because the goal is already achieved.
+			// 通常，当该分支(branch)已被删除时，API 会返回 422，并附带消息
+			// "Reference does not exist"。它也可能返回 404 及同样的消息，但这种情况很少见。
+			// 无论哪种情况，目标都已达成，因此不应返回错误。
 
 			var isAlreadyDeletedError bool
 			if httpErr := (api.HTTPError{}); errors.As(err, &httpErr) {
-				// TODO: since the API returns 422 for a couple of other reasons, for more accuracy
-				// we might want to check the error message against "Reference does not exist".
+				// TODO: 由于 API 还会因其他几个原因返回 422，为了更准确，
+				// 我们或许应将错误消息与 "Reference does not exist" 进行核对。
 				isAlreadyDeletedError = httpErr.StatusCode == http.StatusUnprocessableEntity || httpErr.StatusCode == http.StatusNotFound
 			}
 
 			if !isAlreadyDeletedError {
-				return fmt.Errorf("failed to delete remote branch %s: %w", m.cs.Cyan(m.pr.HeadRefName), err)
+				return fmt.Errorf("删除远端分支(branch) %s 失败: %w", m.cs.Cyan(m.pr.HeadRefName), err)
 			}
 		}
 	}
 
-	return m.infof("%s Deleted remote branch %s\n", m.cs.SuccessIconWithColor(m.cs.Red), m.cs.Cyan(m.pr.HeadRefName))
+	return m.infof("%s 已删除远端分支(branch) %s\n", m.cs.SuccessIconWithColor(m.cs.Red), m.cs.Cyan(m.pr.HeadRefName))
 }
 
-// Add the Pull Request to a merge queue
-// Admins can bypass the queue and merge directly
+// 将拉取请求(PR)加入合并队列(merge queue)
+// 管理员可绕过队列直接合并
 func (m *mergeContext) shouldAddToMergeQueue() bool {
 	return m.mergeQueueRequired && !m.opts.UseAdmin
 }
@@ -564,7 +561,7 @@ func (m *mergeContext) infof(format string, args ...any) error {
 	return err
 }
 
-// Creates a new MergeContext from MergeOptions.
+// 从 MergeOptions 创建一个新的 MergeContext。
 func NewMergeContext(opts *MergeOptions) (*mergeContext, error) {
 	findOptions := shared.FindOptions{
 		Selector: opts.SelectorArg,
@@ -596,7 +593,7 @@ func NewMergeContext(opts *MergeOptions) (*mergeContext, error) {
 	}, nil
 }
 
-// Run the merge command.
+// 运行合并(merge)命令。
 func mergeRun(opts *MergeOptions) error {
 	ctx, err := NewMergeContext(opts)
 	if err != nil {
@@ -607,7 +604,7 @@ func mergeRun(opts *MergeOptions) error {
 		return err
 	}
 
-	// no further action is possible when disabling auto merge
+	// 禁用自动合并(auto merge)时无法执行任何后续操作
 	if opts.AutoMergeDisable {
 		return ctx.disableAutoMerge()
 	}
@@ -641,15 +638,15 @@ func mergeMethodSurvey(p shared.Prompt, baseRepo *api.Repository) (PullRequestMe
 
 	var mergeOpts []mergeOption
 	if baseRepo.MergeCommitAllowed {
-		opt := mergeOption{title: "Create a merge commit", method: PullRequestMergeMethodMerge}
+		opt := mergeOption{title: "创建合并提交(merge commit)", method: PullRequestMergeMethodMerge}
 		mergeOpts = append(mergeOpts, opt)
 	}
 	if baseRepo.RebaseMergeAllowed {
-		opt := mergeOption{title: "Rebase and merge", method: PullRequestMergeMethodRebase}
+		opt := mergeOption{title: "变基(rebase)并合并", method: PullRequestMergeMethodRebase}
 		mergeOpts = append(mergeOpts, opt)
 	}
 	if baseRepo.SquashMergeAllowed {
-		opt := mergeOption{title: "Squash and merge", method: PullRequestMergeMethodSquash}
+		opt := mergeOption{title: "压缩(squash)并合并", method: PullRequestMergeMethodSquash}
 		mergeOpts = append(mergeOpts, opt)
 	}
 
@@ -658,7 +655,7 @@ func mergeMethodSurvey(p shared.Prompt, baseRepo *api.Repository) (PullRequestMe
 		surveyOpts = append(surveyOpts, v.title)
 	}
 
-	result, err := p.Select("What merge method would you like to use?", "", surveyOpts)
+	result, err := p.Select("您想使用哪种合并(merge)方式?", "", surveyOpts)
 
 	return mergeOpts[result].method, err
 }
@@ -669,12 +666,12 @@ func deleteBranchSurvey(opts *MergeOptions, crossRepoPR, localBranchExists bool)
 
 		if opts.CanDeleteLocalBranch && localBranchExists {
 			if crossRepoPR {
-				message = "Delete the branch locally?"
+				message = "在本地删除该分支(branch)?"
 			} else {
-				message = "Delete the branch locally and on GitHub?"
+				message = "在本地和 GitHub 上删除该分支(branch)?"
 			}
 		} else if !crossRepoPR {
-			message = "Delete the branch on GitHub?"
+			message = "在 GitHub 上删除该分支(branch)?"
 		}
 
 		return opts.Prompter.Confirm(message, false)
@@ -685,10 +682,10 @@ func deleteBranchSurvey(opts *MergeOptions, crossRepoPR, localBranchExists bool)
 
 func confirmSurvey(p shared.Prompt, allowEditMsg bool) (shared.Action, error) {
 	const (
-		submitLabel            = "Submit"
-		editCommitSubjectLabel = "Edit commit subject"
-		editCommitMsgLabel     = "Edit commit message"
-		cancelLabel            = "Cancel"
+		submitLabel            = "提交"
+		editCommitSubjectLabel = "编辑提交主题(subject)"
+		editCommitMsgLabel     = "编辑提交信息(message)"
+		cancelLabel            = "取消"
 	)
 
 	options := []string{submitLabel}
@@ -697,9 +694,9 @@ func confirmSurvey(p shared.Prompt, allowEditMsg bool) (shared.Action, error) {
 	}
 	options = append(options, cancelLabel)
 
-	selected, err := p.Select("What's next?", "", options)
+	selected, err := p.Select("下一步做什么?", "", options)
 	if err != nil {
-		return shared.CancelAction, fmt.Errorf("could not prompt: %w", err)
+		return shared.CancelAction, fmt.Errorf("无法显示提示: %w", err)
 	}
 
 	switch options[selected] {
@@ -750,14 +747,14 @@ func confirmSubmission(client *http.Client, opts *MergeOptions, action shared.Ac
 		return false, nil
 
 	case shared.CancelAction:
-		fmt.Fprintln(opts.IO.ErrOut, "Cancelled.")
+		fmt.Fprintln(opts.IO.ErrOut, "已取消。")
 		return false, cmdutil.CancelError
 
 	case shared.SubmitAction:
 		return true, nil
 
 	default:
-		return false, fmt.Errorf("unable to confirm: %w", err)
+		return false, fmt.Errorf("无法确认: %w", err)
 	}
 }
 
@@ -775,21 +772,21 @@ func (e *userEditor) Edit(filename, startingText string) (string, error) {
 	return surveyext.Edit(editorCommand, filename, startingText, e.io.In, e.io.Out, e.io.ErrOut)
 }
 
-// blockedReason translates various MergeStateStatus GraphQL values into human-readable reason
+// blockedReason 将各种 MergeStateStatus GraphQL 取值转换为人类可读的原因
 func blockedReason(status string, useAdmin bool) string {
 	switch status {
 	case MergeStateStatusBlocked:
 		if useAdmin {
 			return ""
 		}
-		return "the base branch policy prohibits the merge"
+		return "基础分支(base branch)策略禁止该合并(merge)"
 	case MergeStateStatusBehind:
 		if useAdmin {
 			return ""
 		}
-		return "the head branch is not up to date with the base branch"
+		return "源分支(head branch)未与基础分支(base branch)保持同步"
 	case MergeStateStatusDirty:
-		return "the merge commit cannot be cleanly created"
+		return "无法干净地创建合并提交(merge commit)"
 	default:
 		return ""
 	}

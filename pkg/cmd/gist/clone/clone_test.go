@@ -115,7 +115,7 @@ func Test_GistClone(t *testing.T) {
 
 func Test_GistClone_flagError(t *testing.T) {
 	_, err := runCloneCommand(nil, "--depth 1 GIST")
-	if err == nil || err.Error() != "unknown flag: --depth\nSeparate git clone flags with '--'." {
+	if err == nil || err.Error() != "unknown flag: --depth\n使用 '--' 分隔 git clone 旗标。" {
 		t.Errorf("unexpected error %v", err)
 	}
 }

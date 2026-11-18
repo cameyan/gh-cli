@@ -183,7 +183,7 @@ func Test_viewRun(t *testing.T) {
 					},
 				},
 			},
-			wantErr: "gist file contains terminal escape sequences; pass --allow-escape-sequences to view it anyway",
+			wantErr: "gist 文件包含终端转义序列; 传入 --allow-escape-sequences 仍可查看它",
 		},
 		{
 			name:  "piped truncated clean file passes through raw",
@@ -262,7 +262,7 @@ func Test_viewRun(t *testing.T) {
 		{
 			name:    "no arguments notty",
 			isTTY:   false,
-			wantErr: "gist ID or URL required when not running interactively",
+			wantErr: "非交互式运行时必须指定 gist ID 或 URL",
 		},
 		{
 			name:  "filename selected",
@@ -582,7 +582,7 @@ func Test_viewRun(t *testing.T) {
 			)
 
 			pm := prompter.NewMockPrompter(t)
-			pm.RegisterSelect("Select a gist", []string{"cool.txt  about 6 hours ago"}, func(_, _ string, opts []string) (int, error) {
+			pm.RegisterSelect("选择 gist", []string{"cool.txt  about 6 hours ago"}, func(_, _ string, opts []string) (int, error) {
 				return 0, nil
 			})
 			tt.opts.Prompter = pm

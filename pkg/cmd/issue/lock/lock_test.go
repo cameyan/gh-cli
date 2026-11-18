@@ -69,18 +69,18 @@ func Test_NewCmdLock(t *testing.T) {
 		{
 			name:    "argument cannot be parsed to an issue",
 			args:    "unparseable",
-			wantErr: "invalid issue format: \"unparseable\"",
+			wantErr: "无效的 issue 格式: \"unparseable\"",
 		},
 		{
 			name:    "bad reason",
 			args:    "--reason bad 451",
-			wantErr: "invalid reason bad",
+			wantErr: "无效的原因 bad",
 		},
 		{
 			name:    "bad reason tty",
 			args:    "--reason bad 451",
 			tty:     true,
-			wantErr: "X Invalid reason: bad\n",
+			wantErr: "X 无效的原因: bad\n",
 		},
 		{
 			name: "interactive",
@@ -176,7 +176,7 @@ func Test_NewCmdUnlock(t *testing.T) {
 		{
 			name:    "argument cannot be parsed to an issue",
 			args:    "unparseable",
-			wantErr: "invalid issue format: \"unparseable\"",
+			wantErr: "无效的 issue 格式: \"unparseable\"",
 		},
 	}
 
@@ -279,16 +279,16 @@ func Test_runLock(t *testing.T) {
 			},
 			promptStubs: func(t *testing.T, pm *prompter.PrompterMock) {
 				pm.SelectFunc = func(p, d string, opts []string) (int, error) {
-					if p == "Lock reason?" {
-						assert.Equal(t, []string{"None", "Off topic", "Resolved", "Spam", "Too heated"}, opts)
+					if p == "锁定原因?" {
+						assert.Equal(t, []string{"无", "离题", "已解决", "垃圾信息", "过于激烈"}, opts)
 
-						return prompter.IndexFor(opts, "Too heated")
+						return prompter.IndexFor(opts, "过于激烈")
 					}
 
 					return -1, prompter.NoSuchPromptErr(p)
 				}
 			},
-			wantOut: "✓ Locked as TOO_HEATED: Issue OWNER/REPO#451 (traverse the library)\n",
+			wantOut: "✓ 已锁定(原因: TOO_HEATED): issue OWNER/REPO#451 (traverse the library)\n",
 		},
 		{
 			name:  "lock issue with explicit reason tty",
@@ -315,7 +315,7 @@ func Test_runLock(t *testing.T) {
 						      "lockedRecord": {
 						        "locked": true }}}}`))
 			},
-			wantOut: "✓ Locked as OFF_TOPIC: Issue OWNER/REPO#451 (traverse the library)\n",
+			wantOut: "✓ 已锁定(原因: OFF_TOPIC): issue OWNER/REPO#451 (traverse the library)\n",
 		},
 		{
 			name:  "unlock issue tty",
@@ -342,7 +342,7 @@ func Test_runLock(t *testing.T) {
 						      "unlockedRecord": {
 						        "locked": false }}}}`))
 			},
-			wantOut: "✓ Unlocked: Issue OWNER/REPO#451 (traverse the library)\n",
+			wantOut: "✓ 已解除锁定: issue OWNER/REPO#451 (traverse the library)\n",
 		},
 		{
 			name:  "unlock issue nontty",
@@ -429,14 +429,14 @@ func Test_runLock(t *testing.T) {
 			},
 			promptStubs: func(t *testing.T, pm *prompter.PrompterMock) {
 				pm.ConfirmFunc = func(p string, d bool) (bool, error) {
-					if p == "Issue OWNER/REPO#451 already locked. Unlock and lock again as OFF_TOPIC?" {
+					if p == "issue OWNER/REPO#451 已锁定。是否解除锁定并重新锁定(原因: OFF_TOPIC)?" {
 						return true, nil
 					}
 
 					return false, prompter.NoSuchPromptErr(p)
 				}
 			},
-			wantOut: "✓ Locked as OFF_TOPIC: Issue OWNER/REPO#451 (traverse the library)\n",
+			wantOut: "✓ 已锁定(原因: OFF_TOPIC): issue OWNER/REPO#451 (traverse the library)\n",
 		},
 		{
 			name:  "relock issue nontty",
@@ -456,7 +456,7 @@ func Test_runLock(t *testing.T) {
 							"title": "traverse the library",
 							"__typename": "Issue" }}}}`))
 			},
-			wantErr: "already locked",
+			wantErr: "已锁定",
 		},
 
 		{
@@ -509,14 +509,14 @@ func Test_runLock(t *testing.T) {
 			},
 			promptStubs: func(t *testing.T, pm *prompter.PrompterMock) {
 				pm.SelectFunc = func(p, d string, opts []string) (int, error) {
-					if p == "Lock reason?" {
-						return prompter.IndexFor(opts, "Too heated")
+					if p == "锁定原因?" {
+						return prompter.IndexFor(opts, "过于激烈")
 					}
 
 					return -1, prompter.NoSuchPromptErr(p)
 				}
 			},
-			wantOut: "✓ Locked as TOO_HEATED: Pull request OWNER/REPO#451 (traverse the library)\n",
+			wantOut: "✓ 已锁定(原因: TOO_HEATED): PR OWNER/REPO#451 (traverse the library)\n",
 		},
 		{
 			name:  "lock pr with explicit reason tty",
@@ -543,7 +543,7 @@ func Test_runLock(t *testing.T) {
 						      "lockedRecord": {
 						        "locked": true }}}}`))
 			},
-			wantOut: "✓ Locked as OFF_TOPIC: Pull request OWNER/REPO#451 (traverse the library)\n",
+			wantOut: "✓ 已锁定(原因: OFF_TOPIC): PR OWNER/REPO#451 (traverse the library)\n",
 		},
 		{
 			name:  "lock pr with explicit nontty",
@@ -620,7 +620,7 @@ func Test_runLock(t *testing.T) {
 						      "unlockedRecord": {
 						        "locked": false }}}}`))
 			},
-			wantOut: "✓ Unlocked: Pull request OWNER/REPO#451 (traverse the library)\n",
+			wantOut: "✓ 已解除锁定: PR OWNER/REPO#451 (traverse the library)\n",
 		},
 		{
 			name:  "relock pr tty",
@@ -657,14 +657,14 @@ func Test_runLock(t *testing.T) {
 			},
 			promptStubs: func(t *testing.T, pm *prompter.PrompterMock) {
 				pm.ConfirmFunc = func(p string, d bool) (bool, error) {
-					if p == "Pull request OWNER/REPO#451 already locked. Unlock and lock again as OFF_TOPIC?" {
+					if p == "PR OWNER/REPO#451 已锁定。是否解除锁定并重新锁定(原因: OFF_TOPIC)?" {
 						return true, nil
 					}
 
 					return false, prompter.NoSuchPromptErr(p)
 				}
 			},
-			wantOut: "✓ Locked as OFF_TOPIC: Pull request OWNER/REPO#451 (traverse the library)\n",
+			wantOut: "✓ 已锁定(原因: OFF_TOPIC): PR OWNER/REPO#451 (traverse the library)\n",
 		},
 		{
 			name:  "relock pr nontty",
@@ -684,7 +684,7 @@ func Test_runLock(t *testing.T) {
 							"title": "traverse the library",
 							"__typename": "PullRequest" }}}}`))
 			},
-			wantErr: "already locked",
+			wantErr: "已锁定",
 		},
 	}
 

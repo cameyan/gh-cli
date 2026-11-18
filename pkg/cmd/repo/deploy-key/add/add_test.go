@@ -48,7 +48,7 @@ func Test_addRun(t *testing.T) {
 						}
 					}))
 			},
-			wantStdout: "✓ Deploy key added to OWNER/REPO\n",
+			wantStdout: "✓ 已向 OWNER/REPO 添加部署密钥\n",
 			wantStderr: "",
 			wantErr:    false,
 		},

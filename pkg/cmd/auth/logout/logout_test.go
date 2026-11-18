@@ -157,7 +157,7 @@ func Test_logoutRun_tty(t *testing.T) {
 			},
 			assertToken: hasNoToken("github.com"),
 			wantHosts:   "ghe.io:\n    users:\n        monalisa-ghe:\n            oauth_token: abc123\n    git_protocol: ssh\n    oauth_token: abc123\n    user: monalisa-ghe\n",
-			wantErrOut:  regexp.MustCompile(`Logged out of github.com account monalisa`),
+			wantErrOut:  regexp.MustCompile(`已登出 github.com 的账户 monalisa`),
 		},
 		{
 			name: "logs out prompted user when multiple known hosts with multiple users each",
@@ -179,7 +179,7 @@ func Test_logoutRun_tty(t *testing.T) {
 			},
 			assertToken: hasActiveToken("github.com", "monalisa2-token"),
 			wantHosts:   "ghe.io:\n    users:\n        monalisa-ghe:\n            oauth_token: abc123\n        monalisa-ghe2:\n            oauth_token: abc123\n    git_protocol: ssh\n    user: monalisa-ghe2\n    oauth_token: abc123\ngithub.com:\n    users:\n        monalisa2:\n            oauth_token: monalisa2-token\n    git_protocol: ssh\n    user: monalisa2\n    oauth_token: monalisa2-token\n",
-			wantErrOut:  regexp.MustCompile(`Logged out of github.com account monalisa`),
+			wantErrOut:  regexp.MustCompile(`已登出 github.com 的账户 monalisa`),
 		},
 		{
 			name: "logs out only logged in user",
@@ -191,7 +191,7 @@ func Test_logoutRun_tty(t *testing.T) {
 			},
 			wantHosts:   "{}\n",
 			assertToken: hasNoToken("github.com"),
-			wantErrOut:  regexp.MustCompile(`Logged out of github.com account monalisa`),
+			wantErrOut:  regexp.MustCompile(`已登出 github.com 的账户 monalisa`),
 		},
 		{
 			name: "logs out prompted user when one known host with multiple users",
@@ -209,7 +209,7 @@ func Test_logoutRun_tty(t *testing.T) {
 			},
 			wantHosts:   "github.com:\n    users:\n        monalisa2:\n            oauth_token: monalisa2-token\n    git_protocol: ssh\n    user: monalisa2\n    oauth_token: monalisa2-token\n",
 			assertToken: hasActiveToken("github.com", "monalisa2-token"),
-			wantErrOut:  regexp.MustCompile(`Logged out of github.com account monalisa`),
+			wantErrOut:  regexp.MustCompile(`已登出 github.com 的账户 monalisa`),
 		},
 		{
 			name: "logs out specified user when multiple known hosts with one user each",
@@ -227,7 +227,7 @@ func Test_logoutRun_tty(t *testing.T) {
 			},
 			wantHosts:   "github.com:\n    users:\n        monalisa:\n            oauth_token: abc123\n    git_protocol: ssh\n    oauth_token: abc123\n    user: monalisa\n",
 			assertToken: hasNoToken("ghe.io"),
-			wantErrOut:  regexp.MustCompile(`Logged out of ghe.io account monalisa-ghe`),
+			wantErrOut:  regexp.MustCompile(`已登出 ghe.io 的账户 monalisa-ghe`),
 		},
 		{
 			name:          "logs out specified user that is using secure storage",
@@ -243,12 +243,12 @@ func Test_logoutRun_tty(t *testing.T) {
 			},
 			wantHosts:   "{}\n",
 			assertToken: hasNoToken("github.com"),
-			wantErrOut:  regexp.MustCompile(`Logged out of github.com account monalisa`),
+			wantErrOut:  regexp.MustCompile(`已登出 github.com 的账户 monalisa`),
 		},
 		{
 			name:    "errors when no known hosts",
 			opts:    &LogoutOptions{},
-			wantErr: `not logged in to any hosts`,
+			wantErr: `未登录任何主机`,
 		},
 		{
 			name: "errors when specified host is not a known host",
@@ -261,7 +261,7 @@ func Test_logoutRun_tty(t *testing.T) {
 					{"monalisa", "abc123"},
 				}},
 			},
-			wantErr: "not logged in to ghe.io",
+			wantErr: "未登录 ghe.io",
 		},
 		{
 			name: "errors when specified user is not logged in on specified host",
@@ -274,7 +274,7 @@ func Test_logoutRun_tty(t *testing.T) {
 					{"monalisa-ghe", "abc123"},
 				}},
 			},
-			wantErr: "not logged in to ghe.io account unknown-user",
+			wantErr: "未登录 ghe.io 的账户 unknown-user",
 		},
 		{
 			name: "errors when user is specified but doesn't exist on any host",
@@ -289,7 +289,7 @@ func Test_logoutRun_tty(t *testing.T) {
 					{"monalisa", "abc123"},
 				}},
 			},
-			wantErr: "no accounts matched that criteria",
+			wantErr: "没有账户符合该条件",
 		},
 		{
 			name: "switches user if there is another one available",
@@ -305,7 +305,7 @@ func Test_logoutRun_tty(t *testing.T) {
 			},
 			wantHosts:   "github.com:\n    users:\n        monalisa:\n            oauth_token: monalisa-token\n    git_protocol: ssh\n    user: monalisa\n    oauth_token: monalisa-token\n",
 			assertToken: hasActiveToken("github.com", "monalisa-token"),
-			wantErrOut:  regexp.MustCompile("✓ Switched active account for github.com to monalisa"),
+			wantErrOut:  regexp.MustCompile("✓ 已将 github.com 的活跃账户切换为 monalisa"),
 		},
 	}
 
@@ -388,7 +388,7 @@ func Test_logoutRun_nontty(t *testing.T) {
 			},
 			wantHosts:   "{}\n",
 			assertToken: hasNoToken("github.com"),
-			wantErrOut:  regexp.MustCompile(`Logged out of github.com account monalisa`),
+			wantErrOut:  regexp.MustCompile(`已登出 github.com 的账户 monalisa`),
 		},
 		{
 			name: "logs out specified user when multiple known hosts",
@@ -406,7 +406,7 @@ func Test_logoutRun_nontty(t *testing.T) {
 			},
 			wantHosts:   "ghe.io:\n    users:\n        monalisa-ghe:\n            oauth_token: abc123\n    git_protocol: ssh\n    oauth_token: abc123\n    user: monalisa-ghe\n",
 			assertToken: hasNoToken("github.com"),
-			wantErrOut:  regexp.MustCompile(`Logged out of github.com account monalisa`),
+			wantErrOut:  regexp.MustCompile(`已登出 github.com 的账户 monalisa`),
 		},
 		{
 			name:          "logs out specified user that is using secure storage",
@@ -422,7 +422,7 @@ func Test_logoutRun_nontty(t *testing.T) {
 			},
 			wantHosts:   "{}\n",
 			assertToken: hasNoToken("github.com"),
-			wantErrOut:  regexp.MustCompile(`Logged out of github.com account monalisa`),
+			wantErrOut:  regexp.MustCompile(`已登出 github.com 的账户 monalisa`),
 		},
 		{
 			name: "errors when no known hosts",
@@ -430,7 +430,7 @@ func Test_logoutRun_nontty(t *testing.T) {
 				Hostname: "github.com",
 				Username: "monalisa",
 			},
-			wantErr: `not logged in to any hosts`,
+			wantErr: `未登录任何主机`,
 		},
 		{
 			name: "errors when specified host is not a known host",
@@ -443,7 +443,7 @@ func Test_logoutRun_nontty(t *testing.T) {
 					{"monalisa", "abc123"},
 				}},
 			},
-			wantErr: "not logged in to ghe.io",
+			wantErr: "未登录 ghe.io",
 		},
 		{
 			name: "errors when specified user is not logged in on specified host",
@@ -456,7 +456,7 @@ func Test_logoutRun_nontty(t *testing.T) {
 					{"monalisa-ghe", "abc123"},
 				}},
 			},
-			wantErr: "not logged in to ghe.io account unknown-user",
+			wantErr: "未登录 ghe.io 的账户 unknown-user",
 		},
 		{
 			name: "errors when host is specified but user is ambiguous",
@@ -469,7 +469,7 @@ func Test_logoutRun_nontty(t *testing.T) {
 					{"monalisa-ghe2", "abc123"},
 				}},
 			},
-			wantErr: "unable to determine which account to log out of, please specify `--hostname` and `--user`",
+			wantErr: "无法确定要登出哪个账户，请指定 `--hostname` 和 `--user`",
 		},
 		{
 			name: "errors when user is specified but host is ambiguous",
@@ -484,7 +484,7 @@ func Test_logoutRun_nontty(t *testing.T) {
 					{"monalisa", "abc123"},
 				}},
 			},
-			wantErr: "unable to determine which account to log out of, please specify `--hostname` and `--user`",
+			wantErr: "无法确定要登出哪个账户，请指定 `--hostname` 和 `--user`",
 		},
 		{
 			name: "switches user if there is another one available",
@@ -500,7 +500,7 @@ func Test_logoutRun_nontty(t *testing.T) {
 			},
 			wantHosts:   "github.com:\n    users:\n        monalisa:\n            oauth_token: monalisa-token\n    git_protocol: ssh\n    user: monalisa\n    oauth_token: monalisa-token\n",
 			assertToken: hasActiveToken("github.com", "monalisa-token"),
-			wantErrOut:  regexp.MustCompile("✓ Switched active account for github.com to monalisa"),
+			wantErrOut:  regexp.MustCompile("✓ 已将 github.com 的活跃账户切换为 monalisa"),
 		},
 	}
 

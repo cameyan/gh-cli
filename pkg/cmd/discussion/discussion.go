@@ -11,13 +11,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewCmdDiscussion returns the top-level "discussion" command.
+// NewCmdDiscussion 返回顶层 "discussion" 命令。
 func NewCmdDiscussion(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "discussion <command>",
-		Short: "Work with GitHub Discussions (preview)",
+		Short: "使用 GitHub 讨论(预览版)",
 		Long: heredoc.Doc(`
-			Working with discussions in the GitHub CLI is in preview and subject to change without notice.
+			在 GitHub CLI 中使用讨论功能目前处于预览阶段，可能会在未另行通知的情况下发生变更。
 		`),
 		Example: heredoc.Doc(`
 			$ gh discussion list

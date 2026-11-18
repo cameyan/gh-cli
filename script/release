@@ -79,7 +79,7 @@ announce() {
 }
 
 trigger_deployment() {
-  announce gh workflow -R cli/cli run deployment.yml --ref "$branch" -f tag_name="$tag_name" -f environment="$deploy_env" -f dry_run="$dry_run"
+  announce gh workflow -R cameyan/gh-cli run deployment.yml --ref "$branch" -f tag_name="$tag_name" -f environment="$deploy_env" -f dry_run="$dry_run"
 }
 
 build_local() {

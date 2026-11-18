@@ -49,12 +49,12 @@ func NewCmdCheckout(f *cmdutil.Factory, runF func(*CheckoutOptions) error) *cobr
 
 	cmd := &cobra.Command{
 		Use:   "checkout [<number> | <url> | <branch>]",
-		Short: "Check out a pull request in git",
+		Short: "在 git 中检出(check out)一个拉取请求(PR)",
 		Example: heredoc.Doc(`
-			# Interactively select a PR from the 10 most recent to check out
+			# 从最近 10 个 PR 中交互式选择一个进行检出(check out)
 			$ gh pr checkout
 
-			# Checkout a specific PR
+			# 检出(check out)指定的 PR
 			$ gh pr checkout 32
 			$ gh pr checkout https://github.com/OWNER/REPO/pull/32
 			$ gh pr checkout feature
@@ -64,7 +64,7 @@ func NewCmdCheckout(f *cmdutil.Factory, runF func(*CheckoutOptions) error) *cobr
 		Aliases: []string{"co"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if cmd.Flags().Changed("worktree") && opts.Worktree == "" {
-				return cmdutil.FlagErrorf("--worktree cannot be blank")
+				return cmdutil.FlagErrorf("--worktree 不能为空")
 			}
 
 			if len(args) > 0 {
@@ -90,7 +90,7 @@ func NewCmdCheckout(f *cmdutil.Factory, runF func(*CheckoutOptions) error) *cobr
 					baseRepo: baseRepo,
 				}
 			} else {
-				return cmdutil.FlagErrorf("pull request number, URL, or branch required when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时必须提供拉取请求(PR)编号(number)、URL 或分支(branch)")
 			}
 
 			if runF != nil {
@@ -100,11 +100,11 @@ func NewCmdCheckout(f *cmdutil.Factory, runF func(*CheckoutOptions) error) *cobr
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.RecurseSubmodules, "recurse-submodules", "", false, "Update all submodules after checkout")
-	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Reset the existing local branch to the latest state of the pull request")
-	cmd.Flags().BoolVarP(&opts.Detach, "detach", "", false, "Checkout PR with a detached HEAD")
-	cmd.Flags().StringVarP(&opts.BranchName, "branch", "b", "", "Local branch name to use (default [the name of the head branch])")
-	cmd.Flags().StringVar(&opts.Worktree, "worktree", "", "Check out the pull request into a worktree at the given `path`")
+	cmd.Flags().BoolVarP(&opts.RecurseSubmodules, "recurse-submodules", "", false, "检出(check out)后更新所有子模块(submodule)")
+	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "将已有本地分支(branch)重置为拉取请求(PR)的最新状态")
+	cmd.Flags().BoolVarP(&opts.Detach, "detach", "", false, "以分离 HEAD(detached HEAD)方式检出(check out) PR")
+	cmd.Flags().StringVarP(&opts.BranchName, "branch", "b", "", "要使用的本地分支(branch)名 (默认 [源分支(head branch)的名称])")
+	cmd.Flags().StringVar(&opts.Worktree, "worktree", "", "将拉取请求(PR)检出到指定 `path` 处的工作树(worktree)")
 
 	return cmd
 }
@@ -148,7 +148,7 @@ func checkoutRun(opts *CheckoutOptions) error {
 	}
 
 	if strings.HasPrefix(pr.HeadRefName, "-") {
-		return fmt.Errorf("invalid branch name: %q", pr.HeadRefName)
+		return fmt.Errorf("无效的分支(branch)名: %q", pr.HeadRefName)
 	}
 
 	var cmdQueue [][]string
@@ -170,8 +170,8 @@ func checkoutRun(opts *CheckoutOptions) error {
 	}
 
 	if opts.RecurseSubmodules {
-		// Run submodule commands inside the worktree when checking out into
-		// one, so its submodules (not the main worktree's) get initialized.
+		// 在检出到工作树(worktree)时，将子模块(submodule)命令在该工作树内执行，
+		// 以便初始化它自己的子模块(而不是主工作树的子模块)。
 		var prefix []string
 		if opts.Worktree != "" {
 			prefix = []string{"-C", opts.Worktree}
@@ -180,8 +180,8 @@ func checkoutRun(opts *CheckoutOptions) error {
 		cmdQueue = append(cmdQueue, slices.Concat(prefix, []string{"submodule", "update", "--init", "--recursive"}))
 	}
 
-	// Note that although we will probably be fetching from the head, in practice, PR checkout can only
-	// ever point to one host, and we know baseRepo must be populated.
+	// 注意: 尽管我们很可能是从源分支(head)获取，但实践中 PR 检出(checkout)只能指向一个主机，
+	// 且我们知道 baseRepo 必然已填充。
 	err = executeCmds(opts.GitClient, git.CredentialPatternFromHost(baseRepo.RepoHost()), cmdQueue)
 	if err != nil {
 		return err
@@ -189,8 +189,8 @@ func checkoutRun(opts *CheckoutOptions) error {
 
 	if opts.Worktree != "" && opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
-		fmt.Fprintf(opts.IO.ErrOut, "%s Checked out PR #%d in worktree %s\n", cs.SuccessIcon(), pr.Number, opts.Worktree)
-		fmt.Fprintf(opts.IO.ErrOut, "  To start working: cd %s\n", opts.Worktree)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 已在工作树(worktree) %s 中检出(check out) PR #%d\n", cs.SuccessIcon(), pr.Number, opts.Worktree)
+		fmt.Fprintf(opts.IO.ErrOut, "  开始工作: cd %s\n", opts.Worktree)
 	}
 
 	return nil
@@ -254,7 +254,7 @@ func cmdsForMissingRemote(pr *api.PullRequest, baseURLOrName, repoHost, defaultB
 	if opts.BranchName != "" {
 		localBranch = opts.BranchName
 	} else if pr.HeadRefName == defaultBranch {
-		// avoid naming the new branch the same as the default branch
+		// 避免将新分支(branch)命名为与默认分支相同的名称
 		localBranch = fmt.Sprintf("%s/%s", pr.HeadRepositoryOwner.Login, localBranch)
 	}
 
@@ -279,11 +279,11 @@ func cmdsForMissingRemote(pr *api.PullRequest, baseURLOrName, repoHost, defaultB
 			cmds = append(cmds, []string{"worktree", "add", "--", opts.Worktree, localBranch})
 		}
 	} else if localBranch == currentBranch {
-		// PR head matches currently checked out branch
+		// PR 的源分支(head)与当前已检出的分支(branch)匹配
 		cmds = append(cmds, []string{"fetch", baseURLOrName, ref, "--no-tags"})
 		cmds = append(cmds, syncBranchCmds("", "FETCH_HEAD", opts.Force)...)
 	} else {
-		// TODO: check if non-fast-forward and suggest to use `--force`
+		// TODO: 检查是否为非快进(non-fast-forward)，并建议使用 `--force`
 		fetchCmd := []string{"fetch", baseURLOrName, fmt.Sprintf("%s:%s", ref, localBranch), "--no-tags"}
 		if opts.Force {
 			fetchCmd = append(fetchCmd, "--force")
@@ -300,9 +300,9 @@ func cmdsForMissingRemote(pr *api.PullRequest, baseURLOrName, repoHost, defaultB
 		mergeRef = fmt.Sprintf("refs/heads/%s", pr.HeadRefName)
 	}
 	if missingMergeConfigForBranch(opts.GitClient, localBranch) {
-		// .remote is needed for `git pull` to work
-		// .pushRemote is needed for `git push` to work, if user has set `remote.pushDefault`.
-		// see https://git-scm.com/docs/git-config#Documentation/git-config.txt-branchltnamegtremote
+		// .remote 是 `git pull` 工作所必需的
+		// .pushRemote 是 `git push` 工作所必需的(如果用户设置了 `remote.pushDefault`)
+		// 参见 https://git-scm.com/docs/git-config#Documentation/git-config.txt-branchltnamegtremote
 		cmds = append(cmds, []string{"config", fmt.Sprintf("branch.%s.remote", localBranch), remote})
 		cmds = append(cmds, []string{"config", fmt.Sprintf("branch.%s.pushRemote", localBranch), remote})
 		cmds = append(cmds, []string{"config", fmt.Sprintf("branch.%s.merge", localBranch), mergeRef})
@@ -316,9 +316,9 @@ func missingMergeConfigForBranch(client *git.Client, b string) bool {
 	return err != nil || mc == ""
 }
 
-// detachCmds returns the commands for a detached checkout. When reusing an
-// existing linked worktree, FETCH_HEAD must be written inside it (it is
-// per-worktree), so the fetch runs with -C <path>.
+// detachCmds 返回分离 HEAD(detached)检出的命令。在复用已关联的
+// 工作树(worktree)时，FETCH_HEAD 必须写入其中(它是 per-worktree 的)，
+// 因此 fetch 以 -C <path> 运行。
 func detachCmds(fetchCmd []string, worktree string, reuseWorktree bool) [][]string {
 	if worktree == "" {
 		return [][]string{
@@ -339,8 +339,8 @@ func detachCmds(fetchCmd []string, worktree string, reuseWorktree bool) [][]stri
 	}
 }
 
-// syncBranchCmds syncs a branch to ref: a hard reset when force is set,
-// otherwise a fast-forward-only merge. A non-empty path runs the commands there.
+// syncBranchCmds 将分支(branch)同步到 ref: force 时使用硬重置(hard reset)，
+// 否则使用仅快进(fast-forward-only)合并。非空路径时在该路径下执行命令。
 func syncBranchCmds(path, ref string, force bool) [][]string {
 	var prefix []string
 	if path != "" {
@@ -349,13 +349,13 @@ func syncBranchCmds(path, ref string, force bool) [][]string {
 	if force {
 		return [][]string{append(prefix, "reset", "--hard", ref)}
 	}
-	// TODO: check if non-fast-forward and suggest to use `--force`
+	// TODO: 检查是否为非快进(non-fast-forward)，并建议使用 `--force`
 	return [][]string{append(prefix, "merge", "--ff-only", ref)}
 }
 
 func executeCmds(client *git.Client, credentialPattern git.CredentialPattern, cmdQueue [][]string) error {
 	for _, args := range cmdQueue {
-		// Determine the git sub-command, skipping any -C <path> prefix.
+		// 确定 git 子命令，跳过任何 -C <path> 前缀。
 		subCmd := args[0]
 		if len(args) >= 3 && args[0] == "-C" {
 			subCmd = args[2]
@@ -381,10 +381,9 @@ func executeCmds(client *git.Client, credentialPattern git.CredentialPattern, cm
 	return nil
 }
 
-// authenticatedCommand builds an authenticated git command, transparently
-// handling a leading -C <path> prefix. AuthenticatedCommand prepends
-// credential-helper flags before all args, so a -C prefix would be displaced;
-// instead we strip it and apply it as cmd.Dir.
+// authenticatedCommand 构建一个经过认证的 git 命令，透明地处理开头的
+// -C <path> 前缀。AuthenticatedCommand 会在所有参数之前前置凭证助手(credential-helper)
+// flags，因此 -C 前缀会错位；这里改为剥离该前缀并将其应用为 cmd.Dir。
 func authenticatedCommand(client *git.Client, credentialPattern git.CredentialPattern, args []string) (*git.Command, error) {
 	if args[0] == "-C" {
 		cmd, err := client.AuthenticatedCommand(context.Background(), credentialPattern, args[2:]...)
@@ -469,7 +468,7 @@ func (r *promptingPRResolver) Resolve() (*api.PullRequest, ghrepo.Interface, err
 		))
 	}
 
-	selected, err := r.prompter.Select("Select a pull request", "", candidates)
+	selected, err := r.prompter.Select("选择一个拉取请求(PR)", "", candidates)
 	if err != nil {
 		return nil, nil, err
 	}

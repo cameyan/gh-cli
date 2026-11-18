@@ -41,42 +41,42 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List your gists",
+		Short: "列出你的 gist",
 		Long: heredoc.Docf(`
-			List gists from your user account.
+			列出你的用户账户下的 gist。
 
-			You can use a regular expression to filter the description, file names,
-			or even the content of files in the gist using %[1]s--filter%[1]s.
+			可以使用 %[1]s--filter%[1]s 通过正则表达式筛选描述、文件名，
+			甚至筛选 gist 中文件的内容。
 
-			For supported regular expression syntax, see <https://pkg.go.dev/regexp/syntax>.
+			有关支持的正则表达式语法，请参见 <https://pkg.go.dev/regexp/syntax>。
 
-			Use %[1]s--include-content%[1]s to include content of files, noting that
-			this will be slower and increase the rate limit used. Instead of printing a table,
-			code will be printed with highlights similar to %[1]sgh search code%[1]s:
+			使用 %[1]s--include-content%[1]s 可包含文件内容，注意
+			这会较慢并增加所用速率限制的消耗。此时不会打印表格，
+			而是打印带高亮的代码，类似于 %[1]sgh search code%[1]s:
 
 				{{gist ID}} {{file name}}
 				    {{description}}
-				        {{matching lines from content}}
+				        {{匹配的内容行}}
 
-			No highlights or other color is printed when output is redirected.
+			当输出被重定向时，不打印高亮或其他颜色。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# List all secret gists from your user account
+			# 列出你的用户账户下的所有私密 gist
 			$ gh gist list --secret
 
-			# Find all gists from your user account mentioning "octo" anywhere
+			# 查找你的用户账户下任意位置提及 "octo" 的所有 gist
 			$ gh gist list --filter octo --include-content
 		`),
 		Aliases: []string{"ls"},
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Limit < 1 {
-				return cmdutil.FlagErrorf("invalid limit: %v", opts.Limit)
+				return cmdutil.FlagErrorf("无效的 limit: %v", opts.Limit)
 			}
 
 			if flagFilter == "" {
 				if opts.IncludeContent {
-					return cmdutil.FlagErrorf("cannot use --include-content without --filter")
+					return cmdutil.FlagErrorf("不能在没有 --filter 的情况下使用 --include-content")
 				}
 			} else {
 				if filter, err := regexp.CompilePOSIX(flagFilter); err != nil {
@@ -100,11 +100,11 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", 10, "Maximum number of gists to fetch")
-	cmd.Flags().BoolVar(&flagPublic, "public", false, "Show only public gists")
-	cmd.Flags().BoolVar(&flagSecret, "secret", false, "Show only secret gists")
-	cmd.Flags().StringVar(&flagFilter, "filter", "", "Filter gists using a regular `expression`")
-	cmd.Flags().BoolVar(&opts.IncludeContent, "include-content", false, "Include gists' file content when filtering")
+	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", 10, "最多获取的 gist 数量")
+	cmd.Flags().BoolVar(&flagPublic, "public", false, "仅显示公开 gist")
+	cmd.Flags().BoolVar(&flagSecret, "secret", false, "仅显示私密 gist")
+	cmd.Flags().StringVar(&flagFilter, "filter", "", "使用正则 `表达式` 筛选 gist")
+	cmd.Flags().BoolVar(&opts.IncludeContent, "include-content", false, "筛选时包含 gist 的文件内容")
 
 	return cmd
 }
@@ -134,13 +134,13 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if len(gists) == 0 {
-		return cmdutil.NewNoResultsError("no gists found")
+		return cmdutil.NewNoResultsError("未找到 gist")
 	}
 
 	if err := opts.IO.StartPager(); err == nil {
 		defer opts.IO.StopPager()
 	} else {
-		fmt.Fprintf(opts.IO.ErrOut, "failed to start pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 
 	if opts.Filter != nil && opts.IncludeContent {
@@ -152,9 +152,9 @@ func listRun(opts *ListOptions) error {
 
 func printTable(io *iostreams.IOStreams, gists []shared.Gist, filter *regexp.Regexp) error {
 	cs := io.ColorScheme()
-	tp := tableprinter.New(io, tableprinter.WithHeader("ID", "DESCRIPTION", "FILES", "VISIBILITY", "UPDATED"))
+	tp := tableprinter.New(io, tableprinter.WithHeader("ID", "描述", "文件", "可见性", "更新时间"))
 
-	// Highlight filter matches in the description when printing the table.
+	// 打印表格时高亮描述中的筛选匹配项。
 	highlightDescription := func(s string) string {
 		if filter != nil {
 			if str, err := highlightMatch(s, filter, nil, cs.Bold, cs.Highlight); err == nil {
@@ -164,7 +164,7 @@ func printTable(io *iostreams.IOStreams, gists []shared.Gist, filter *regexp.Reg
 		return cs.Bold(s)
 	}
 
-	// Highlight the files column when any file name matches the filter.
+	// 当任一文件名与筛选条件匹配时高亮文件列。
 	highlightFilesFunc := func(gist *shared.Gist) func(string) string {
 		if filter != nil {
 			for _, file := range gist.Files {
@@ -213,14 +213,14 @@ func printTable(io *iostreams.IOStreams, gists []shared.Gist, filter *regexp.Reg
 	return tp.Render()
 }
 
-// printContent prints a gist with optional description and content similar to `gh search code`
-// including highlighted matches in the form:
+// printContent 打印带可选描述和内容的 gist，类似于 `gh search code`，
+// 包括高亮的匹配项，格式为:
 //
 //	{{gist ID}} {{file name}}
 //	    {{description, if any}}
 //	        {{content lines with matches, if any}}
 //
-// If printing to a non-TTY stream the format will be the same but without highlights.
+// 若打印到非 TTY 流，格式相同但没有高亮。
 func printContent(io *iostreams.IOStreams, gists []shared.Gist, filter *regexp.Regexp) error {
 	const tab string = "    "
 	cs := io.ColorScheme()
@@ -277,12 +277,12 @@ func highlightMatch(s string, filter *regexp.Regexp, matched *bool, color, highl
 
 	out := strings.Builder{}
 
-	// Color up to the first match. If an empty string, no ANSI color sequence is added.
+	// 将首个匹配项之前的文本着色。若为空字符串，则不添加 ANSI 颜色序列。
 	if _, err := out.WriteString(color(s[:matches[0][0]])); err != nil {
 		return "", err
 	}
 
-	// Highlight each match, then color the remaining text which, if an empty string, no ANSI color sequence is added.
+	// 高亮每个匹配项，然后对剩余文本着色；若为空字符串，则不添加 ANSI 颜色序列。
 	for i, match := range matches {
 		if _, err := out.WriteString(highlight(s[match[0]:match[1]])); err != nil {
 			return "", err

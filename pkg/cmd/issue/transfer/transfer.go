@@ -33,21 +33,21 @@ func NewCmdTransfer(f *cmdutil.Factory, runF func(*TransferOptions) error) *cobr
 
 	cmd := &cobra.Command{
 		Use:   "transfer {<number> | <url>} <destination-repo>",
-		Short: "Transfer issue to another repository",
-		Args:  cmdutil.ExactArgs(2, "issue and destination repository are required"),
+		Short: "将 issue 转移到另一个仓库",
+		Args:  cmdutil.ExactArgs(2, "必须提供 issue 和目标仓库"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			issueNumber, baseRepo, err := shared.ParseIssueFromArg(args[0])
 			if err != nil {
 				return err
 			}
 
-			// If the args provided the base repo then use that directly.
+			// 如果参数提供了基础仓库，则直接使用它。
 			if baseRepo, present := baseRepo.Value(); present {
 				opts.BaseRepo = func() (ghrepo.Interface, error) {
 					return baseRepo, nil
 				}
 			} else {
-				// support `-R, --repo` override
+				// 支持 `-R, --repo` 覆盖
 				opts.BaseRepo = f.BaseRepo
 			}
 
@@ -82,7 +82,7 @@ func transferRun(opts *TransferOptions) error {
 		return err
 	}
 	if issue.IsPullRequest() {
-		return fmt.Errorf("issue %s#%d is a pull request and cannot be transferred", ghrepo.FullName(baseRepo), issue.Number)
+		return fmt.Errorf("issue %s#%d 是 PR，无法转移", ghrepo.FullName(baseRepo), issue.Number)
 	}
 
 	destRepo, err := ghrepo.FromFullNameWithHost(opts.DestRepoSelector, baseRepo.RepoHost())

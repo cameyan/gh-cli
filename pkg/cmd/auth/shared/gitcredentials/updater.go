@@ -8,7 +8,7 @@ import (
 	"github.com/cli/cli/v2/git"
 )
 
-// An Updater is used to update the git credentials for a given hostname.
+// Updater 用于更新给定主机名的 git 凭据。
 type Updater struct {
 	GitClient *git.Client
 }

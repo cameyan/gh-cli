@@ -103,7 +103,7 @@ func TestArgParsing[T any](t *testing.T, fn newCmdFunc[T]) {
 			assert.True(
 				t,
 				ghrepo.IsSame(tt.expectedBaseRepo, actualBaseRepo),
-				"expected base repo %+v, got %+v", tt.expectedBaseRepo, actualBaseRepo,
+				"期望的基础仓库是 %+v，但得到 %+v", tt.expectedBaseRepo, actualBaseRepo,
 			)
 		})
 	}
@@ -113,7 +113,7 @@ func issueNumberFromOpts(t *testing.T, v any) int {
 	rv := reflect.ValueOf(v)
 	field := rv.FieldByName("IssueNumber")
 	if !field.IsValid() || field.Kind() != reflect.Int {
-		t.Fatalf("Type %T does not have IssueNumber int field", v)
+		t.Fatalf("类型 %T 不含 IssueNumber int 字段", v)
 	}
 	return int(field.Int())
 }
@@ -123,15 +123,15 @@ func baseRepoFromOpts(t *testing.T, v any) ghrepo.Interface {
 	field := rv.FieldByName("BaseRepo")
 	// check whether the field is valid and of type func() (ghrepo.Interface, error)
 	if !field.IsValid() || field.Kind() != reflect.Func {
-		t.Fatalf("Type %T does not have BaseRepo func field", v)
+		t.Fatalf("类型 %T 不含 BaseRepo 函数字段", v)
 	}
 	// call the function and check the return value
 	results := field.Call([]reflect.Value{})
 	if len(results) != 2 {
-		t.Fatalf("%T.BaseRepo() does not return two values", v)
+		t.Fatalf("%T.BaseRepo() 不返回 2 个值", v)
 	}
 	if !results[1].IsNil() {
-		t.Fatalf("%T.BaseRepo() returned an error: %v", v, results[1].Interface())
+		t.Fatalf("%T.BaseRepo() 返回了错误: %v", v, results[1].Interface())
 	}
 	return results[0].Interface().(ghrepo.Interface)
 }

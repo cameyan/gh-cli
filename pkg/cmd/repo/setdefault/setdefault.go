@@ -21,17 +21,16 @@ import (
 
 func explainer() string {
 	return heredoc.Doc(`
-		This command sets the default remote repository to use when querying the
-		GitHub API for the locally cloned repository.
+		此命令设置本地克隆仓库在查询 GitHub API 时使用的默认远程仓库。
 
-		gh uses the default repository for things like:
+		gh 在以下场景使用默认仓库:
 
-		 - viewing and creating pull requests
-		 - viewing and creating issues
-		 - viewing and creating releases
-		 - working with GitHub Actions
+		 - 查看和创建 PR
+		 - 查看和创建 issue
+		 - 查看和创建 release
+		 - 使用 GitHub Actions
 
-		### NOTE: gh does not use the default repository for managing repository and environment secrets.`)
+		### 注意: gh 在管理仓库和环境密钥时不使用默认仓库。`)
 }
 
 type iprompter interface {
@@ -61,22 +60,22 @@ func NewCmdSetDefault(f *cmdutil.Factory, runF func(*SetDefaultOptions) error) *
 
 	cmd := &cobra.Command{
 		Use:   "set-default [<repository>]",
-		Short: "Configure default repository for this directory",
+		Short: "为此目录配置默认仓库",
 		Long:  explainer(),
 		Example: heredoc.Doc(`
-			# Interactively select a default repository
+			# 交互式选择默认仓库
 			$ gh repo set-default
 
-			# Set a repository explicitly
+			# 显式设置仓库
 			$ gh repo set-default owner/repo
 
-			# Set a repository using a git remote name
+			# 使用 git 远程名称设置仓库
 			$ gh repo set-default origin
 
-			# View the current default repository
+			# 查看当前默认仓库
 			$ gh repo set-default --view
 
-			# Show more repository options in the interactive picker
+			# 在交互式选择器中显示更多仓库选项
 			$ git remote add newrepo https://github.com/owner/repo
 			$ gh repo set-default
 		`),
@@ -85,7 +84,7 @@ func NewCmdSetDefault(f *cmdutil.Factory, runF func(*SetDefaultOptions) error) *
 			if isLocal, err := opts.GitClient.IsLocalGitRepo(cmd.Context()); err != nil {
 				return err
 			} else if !isLocal {
-				return errors.New("must be run from inside a git repository")
+				return errors.New("必须在 git 仓库内运行")
 			}
 
 			if len(args) > 0 {
@@ -99,14 +98,14 @@ func NewCmdSetDefault(f *cmdutil.Factory, runF func(*SetDefaultOptions) error) *
 
 					remote, findErr := remotes.FindByName(args[0])
 					if findErr != nil {
-						return fmt.Errorf("given arg is not a valid repo or git remote: %w", err)
+						return fmt.Errorf("给定参数不是有效的仓库或 git 远程: %w", err)
 					}
 					opts.Repo = remote.Repo
 				}
 			}
 
 			if !opts.ViewMode && !opts.UnsetMode && !opts.IO.CanPrompt() && opts.Repo == nil {
-				return cmdutil.FlagErrorf("repository required when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时必须指定仓库")
 			}
 
 			if runF != nil {
@@ -117,8 +116,8 @@ func NewCmdSetDefault(f *cmdutil.Factory, runF func(*SetDefaultOptions) error) *
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.ViewMode, "view", "v", false, "View the current default repository")
-	cmd.Flags().BoolVarP(&opts.UnsetMode, "unset", "u", false, "Unset the current default repository")
+	cmd.Flags().BoolVarP(&opts.ViewMode, "view", "v", false, "查看当前默认仓库")
+	cmd.Flags().BoolVarP(&opts.UnsetMode, "unset", "u", false, "取消设置当前默认仓库")
 
 	return cmd
 }
@@ -138,7 +137,7 @@ func setDefaultRun(opts *SetDefaultOptions) error {
 			fmt.Fprintln(opts.IO.Out, displayRemoteRepoName(currentDefaultRepo))
 		} else {
 			fmt.Fprintf(opts.IO.ErrOut,
-				"%s No default remote repository has been set. To learn more about the default repository, run: gh repo set-default --help\n",
+				"%s 尚未设置默认远程仓库。若要了解默认仓库的更多信息，请运行: gh repo set-default --help\n",
 				cs.FailureIcon())
 		}
 		return nil
@@ -151,10 +150,10 @@ func setDefaultRun(opts *SetDefaultOptions) error {
 				ctx.Background(), currentDefaultRepo.Name); err != nil {
 				return err
 			}
-			msg = fmt.Sprintf("%s Unset %s as default repository",
+			msg = fmt.Sprintf("%s 已取消将 %s 设为默认仓库",
 				cs.SuccessIcon(), ghrepo.FullName(currentDefaultRepo))
 		} else {
-			msg = "no default repository has been set"
+			msg = "尚未设置默认仓库"
 		}
 
 		if opts.IO.IsStdoutTTY() {
@@ -180,7 +179,7 @@ func setDefaultRun(opts *SetDefaultOptions) error {
 		return err
 	}
 	if len(knownRepos) == 0 {
-		return errors.New("none of the git remotes correspond to a valid remote repository")
+		return errors.New("没有任何 git 远程对应有效的远程仓库")
 	}
 
 	var selectedRepo ghrepo.Interface
@@ -193,7 +192,7 @@ func setDefaultRun(opts *SetDefaultOptions) error {
 			}
 		}
 		if selectedRepo == nil {
-			return fmt.Errorf("%s does not correspond to any git remotes", ghrepo.FullName(opts.Repo))
+			return fmt.Errorf("%s 不对应任何 git 远程", ghrepo.FullName(opts.Repo))
 		}
 	}
 
@@ -201,7 +200,7 @@ func setDefaultRun(opts *SetDefaultOptions) error {
 		if len(knownRepos) == 1 {
 			selectedRepo = knownRepos[0]
 
-			fmt.Fprintf(opts.IO.Out, "Found only one known remote repo, %s on %s.\n",
+			fmt.Fprintf(opts.IO.Out, "仅发现一个已知远程仓库，即 %s 上的 %s。\n",
 				cs.Bold(ghrepo.FullName(selectedRepo)),
 				cs.Bold(selectedRepo.RepoHost()))
 		} else {
@@ -218,9 +217,9 @@ func setDefaultRun(opts *SetDefaultOptions) error {
 			fmt.Fprintln(opts.IO.Out, explainer())
 			fmt.Fprintln(opts.IO.Out)
 
-			selected, err := opts.Prompter.Select("Which repository should be the default?", current, repoNames)
+			selected, err := opts.Prompter.Select("哪个仓库应作为默认仓库？", current, repoNames)
 			if err != nil {
-				return fmt.Errorf("could not prompt: %w", err)
+				return fmt.Errorf("无法显示提示: %w", err)
 			}
 			selectedName := repoNames[selected]
 
@@ -250,7 +249,7 @@ func setDefaultRun(opts *SetDefaultOptions) error {
 
 	if opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
-		fmt.Fprintf(opts.IO.Out, "%s Set %s as the default repository for the current directory\n", cs.SuccessIcon(), ghrepo.FullName(selectedRepo))
+		fmt.Fprintf(opts.IO.Out, "%s 已将 %s 设为当前目录的默认仓库\n", cs.SuccessIcon(), ghrepo.FullName(selectedRepo))
 	}
 
 	return nil

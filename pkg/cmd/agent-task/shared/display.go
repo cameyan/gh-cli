@@ -5,7 +5,7 @@ import (
 	"github.com/cli/cli/v2/pkg/iostreams"
 )
 
-// ColorFuncForSessionState returns a function that colors the session state
+// ColorFuncForSessionState 返回一个为 session 状态着色的函数
 func ColorFuncForSessionState(s capi.Session, cs *iostreams.ColorScheme) func(string) string {
 	var stateColor func(string) string
 	switch s.State {
@@ -24,25 +24,25 @@ func ColorFuncForSessionState(s capi.Session, cs *iostreams.ColorScheme) func(st
 	return stateColor
 }
 
-// SessionStateString returns the humane/capitalised form of the given session state.
+// SessionStateString 返回给定 session 状态的可读/首字母大写形式。
 func SessionStateString(state string) string {
 	switch state {
 	case "queued":
-		return "Queued"
+		return "排队中"
 	case "in_progress":
-		return "In progress"
+		return "进行中"
 	case "completed":
-		return "Ready for review"
+		return "可评审"
 	case "failed":
-		return "Failed"
+		return "失败"
 	case "idle":
-		return "Idle"
+		return "空闲"
 	case "waiting_for_user":
-		return "Waiting for user"
+		return "等待用户"
 	case "timed_out":
-		return "Timed out"
+		return "已超时"
 	case "cancelled":
-		return "Cancelled"
+		return "已取消"
 	default:
 		return state
 	}

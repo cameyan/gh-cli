@@ -139,7 +139,7 @@ func TestTokenRun(t *testing.T) {
 			name:       "no token",
 			opts:       TokenOptions{},
 			wantErr:    true,
-			wantErrMsg: "no oauth token found for github.com",
+			wantErrMsg: "未找到 github.com 的 OAuth 令牌",
 		},
 		{
 			name: "no token for hostname user",
@@ -148,7 +148,7 @@ func TestTokenRun(t *testing.T) {
 				Username: "test-user",
 			},
 			wantErr:    true,
-			wantErrMsg: "no oauth token found for ghe.io account test-user",
+			wantErrMsg: "未找到 ghe.io 的 OAuth 令牌 的账户 test-user",
 		},
 		{
 			name: "uses default host when one is not provided",
@@ -309,7 +309,7 @@ func TestTokenRunSecureStorage(t *testing.T) {
 			opts:       TokenOptions{},
 			env:        map[string]string{"GH_TOKEN": "gho_ENVTOKEN"},
 			wantErr:    true,
-			wantErrMsg: "no oauth token found for github.com",
+			wantErrMsg: "未找到 github.com 的 OAuth 令牌",
 		},
 		{
 			name: "state 3: refreshable token in config is returned despite secure-storage",
@@ -359,7 +359,7 @@ func TestTokenRunSecureStorage(t *testing.T) {
 				Username: "test-user",
 			},
 			wantErr:    true,
-			wantErrMsg: "no oauth token found for ghe.io account test-user",
+			wantErrMsg: "未找到 ghe.io 的 OAuth 令牌 的账户 test-user",
 		},
 		{
 			// Regression guard: with --user omitted but an active user recorded, the non-refreshable keyring

@@ -143,11 +143,11 @@ func TestListRun(t *testing.T) {
 			},
 			wantStdout: heredoc.Doc(`
 
-				Showing 2 autolink references in OWNER/REPO
+                正在显示仓库 OWNER/REPO 中的 2 个自动链接引用
 
-				ID  KEY PREFIX  URL TEMPLATE                            ALPHANUMERIC
-				1   TICKET-     https://example.com/TICKET?query=<num>  true
-				2   STORY-      https://example.com/STORY?id=<num>      false
+                ID  键前缀   URL 模板                                字母数字
+                1   TICKET-  https://example.com/TICKET?query=<num>  true
+                2   STORY-   https://example.com/STORY?id=<num>      false
 			`),
 			wantStderr: "",
 		},
@@ -213,7 +213,7 @@ func TestListRun(t *testing.T) {
 			stubLister: stubAutolinkLister{
 				autolinks: []shared.Autolink{},
 			},
-			expectedErr: cmdutil.NewNoResultsError("no autolinks found in OWNER/REPO"),
+			expectedErr: cmdutil.NewNoResultsError("OWNER/REPO 中未找到自动链接"),
 			wantStderr:  "",
 		},
 		{
@@ -231,7 +231,7 @@ func TestListRun(t *testing.T) {
 			name:       "web mode",
 			isTTY:      true,
 			opts:       &listOptions{WebMode: true},
-			wantStderr: "Opening https://github.com/OWNER/REPO/settings/key_links in your browser.\n",
+			wantStderr: "正在浏览器中打开 https://github.com/OWNER/REPO/settings/key_links\n",
 		},
 	}
 

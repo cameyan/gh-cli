@@ -109,16 +109,16 @@ func TestIssueStatus_blankSlate(t *testing.T) {
 	}
 
 	expectedOutput := `
-Relevant issues in OWNER/REPO
+位于 OWNER/REPO 的相关议题
 
-Issues assigned to you
-  There are no issues assigned to you
+分配给您的议题
+  没有分配给您的议题
 
-Issues mentioning you
-  There are no issues mentioning you
+提及您的议题
+  没有提及您的议题
 
-Issues opened by you
-  There are no issues opened by you
+由您打开的议题
+  没有由您打开的议题
 
 `
 	if output.String() != expectedOutput {

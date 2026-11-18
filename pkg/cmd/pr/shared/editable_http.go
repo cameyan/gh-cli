@@ -12,8 +12,7 @@ import (
 func UpdateIssue(httpClient *http.Client, repo ghrepo.Interface, id string, isPR bool, options Editable) error {
 	var wg errgroup.Group
 
-	// Labels are updated through discrete mutations to avoid having to replace the entire list of labels
-	// and risking race conditions.
+	// 标签通过离散的 mutation 更新，以避免替换整个标签列表并引发竞态条件。
 	if options.Labels.Edited {
 		if len(options.Labels.Add) > 0 {
 			wg.Go(func() error {
@@ -35,7 +34,7 @@ func UpdateIssue(httpClient *http.Client, repo ghrepo.Interface, id string, isPR
 		}
 	}
 
-	// updateIssue mutation does not support ProjectsV2 so do them in a separate request.
+	// updateIssue mutation 不支持 ProjectsV2，因此需要在单独的请求中处理。
 	if options.Projects.Edited {
 		wg.Go(func() error {
 			apiClient := api.NewClientFromHTTP(httpClient)
@@ -60,11 +59,10 @@ func UpdateIssue(httpClient *http.Client, repo ghrepo.Interface, id string, isPR
 
 	if dirtyExcludingLabels(options) {
 		wg.Go(func() error {
-			// updateIssue mutation does not support Actors so assignment needs to
-			// be in a separate request when our assignees are Actors.
-			// Note: this is intentionally done synchronously with updating
-			// other issue fields to ensure consistency with how legacy
-			// user assignees are handled.
+			// updateIssue mutation 不支持 Actor，因此当被指派人(assignee)是 Actor 时，
+			// 指派需要放在单独的请求中完成。
+			// 注意: 这里有意与其他 issue 字段更新同步执行，
+			// 以确保与遗留用户被指派人的处理方式保持一致。
 			// https://github.com/cli/cli/pull/10960#discussion_r2086725348
 			// TODO ApiActorsSupported
 			if options.Assignees.Edited && options.ApiActorsSupported {

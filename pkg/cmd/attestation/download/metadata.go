@@ -11,7 +11,7 @@ import (
 	"github.com/cli/cli/v2/pkg/cmd/attestation/api"
 )
 
-var ErrAttestationFileCreation = fmt.Errorf("failed to write attestations to file")
+var ErrAttestationFileCreation = fmt.Errorf("将证明写入文件失败")
 
 type MetadataStore interface {
 	createMetadataFile(artifactDigest string, attestationsResp []*api.Attestation) (string, error)
@@ -31,8 +31,8 @@ func (s *LiveStore) createJSONLinesFilePath(artifact string) string {
 
 func (s *LiveStore) createJSONLinesFileName(artifact string) string {
 	if runtime.GOOS == "windows" {
-		// Colons are special characters in Windows and cannot be used in file names.
-		// Replace them with dashes to avoid issues.
+		// 冒号在 Windows 上是特殊字符，不能用于文件名。
+		// 将其替换为短横线以避免问题。
 		artifact = strings.ReplaceAll(artifact, ":", "-")
 	}
 
@@ -48,13 +48,13 @@ func (s *LiveStore) createMetadataFile(artifactDigest string, attestationsResp [
 
 	root, err := safepaths.OpenRootDir(outputPath, 0o755)
 	if err != nil {
-		return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("failed to open output directory: %v", err))
+		return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("打开输出目录失败: %v", err))
 	}
 	defer root.Close()
 
 	f, err := root.Create(s.createJSONLinesFileName(artifactDigest), 0o666, 0o755, true)
 	if err != nil {
-		return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("failed to create file: %v", err))
+		return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("创建文件失败: %v", err))
 	}
 
 	for _, resp := range attestationsResp {
@@ -62,24 +62,24 @@ func (s *LiveStore) createMetadataFile(artifactDigest string, attestationsResp [
 		attBytes, err := json.Marshal(bundle)
 		if err != nil {
 			if err = f.Close(); err != nil {
-				return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("failed to close file while marshalling JSON: %v", err))
+				return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("序列化 JSON 时关闭文件失败: %v", err))
 			}
-			return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("failed to marshall attestation to JSON while writing to file: %v", err))
+			return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("写入文件时将证明序列化为 JSON 失败: %v", err))
 		}
 
 		withNewline := fmt.Sprintf("%s\n", attBytes)
 		_, err = f.Write([]byte(withNewline))
 		if err != nil {
 			if err = f.Close(); err != nil {
-				return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("failed to close file while handling write error: %v", err))
+				return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("处理写入错误时关闭文件失败: %v", err))
 			}
 
-			return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("failed to write attestations: %v", err))
+			return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("写入证明失败: %v", err))
 		}
 	}
 
 	if err = f.Close(); err != nil {
-		return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("failed to close file after writing attestations: %v", err))
+		return "", errors.Join(ErrAttestationFileCreation, fmt.Errorf("写入证明后关闭文件失败: %v", err))
 	}
 
 	return metadataFilePath, nil

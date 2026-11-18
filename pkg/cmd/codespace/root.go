@@ -18,7 +18,7 @@ func (e *ghExecutable) Executable() string {
 func NewCmdCodespace(f *cmdutil.Factory) *cobra.Command {
 	root := &cobra.Command{
 		Use:     "codespace",
-		Short:   "Connect to and manage codespaces",
+		Short:   "连接并管理 codespace",
 		Aliases: []string{"cs"},
 		GroupID: "core",
 	}

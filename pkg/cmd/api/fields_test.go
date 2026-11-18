@@ -154,7 +154,7 @@ func Test_parseFields_errors(t *testing.T) {
 					"object[field][]=this should be an error",
 				},
 			},
-			expected: `expected array type under "field", got string`,
+			expected: `"field" 下应为数组类型, 实际为 string`,
 		},
 		{
 			name: "cannot overwrite string to object",
@@ -165,7 +165,7 @@ func Test_parseFields_errors(t *testing.T) {
 					"object[field][field2]=this should be an error",
 				},
 			},
-			expected: `expected map type under "field", got string`,
+			expected: `"field" 下应为 map 类型, 实际为 string`,
 		},
 		{
 			name: "cannot overwrite object to string",
@@ -176,7 +176,7 @@ func Test_parseFields_errors(t *testing.T) {
 					"object[field]=this should be an error",
 				},
 			},
-			expected: `unexpected override existing field under "field"`,
+			expected: `意外覆盖了 "field" 下已有的字段`,
 		},
 		{
 			name: "cannot overwrite object to array",
@@ -187,7 +187,7 @@ func Test_parseFields_errors(t *testing.T) {
 					"object[field][]=this should be an error",
 				},
 			},
-			expected: `expected array type under "field", got map[string]interface {}`,
+			expected: `"field" 下应为数组类型, 实际为 map[string]interface {}`,
 		},
 		{
 			name: "cannot overwrite array to string",
@@ -198,7 +198,7 @@ func Test_parseFields_errors(t *testing.T) {
 					"object[field]=this should be an error",
 				},
 			},
-			expected: `unexpected override existing field under "field"`,
+			expected: `意外覆盖了 "field" 下已有的字段`,
 		},
 		{
 			name: "cannot overwrite array to object",
@@ -209,7 +209,7 @@ func Test_parseFields_errors(t *testing.T) {
 					"object[field][field2]=this should be an error",
 				},
 			},
-			expected: `expected map type under "field", got []interface {}`,
+			expected: `"field" 下应为 map 类型, 实际为 []interface {}`,
 		},
 	}
 
