@@ -156,7 +156,7 @@ func version() string {
     // 取最近 tag 名称 + 后续提交笔数 + 最新 Hash 值作为版本号，如 v2.105.0-1-zh-2-g3563407d6
     // 自定义修改: 去除 -zh 和 Hash 值后缀，如 v2.105.0-1
 	if desc, err := cmdOutput("git", "describe", "--tags", "--abbrev=0"); err == nil {
-		return strings.TrimSuffix(desc, "-zh")
+		return desc
 	}
     // 取当前 git 仓库当前短 Hash 值作为版本号
 	rev, _ := cmdOutput("git", "rev-parse", "--short", "HEAD")
