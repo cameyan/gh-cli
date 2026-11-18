@@ -14,7 +14,7 @@ permissions:
 on:
   push:
     tags:
-      - 'v*-zh'
+      - 'v*'
 
 jobs:
   linux:
