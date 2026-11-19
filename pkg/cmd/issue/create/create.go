@@ -81,11 +81,10 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 		Long: heredoc.Docf(`
 			在 GitHub 上创建 issue。
 
-			Use %[1]s--attach%[1]s to upload an image or video. The attachment is appended to the
-			body. If the body references an attached file, such as %[1]s![alt](./login.png)%[1]s, that
-			reference is rewritten to point at the uploaded asset instead. Paths in a
-			%[1]s--body-file%[1]s are relative to its directory, falling back to the working directory.
-			You can attach up to 50 files per command.
+			使用 %[1]s--attach%[1]s 上传图片或视频。附件会附加到正文中。如果正文引用了附件文件(例如 %[1]s![alt](./login.png)%[1]s)，
+			该引用将被重写为指向上传的资源。%[1]s--body-file%[1]s 中的路径相对于其所在目录，若该目录不存在则回退到工作目录。
+
+			每条命令最多可附加 50 个文件。
 
 			图片的替代文本会跟在 %[1]s#%[1]s 之后的路径中，如 %[1]s--attach './login.png#The login error state'%[1]s。
 			若不提供，则使用文件名。正文中已有的引用会保留写在其处的替代文本。视频会渲染为播放器且没有替代文本，因此无法为其指定。

@@ -21,12 +21,13 @@ import (
 func NewCmdArtifact(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "artifact <command>",
-		Short: "Work with issue artifacts (preview)",
+		Short: "处理 issue 产物 (预览版)",
 		Long: heredoc.Docf(`
-			Working with issue artifacts in the GitHub CLI is in preview and subject to change without notice.
+			在 GitHub CLI 中处理 issue 产物目前处于预览阶段，可能会在没有通知的情况下发生变化。
 
-			Issue artifacts are Markdown documents, HTML documents and links attached to an issue.
-			They are not GitHub Actions artifacts; to download those, use %[1]sgh run download%[1]s.
+			issue 产物是附加到 issue 上的 Markdown 文档、HTML 文档和链接。
+
+			它们不是 GitHub Actions 产物；要下载这些 产物，请使用 %[1]sgh run download%[1]s。
 		`, "`"),
 	}
 

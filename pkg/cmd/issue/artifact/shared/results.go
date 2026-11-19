@@ -49,7 +49,7 @@ func PrintSkip(ios *iostreams.IOStreams, r Result, subject, reason string) {
 		printResultLine(ios.Out, "skipped", r, reason)
 		return
 	}
-	fmt.Fprintf(ios.Out, "%s Skipped %s: %s\n", ios.ColorScheme().Muted("-"), subject, reason)
+	fmt.Fprintf(ios.Out, "%s 已跳过 %s: %s\n", ios.ColorScheme().Muted("-"), subject, reason)
 }
 
 // PrintUnchanged prints the line for an artifact the command didn't change
@@ -76,7 +76,7 @@ func PrintFailure(ios *iostreams.IOStreams, r Result, action string, err error) 
 		printResultLine(ios.Out, "failed", r, reason)
 		return
 	}
-	fmt.Fprintf(ios.ErrOut, "%s Failed to %s: %s\n", ios.ColorScheme().FailureIcon(), action, reason)
+	fmt.Fprintf(ios.ErrOut, "%s 执行 %s 失败: %s\n", ios.ColorScheme().FailureIcon(), action, reason)
 }
 
 // PrintPartialFailure prints the line for an artifact the command acted on
@@ -92,7 +92,7 @@ func PrintPartialFailure(ios *iostreams.IOStreams, status string, r Result, mess
 		printResultLine(ios.Out, status, r, reason)
 		return
 	}
-	fmt.Fprintf(ios.ErrOut, "%s %s, but %s\n", ios.ColorScheme().WarningIcon(), message, reason)
+	fmt.Fprintf(ios.ErrOut, "%s %s，但是 %s\n", ios.ColorScheme().WarningIcon(), message, reason)
 }
 
 // printResultLine prints a piped result line. Every line has all five

@@ -55,33 +55,31 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 
 	cmd := &cobra.Command{
 		Use:   "edit {<issue> <artifact-number> | <artifact-url>}",
-		Short: "Edit an issue artifact (preview)",
+		Short: "编辑一个 issue 产物 (预览版)",
 		Long: heredoc.Docf(`
-			Rename an issue artifact or replace its content. The type never changes, so a
-			link's new content must be an http(s) URL or a %[1]s.url%[1]s Internet Shortcut file.
+			重命名 issue 产物或替换其内容。类型不会改变，因此链接的新内容必须是 http(s) URL 或 %[1]s.url%[1]s 互联网快捷方式文件。
 
-			Name the artifact by its issue and number, or by its URL. %[1]s<issue>%[1]s is an
-			issue number or URL.
+			按 issue 和编号或其 URL 命名该产物。%[1]s<issue>%[1]s 是一个 issue 或 URL。
 
-			With only %[1]s--attach%[1]s, the attachments are appended to the current content.
+			仅使用 %[1]s--attach%[1]s，附件将被追加到当前内容中。
 
-			With %[1]s--restore-version%[1]s, an earlier version's name and content are saved as a
-			new version. %[1]sgh issue artifact view%[1]s shows the edit history.
+			使用 %[1]s--restore-version%[1]s，可以将旧版本的名称和内容保存为新版本。%[1]sgh issue artifact view%[1]s
+			可查看编辑历史。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Rename an artifact
+			# 重命名一个产物
 			$ gh issue artifact edit 142 2 --name 'OAuth callback plan v2'
 
-			# Replace a document's content with a file
+			# 用文件替换文档内容
 			$ gh issue artifact edit 142 2 --body-file 2-OAuth-callback-plan.md
 
-			# Point a link at a new URL
+			# 将链接指向新的 URL
 			$ gh issue artifact edit 142 3 --body https://github.com/monalisa/monas-cafe/wiki/OAuth-runbook-v2
 
-			# Append an image to a document
+			# 在文档中添加一张图片
 			$ gh issue artifact edit 142 2 --attach ./signin-flow.png
 
-			# Restore an earlier version
+			# 恢复早期版本
 			$ gh issue artifact edit 142 2 --restore-version 5
 		`),
 		Args: cmdutil.RangeArgs(1, 2, shared.MissingArtifactMessage),
@@ -96,20 +94,20 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 			editing := opts.Name != nil || opts.Body != nil || opts.BodyFile != "" || opts.AttachFlag.Changed()
 			restoring := cmd.Flags().Changed("restore-version")
 			if restoring && editing {
-				return cmdutil.FlagErrorf("the `--restore-version` flag is not supported with `--name`, `--body`, `--body-file`, or `--attach`")
+				return cmdutil.FlagErrorf("`--restore-version` 标志不支持与 `--name`, `--body`, `--body-file`, `--attach` 一起使用")
 			}
-			if err := cmdutil.MutuallyExclusive("specify only one of `--body` or `--body-file`", opts.Body != nil, opts.BodyFile != ""); err != nil {
+			if err := cmdutil.MutuallyExclusive("仅指定 `--body` 或 `--body-file` 其中之一即可", opts.Body != nil, opts.BodyFile != ""); err != nil {
 				return err
 			}
 			switch {
 			case restoring && opts.RestoreVersion < 1:
-				return cmdutil.FlagErrorf("invalid version: %v", opts.RestoreVersion)
+				return cmdutil.FlagErrorf("无效版本: %v", opts.RestoreVersion)
 			case !restoring && !editing:
-				return cmdutil.FlagErrorf("specify at least one of `--name`, `--body`, `--body-file`, `--attach`, or `--restore-version`")
+				return cmdutil.FlagErrorf("至少指定以下参数之一: `--name`, `--body`, `--body-file`, `--attach`, `--restore-version`")
 			case opts.Name != nil && *opts.Name == "":
-				return cmdutil.FlagErrorf("`--name` cannot be blank")
+				return cmdutil.FlagErrorf("`--name` 不能为空")
 			case opts.Body != nil && strings.TrimSpace(*opts.Body) == "":
-				return cmdutil.FlagErrorf("`--body` cannot be blank")
+				return cmdutil.FlagErrorf("`--body` 不能为空")
 			}
 
 			opts.AttachEvent = attachments.BeginTelemetry(telemetry, cmd.CommandPath(), opts.AttachFlag.Count())
@@ -126,11 +124,11 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 		},
 	}
 
-	cmdutil.NilStringFlag(cmd, &opts.Body, "body", "b", "New content; for a link, a URL")
-	cmd.Flags().StringVarP(&opts.BodyFile, "body-file", "F", "", "Read new content from `file` (use \"-\" to read from standard input)")
-	cmdutil.NilStringFlag(cmd, &opts.Name, "name", "", "New name")
+	cmdutil.NilStringFlag(cmd, &opts.Body, "body", "b", "新内容；用于链接，一个 URL")
+	cmd.Flags().StringVarP(&opts.BodyFile, "body-file", "F", "", "从 `file` 读取新内容(使用 \"-\" 表示从标准输入读取)")
+	cmdutil.NilStringFlag(cmd, &opts.Name, "name", "", "新名称")
 	opts.AttachFlag = attachments.AddFlag(cmd)
-	cmd.Flags().IntVar(&opts.RestoreVersion, "restore-version", 0, "Restore the version with this `number` from the edit history")
+	cmd.Flags().IntVar(&opts.RestoreVersion, "restore-version", 0, "从编辑历史中恢复带有此`编号`的版本")
 
 	return cmd
 }
@@ -166,9 +164,9 @@ func editRun(opts *EditOptions) error {
 		return err
 	}
 
-	action := fmt.Sprintf("update artifact %d", opts.ArtifactNumber)
+	action := fmt.Sprintf("更新产物 %d", opts.ArtifactNumber)
 	if opts.RestoreVersion > 0 {
-		action = fmt.Sprintf("restore artifact %d", opts.ArtifactNumber)
+		action = fmt.Sprintf("恢复产物 %d", opts.ArtifactNumber)
 	}
 	result := shared.Result{Number: opts.ArtifactNumber, Source: opts.BodyFile}
 	current, err := c.Get(repo, opts.IssueNumber, opts.ArtifactNumber)
@@ -214,7 +212,7 @@ func editRun(opts *EditOptions) error {
 	}
 
 	result.Name = text.RemoveExcessiveWhitespace(updated.Name)
-	message := fmt.Sprintf("Updated artifact %d (%s) on %s#%d", opts.ArtifactNumber, result.Name, ghrepo.FullName(repo), opts.IssueNumber)
+	message := fmt.Sprintf("已更新产物 %d (%s) 在 %s#%d", opts.ArtifactNumber, result.Name, ghrepo.FullName(repo), opts.IssueNumber)
 	if uploadErr != nil {
 		shared.PrintPartialFailure(opts.IO, "updated", result, message, uploadErr)
 		return cmdutil.SilentError
@@ -236,8 +234,8 @@ func restoreVersion(opts *EditOptions, c client.ArtifactClient, repo ghrepo.Inte
 	// FindVersion returns nil for the current version, which the artifact
 	// matches.
 	if v == nil || (v.Name == current.Name && v.Body == current.Body) {
-		message := fmt.Sprintf("Artifact %d (%s) on %s#%d already matches version %d", opts.ArtifactNumber, result.Name, ghrepo.FullName(repo), opts.IssueNumber, opts.RestoreVersion)
-		shared.PrintUnchanged(opts.IO, result, message, fmt.Sprintf("already matches version %d", opts.RestoreVersion))
+		message := fmt.Sprintf("产物 %d (%s) 在 %s#%d 上已匹配版本 %d", opts.ArtifactNumber, result.Name, ghrepo.FullName(repo), opts.IssueNumber, opts.RestoreVersion)
+		shared.PrintUnchanged(opts.IO, result, message, fmt.Sprintf("已匹配版本 %d", opts.RestoreVersion))
 		return nil
 	}
 
@@ -248,7 +246,7 @@ func restoreVersion(opts *EditOptions, c client.ArtifactClient, repo ghrepo.Inte
 	}
 
 	result.Name = text.RemoveExcessiveWhitespace(updated.Name)
-	message := fmt.Sprintf("Restored artifact %d (%s) to version %d on %s#%d", opts.ArtifactNumber, result.Name, opts.RestoreVersion, ghrepo.FullName(repo), opts.IssueNumber)
+	message := fmt.Sprintf("已经产物 %[1]d (%[2]s) 恢复到 %[4]s#%[5]d 上的 %[3]d 版本", opts.ArtifactNumber, result.Name, opts.RestoreVersion, ghrepo.FullName(repo), opts.IssueNumber)
 	shared.PrintSuccess(opts.IO, "restored", result, opts.IO.ColorScheme().SuccessIcon(), message)
 	return nil
 }
@@ -268,7 +266,7 @@ func readContent(opts *EditOptions) (*string, string, error) {
 		if source == "-" {
 			source = "standard input"
 		}
-		return nil, "", fmt.Errorf("failed to read new content for artifact %d from %s: %w", opts.ArtifactNumber, source, err)
+		return nil, "", fmt.Errorf("从 %[2]s 读取产物 %[1]d 的新内容失败: %[3]w", opts.ArtifactNumber, source, err)
 	}
 	return &content, dir, nil
 }
@@ -283,13 +281,13 @@ func readContent(opts *EditOptions) (*string, string, error) {
 func newBody(opts *EditOptions, a client.Artifact, content *string) (*string, error) {
 	if len(opts.Assets) > 0 && !shared.SupportsAttachments(a.Type) {
 		if a.Type == client.TypeEmbeddedHTML {
-			return nil, errors.New("`--attach` can't be used with HTML artifacts")
+			return nil, errors.New("`--attach` 不能与 HTML 工件一起使用")
 		}
-		return nil, fmt.Errorf("artifact %d is a %s; `--attach` can't be used with %s artifacts", a.Number, a.Type, a.Type)
+		return nil, fmt.Errorf("产物 %d 是一个 %s；`--attach` 不能与 %s 类型的产物一起使用", a.Number, a.Type, a.Type)
 	}
 	if a.Type != client.TypeLink {
 		if shared.IsShortcutFile(opts.BodyFile) {
-			return nil, fmt.Errorf("artifact %d is not a link; .url files can only update link artifacts", a.Number)
+			return nil, fmt.Errorf("产物 %d 不是链接；.url 文件只能更新链接产物", a.Number)
 		}
 		if content == nil && len(opts.Assets) > 0 {
 			return &a.Body, nil
@@ -303,7 +301,7 @@ func newBody(opts *EditOptions, a client.Artifact, content *string) (*string, er
 	if shared.IsShortcutFile(opts.BodyFile) {
 		u, err := shared.ShortcutURL(*content)
 		if errors.Is(err, shared.ErrNoShortcutSection) {
-			return nil, fmt.Errorf("%s: %w; pass the URL with `--body` instead", opts.BodyFile, err)
+			return nil, fmt.Errorf("%s: %w；使用 `--body` 传递 URL 代替", opts.BodyFile, err)
 		} else if err != nil {
 			return nil, fmt.Errorf("%s: %w", opts.BodyFile, err)
 		}
@@ -311,7 +309,7 @@ func newBody(opts *EditOptions, a client.Artifact, content *string) (*string, er
 	}
 	u, ok := shared.HTTPURL(*content)
 	if !ok {
-		return nil, fmt.Errorf("artifact %d is a link; pass an http(s) URL with `--body` or a .url file with `--body-file`", a.Number)
+		return nil, fmt.Errorf("产物 %d 是一个链接；请使用 `--body` 传递 http(s) URL，或使用 `--body-file` 传递 .url 文件", a.Number)
 	}
 	return &u, nil
 }

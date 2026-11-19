@@ -100,7 +100,7 @@ func (e authEntry) String(cs *iostreams.ColorScheme) string {
 		if e.Refreshable {
 			e.writeExpiry(&sb, cs)
 			if e.justRefreshed {
-				sb.WriteString("  - Token refreshed just now\n")
+				sb.WriteString("  - 令牌刚刚刷新了\n")
 			}
 		}
 
@@ -120,15 +120,15 @@ func (e authEntry) String(cs *iostreams.ColorScheme) string {
 
 	case authEntryStateError:
 		if e.expiredWithoutRefresh {
-			sb.WriteString(fmt.Sprintf("  %s Token for %s account %s (%s) has expired\n", cs.Red("X"), e.Host, cs.Bold(e.Login), e.TokenSource))
+			sb.WriteString(fmt.Sprintf("  %s %s 账户 %s (%s) 的令牌已过期\n", cs.Red("X"), e.Host, cs.Bold(e.Login), e.TokenSource))
 			activeStr := fmt.Sprintf("%v", e.Active)
-			sb.WriteString(fmt.Sprintf("  - Active account: %s\n", cs.Bold(activeStr)))
+			sb.WriteString(fmt.Sprintf("  - 活跃账户: %s\n", cs.Bold(activeStr)))
 			e.writeExpiry(&sb, cs)
 			if e.RefreshTokenExpiresAt != nil && !e.RefreshTokenExpiresAt.After(timeNow()) {
 				loginInstructions := fmt.Sprintf("gh auth login -h %s", e.Host)
-				sb.WriteString(fmt.Sprintf("  - To re-authenticate, run: %s\n", cs.Bold(loginInstructions)))
+				sb.WriteString(fmt.Sprintf("  - 要重新进行身份验证，请运行: %s\n", cs.Bold(loginInstructions)))
 			} else {
-				sb.WriteString(fmt.Sprintf("  - To refresh it, run %s (without %s)\n", cs.Bold("gh auth status"), cs.Bold("--no-refresh")))
+				sb.WriteString(fmt.Sprintf("  - 要刷新它，请运行: %s (不带 %s)\n", cs.Bold("gh auth status"), cs.Bold("--no-refresh")))
 			}
 			break
 		}
@@ -139,7 +139,7 @@ func (e authEntry) String(cs *iostreams.ColorScheme) string {
 		}
 		activeStr := fmt.Sprintf("%v", e.Active)
 		sb.WriteString(fmt.Sprintf("  - 活跃账户: %s\n", cs.Bold(activeStr)))
-		sb.WriteString(fmt.Sprintf("  - %s 中的令牌无效。\n", e.TokenSource))
+		sb.WriteString(fmt.Sprintf("  - %s 中的令牌无效\n", e.TokenSource))
 		if authTokenWriteable(e.TokenSource) {
 			loginInstructions := fmt.Sprintf("gh auth login -h %s", e.Host)
 			if shared.AuthTokenRefreshable(e.Token, e.TokenSource) {
@@ -157,38 +157,38 @@ func (e authEntry) String(cs *iostreams.ColorScheme) string {
 			sb.WriteString(fmt.Sprintf("  %s 使用令牌登录 %s 时超时 (%s)\n", cs.Red("X"), e.Host, e.TokenSource))
 		}
 		activeStr := fmt.Sprintf("%v", e.Active)
-		sb.WriteString(fmt.Sprintf("  - Active account: %s\n", cs.Bold(activeStr)))
+		sb.WriteString(fmt.Sprintf("  - 活跃账户: %s\n", cs.Bold(activeStr)))
 
 	case authEntryStateRefreshExpired:
 		if e.Login != "" {
-			sb.WriteString(fmt.Sprintf("  %s Refresh token for %s account %s was rejected\n", cs.Red("X"), e.Host, cs.Bold(e.Login)))
+			sb.WriteString(fmt.Sprintf("  %s %s 账户 %s 刷新令牌被拒绝\n", cs.Red("X"), e.Host, cs.Bold(e.Login)))
 		} else {
-			sb.WriteString(fmt.Sprintf("  %s Refresh token for %s was rejected\n", cs.Red("X"), e.Host))
+			sb.WriteString(fmt.Sprintf("  %s %s 刷新令牌被拒绝\n", cs.Red("X"), e.Host))
 		}
 		activeStr := fmt.Sprintf("%v", e.Active)
-		sb.WriteString(fmt.Sprintf("  - Active account: %s\n", cs.Bold(activeStr)))
-		sb.WriteString("  - The stored expiring credential was removed because its refresh token is no longer valid.\n")
+		sb.WriteString(fmt.Sprintf("  - 活跃账户: %s\n", cs.Bold(activeStr)))
+		sb.WriteString("  - 存储的即将过期的凭证已被移除，因为其刷新令牌已不再有效\n")
 		loginInstructions := fmt.Sprintf("gh auth login -h %s", e.Host)
-		sb.WriteString(fmt.Sprintf("  - To re-authenticate, run: %s\n", cs.Bold(loginInstructions)))
+		sb.WriteString(fmt.Sprintf("  - 要重新进行身份验证，请运行: %s\n", cs.Bold(loginInstructions)))
 	}
 
 	if e.Error != "" {
-		sb.WriteString(fmt.Sprintf("  - Error: %s\n", e.Error))
+		sb.WriteString(fmt.Sprintf("  - 错误: %s\n", e.Error))
 	}
 
 	return sb.String()
 }
 
 func (e authEntry) writeExpiry(sb *strings.Builder, cs *iostreams.ColorScheme) {
-	sb.WriteString("  - Expiring token that gh refreshes automatically\n")
+	sb.WriteString("  - 即将过期的令牌，GitHub 会自动刷新\n")
 	if e.TokenExpiresAt != nil {
 		expiresAt := e.TokenExpiresAt.UTC()
-		sb.WriteString(fmt.Sprintf("  - Token expires: %s (%s)\n",
+		sb.WriteString(fmt.Sprintf("  - 令牌已过期: %s (%s)\n",
 			cs.Bold(expiresAt.Format(time.RFC3339)), relativeToNow(expiresAt)))
 	}
 	if e.RefreshTokenExpiresAt != nil {
 		refreshExpiresAt := e.RefreshTokenExpiresAt.UTC()
-		sb.WriteString(fmt.Sprintf("  - Refresh token expires: %s (%s)\n",
+		sb.WriteString(fmt.Sprintf("  - 刷新令牌有效期: %s (%s)\n",
 			cs.Bold(refreshExpiresAt.Format(time.RFC3339)), relativeToNow(refreshExpiresAt)))
 	}
 }
@@ -226,9 +226,9 @@ func NewCmdStatus(f *cmdutil.Factory, runF func(*StatusOptions) error) *cobra.Co
 			该命令将以退出码 1 退出并将结果输出到 stderr。注意，使用 %[1]s--json%[1]s 选项时，该命令
 			将始终以零退出，除非发生致命错误，与身份验证问题无关。
 
-			Any expired or near-expiry token that supports refreshing is refreshed automatically, unless %[1]s--no-refresh%[1]s is given.
+			任何已过期或即将过期的支持刷新的令牌都会自动刷新，除非使用了 %[1]s--no-refresh%[1]s 参数。
 
-			To change the active account for a host, see %[1]sgh auth switch%[1]s.
+            要更改主机的活动账户，请参阅 %[1]sgh auth switch%[1]s。
 		`, "`"),
 		Example: heredoc.Doc(`
 			# 显示所有主机上所有账户的身份验证状态
@@ -258,10 +258,10 @@ func NewCmdStatus(f *cmdutil.Factory, runF func(*StatusOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "Check only a specific hostname's auth status")
-	cmd.Flags().BoolVarP(&opts.ShowToken, "show-token", "t", false, "Display the auth token")
-	cmd.Flags().BoolVarP(&opts.Active, "active", "a", false, "Display the active account only")
-	cmd.Flags().BoolVar(&opts.NoRefresh, "no-refresh", false, "Do not automatically refresh expired tokens")
+	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "仅检查特定主机名的身份验证状态")
+	cmd.Flags().BoolVarP(&opts.ShowToken, "show-token", "t", false, "显示认证令牌")
+	cmd.Flags().BoolVarP(&opts.Active, "active", "a", false, "仅显示活动账户")
+	cmd.Flags().BoolVar(&opts.NoRefresh, "no-refresh", false, "不要自动刷新过期的令牌")
 
 	// json 标志刻意不设置简写，以避免与 -t/--show-token 冲突
 	cmdutil.AddJSONFlagsWithoutShorthand(cmd, &opts.Exporter, authStatusFields)
@@ -482,7 +482,7 @@ func buildEntry(httpClient *http.Client, opts buildEntryOptions) authEntry {
 	// live is of no use to the user now.
 	if opts.refreshStatus == gh.RefreshStatusExpired {
 		entry.State = authEntryStateRefreshExpired
-		entry.Error = fmt.Sprintf("refresh token for %s was rejected; the stored credential was removed", opts.hostname)
+		entry.Error = fmt.Sprintf("用于 %s 的刷新令牌被拒绝；已移除存储的凭据", opts.hostname)
 		return entry
 	}
 

@@ -36,10 +36,10 @@ func ReadContent(path string, stdin io.ReadCloser) (content, dir string, err err
 	}
 
 	if strings.TrimSpace(content) == "" {
-		return "", "", fmt.Errorf("%s is empty", what)
+		return "", "", fmt.Errorf("%s 为空", what)
 	}
 	if gistShared.IsBinaryContents([]byte(content)) {
-		return "", "", fmt.Errorf("binary %s not supported", what)
+		return "", "", fmt.Errorf("不支持二进制 %s", what)
 	}
 	return content, dir, nil
 }
@@ -92,7 +92,7 @@ func ShortcutURL(content string) (string, error) {
 		}
 		u, ok := HTTPURL(value)
 		if !ok {
-			return "", errors.New("the shortcut doesn't link to an http(s) URL")
+			return "", errors.New("快捷方式未链接到 http(s) URL")
 		}
 		return u, nil
 	}
@@ -100,5 +100,5 @@ func ShortcutURL(content string) (string, error) {
 	if !sawSection {
 		return "", ErrNoShortcutSection
 	}
-	return "", errors.New("no URL in the [InternetShortcut] section")
+	return "", errors.New("[InternetShortcut] 章节中没有 URL")
 }

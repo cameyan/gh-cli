@@ -75,18 +75,17 @@ func NewCmdRefresh(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder,
 
 			%[1]s--reset-scopes%[1]s 标志将 gh 凭据的作用域重置为您身份验证流程的默认作用域集合。
 
-			Use %[1]s--expiring%[1]s to prefer expiring credentials that gh refreshes automatically, or
-			%[1]s--expiring=false%[1]s to prefer a non-expiring token. This is a preference, not a guarantee:
-			whether expiring tokens are issued depends on the host and the OAuth app configuration. A host
-			without support issues a non-expiring token instead, and a host configured for them may issue
-			expiring tokens even without the flag. Without the flag, refresh keeps the current token's kind,
-			so an expiring token stays expiring and a non-expiring token stays non-expiring.
-			When using expiring credentials for git operations, git 2.46 or newer is recommended so
-			gh can mark the token as non-cacheable; with older git a credential caching helper may store
-			and reuse an expired token.
+			使用 %[1]s--expiring%[1]s 可以优先选择 GitHub 会自动刷新的有效期令牌，或者使用 %[1]s--expiring=false%[1]s
+			来优先选择非有效期令牌。这是一种偏好设置，而非保证: 是否发放有效期令牌取决于主机和 OAuth
+			应用配置。若主机不支持有效期令牌，则会发放非有效期令牌；而即使未使用该标志，配置了有效期令
+			牌的主机也可能发放有效期令牌。若不使用该标志，刷新操作将保留当前令牌的类型，因此有效期令牌
+			仍为有效期状态，非有效期令牌仍为非有效期状态。
 
-			For more information on OAuth scopes, see
-			<https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps/>.
+            在使用有效期令牌进行 git 操作时，建议使用 git 2.46 或更高版本，以便 gh 可以将令牌标记为
+            不可缓存；若使用旧版 git，凭证缓存助手可能会存储并重复使用已过期的令牌。
+
+			有关 OAuth 范围的更多信息，请参阅:
+			<https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps/>
 		`, "`"),
 		Example: heredoc.Doc(`
 			# 打开浏览器添加 write:org 和 read:public_key 作用域
@@ -133,8 +132,8 @@ func NewCmdRefresh(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder,
 	cmd.Flags().BoolVar(&secureStorage, "secure-storage", false, "将身份验证凭据保存在安全的凭据存储中")
 	_ = cmd.Flags().MarkHidden("secure-storage")
 
-	cmd.Flags().BoolVarP(&opts.InsecureStorage, "insecure-storage", "", false, "Save authentication credentials in plain text instead of credential store")
-	cmdutil.NilBoolFlag(cmd, &opts.Expiring, "expiring", "", "Prefer expiring credentials that gh refreshes automatically, if the host supports them")
+	cmd.Flags().BoolVarP(&opts.InsecureStorage, "insecure-storage", "", false, "以明文形式保存身份验证凭据，而非使用凭据存储库")
+	cmdutil.NilBoolFlag(cmd, &opts.Expiring, "expiring", "", "如果主机支持，优先使用 GitHub 自动刷新的有效期令牌")
 
 	return cmd
 }
@@ -223,7 +222,7 @@ func refreshRun(opts *RefreshOptions) error {
 			}
 		}
 		if !scopesPreserved {
-			fmt.Fprintf(opts.IO.ErrOut, "%s Could not read the current token's scopes, so the refreshed token may not retain them. Re-add any you still need with --scopes.\n", cs.WarningIcon())
+			fmt.Fprintf(opts.IO.ErrOut, "%s 无法读取当前令牌的权限范围，因此刷新后的令牌可能无法保留这些权限。如需保留，请使用 --scopes 重新添加所需权限。\n", cs.WarningIcon())
 		}
 	}
 
@@ -276,7 +275,7 @@ func refreshRun(opts *RefreshOptions) error {
 
 	activeUser, _ := authCfg.ActiveUser(hostname)
 	if activeUser != "" && activeUser != result.Username {
-		return fmt.Errorf("error refreshing credentials for %s, received credentials for %s, did you use the correct account in the browser?", activeUser, result.Username)
+		return fmt.Errorf("刷新凭证 %s 时出错，收到凭证 %s，您在浏览器中是否使用了正确的账户？", activeUser, result.Username)
 	}
 	if result.Refreshable != nil {
 		if insecureStorageUsed, err := authCfg.LoginRefreshable(hostname, result.Username, *result.Refreshable, "", !opts.InsecureStorage); err != nil {
@@ -302,11 +301,11 @@ func refreshRun(opts *RefreshOptions) error {
 	// configuration, so it may issue a refreshable token without being asked or a non-expiring one despite the request.
 	switch {
 	case result.Refreshable != nil && !expiring:
-		fmt.Fprintf(opts.IO.ErrOut, "%s Host issues expiring refreshable token\n", cs.WarningIcon())
+		fmt.Fprintf(opts.IO.ErrOut, "%s 主机问题导致可续期令牌过期\n", cs.WarningIcon())
 	case result.Refreshable != nil:
-		fmt.Fprintf(opts.IO.ErrOut, "%s Received expiring refreshable token\n", cs.SuccessIcon())
+		fmt.Fprintf(opts.IO.ErrOut, "%s 收到即将过期的可刷新令牌\n", cs.SuccessIcon())
 	case expiring:
-		fmt.Fprintf(opts.IO.ErrOut, "%s Host did not issue an expiring refreshable token\n", cs.WarningIcon())
+		fmt.Fprintf(opts.IO.ErrOut, "%s 主机未发出即将过期的可刷新令牌\n", cs.WarningIcon())
 	}
 
 	if credentialFlow.ShouldSetup() {

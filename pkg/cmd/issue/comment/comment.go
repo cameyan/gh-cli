@@ -34,12 +34,11 @@ func NewCmdComment(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder,
 
 			如果未通过选项提供正文文本或附件，命令将以交互方式提示输入评论文本。
 
-			Use %[1]s--attach%[1]s to upload an image or video. If the body already references an
-			attached file, such as %[1]s![alt](./login.png)%[1]s, that reference is rewritten to point
-			at the uploaded asset. Paths in a %[1]s--body-file%[1]s are relative to its directory,
-			falling back to the working directory. Any attached file the body does not reference
-			is appended to the end of the comment.
-			You can attach up to 50 files per command.
+			使用 %[1]s--attach%[1]s 上传图片或视频。如果正文已经引用了某个附件文件(例如 %[1]s![alt](./login.png)%[1]s)，
+			该引用将被重写为指向上传的资源。%[1]s--body-file%[1]s 中的路径是相对于其所在目录的，如果找不到则会回退到工作目录。
+			正文中未引用的任何附件文件将被附加到评论末尾。
+
+			每条命令最多可附加 50 个文件。
 
 			图片的替代文本会跟在 %[1]s#%[1]s 之后的路径中，如 %[1]s--attach './login.png#The login error state'%[1]s。
 			若不提供，则使用文件名。正文中已有的引用会保留写在其处的替代文本。视频会渲染为播放器且没有替代文本，因此无法为其指定。

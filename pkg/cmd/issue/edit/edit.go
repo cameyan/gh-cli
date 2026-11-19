@@ -76,31 +76,25 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 		Use:   "edit {<numbers> | <urls>}",
 		Short: "编辑 issue",
 		Long: heredoc.Docf(`
-			Edit one or more issues within the same repository.
+			在同一仓库中编辑一个或多个 issue。
 
-			Editing issues' projects requires authorization with the %[1]sproject%[1]s scope.
-			To authorize, run %[1]sgh auth refresh -s project%[1]s.
+			编辑 issue 项目需要 %[1]sproject%[1]s 范围的授权。要授权，请运行 %[1]sgh auth refresh -s project%[1]s。
 
-			Use %[1]s--attach%[1]s to upload an image or video to a single issue. Without a body
-			flag the issue keeps the body it already has and the attachment is appended to it.
-			If the body references an attached file, such as %[1]s![alt](./login.png)%[1]s, that
-			reference is rewritten to point at the uploaded asset instead. Paths in a
-			%[1]s--body-file%[1]s are relative to its directory, falling back to the working directory.
-			You can attach up to 50 files per command.
+			使用 %[1]s--attach%[1]s 可将图片或视频上传至单个 issue。若未指定正文标记，issue 将保留原有正文，附件将附加至其后。
+			若正文中引用了已附加的文件(如 %[1]s![alt](./login.png)%[1]s)，该引用将被重写以指向上传的资源。%[1]s--body-file%[1]s
+			中的路径相对于其所在目录，若该目录不存在则回退至工作目录。
 
-			Alt text for an image follows the path after %[1]s#%[1]s, as in
-			%[1]s--attach './login.png#The login error state'%[1]s. Without it the filename is used.
-			A reference already in the body keeps the alt text written there. Video renders
-			as a player and has no alt text, so it cannot be given any.
+			每条命令最多可附加 50 个文件。
 
-			If some attachments upload and others fail, the issue is still updated with the
-			ones that succeeded. The command then exits with a non-zero status, but the edited
-			issue URLs are still printed to stdout.
+			图片的替代文本在 %[1]s#%[1]s 之后跟随路径，例如 %[1]s--attach './login.png#登录错误状态'%[1]s。如果没有指定，
+			则使用文件名。正文中已存在的引用会保留其中所写的替代文本。视频会以播放器形式呈现，且没有替代文本，因此无法为其提供替代文本。
 
-			The %[1]s--add-assignee%[1]s and %[1]s--remove-assignee%[1]s flags both support
-			the following special values:
-			- %[1]s@me%[1]s: assign or unassign yourself
-			- %[1]s@copilot%[1]s: assign or unassign Copilot (not supported on GitHub Enterprise Server)
+			如果某些附件上传成功而其他附件失败，issue 仍会更新为成功上传的附件。命令随后会以非零状态退出，但编辑后的 issue URL仍会打
+			印到标准输出。
+
+			%[1]s--add-assignee%[1]s 和 %[1]s--remove-assignee%[1]s 标志均支持以下特殊值:
+			- %[1]s@me%[1]s: 分配或取消分配你自己
+			- %[1]s@copilot%[1]s: 分配或取消分配 Copilot (在 GitHub 企业版服务器上不受支持)
 		`, "`"),
 		Example: heredoc.Doc(`
 			$ gh issue edit 23 --title "I found a bug" --body "Nothing works"

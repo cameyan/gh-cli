@@ -81,7 +81,7 @@ func NewCmdLogin(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, r
 			存储中。如果找不到凭据存储或使用它时出现问题，gh 将回退为将令牌写入纯文本文件。请参阅
 			%[1]sgh auth status%[1]s 了解其存储位置。
 
-			或者，使用 %[1]s--with-token%[1]s 在标准输入上传入个人访问令牌(classic)。
+			或者，使用 %[1]s--with-token%[1]s 在标准输入上传入经典个人访问令牌。
 			该令牌所需的最低作用域为: %[1]srepo%[1]s、%[1]sread:org%[1]s 和 %[1]sgist%[1]s。
 			将细粒度个人访问令牌传入 %[1]s--with-token%[1]s 时请务必小心，因为其固有的资源限定
 			作用域可能在与其它资源交互时导致令人困惑的行为。对于细粒度个人访问令牌的使用，建议改用
@@ -98,19 +98,15 @@ func NewCmdLogin(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, r
 			为 git 协议指定 %[1]sssh%[1]s 将检测现有的 SSH 密钥以供上传，若未找到密钥则提示创建
 			并上传新密钥。可以使用 %[1]s--skip-ssh-key%[1]s 标志跳过此步骤。
 
-			Use %[1]s--expiring%[1]s to prefer expiring credentials that gh refreshes automatically.
-			This is a preference, not a guarantee: whether expiring tokens are issued depends on the
-			host and the OAuth app configuration. A host without support issues a non-expiring token
-			instead, and a host configured for them may issue expiring tokens even without the flag.
-			Enable the %[1]sexpiring_credentials%[1]s configuration to prefer expiring credentials
-			without passing %[1]s--expiring%[1]s every time, and pass %[1]s--expiring=false%[1]s to request a
-			non-expiring token even when that configuration is enabled.
-			When using expiring credentials for git operations, git 2.46 or newer is recommended so
-			gh can mark the token as non-cacheable; with older git a credential caching helper may store
-			and reuse an expired token.
+			使用 %[1]s--expiring%[1]s 可以优先选择 GitHub 会自动刷新的带过期时间的凭证。
+            这只是一个偏好设置，并非保证: 是否发放带过期时间令牌取决于主机和 OAuth 应用配置。若主机不支持此功能，则会发放不含过期时间令牌；
+            而即使未使用该标志，配置了支持带过期时间令牌的主机也可能发放带过期时间令牌。启用 %[1]sexpiring_credentials%[1]s 配置，无
+            需每次传递 %[1]s--expiring%[1]s 即可优先选择带过期时间凭证；若需请求不带过期时间令牌，即使该配置已启用，也可传递
+            %[1]s--expiring=false%[1]s。在使用带过期时间凭证进行 git 操作时，建议使用 git 2.46 或更高版本，以便 GitHub CLI 可将
+            令牌标记为不可缓存；若使用旧版 git，凭证缓存助手可能会存储并重复使用已过期的令牌。
 
-			For more information on OAuth scopes, see
-			<https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps/>.
+			有关 OAuth 范围的更多信息，请参阅:
+			<https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps/>
 		`, "`"),
 		Example: heredoc.Doc(`
 			# 启动交互式设置
@@ -137,7 +133,7 @@ func NewCmdLogin(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, r
 				return cmdutil.FlagErrorf("只能指定 `--scopes` 或 `--with-token` 其中之一")
 			}
 			if tokenStdin && opts.Expiring != nil && *opts.Expiring {
-				return cmdutil.FlagErrorf("specify only one of `--expiring` or `--with-token`")
+				return cmdutil.FlagErrorf("只能指定 `--expiring` 或 `--with-token` 其中之一")
 			}
 
 			if tokenStdin {
@@ -184,9 +180,9 @@ func NewCmdLogin(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, r
 	cmd.Flags().BoolVar(&secureStorage, "secure-storage", false, "将身份验证凭据保存在安全的凭据存储中")
 	_ = cmd.Flags().MarkHidden("secure-storage")
 
-	cmd.Flags().BoolVar(&opts.InsecureStorage, "insecure-storage", false, "Save authentication credentials in plain text instead of credential store")
-	cmd.Flags().BoolVar(&opts.SkipSSHKeyPrompt, "skip-ssh-key", false, "Skip generate/upload SSH key prompt")
-	cmdutil.NilBoolFlag(cmd, &opts.Expiring, "expiring", "", "Prefer expiring credentials that gh refreshes automatically, if the host supports them")
+	cmd.Flags().BoolVar(&opts.InsecureStorage, "insecure-storage", false, "以明文形式保存身份验证凭据，而非使用凭据存储库")
+	cmd.Flags().BoolVar(&opts.SkipSSHKeyPrompt, "skip-ssh-key", false, "跳过生成/上传 SSH 密钥提示")
+	cmdutil.NilBoolFlag(cmd, &opts.Expiring, "expiring", "", "如果主机支持，优先使用 GitHub 自动刷新的含过期时间凭证")
 
 	return cmd
 }
@@ -247,7 +243,7 @@ func loginRun(opts *LoginOptions) error {
 	// the config. Enterprise Server hosts are skipped because they may not support expiring tokens.
 	if opts.IO.IsStderrTTY() && opts.Expiring == nil && !ghauth.IsEnterprise(hostname) && !shared.ShouldUseExpiring(cfg, nil, hostname) {
 		cs := opts.IO.ColorScheme()
-		fmt.Fprintf(opts.IO.ErrOut, "%s Did you know that expiring tokens can be requested with %s? Read more at %s\n",
+		fmt.Fprintf(opts.IO.ErrOut, "%s 你知道吗？已过期的令牌可以通过 %s 重新申请？更多信息请访问 %s\n",
 			cs.WarningIcon(), cs.Bold("--expiring"), "https://gh.io/gh-expiring-tokens")
 	}
 

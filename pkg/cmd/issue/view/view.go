@@ -53,8 +53,8 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 		Long: heredoc.Docf(`
 			显示 issue 的标题、正文及其他信息。
 
-			When %[1]s--comments%[1]s is used, terminal output includes the issue details and comments.
-			When output is piped or redirected, only the comments are printed.
+			当使用 %[1]s--comments%[1]s 时，终端输出将包含 issue 详情和评论。
+			当输出被管道传输或重定向时，仅打印注释。
 
 			使用 %[1]s--web%[1]s 选项时，改为在网页浏览器中打开该 issue。
 		`, "`"),

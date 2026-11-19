@@ -41,26 +41,25 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "list {<issue-number> | <issue-url>}",
-		Short: "List artifacts on an issue (preview)",
+		Short: "列出一个 issue 上的产物 (预览版)",
 		Long: heredoc.Docf(`
-			List the artifacts on an issue, in number order. Every artifact is listed
-			unless you set %[1]s--limit%[1]s.
+			按编号顺序列出 issue 中的产物。除非设置了 %[1]s--limit%[1]s，否则所有产物都会被列出。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# List the artifacts on issue 142
+			# 列出 issue 142 中的所有产物
 			$ gh issue artifact list 142
 
-			# List only links
+			# 仅列出链接
 			$ gh issue artifact list 142 --type link
 
-			# Print artifact numbers and names as JSON
+			# 将产物编号和名称以 JSON 格式打印出来
 			$ gh issue artifact list 142 --json number,name
 		`),
 		Aliases: []string{"ls"},
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if cmd.Flags().Changed("limit") && opts.Limit < 1 {
-				return cmdutil.FlagErrorf("invalid limit: %v", opts.Limit)
+				return cmdutil.FlagErrorf("无效限制: %v", opts.Limit)
 			}
 
 			var err error
@@ -77,8 +76,8 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", 0, "Maximum number of artifacts to fetch")
-	cmdutil.StringEnumFlag(cmd, &opts.Type, "type", "", "", []string{client.TypeGeneric, client.TypePlan, client.TypeLink, client.TypeEmbeddedHTML}, "Filter by type")
+	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", 0, "可获取的最大产物数量")
+	cmdutil.StringEnumFlag(cmd, &opts.Type, "type", "", "", []string{client.TypeGeneric, client.TypePlan, client.TypeLink, client.TypeEmbeddedHTML}, "按类型筛选")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, client.ArtifactFields)
 
 	return cmd
@@ -113,15 +112,15 @@ func listRun(opts *ListOptions) error {
 	issueRef := fmt.Sprintf("%s#%d", ghrepo.FullName(repo), opts.IssueNumber)
 	if len(artifacts) == 0 {
 		if opts.Type != "" {
-			return cmdutil.NewNoResultsError(fmt.Sprintf("no artifacts match your search on %s", issueRef))
+			return cmdutil.NewNoResultsError(fmt.Sprintf("在 %s 上没有符合您搜索条件的产物", issueRef))
 		}
-		return cmdutil.NewNoResultsError(fmt.Sprintf("no artifacts found on %s", issueRef))
+		return cmdutil.NewNoResultsError(fmt.Sprintf("在 %s 上未发现产物", issueRef))
 	}
 
 	if err := opts.IO.StartPager(); err == nil {
 		defer opts.IO.StopPager()
 	} else {
-		fmt.Fprintf(opts.IO.ErrOut, "failed to start pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "无法启动分页器: %v\n", err)
 	}
 
 	if opts.IO.IsStdoutTTY() {
@@ -173,7 +172,7 @@ func listHeader(issueRef string, count int, filtered bool) string {
 
 func printArtifacts(ios *iostreams.IOStreams, now time.Time, artifacts []client.Artifact) error {
 	cs := ios.ColorScheme()
-	tp := tableprinter.New(ios, tableprinter.WithHeader("Number", "Name", "Type", "Updated"))
+	tp := tableprinter.New(ios, tableprinter.WithHeader("编号", "名称", "类型", "最近更新"))
 	for _, a := range artifacts {
 		tp.AddField(strconv.Itoa(a.Number))
 		tp.AddField(text.RemoveExcessiveWhitespace(a.Name))

@@ -36,10 +36,10 @@ func NewCmdToken(f *cmdutil.Factory, runF func(*TokenOptions) error) *cobra.Comm
 
 			未使用 %[1]s--hostname%[1]s 标志时，将选择默认主机。
 
-			Without the %[1]s--user%[1]s flag, the active account for the host is chosen.
+			如果不使用 %[1]s--user%[1]s 标志，将选择主机的活动账户。
 
-			If the token is an expired or near-expiry token that supports refreshing, it is refreshed
-			automatically before being printed, unless %[1]s--no-refresh%[1]s is given.
+			如果令牌是支持刷新的已过期或即将过期的令牌，除非指定了 %[1]s--no-refresh%[1]s，
+			否则在打印前会自动刷新。
 		`, "`"),
 		Args: cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -55,7 +55,7 @@ func NewCmdToken(f *cmdutil.Factory, runF func(*TokenOptions) error) *cobra.Comm
 	cmd.Flags().StringVarP(&opts.Username, "user", "u", "", "要输出其令牌的账户")
 	cmd.Flags().BoolVarP(&opts.SecureStorage, "secure-storage", "", false, "仅在安全的凭据存储中搜索身份验证令牌")
 	_ = cmd.Flags().MarkHidden("secure-storage")
-	cmd.Flags().BoolVarP(&opts.NoRefresh, "no-refresh", "", false, "Do not automatically refresh an expired token")
+	cmd.Flags().BoolVarP(&opts.NoRefresh, "no-refresh", "", false, "不要自动刷新已过期的令牌")
 
 	return cmd
 }
@@ -136,11 +136,11 @@ func tokenRun(opts *TokenOptions) error {
 	// A rejected refresh token can only be recovered by re-authenticating, so surface that as an error rather than
 	// handing back the stale token, which would fail on the next API call anyway.
 	if refreshStatus == gh.RefreshStatusExpired {
-		errMsg := fmt.Sprintf("the token for %s has expired", hostname)
+		errMsg := fmt.Sprintf("%s 的令牌已过期", hostname)
 		if opts.Username != "" {
-			errMsg += fmt.Sprintf(" for account %s", opts.Username)
+			errMsg += fmt.Sprintf(" 针对账户 %s", opts.Username)
 		}
-		errMsg += "; please run 'gh auth login' to re-authenticate"
+		errMsg += "。请运行 'gh auth login' 以重新进行身份验证"
 		return errors.New(errMsg)
 	}
 
@@ -157,9 +157,9 @@ func tokenRun(opts *TokenOptions) error {
 	// time, so a value captured now can stop working before its nominal expiry.
 	if cred.IsRefreshable() {
 		if cred.ExpiresAt != nil {
-			fmt.Fprintf(opts.IO.ErrOut, "%s This token will expire on %s, or may be revoked before that time as a result of an expected refresh.\n", cs.WarningIcon(), cred.ExpiresAt.UTC().Format(time.RFC3339))
+			fmt.Fprintf(opts.IO.ErrOut, "%s 此令牌将于%s过期，或可能因预期刷新而在此之前被撤销\n", cs.WarningIcon(), cred.ExpiresAt.UTC().Format(time.RFC3339))
 		} else {
-			fmt.Fprintf(opts.IO.ErrOut, "%s This token will expire, or may be revoked at any time as a result of an expected refresh.\n", cs.WarningIcon())
+			fmt.Fprintf(opts.IO.ErrOut, "%s 该令牌将会过期，或者可能因预期的刷新而随时被撤销\n", cs.WarningIcon())
 		}
 	}
 

@@ -46,7 +46,8 @@ func format(version, buildDate string, debugBuild bool) string {
 }
 
 func changelogURL(version string) string {
-	path := "https://github.com/cli/cli"
+    // 将上游 git 仓库更新为自己的
+	path := "https://github.com/cameyan/gh-cli"
 	r := regexp.MustCompile(`^v?\d+\.\d+\.\d+(-[\w.]+)?$`)
 	if !r.MatchString(version) {
 		return fmt.Sprintf("%s/releases/latest", path)
