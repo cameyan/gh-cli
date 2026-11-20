@@ -39,41 +39,41 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 	}
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List rulesets for a repository or organization",
+		Short: "列出仓库或组织的规则集",
 		Long: heredoc.Docf(`
-			List GitHub rulesets for a repository or organization.
+			列出仓库或组织的 GitHub 规则集。
 
-			If no options are provided, the current repository's rulesets are listed. You can query a different
-			repository's rulesets by using the %[1]s--repo%[1]s flag. You can also use the %[1]s--org%[1]s flag to list rulesets
-			configured for the provided organization.
+			如果未提供任何选项，则会列出当前仓库的规则集。您可以通过使用 %[1]s--repo%[1]s 标志来查询其他仓库的规则集。
+			您也可以使用 %[1]s--org%[1]s 标志来列出为指定组织配置的规则集。
 
-			Use the %[1]s--parents%[1]s flag to control whether rulesets configured at higher levels that also apply to the provided
-			repository or organization should be returned. The default is %[1]strue%[1]s.
+			使用 %[1]s--parents%[1]s 标志来控制是否应返回在更高级别配置且同样适用于所提供仓库或组织的规则集。
+			默认值为 %[1]strue%[1]s。
 
-			Your access token must have the %[1]sadmin:org%[1]s scope to use the %[1]s--org%[1]s flag, which can be granted by running %[1]sgh auth refresh -s admin:org%[1]s.
+			您的访问令牌必须具有 %[1]sadmin:org%[1]s 权限范围才能使用 %[1]s--org%[1]s 标志，该权限可以通过运行
+			%[1]sgh auth refresh -s admin:org%[1]s 来授予。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# List rulesets in the current repository
+			# 列出当前仓库中的规则集
 			$ gh ruleset list
 
-			# List rulesets in a different repository, including those configured at higher levels
+			# 列出不同仓库中的规则集，包括在更高层级配置的规则集
 			$ gh ruleset list --repo owner/repo --parents
 
-			# List rulesets in an organization
+			# 列出组织中的规则集
 			$ gh ruleset list --org org-name
 		`),
 		Aliases: []string{"ls"},
 		Args:    cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if repoOverride, _ := cmd.Flags().GetString("repo"); repoOverride != "" && opts.Organization != "" {
-				return cmdutil.FlagErrorf("only one of --repo and --org may be specified")
+				return cmdutil.FlagErrorf("仅需指定 --repo 或 --org 其中之一")
 			}
 
 			// support `-R, --repo` override
 			opts.BaseRepo = f.BaseRepo
 
 			if opts.Limit < 1 {
-				return cmdutil.FlagErrorf("invalid limit: %v", opts.Limit)
+				return cmdutil.FlagErrorf("无效限制值: %v", opts.Limit)
 			}
 
 			if runF != nil {
@@ -84,10 +84,10 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", 30, "Maximum number of rulesets to list")
-	cmd.Flags().StringVarP(&opts.Organization, "org", "o", "", "List organization-wide rulesets for the provided organization")
-	cmd.Flags().BoolVarP(&opts.IncludeParents, "parents", "p", true, "Whether to include rulesets configured at higher levels that also apply")
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "Open the list of rulesets in the web browser")
+	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", 30, "列出的最大规则集数量上限")
+	cmd.Flags().StringVarP(&opts.Organization, "org", "o", "", "为指定组织列出全组织范围的规则集")
+	cmd.Flags().BoolVarP(&opts.IncludeParents, "parents", "p", true, "是否包含同样适用的更高层级配置的规则集")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在浏览器中打开规则集列表")
 
 	return cmd
 }
@@ -120,7 +120,7 @@ func listRun(opts *ListOptions) error {
 		}
 
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.Out, "Opening %s in your browser.\n", text.DisplayURL(rulesetURL))
+			fmt.Fprintf(opts.IO.Out, "正在浏览器中打开 %s\n", text.DisplayURL(rulesetURL))
 		}
 
 		return opts.Browser.Browse(rulesetURL)
@@ -146,7 +146,7 @@ func listRun(opts *ListOptions) error {
 	if err := opts.IO.StartPager(); err == nil {
 		defer opts.IO.StopPager()
 	} else {
-		fmt.Fprintf(opts.IO.ErrOut, "failed to start pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 
 	cs := opts.IO.ColorScheme()
@@ -158,10 +158,10 @@ func listRun(opts *ListOptions) error {
 		}
 
 		inMsg := fmt.Sprintf("%s%s", shared.EntityName(opts.Organization, repoI), parentsMsg)
-		fmt.Fprintf(opts.IO.Out, "\nShowing %d of %d rulesets in %s\n\n", len(result.Rulesets), result.TotalCount, inMsg)
+		fmt.Fprintf(opts.IO.Out, "\n正在显示 %[3]s 的 %[1]d/%[2]d 个规则集\n\n", len(result.Rulesets), result.TotalCount, inMsg)
 	}
 
-	tp := tableprinter.New(opts.IO, tableprinter.WithHeader("ID", "NAME", "SOURCE", "STATUS", "RULES"))
+	tp := tableprinter.New(opts.IO, tableprinter.WithHeader("ID", "名称", "源", "状态", "规则"))
 
 	for _, rs := range result.Rulesets {
 		tp.AddField(strconv.FormatInt(rs.DatabaseId, 10), tableprinter.WithColor(cs.Cyan))

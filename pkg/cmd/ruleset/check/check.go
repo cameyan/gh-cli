@@ -43,32 +43,30 @@ func NewCmdCheck(f *cmdutil.Factory, runF func(*CheckOptions) error) *cobra.Comm
 	}
 	cmd := &cobra.Command{
 		Use:   "check [<branch>]",
-		Short: "View rules that would apply to a given branch",
+		Short: "查看适用于给定分支的规则",
 		Long: heredoc.Docf(`
-			View information about GitHub rules that apply to a given branch.
+			查看适用于给定分支的 GitHub 规则信息。
 
-			The provided branch name does not need to exist; rules will be displayed that would apply
-			to a branch with that name. All rules are returned regardless of where they are configured.
+			提供的分支名称无需实际存在；系统将显示适用于该名称分支的规则。无论规则配置在何处，所有规则都将被返回。
 
-			If no branch name is provided, then the current branch will be used.
+			如果未提供分支名称，则将使用当前分支。
 
-			The %[1]s--default%[1]s flag can be used to view rules that apply to the default branch of the
-			repository.
+			可以使用 %[1]s--default%[1]s 标志来查看适用于仓库默认分支的规则。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# View all rules that apply to the current branch
+			# 查看适用于当前分支的所有规则
 			$ gh ruleset check
 
-			# View all rules that apply to a branch named "my-branch" in a different repository
+			# 查看适用于另一个仓库中名为 "my-branch" 的分支的所有规则
 			$ gh ruleset check my-branch --repo owner/repo
 
-			# View all rules that apply to the default branch in a different repository
+			# 查看适用于另一个仓库中默认分支的所有规则
 			$ gh ruleset check --default --repo owner/repo
 
-			# View a ruleset configured in a different repository or any of its parents
+			# 查看在另一个仓库或其任一父级中配置的规则集
 			$ gh ruleset view 23 --repo owner/repo
 
-			# View an organization-level ruleset
+			# 查看组织级别的规则集
 			$ gh ruleset view 23 --org my-org
 		`),
 		Args: cobra.MaximumNArgs(1),
@@ -81,7 +79,7 @@ func NewCmdCheck(f *cmdutil.Factory, runF func(*CheckOptions) error) *cobra.Comm
 			}
 
 			if err := cmdutil.MutuallyExclusive(
-				"specify only one of `--default` or a branch name",
+				"仅需指定 `--default` 或一个分支名称其中之一",
 				opts.Branch != "",
 				opts.Default,
 			); err != nil {
@@ -96,8 +94,8 @@ func NewCmdCheck(f *cmdutil.Factory, runF func(*CheckOptions) error) *cobra.Comm
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.Default, "default", false, "Check rules on default branch")
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "Open the branch rules page in a web browser")
+	cmd.Flags().BoolVar(&opts.Default, "default", false, "检查默认分支上的规则")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在网页浏览器中打开分支规则页面")
 
 	return cmd
 }
@@ -111,7 +109,7 @@ func checkRun(opts *CheckOptions) error {
 
 	repoI, err := opts.BaseRepo()
 	if err != nil {
-		return fmt.Errorf("could not determine repo to use: %w", err)
+		return fmt.Errorf("无法确定要使用的仓库: %w", err)
 	}
 
 	git := opts.Git
@@ -119,7 +117,7 @@ func checkRun(opts *CheckOptions) error {
 	if opts.Default {
 		repo, err := api.GitHubRepo(client, repoI)
 		if err != nil {
-			return fmt.Errorf("could not get repository information: %w", err)
+			return fmt.Errorf("无法获取仓库信息: %w", err)
 		}
 		opts.Branch = repo.DefaultBranchRef.Name
 	}
@@ -127,7 +125,7 @@ func checkRun(opts *CheckOptions) error {
 	if opts.Branch == "" {
 		opts.Branch, err = git.CurrentBranch(context.Background())
 		if err != nil {
-			return fmt.Errorf("could not determine current branch: %w", err)
+			return fmt.Errorf("无法确定当前分支: %w", err)
 		}
 	}
 
@@ -137,7 +135,7 @@ func checkRun(opts *CheckOptions) error {
 		rawUrl := ghrepo.GenerateRepoURL(repoI, "rules")
 
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.Out, "Opening %s in your browser.\n", text.DisplayURL(rawUrl))
+			fmt.Fprintf(opts.IO.Out, "正在浏览器中打开 %s\n", text.DisplayURL(rawUrl))
 		}
 
 		return opts.Browser.Browse(rawUrl + queryString)
@@ -151,12 +149,12 @@ func checkRun(opts *CheckOptions) error {
 	}
 
 	if err = client.REST(repoI.RepoHost(), "GET", endpoint.String(), nil, &rules); err != nil {
-		return fmt.Errorf("GET %s failed: %w", endpoint.String(), err)
+		return fmt.Errorf("获取 %s 失败: %w", endpoint.String(), err)
 	}
 
 	w := opts.IO.Out
 
-	fmt.Fprintf(w, "%d rules apply to branch %s in repo %s/%s\n", len(rules), opts.Branch, repoI.RepoOwner(), repoI.RepoName())
+	fmt.Fprintf(w, "%[1]d 条规则适用于仓库 %[3]s/%[4]s 中的分支 %[2]s\n", len(rules), opts.Branch, repoI.RepoOwner(), repoI.RepoName())
 
 	if len(rules) > 0 {
 		fmt.Fprint(w, "\n")

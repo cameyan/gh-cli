@@ -1,8 +1,7 @@
 # `api_host`
 
-`api_host` sends a host's API traffic somewhere other than that host's usual API
-endpoint, so that an organisation can put a gateway in front of GitHub without
-every user reconfiguring or re-authenticating.
+`api_host` 会把某个主机的 API 流量发送到该主机常规 API 端点之外的地址，这样
+组织就可以在 GitHub 前面架设一个网关，而无需每个用户重新配置或重新认证。
 
 ```yml
 # hosts.yml
@@ -13,97 +12,83 @@ github.com:
             oauth_token: gho_...
 ```
 
-With that set, `gh api repos/cli/cli` asks `gh-gateway.example.com` rather than
-`api.github.com`. Everything else about the host is unchanged: it is still
-`github.com` as far as login, git remotes and web URLs are concerned.
+设置之后，`gh api repos/cli/cli` 会请求 `gh-gateway.example.com`，而不是
+`api.github.com`。该主机的其他一切都不变：就登录、git 远程仓库和 Web URL 而言，
+它仍然是 `github.com`。
 
-## The shape of the problem
+## 问题的本质
 
-`api_host` is a claim about *all* API traffic, so it can only be honoured in one
-place. Any code that builds an absolute `https://api.github.com/...` URL and
-hands it to an `*http.Client` has already decided where the request goes, and no
-amount of configuration downstream can redirect it.
+`api_host` 是对**所有** API 流量的声明，因此它只能在一处被落实。任何构造出
+绝对 `https://api.github.com/...` URL 并把它交给 `*http.Client` 的代码，都已经
+决定了请求的去向，下游无论怎样配置都无法将其重定向。
 
-That makes this feature unusual to work on in two ways.
+这使得该特性的开发在两个方面显得不同寻常。
 
-Firstly, it is a property of the whole codebase rather than of any one command,
-so it is only as good as its worst call site. Secondly, a bypass is invisible to
-ordinary tests: a request that ignores `api_host` and goes to `api.github.com`
-succeeds, because `api.github.com` is reachable. Tests pass and the feature is
-quietly broken.
+第一，它是整个代码库的属性，而不是某个命令的属性，因此它的好坏取决于最差的
+那个调用点。第二，绕过行为对普通测试是不可见的：一个忽略 `api_host`、直接发往
+`api.github.com` 的请求会成功，因为 `api.github.com` 是可访问的。测试通过了，
+而该特性却已悄然失效。
 
-The second point is why this feature comes with a purpose-built test that makes
-`api.github.com` unreachable, so a bypass fails loudly instead of silently
-working. See [`api-host-test-harness.md`](api-host-test-harness.md).
+第二点正是该特性配有一个专用测试的原因——它让 `api.github.com` 不可达，从而
+使绕过行为大声失败，而不是悄无声息地照常工作。参见
+[`api-host-test-harness.md`](api-host-test-harness.md)。
 
-## How it resolves
+## 解析方式
 
-Request routing lives in [go-gh][go-gh], which reads `api_host` for the host a
-request is aimed at and sends the request there instead.
+请求路由位于 [go-gh][go-gh] 中，它会读取请求所指向主机的 `api_host`，并将请求
+改发到那里。
 
-That leaves gh with a problem of its own: credentials. gh resolves tokens from
-the hostname in the request URL, and once a request has been redirected that
-hostname is the gateway, which gh has never logged in to and holds no token for.
-So `api/http_client.go` maps the gateway back to the host it stands in for, via
-`HostForAPIHost`, and sends that host's token.
+这就给 gh 留下了它自己的问题：凭据。gh 根据请求 URL 中的主机名来解析令牌，而
+请求一旦被重定向，该主机名就变成了网关，gh 从未登录过网关，也不持有它的令牌。
+因此 `api/http_client.go` 通过 `HostForAPIHost` 把网关映射回它所代表的主机，
+并发送该主机的令牌。
 
-The fallback only ever adds a token where there would have been none. A host gh
-is genuinely logged in to keeps resolving to its own token even if some other
-host names it as an `api_host`, so the mapping cannot hijack real credentials.
+该回退逻辑只会在原本没有令牌的地方补充令牌。对于 gh 真正登录过的主机，即使
+另一个主机将其指定为 `api_host`，它仍然解析为自己的令牌，因此该映射无法劫持
+真实凭据。
 
-The reverse lookup is deliberately narrow. It answers only "which host does this
-hostname stand in for", and says nothing about whether a given piece of code
-*should* honour `api_host`. That decision belongs to the caller, because
-`api_host` covers API traffic and not, for instance, git operations against the
-same host.
+反向查找被刻意设计得很窄。它只回答“这个主机名代表哪个主机”，而对某段代码
+**是否应当**遵循 `api_host` 不做任何判断。这个决定属于调用方，因为 `api_host`
+覆盖的是 API 流量，而不包括针对同一主机的 git 操作等。
 
-## Scope
+## 适用范围
 
-`api_host` applies to API traffic only. Git operations, browser URLs and OAuth
-device flow continue to use the host itself.
+`api_host` 仅适用于 API 流量。Git 操作、浏览器 URL 和 OAuth 设备流程仍然使用
+主机本身。
 
-It is a per-host setting under `hosts.yml`, not a global one, so a user can
-route one host through a gateway and reach another directly.
+它是 `hosts.yml` 中按主机配置的设置，而非全局设置，因此用户可以让一个主机走
+网关，同时直接访问另一个主机。
 
-Configuring the same `api_host` on two hosts is a misconfiguration rather than a
-supported topology, since a request arriving at the gateway could belong to
-either. The reverse lookup resolves it to the first matching host and does not
-report an error.
+在两个主机上配置相同的 `api_host` 属于错误配置，而不是受支持的拓扑，因为到达
+网关的请求可能属于其中任一主机。反向查找会将其解析为第一个匹配的主机，并且
+不报告错误。
 
-## Known gaps
+## 已知缺口
 
-`api_host` is not yet honoured centrally. It works for requests that go through
-go-gh's client, and for `gh api`, but some call sites still build absolute
-`api.github.com` URLs and never reach the gateway at all.
+`api_host` 尚未在中心位置统一落实。它对经过 go-gh 客户端的请求以及 `gh api`
+生效，但仍有一些调用点会构造绝对的 `api.github.com` URL，根本到达不了网关。
 
-Those call sites are being migrated a capability at a time, because each one
-built its own request for a reason: a header, an endpoint's scopes, or a
-redirect policy. All three are now expressible on a shared client request, so
-a call site no longer has to own its destination in order to say what it
-needs.
+这些调用点正按能力逐个迁移，因为每一个当初自建请求都有其理由：某个请求头、
+某个端点的作用域，或某种重定向策略。这三者现在都可以在共享客户端的请求上
+表达，因此调用点不再需要自己掌握目的地，也能说明自己的需求。
 
-`gh api` is a wart worth naming. It does not use go-gh's client, so it resolves
-`api_host` itself with a second implementation of the same rule. Two
-implementations of "where does this request go" is exactly the shape of problem
-this feature exists to remove, and it survives here only because `gh api` takes
-its path verbatim from the user and cannot route it through the normal client.
+`gh api` 是一个值得一提的瑕疵。它不使用 go-gh 的客户端，因此用同一规则的
+第二份实现自行解析 `api_host`。“这个请求该发往哪里”存在两份实现，恰恰是该
+特性旨在消除的问题形态，而它之所以在此存留，只是因为 `gh api` 原样采用用户
+给出的路径，无法经由常规客户端路由。
 
-Two call sites still send a request the client did not build, through
-DoRequest: uploading and downloading a release asset. Both use an absolute URL
-that the API itself supplied, so they reach the right place today, but they
-resolve their own destination rather than asking the client to.
+仍有两个调用点通过 DoRequest 发送并非由客户端构造的请求：上传和下载发布资源。
+两者都使用 API 自身提供的绝对 URL，所以目前能够到达正确的位置，但它们自行
+解析目的地，而不是交由客户端处理。
 
-Whole commands remain unmigrated, and none of them are covered by the harness:
-`gh codespace`, `gh agent-task` and `gh copilot` each build their own absolute
-URLs, and the update checker does too. They are not oversights. Codespaces and
-agent-task talk to services that are not the REST API and have clients of their
-own, so whether `api_host` should apply to them is a question about what the
-setting means rather than about how to implement it.
+还有若干命令整体尚未迁移，且都不在测试框架的覆盖范围内：`gh codespace`、
+`gh agent-task` 和 `gh copilot` 各自构造绝对 URL，更新检查器也是如此。这并非
+疏漏。Codespaces 和 agent-task 与并非 REST API 的服务通信，拥有自己的客户端，
+因此 `api_host` 是否应适用于它们，是一个关于该设置含义的问题，而非如何实现的
+问题。
 
-So the harness proves something narrower than "`gh` honours `api_host`": it
-proves that the twelve journeys it exercises do, and that the shared client can
-express what a call site needs in order to stop resolving its own destination.
-What is left is mechanical for the REST commands, and a design question for the
-rest.
+所以，该测试框架所证明的比“`gh` 遵循 `api_host`”要窄：它证明的是它所演练的
+十二条路径确实遵循，以及共享客户端能够表达调用点停止自行解析目的地所需的
+信息。剩下的工作，对 REST 命令而言是机械性的，对其余部分而言则是一个设计问题。
 
 [go-gh]: https://github.com/cli/go-gh

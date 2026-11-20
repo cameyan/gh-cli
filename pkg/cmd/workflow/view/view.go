@@ -234,7 +234,7 @@ func viewWorkflowInfo(opts *ViewOptions, client *api.Client, repo ghrepo.Interfa
 	}
 	headers = append(headers, "标题", "工作流", "分支", "触发事件")
 	if opts.Raw {
-		headers = append(headers, "ELAPSED")
+		headers = append(headers, "耗时")
 	}
 	headers = append(headers, "ID")
 

@@ -43,37 +43,35 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view [<ruleset-id>]",
-		Short: "View information about a ruleset",
+		Short: "查看规则集信息",
 		Long: heredoc.Docf(`
-			View information about a GitHub ruleset.
+			查看有关 GitHub 规则集的信息。
 
-			If no ID is provided, an interactive prompt will be used to choose
-			the ruleset to view.
+			如果没有提供 ID，将使用交互式提示来选择要查看的规则集。
 
-			Use the %[1]s--parents%[1]s flag to control whether rulesets configured at higher
-			levels that also apply to the provided repository or organization should
-			be returned. The default is %[1]strue%[1]s.
+			使用 %[1]s--parents%[1]s 标志来控制是否应返回在更高级别配置且同样适用于所提供仓库或组织的规则集。
+			默认值为 %[1]strue%[1]s。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Interactively choose a ruleset to view from all rulesets that apply to the current repository
+			# 从适用于当前仓库的所有规则集中交互式选择要查看的规则集
 			$ gh ruleset view
 
-			# Interactively choose a ruleset to view from only rulesets configured in the current repository
+			# 仅从当前仓库中配置的规则集中交互式选择要查看的规则集
 			$ gh ruleset view --parents=false
 
-			# View a ruleset configured in the current repository or any of its parents
+			# 查看在当前仓库或其任何父仓库中配置的规则集
 			$ gh ruleset view 43
 
-			# View a ruleset configured in a different repository or any of its parents
+			# 查看在不同仓库或其任何父仓库中配置的规则集
 			$ gh ruleset view 23 --repo owner/repo
 
-			# View an organization-level ruleset
+			# 查看组织级别的规则集
 			$ gh ruleset view 23 --org my-org
 		`),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if repoOverride, _ := cmd.Flags().GetString("repo"); repoOverride != "" && opts.Organization != "" {
-				return cmdutil.FlagErrorf("only one of --repo and --org may be specified")
+				return cmdutil.FlagErrorf("仅需指定 --repo 或 --org 其中之一")
 			}
 
 			// support `-R, --repo` override
@@ -84,11 +82,11 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 				// but use the string anyway
 				_, err := strconv.Atoi(args[0])
 				if err != nil {
-					return cmdutil.FlagErrorf("invalid value for ruleset ID: %v is not an integer", args[0])
+					return cmdutil.FlagErrorf("规则集 ID 值无效: %v 不是整数", args[0])
 				}
 				opts.ID = args[0]
 			} else if !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("a ruleset ID must be provided when not running interactively")
+				return cmdutil.FlagErrorf("在非交互式运行时必须提供规则集 ID")
 			} else {
 				opts.InteractiveMode = true
 			}
@@ -100,9 +98,9 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "Open the ruleset in the browser")
-	cmd.Flags().StringVarP(&opts.Organization, "org", "o", "", "Organization name if the provided ID is an organization-level ruleset")
-	cmd.Flags().BoolVarP(&opts.IncludeParents, "parents", "p", true, "Whether to include rulesets configured at higher levels that also apply")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在浏览器中打开规则集")
+	cmd.Flags().StringVarP(&opts.Organization, "org", "o", "", "如果提供的 ID 是组织级规则，则显示组织名称")
+	cmd.Flags().BoolVarP(&opts.IncludeParents, "parents", "p", true, "是否包含同样适用的更高层级配置的规则集")
 
 	return cmd
 }
@@ -175,51 +173,51 @@ func viewRun(opts *ViewOptions) error {
 	if opts.WebMode {
 		if rs != nil {
 			if opts.IO.IsStdoutTTY() {
-				fmt.Fprintf(opts.IO.Out, "Opening %s in your browser.\n", text.DisplayURL(rs.Links.Html.Href))
+				fmt.Fprintf(opts.IO.Out, "正在浏览器中打开 %s\n", text.DisplayURL(rs.Links.Html.Href))
 			}
 
 			return opts.Browser.Browse(rs.Links.Html.Href)
 		} else {
-			fmt.Fprintf(w, "ruleset not found\n")
+			fmt.Fprintf(w, "未找到规则集\n")
 		}
 	}
 
 	fmt.Fprintf(w, "\n%s\n", cs.Bold(rs.Name))
 	fmt.Fprintf(w, "ID: %s\n", cs.Cyan(strconv.FormatInt(rs.Id, 10)))
-	fmt.Fprintf(w, "Source: %s (%s)\n", rs.Source, rs.SourceType)
+	fmt.Fprintf(w, "源: %s (%s)\n", rs.Source, rs.SourceType)
 
 	fmt.Fprint(w, "Enforcement: ")
 	switch rs.Enforcement {
 	case "disabled":
-		fmt.Fprintf(w, "%s\n", cs.Red("Disabled"))
+		fmt.Fprintf(w, "%s\n", cs.Red("禁用"))
 	case "evaluate":
-		fmt.Fprintf(w, "%s\n", cs.Yellow("Evaluate Mode (not enforced)"))
+		fmt.Fprintf(w, "%s\n", cs.Yellow("评估模式(非强制)"))
 	case "active":
-		fmt.Fprintf(w, "%s\n", cs.Green("Active"))
+		fmt.Fprintf(w, "%s\n", cs.Green("活跃"))
 	default:
 		fmt.Fprintf(w, "%s\n", rs.Enforcement)
 	}
 
 	if rs.CurrentUserCanBypass != "" {
-		fmt.Fprintf(w, "You can bypass: %s\n", strings.ReplaceAll(rs.CurrentUserCanBypass, "_", " "))
+		fmt.Fprintf(w, "您可以绕过: %s\n", strings.ReplaceAll(rs.CurrentUserCanBypass, "_", " "))
 	}
 
-	fmt.Fprintf(w, "\n%s\n", cs.Bold("Bypass List"))
+	fmt.Fprintf(w, "\n%s\n", cs.Bold("绕过列表"))
 	if len(rs.BypassActors) == 0 {
-		fmt.Fprintf(w, "This ruleset cannot be bypassed\n")
+		fmt.Fprintf(w, "此规则集无法绕过\n")
 	} else {
 		sort.Slice(rs.BypassActors, func(i, j int) bool {
 			return rs.BypassActors[i].ActorId < rs.BypassActors[j].ActorId
 		})
 
 		for _, t := range rs.BypassActors {
-			fmt.Fprintf(w, "- %s (ID: %d), mode: %s\n", t.ActorType, t.ActorId, t.BypassMode)
+			fmt.Fprintf(w, "- %s (ID: %d)，模式: %s\n", t.ActorType, t.ActorId, t.BypassMode)
 		}
 	}
 
 	fmt.Fprintf(w, "\n%s\n", cs.Bold("Conditions"))
 	if len(rs.Conditions) == 0 {
-		fmt.Fprintf(w, "No conditions configured\n")
+		fmt.Fprintf(w, "未配置条件\n")
 	} else {
 		// sort keys for consistent responses
 		keys := make([]string, 0, len(rs.Conditions))
@@ -247,9 +245,9 @@ func viewRun(opts *ViewOptions) error {
 		}
 	}
 
-	fmt.Fprintf(w, "\n%s\n", cs.Bold("Rules"))
+	fmt.Fprintf(w, "\n%s\n", cs.Bold("规则"))
 	if len(rs.Rules) == 0 {
-		fmt.Fprintf(w, "No rules configured\n")
+		fmt.Fprintf(w, "未配置规则集\n")
 	} else {
 		fmt.Fprint(w, shared.ParseRulesForDisplay(rs.Rules))
 	}
@@ -271,7 +269,7 @@ func selectRulesetID(rsList *shared.RulesetList, p prompter.Prompter, cs *iostre
 		rulesets[i] = s
 	}
 
-	r, err := p.Select("Which ruleset would you like to view?", rulesets[0], rulesets)
+	r, err := p.Select("您想查看哪个规则集？", rulesets[0], rulesets)
 	if err != nil {
 		return nil, err
 	}

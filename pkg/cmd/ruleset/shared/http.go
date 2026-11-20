@@ -59,8 +59,8 @@ func listRulesets(httpClient *http.Client, query string, variables map[string]an
 		var data RulesetResponse
 		err := client.GraphQL(host, query, variables, &data)
 		if err != nil {
-			if strings.Contains(err.Error(), "requires one of the following scopes: ['admin:org']") {
-				return nil, errors.New("the 'admin:org' scope is required to view organization rulesets, try running 'gh auth refresh -s admin:org'")
+			if strings.Contains(err.Error(), "需要以下任一权限范围: ['admin:org']") {
+				return nil, errors.New("查看组织规则集需要 'admin:org' 权限，请尝试运行 'gh auth refresh -s admin:org'")
 			}
 
 			return nil, err
