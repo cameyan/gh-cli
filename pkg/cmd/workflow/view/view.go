@@ -53,13 +53,13 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view [<workflow-id> | <workflow-name> | <filename>]",
-		Short: "View the summary of a workflow",
+		Short: "查看工作流摘要",
 		Args:  cobra.MaximumNArgs(1),
 		Example: heredoc.Doc(`
-			# Interactively select a workflow to view
+			# 交互式选择工作流以查看
 			$ gh workflow view
 
-			# View a specific workflow
+			# 查看特定工作流
 			$ gh workflow view 0451
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -71,13 +71,13 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 			if len(args) > 0 {
 				opts.Selector = args[0]
 			} else if !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("workflow argument required when not running interactively")
+				return cmdutil.FlagErrorf("在非交互式运行时，需要提供工作流参数")
 			} else {
 				opts.Prompt = true
 			}
 
 			if !opts.YAML && opts.Ref != "" {
-				return cmdutil.FlagErrorf("`--yaml` required when specifying `--ref`")
+				return cmdutil.FlagErrorf("`--yaml` 在指定 `--ref` 时是必需的")
 			}
 
 			if runF != nil {
@@ -87,9 +87,9 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "Open workflow in the browser")
-	cmd.Flags().BoolVarP(&opts.YAML, "yaml", "y", false, "View the workflow yaml file")
-	cmd.Flags().StringVarP(&opts.Ref, "ref", "r", "", "The branch or tag name which contains the version of the workflow file you'd like to view")
+	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "在浏览器中打开工作流")
+	cmd.Flags().BoolVarP(&opts.YAML, "yaml", "y", false, "查看工作流 YAML 文件")
+	cmd.Flags().StringVarP(&opts.Ref, "ref", "r", "", "包含您要查看的工作流文件版本的分支或标签名称")
 
 	_ = cmdutil.RegisterBranchCompletionFlags(f.GitClient, cmd, "ref")
 
@@ -99,7 +99,7 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 func runView(opts *ViewOptions) error {
 	c, err := opts.HttpClient()
 	if err != nil {
-		return fmt.Errorf("could not build http client: %w", err)
+		return fmt.Errorf("无法构建 HTTP 客户端: %w", err)
 	}
 	client := api.NewClientFromHTTP(c)
 
@@ -132,7 +132,7 @@ func runView(opts *ViewOptions) error {
 			address = ghrepo.GenerateRepoURL(repo, "actions/workflows/%s", url.QueryEscape(workflow.Base()))
 		}
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.Out, "Opening %s in your browser.\n", text.DisplayURL(address))
+			fmt.Fprintf(opts.IO.Out, "正在浏览器中打开 %s\n", text.DisplayURL(address))
 		}
 		return opts.Browser.Browse(address)
 	}
@@ -141,7 +141,7 @@ func runView(opts *ViewOptions) error {
 	if err := opts.IO.StartPager(); err == nil {
 		defer opts.IO.StopPager()
 	} else {
-		fmt.Fprintf(opts.IO.ErrOut, "failed to start pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "无法启动分页器: %v\n", err)
 	}
 
 	if opts.YAML {
@@ -161,11 +161,11 @@ func viewWorkflowContent(opts *ViewOptions, client *api.Client, repo ghrepo.Inte
 	if err != nil {
 		if s, ok := err.(api.HTTPError); ok && s.StatusCode == 404 {
 			if ref != "" {
-				return fmt.Errorf("could not find workflow file %s on %s, try specifying a different ref", workflow.Base(), ref)
+				return fmt.Errorf("在 %[2]s 上找不到工作流文件 %[1]s，尝试指定其他引用", workflow.Base(), ref)
 			}
-			return fmt.Errorf("could not find workflow file %s, try specifying a branch or tag using `--ref`", workflow.Base())
+			return fmt.Errorf("找不到工作流文件 %s，请尝试使用 `--ref` 指定分支或标签", workflow.Base())
 		}
-		return fmt.Errorf("could not get workflow file content: %w", err)
+		return fmt.Errorf("无法获取工作流文件内容: %w", err)
 	}
 
 	yaml := string(yamlBytes)
@@ -208,7 +208,7 @@ func viewWorkflowInfo(opts *ViewOptions, client *api.Client, repo ghrepo.Interfa
 		WorkflowName: workflow.Name,
 	}, 5)
 	if err != nil {
-		return fmt.Errorf("failed to get runs: %w", err)
+		return fmt.Errorf("获取运行次数失败: %w", err)
 	}
 
 	out := opts.IO.Out
@@ -220,19 +220,19 @@ func viewWorkflowInfo(opts *ViewOptions, client *api.Client, repo ghrepo.Interfa
 	fmt.Fprintf(out, "ID: %s\n\n", cs.Cyanf("%d", workflow.ID))
 
 	// Runs
-	fmt.Fprintf(out, "Total runs %d\n", wr.TotalCount)
+	fmt.Fprintf(out, "执行次数 %d\n", wr.TotalCount)
 
 	if wr.TotalCount != 0 {
-		fmt.Fprintln(out, "Recent runs")
+		fmt.Fprintln(out, "最近执行记录")
 	}
 
 	headers := make([]string, 0, 8)
 	if opts.Raw {
-		headers = append(headers, "STATUS", "CONCLUSION")
+		headers = append(headers, "状态", "CONCLUSION")
 	} else {
 		headers = append(headers, "")
 	}
-	headers = append(headers, "TITLE", "WORKFLOW", "BRANCH", "EVENT")
+	headers = append(headers, "标题", "工作流", "分支", "触发事件")
 	if opts.Raw {
 		headers = append(headers, "ELAPSED")
 	}
@@ -272,8 +272,8 @@ func viewWorkflowInfo(opts *ViewOptions, client *api.Client, repo ghrepo.Interfa
 
 	// Footer
 	if wr.TotalCount != 0 {
-		fmt.Fprintf(out, "To see more runs for this workflow, try: gh run list --workflow %s\n", filename)
+		fmt.Fprintf(out, "要查看此工作流的更多运行情况，请尝试: gh run list --workflow %s\n", filename)
 	}
-	fmt.Fprintf(out, "To see the YAML for this workflow, try: gh workflow view %s --yaml\n", filename)
+	fmt.Fprintf(out, "要查看此工作流的 YAML，请尝试: gh workflow view %s --yaml\n", filename)
 	return nil
 }

@@ -38,8 +38,8 @@ func NewCmdDisable(f *cmdutil.Factory, runF func(*DisableOptions) error) *cobra.
 
 	cmd := &cobra.Command{
 		Use:   "disable [<workflow-id> | <workflow-name>]",
-		Short: "Disable a workflow",
-		Long:  "Disable a workflow, preventing it from running or showing up when listing workflows.",
+		Short: "禁用一个工作流",
+		Long:  "禁用一个工作流，防止其在运行或在工作流列表中显示",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// support `-R, --repo` override
@@ -48,7 +48,7 @@ func NewCmdDisable(f *cmdutil.Factory, runF func(*DisableOptions) error) *cobra.
 			if len(args) > 0 {
 				opts.Selector = args[0]
 			} else if !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("workflow ID or name required when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时需要工作流 ID 或名称")
 			} else {
 				opts.Prompt = true
 			}
@@ -66,7 +66,7 @@ func NewCmdDisable(f *cmdutil.Factory, runF func(*DisableOptions) error) *cobra.
 func runDisable(opts *DisableOptions) error {
 	c, err := opts.HttpClient()
 	if err != nil {
-		return fmt.Errorf("could not build http client: %w", err)
+		return fmt.Errorf("无法构建 HTTP 客户端: %w", err)
 	}
 	client := api.NewClientFromHTTP(c)
 
@@ -80,7 +80,7 @@ func runDisable(opts *DisableOptions) error {
 		opts.Prompter, opts.IO, client, repo, opts.Prompt, opts.Selector, states)
 	if err != nil {
 		if _, ok := errors.AsType[shared.FilteredAllError](err); ok {
-			return errors.New("there are no enabled workflows to disable")
+			return errors.New("没有已启用的工作流可供禁用")
 		}
 		return err
 	}
@@ -91,12 +91,12 @@ func runDisable(opts *DisableOptions) error {
 	}
 	err = client.REST(repo.RepoHost(), "PUT", path.String(), nil, nil)
 	if err != nil {
-		return fmt.Errorf("failed to disable workflow: %w", err)
+		return fmt.Errorf("禁用工作流失败: %w", err)
 	}
 
 	if opts.IO.CanPrompt() {
 		cs := opts.IO.ColorScheme()
-		fmt.Fprintf(opts.IO.Out, "%s Disabled %s\n", cs.SuccessIconWithColor(cs.Red), cs.Bold(workflow.Name))
+		fmt.Fprintf(opts.IO.Out, "%s 已禁用 %s\n", cs.SuccessIconWithColor(cs.Red), cs.Bold(workflow.Name))
 	}
 
 	return nil

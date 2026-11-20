@@ -14,7 +14,7 @@ func NewCmdWorkflow(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "workflow <command>",
 		Short:   "查看有关 GitHub Actions 工作流的详细信息",
-		Long:    "在 GitHub Actions 中列出、查看和运行工作流。",
+		Long:    "在 GitHub Actions 中列出、查看和运行工作流",
 		GroupID: "actions",
 	}
 	cmdutil.EnableRepoOverride(cmd, f)
