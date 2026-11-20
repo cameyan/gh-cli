@@ -29,7 +29,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 	cmd := &cobra.Command{
 		Use:   "list",
 		Args:  cobra.MaximumNArgs(1),
-		Short: "列出已认证用户所属的组织。",
+		Short: "列出已认证用户所属的组织",
 		Example: heredoc.Doc(`
 			# 列出前 30 个组织
 			$ gh org list
@@ -40,7 +40,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		Aliases: []string{"ls"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Limit < 1 {
-				return cmdutil.FlagErrorf("无效的 limit 值: %v", opts.Limit)
+				return cmdutil.FlagErrorf("无效的限制值: %v", opts.Limit)
 			}
 
 			if runF != nil {

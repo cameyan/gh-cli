@@ -11,14 +11,14 @@ func NewCmdOrg(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "org <command>",
 		Short: "管理组织",
-		Long:  "操作 GitHub 组织。",
+		Long:  "操作 GitHub 组织",
 		Example: heredoc.Doc(`
 			$ gh org list
 		`),
 		GroupID: "core",
 	}
 
-	cmdutil.AddGroup(cmd, "General commands", orgListCmd.NewCmdList(f, nil))
+	cmdutil.AddGroup(cmd, "通用命令", orgListCmd.NewCmdList(f, nil))
 
 	return cmd
 }

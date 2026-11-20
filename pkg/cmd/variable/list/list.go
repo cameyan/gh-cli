@@ -44,12 +44,12 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List variables",
+		Short: "列出变量",
 		Long: heredoc.Doc(`
-			List variables on one of the following levels:
-			- repository (default): available to GitHub Actions runs or Dependabot in a repository
-			- environment: available to GitHub Actions runs for a deployment environment in a repository
-			- organization: available to GitHub Actions runs or Dependabot within an organization
+			在以下任一级别上列出变量:
+			- 仓库 (默认): 可供仓库中的 GitHub Actions 运行或 Dependabot 使用
+			- 环境: 可用于仓库中部署环境的 GitHub Actions 运行
+			- 组织: 适用于组织内的 GitHub Actions 运行或 Dependabot 使用
 		`),
 		Aliases: []string{"ls"},
 		Args:    cobra.NoArgs,
@@ -57,7 +57,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 			// support `-R, --repo` override
 			opts.BaseRepo = f.BaseRepo
 
-			if err := cmdutil.MutuallyExclusive("specify only one of `--org` or `--env`", opts.OrgName != "", opts.EnvName != ""); err != nil {
+			if err := cmdutil.MutuallyExclusive("仅需指定 `--org` 或 `--env` 其中之一", opts.OrgName != "", opts.EnvName != ""); err != nil {
 				return err
 			}
 
@@ -69,8 +69,8 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.OrgName, "org", "o", "", "List variables for an organization")
-	cmd.Flags().StringVarP(&opts.EnvName, "env", "e", "", "List variables for an environment")
+	cmd.Flags().StringVarP(&opts.OrgName, "org", "o", "", "列出一个组织变量")
+	cmd.Flags().StringVarP(&opts.EnvName, "env", "e", "", "列出一个环境变量")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, shared.VariableJSONFields)
 
 	return cmd
@@ -79,7 +79,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 func listRun(opts *ListOptions) error {
 	client, err := opts.HttpClient()
 	if err != nil {
-		return fmt.Errorf("could not create http client: %w", err)
+		return fmt.Errorf("无法创建 HTTP 客户端: %w", err)
 	}
 
 	orgName := opts.OrgName
@@ -130,17 +130,17 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("failed to get variables: %w", err)
+		return fmt.Errorf("获取变量失败: %w", err)
 	}
 
 	if len(variables) == 0 && opts.Exporter == nil {
-		return cmdutil.NewNoResultsError("no variables found")
+		return cmdutil.NewNoResultsError("未找到变量")
 	}
 
 	if err := opts.IO.StartPager(); err == nil {
 		defer opts.IO.StopPager()
 	} else {
-		fmt.Fprintf(opts.IO.ErrOut, "failed to start pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "无法启动分页器: %v\n", err)
 	}
 
 	if opts.Exporter != nil {
@@ -149,9 +149,9 @@ func listRun(opts *ListOptions) error {
 
 	var headers []string
 	if variableEntity == shared.Organization {
-		headers = []string{"Name", "Value", "Updated", "Visibility"}
+		headers = []string{"变量名", "值", "更新日期", "可见性"}
 	} else {
-		headers = []string{"Name", "Value", "Updated"}
+		headers = []string{"变量名", "值", "更新日期"}
 	}
 
 	table := tableprinter.New(opts.IO, tableprinter.WithHeader(headers...))
@@ -180,14 +180,14 @@ func listRun(opts *ListOptions) error {
 func fmtVisibility(s shared.Variable) string {
 	switch s.Visibility {
 	case shared.All:
-		return "Visible to all repositories"
+		return "对所有仓库可见"
 	case shared.Private:
-		return "Visible to private repositories"
+		return "对私有仓库可见"
 	case shared.Selected:
 		if s.NumSelectedRepos == 1 {
-			return "Visible to 1 selected repository"
+			return "对 1 个选定仓库可见"
 		} else {
-			return fmt.Sprintf("Visible to %d selected repositories", s.NumSelectedRepos)
+			return fmt.Sprintf("对 %d 个选定仓库可见", s.NumSelectedRepos)
 		}
 	}
 	return ""
@@ -226,7 +226,7 @@ func getOrgVariables(client *http.Client, host, orgName string, showSelectedRepo
 			}
 			count, err := shared.SelectedRepositoryCount(apiClient, host, safeurl.NewImmutableSafeURL(variables[i].SelectedReposURL))
 			if err != nil {
-				return nil, fmt.Errorf("failed determining selected repositories for %s: %w", variables[i].Name, err)
+				return nil, fmt.Errorf("无法确定 %s 的所处仓库: %w", variables[i].Name, err)
 			}
 			variables[i].NumSelectedRepos = count
 		}

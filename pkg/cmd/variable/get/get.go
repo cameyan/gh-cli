@@ -38,19 +38,19 @@ func NewCmdGet(f *cmdutil.Factory, runF func(*GetOptions) error) *cobra.Command 
 
 	cmd := &cobra.Command{
 		Use:   "get <variable-name>",
-		Short: "Get variables",
+		Short: "获取变量",
 		Long: heredoc.Doc(`
-			Get a variable on one of the following levels:
-			- repository (default): available to GitHub Actions runs or Dependabot in a repository
-			- environment: available to GitHub Actions runs for a deployment environment in a repository
-			- organization: available to GitHub Actions runs or Dependabot within an organization
+			在以下任一级别上获取一个变量:
+			- 仓库(默认): 可供仓库中的 GitHub Actions 运行或 Dependabot 使用
+			- 环境: 可用于仓库中部署环境的 GitHub Actions 运行
+			- 组织: 适用于组织内的 GitHub Actions 运行或 Dependabot 使用
 		`),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// support `-R, --repo` override
 			opts.BaseRepo = f.BaseRepo
 
-			if err := cmdutil.MutuallyExclusive("specify only one of `--org` or `--env`", opts.OrgName != "", opts.EnvName != ""); err != nil {
+			if err := cmdutil.MutuallyExclusive("仅需指定 `--org` 或 `--env` 其中之一", opts.OrgName != "", opts.EnvName != ""); err != nil {
 				return err
 			}
 
@@ -63,8 +63,8 @@ func NewCmdGet(f *cmdutil.Factory, runF func(*GetOptions) error) *cobra.Command 
 			return getRun(opts)
 		},
 	}
-	cmd.Flags().StringVarP(&opts.OrgName, "org", "o", "", "Get a variable for an organization")
-	cmd.Flags().StringVarP(&opts.EnvName, "env", "e", "", "Get a variable for an environment")
+	cmd.Flags().StringVarP(&opts.OrgName, "org", "o", "", "获取一个组织变量")
+	cmd.Flags().StringVarP(&opts.EnvName, "env", "e", "", "获取一个环境变量")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, shared.VariableJSONFields)
 
 	return cmd
@@ -73,7 +73,7 @@ func NewCmdGet(f *cmdutil.Factory, runF func(*GetOptions) error) *cobra.Command 
 func getRun(opts *GetOptions) error {
 	c, err := opts.HttpClient()
 	if err != nil {
-		return fmt.Errorf("could not create http client: %w", err)
+		return fmt.Errorf("无法创建 HTTP 客户端: %w", err)
 	}
 	client := api.NewClientFromHTTP(c)
 
@@ -119,17 +119,17 @@ func getRun(opts *GetOptions) error {
 	if err = client.REST(host, "GET", path.String(), nil, &variable); err != nil {
 		var httpErr api.HTTPError
 		if errors.As(err, &httpErr) && httpErr.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("variable %s was not found", opts.VariableName)
+			return fmt.Errorf("变量 %s 未找到", opts.VariableName)
 		}
 
-		return fmt.Errorf("failed to get variable %s: %w", opts.VariableName, err)
+		return fmt.Errorf("获取变量 %s 失败: %w", opts.VariableName, err)
 	}
 
 	if opts.Exporter != nil {
 		if variable.SelectedReposURL != "" {
 			count, err := shared.SelectedRepositoryCount(client, host, safeurl.NewImmutableSafeURL(variable.SelectedReposURL))
 			if err != nil {
-				return fmt.Errorf("failed determining selected repositories for %s: %w", variable.Name, err)
+				return fmt.Errorf("无法确定 %s 所处的存储库: %w", variable.Name, err)
 			}
 			variable.NumSelectedRepos = count
 		}

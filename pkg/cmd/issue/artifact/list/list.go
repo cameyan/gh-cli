@@ -112,9 +112,9 @@ func listRun(opts *ListOptions) error {
 	issueRef := fmt.Sprintf("%s#%d", ghrepo.FullName(repo), opts.IssueNumber)
 	if len(artifacts) == 0 {
 		if opts.Type != "" {
-			return cmdutil.NewNoResultsError(fmt.Sprintf("在 %s 上没有符合您搜索条件的产物", issueRef))
+			return cmdutil.NewNoResultsError(fmt.Sprintf("在 %s 中没有符合您搜索条件的产物", issueRef))
 		}
-		return cmdutil.NewNoResultsError(fmt.Sprintf("在 %s 上未发现产物", issueRef))
+		return cmdutil.NewNoResultsError(fmt.Sprintf("在 %s 中未发现产物", issueRef))
 	}
 
 	if err := opts.IO.StartPager(); err == nil {
@@ -160,14 +160,14 @@ func listArtifacts(c client.ArtifactClient, repo ghrepo.Interface, issueNumber i
 // listHeader counts the artifacts shown. Without a total count from the API,
 // it can't say how many there are in all.
 func listHeader(issueRef string, count int, filtered bool) string {
-	header := fmt.Sprintf("Showing %s on %s", text.Pluralize(count, "artifact"), issueRef)
+	header := fmt.Sprintf("正在显示 %s issue 中 %d 个", issueRef, count)
 	if !filtered {
 		return header
 	}
 	if count == 1 {
-		return header + " that matches your search"
+		return header + "与您的搜索匹配的产物"
 	}
-	return header + " that match your search"
+	return header + "与您的搜索匹配的产物"
 }
 
 func printArtifacts(ios *iostreams.IOStreams, now time.Time, artifacts []client.Artifact) error {

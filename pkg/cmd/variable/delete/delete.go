@@ -35,19 +35,19 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "delete <variable-name>",
-		Short: "Delete variables",
+		Short: "删除变量",
 		Long: heredoc.Doc(`
-			Delete a variable on one of the following levels:
-			- repository (default): available to GitHub Actions runs or Dependabot in a repository
-			- environment: available to GitHub Actions runs for a deployment environment in a repository
-			- organization: available to GitHub Actions runs or Dependabot within an organization
+			在以下任一级别删除一个变量:
+			- 仓库(默认): 可供仓库中的 GitHub Actions 运行或 Dependabot 使用
+			- 环境: 可用于仓库中部署环境的 GitHub Actions 运行
+			- 组织: 适用于组织内的 GitHub Actions 运行或 Dependabot 使用
 		`),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// support `-R, --repo` override
 			opts.BaseRepo = f.BaseRepo
 
-			if err := cmdutil.MutuallyExclusive("specify only one of `--org` or `--env`", opts.OrgName != "", opts.EnvName != ""); err != nil {
+			if err := cmdutil.MutuallyExclusive("仅需指定 `--org` 或 `--env` 其中之一", opts.OrgName != "", opts.EnvName != ""); err != nil {
 				return err
 			}
 
@@ -63,8 +63,8 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 			"remove",
 		},
 	}
-	cmd.Flags().StringVarP(&opts.OrgName, "org", "o", "", "Delete a variable for an organization")
-	cmd.Flags().StringVarP(&opts.EnvName, "env", "e", "", "Delete a variable for an environment")
+	cmd.Flags().StringVarP(&opts.OrgName, "org", "o", "", "删除一个组织变量")
+	cmd.Flags().StringVarP(&opts.EnvName, "env", "e", "", "删除一个环境变量")
 
 	return cmd
 }
@@ -72,7 +72,7 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 func removeRun(opts *DeleteOptions) error {
 	c, err := opts.HttpClient()
 	if err != nil {
-		return fmt.Errorf("could not create http client: %w", err)
+		return fmt.Errorf("无法创建 HTTP 客户端: %w", err)
 	}
 	client := api.NewClientFromHTTP(c)
 
@@ -116,7 +116,7 @@ func removeRun(opts *DeleteOptions) error {
 
 	err = client.REST(host, "DELETE", path.String(), nil, nil)
 	if err != nil {
-		return fmt.Errorf("failed to delete variable %s: %w", opts.VariableName, err)
+		return fmt.Errorf("删除变量 %s 失败: %w", opts.VariableName, err)
 	}
 
 	if opts.IO.IsStdoutTTY() {
@@ -130,9 +130,9 @@ func removeRun(opts *DeleteOptions) error {
 
 		cs := opts.IO.ColorScheme()
 		if envName != "" {
-			fmt.Fprintf(opts.IO.Out, "%s Deleted variable %s from %s environment on %s\n", cs.SuccessIconWithColor(cs.Red), opts.VariableName, envName, target)
+			fmt.Fprintf(opts.IO.Out, "%[1]s 从 %[3]s 环境中的 %[4]s 上删除了变量 %[2]s\n", cs.SuccessIconWithColor(cs.Red), opts.VariableName, envName, target)
 		} else {
-			fmt.Fprintf(opts.IO.Out, "%s Deleted variable %s from %s\n", cs.SuccessIconWithColor(cs.Red), opts.VariableName, target)
+			fmt.Fprintf(opts.IO.Out, "%[1]s 从 %[3]s 中删除了变量 %[2]s\n", cs.SuccessIconWithColor(cs.Red), opts.VariableName, target)
 		}
 	}
 

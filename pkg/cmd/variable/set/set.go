@@ -51,36 +51,35 @@ func NewCmdSet(f *cmdutil.Factory, runF func(*SetOptions) error) *cobra.Command 
 
 	cmd := &cobra.Command{
 		Use:   "set <variable-name>",
-		Short: "Create or update variables",
+		Short: "创建或更新变量",
 		Long: heredoc.Doc(`
-			Set a value for a variable on one of the following levels:
-			- repository (default): available to GitHub Actions runs or Dependabot in a repository
-			- environment: available to GitHub Actions runs for a deployment environment in a repository
-			- organization: available to GitHub Actions runs or Dependabot within an organization
+			在以下任一级别上为变量设置值:
+			- 仓库(默认): 可供仓库中的 GitHub Actions 运行或 Dependabot 使用
+			- 环境: 可供仓库中部署环境的 GitHub Actions 运行使用
+			- 组织: 可供组织内的 GitHub Actions 运行或 Dependabot 使用
 
-			Organization variable can optionally be restricted to only be available to
-			specific repositories.
+			组织变量可以选择性地限制为仅对特定仓库可用。
 		`),
 		Example: heredoc.Doc(`
-			# Add variable value for the current repository in an interactive prompt
+			# 在交互式提示中为当前仓库添加变量值
 			$ gh variable set MYVARIABLE
 
-			# Read variable value from an environment variable
+			# 从环境变量中读取变量值
 			$ gh variable set MYVARIABLE --body "$ENV_VALUE"
 
-			# Read variable value from a file
+			# 从文件中读取变量值
 			$ gh variable set MYVARIABLE < myfile.txt
 
-			# Set variable for a deployment environment in the current repository
+			# 为当前仓库的部署环境设置变量
 			$ gh variable set MYVARIABLE --env myenvironment
 
-			# Set organization-level variable visible to both public and private repositories
+			# 设置组织级变量，对公共和私有仓库均可见
 			$ gh variable set MYVARIABLE --org myOrg --visibility all
 
-			# Set organization-level variable visible to specific repositories
+			# 设置组织级变量，仅对特定仓库可见
 			$ gh variable set MYVARIABLE --org myOrg --repos repo1,repo2,repo3
 
-			# Set multiple variables imported from the ".env" file
+			# 设置从 ".env" 文件导入的多个变量值
 			$ gh variable set -f .env
 		`),
 		Args: cobra.MaximumNArgs(1),
@@ -88,17 +87,17 @@ func NewCmdSet(f *cmdutil.Factory, runF func(*SetOptions) error) *cobra.Command 
 			// support `-R, --repo` override
 			opts.BaseRepo = f.BaseRepo
 
-			if err := cmdutil.MutuallyExclusive("specify only one of `--org` or `--env`", opts.OrgName != "", opts.EnvName != ""); err != nil {
+			if err := cmdutil.MutuallyExclusive("仅需指定 `--org` 或 `--env` 其中之一", opts.OrgName != "", opts.EnvName != ""); err != nil {
 				return err
 			}
 
-			if err := cmdutil.MutuallyExclusive("specify only one of `--body` or `--env-file`", opts.Body != "", opts.EnvFile != ""); err != nil {
+			if err := cmdutil.MutuallyExclusive("仅需指定 `--body` 或 `--env-file` 其中之一", opts.Body != "", opts.EnvFile != ""); err != nil {
 				return err
 			}
 
 			if len(args) == 0 {
 				if opts.EnvFile == "" {
-					return cmdutil.FlagErrorf("must pass name argument")
+					return cmdutil.FlagErrorf("必须传递 name 参数")
 				}
 			} else {
 				opts.VariableName = args[0]
@@ -106,15 +105,15 @@ func NewCmdSet(f *cmdutil.Factory, runF func(*SetOptions) error) *cobra.Command 
 
 			if cmd.Flags().Changed("visibility") {
 				if opts.OrgName == "" {
-					return cmdutil.FlagErrorf("`--visibility` is only supported with `--org`")
+					return cmdutil.FlagErrorf("`--visibility` 仅在 `--org` 下可用")
 				}
 
 				if opts.Visibility != shared.Selected && len(opts.RepositoryNames) > 0 {
-					return cmdutil.FlagErrorf("`--repos` is only supported with `--visibility=selected`")
+					return cmdutil.FlagErrorf("`--repos` 仅在 `--visibility=selected` 下可用")
 				}
 
 				if opts.Visibility == shared.Selected && len(opts.RepositoryNames) == 0 {
-					return cmdutil.FlagErrorf("`--repos` list required with `--visibility=selected`")
+					return cmdutil.FlagErrorf("`--repos` 列表在使用 `--visibility=selected` 时需要提供")
 				}
 			} else {
 				if len(opts.RepositoryNames) > 0 {
@@ -130,12 +129,12 @@ func NewCmdSet(f *cmdutil.Factory, runF func(*SetOptions) error) *cobra.Command 
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.OrgName, "org", "o", "", "Set `organization` variable")
-	cmd.Flags().StringVarP(&opts.EnvName, "env", "e", "", "Set deployment `environment` variable")
-	cmdutil.StringEnumFlag(cmd, &opts.Visibility, "visibility", "v", shared.Private, []string{shared.All, shared.Private, shared.Selected}, "Set visibility for an organization variable")
-	cmd.Flags().StringSliceVarP(&opts.RepositoryNames, "repos", "r", []string{}, "List of `repositories` that can access an organization variable")
-	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "The value for the variable (reads from standard input if not specified)")
-	cmd.Flags().StringVarP(&opts.EnvFile, "env-file", "f", "", "Load variable names and values from a dotenv-formatted `file`")
+	cmd.Flags().StringVarP(&opts.OrgName, "org", "o", "", "设置 `organization` 变量")
+	cmd.Flags().StringVarP(&opts.EnvName, "env", "e", "", "设置部署 `environment` 变量")
+	cmdutil.StringEnumFlag(cmd, &opts.Visibility, "visibility", "v", shared.Private, []string{shared.All, shared.Private, shared.Selected}, "设置组织变量的可见性")
+	cmd.Flags().StringSliceVarP(&opts.RepositoryNames, "repos", "r", []string{}, "可以访问组织变量的 `repositories` 列表")
+	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "变量的值(如果未指定，则从标准输入读取)")
+	cmd.Flags().StringVarP(&opts.EnvFile, "env-file", "f", "", "从 dotenv 格式的 `file` 中加载变量名和值")
 
 	return cmd
 }
@@ -148,7 +147,7 @@ func setRun(opts *SetOptions) error {
 
 	c, err := opts.HttpClient()
 	if err != nil {
-		return fmt.Errorf("could not set http client: %w", err)
+		return fmt.Errorf("无法设置 HTTP 客户端: %w", err)
 	}
 	client := api.NewClientFromHTTP(c)
 
@@ -220,7 +219,7 @@ func setRun(opts *SetOptions) error {
 		if envName != "" {
 			target += " environment " + envName
 		}
-		fmt.Fprintf(opts.IO.Out, "%s %s variable %s for %s\n", cs.SuccessIcon(), result.Operation, result.Key, target)
+		fmt.Fprintf(opts.IO.Out, "%s %s 变量 %s 用于 %s\n", cs.SuccessIcon(), result.Operation, result.Key, target)
 	}
 
 	return errors.Join(errs...)
@@ -237,17 +236,17 @@ func getVariablesFromOptions(opts *SetOptions) (map[string]string, error) {
 		} else {
 			f, err := os.Open(opts.EnvFile)
 			if err != nil {
-				return nil, fmt.Errorf("failed to open env file: %w", err)
+				return nil, fmt.Errorf("无法打开环境变量文件: %w", err)
 			}
 			defer f.Close()
 			r = f
 		}
 		envs, err := godotenv.Parse(r)
 		if err != nil {
-			return nil, fmt.Errorf("error parsing env file: %w", err)
+			return nil, fmt.Errorf("解析环境变量文件时出错: %w", err)
 		}
 		if len(envs) == 0 {
-			return nil, fmt.Errorf("no variables found in file")
+			return nil, fmt.Errorf("文件中未找到变量")
 		}
 		maps.Copy(variables, envs)
 		return variables, nil
@@ -255,7 +254,7 @@ func getVariablesFromOptions(opts *SetOptions) (map[string]string, error) {
 
 	body, err := getBody(opts)
 	if err != nil {
-		return nil, fmt.Errorf("did not understand variable body: %w", err)
+		return nil, fmt.Errorf("不理解的变量体: %w", err)
 	}
 	variables[opts.VariableName] = body
 
@@ -268,7 +267,7 @@ func getBody(opts *SetOptions) (string, error) {
 	}
 
 	if opts.IO.CanPrompt() {
-		bodyInput, err := opts.Prompter.Input("Paste your variable", "")
+		bodyInput, err := opts.Prompter.Input("粘贴你的变量", "")
 		if err != nil {
 			return "", err
 		}
@@ -278,7 +277,7 @@ func getBody(opts *SetOptions) (string, error) {
 
 	body, err := io.ReadAll(opts.IO.In)
 	if err != nil {
-		return "", fmt.Errorf("failed to read from standard input: %w", err)
+		return "", fmt.Errorf("无法从标准输入读取数据: %w", err)
 	}
 
 	return string(bytes.TrimRight(body, "\r\n")), nil
@@ -298,7 +297,7 @@ func getRepoIds(client *api.Client, host, owner string, repositoryNames []string
 			var err error
 			repo, err = ghrepo.FromFullNameWithHost(repositoryName, host)
 			if err != nil {
-				return nil, fmt.Errorf("invalid repository name")
+				return nil, fmt.Errorf("无效的仓库名称")
 			}
 		} else {
 			repo = ghrepo.NewWithHost(owner, repositoryName, host)
@@ -306,11 +305,11 @@ func getRepoIds(client *api.Client, host, owner string, repositoryNames []string
 		repos = append(repos, repo)
 	}
 	if len(repos) == 0 {
-		return nil, fmt.Errorf("resetting repositories selected to zero is not supported")
+		return nil, fmt.Errorf("不支持将所选仓库重置为零")
 	}
 	repositoryIDs, err := api.GetRepoIDs(client, host, repos)
 	if err != nil {
-		return nil, fmt.Errorf("failed to look up IDs for repositories %v: %w", repositoryNames, err)
+		return nil, fmt.Errorf("未能查找仓库 %v 的 ID: %w", repositoryNames, err)
 	}
 	return repositoryIDs, nil
 }

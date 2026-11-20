@@ -27,7 +27,7 @@ func NewCmdArtifact(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder
 
 			issue 产物是附加到 issue 上的 Markdown 文档、HTML 文档和链接。
 
-			它们不是 GitHub Actions 产物；要下载这些 产物，请使用 %[1]sgh run download%[1]s。
+			它们不是 GitHub Actions 产物；要下载这些产物，请使用 %[1]sgh run download%[1]s。
 		`, "`"),
 	}
 
