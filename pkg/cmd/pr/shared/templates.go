@@ -194,14 +194,14 @@ func (m *templateManager) Choose() (Template, error) {
 		names[i] = t.Name()
 	}
 
-	blankOption := "Open a blank issue"
+	blankOption := "打开空白 issue"
 	if m.isPR {
-		blankOption = "Open a blank pull request"
+		blankOption = "打开空白拉取请求(PR)"
 	}
 
-	selectedOption, err := m.prompter.Select("Choose a template", "", append(names, blankOption))
+	selectedOption, err := m.prompter.Select("选择一个模板", "", append(names, blankOption))
 	if err != nil {
-		return nil, fmt.Errorf("could not prompt: %w", err)
+		return nil, fmt.Errorf("无法显示提示: %w", err)
 	}
 
 	if selectedOption == len(names) {
@@ -216,7 +216,7 @@ func (m *templateManager) Select(name string) (Template, error) {
 	}
 
 	if len(m.templates) == 0 {
-		return nil, errors.New("no templates found")
+		return nil, errors.New("未找到任何模板")
 	}
 
 	for _, t := range m.templates {
@@ -225,7 +225,7 @@ func (m *templateManager) Select(name string) (Template, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("template %q not found", name)
+	return nil, fmt.Errorf("未找到模板 %q", name)
 }
 
 func (m *templateManager) memoizedFetch() error {

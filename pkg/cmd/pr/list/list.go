@@ -55,36 +55,36 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List pull requests in a repository",
+		Short: "列出仓库中的拉取请求(PR)",
 		// TODO advancedIssueSearchCleanup
-		// Update the links and remove the mention at GHES 3.17 version.
+		// 在 GHES 3.17 版本更新链接并移除此说明。
 		Long: heredoc.Docf(`
-			List pull requests in a GitHub repository. By default, this only lists open PRs.
+			列出 GitHub 仓库中的拉取请求(PR)。默认只列出 open 状态的 PR。
 
-			The search query syntax is documented here:
+			搜索查询语法文档见:
 			<https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests>
-			
-			On supported GitHub hosts, advanced issue search syntax can be used in the
-			%[1]s--search%[1]s query. For more information about advanced issue search, see:
+
+			在受支持的 GitHub 主机上，可在 %[1]s--search%[1]s 查询中使用高级 issue 搜索语法。
+			有关高级 issue 搜索的更多信息，请参见:
 			<https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/filtering-and-searching-issues-and-pull-requests#building-advanced-filters-for-issues>
 		`, "`"),
 		Example: heredoc.Doc(`
-			# List PRs authored by you
+			# 列出由您创建的 PR
 			$ gh pr list --author "@me"
 
-			# List PRs opened by a GitHub App such as Dependabot
+			# 列出由 GitHub App(如 Dependabot)打开的 PR
 			$ gh pr list --app dependabot
 
-			# List PRs with a specific head branch name
+			# 列出具有指定源分支(head branch)名的 PR
 			$ gh pr list --head "typo"
 
-			# List only PRs with all of the given labels
+			# 只列出拥有全部给定标签(label)的 PR
 			$ gh pr list --label bug --label "priority 1"
 
-			# Filter PRs using search syntax
+			# 使用搜索语法过滤 PR
 			$ gh pr list --search "status:success review:required"
 
-			# Find a PR that introduced a given commit
+			# 查找引入了某个给定提交(commit)的 PR
 			$ gh pr list --search "<SHA>" --state merged
 		`),
 		Aliases: []string{"ls"},
@@ -94,11 +94,11 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 			opts.BaseRepo = f.BaseRepo
 
 			if opts.LimitResults < 1 {
-				return cmdutil.FlagErrorf("invalid value for --limit: %v", opts.LimitResults)
+				return cmdutil.FlagErrorf("--limit 的取值无效: %v", opts.LimitResults)
 			}
 
 			if cmd.Flags().Changed("author") && cmd.Flags().Changed("app") {
-				return cmdutil.FlagErrorf("specify only `--author` or `--app`")
+				return cmdutil.FlagErrorf("只能指定 `--author` 或 `--app` 之一")
 			}
 
 			if cmd.Flags().Changed("app") {
@@ -112,17 +112,17 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "List pull requests in the web browser")
-	cmd.Flags().IntVarP(&opts.LimitResults, "limit", "L", 30, "Maximum number of items to fetch")
-	cmdutil.StringEnumFlag(cmd, &opts.State, "state", "s", "open", []string{"open", "closed", "merged", "all"}, "Filter by state")
-	cmd.Flags().StringVarP(&opts.BaseBranch, "base", "B", "", "Filter by base branch")
-	cmd.Flags().StringVarP(&opts.HeadBranch, "head", "H", "", `Filter by head branch ("<owner>:<branch>" syntax not supported)`)
-	cmd.Flags().StringSliceVarP(&opts.Labels, "label", "l", nil, "Filter by label")
-	cmd.Flags().StringVarP(&opts.Author, "author", "A", "", "Filter by author (use --app to filter by a GitHub App)")
-	cmd.Flags().StringVar(&appAuthor, "app", "", "Filter by GitHub App author")
-	cmd.Flags().StringVarP(&opts.Assignee, "assignee", "a", "", "Filter by assignee")
-	cmd.Flags().StringVarP(&opts.Search, "search", "S", "", "Search pull requests with `query`")
-	cmdutil.NilBoolFlag(cmd, &opts.Draft, "draft", "d", "Filter by draft state")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在 web 浏览器中列出拉取请求(PR)")
+	cmd.Flags().IntVarP(&opts.LimitResults, "limit", "L", 30, "获取条目的最大数量")
+	cmdutil.StringEnumFlag(cmd, &opts.State, "state", "s", "open", []string{"open", "closed", "merged", "all"}, "按状态过滤")
+	cmd.Flags().StringVarP(&opts.BaseBranch, "base", "B", "", "按基础分支(base branch)过滤")
+	cmd.Flags().StringVarP(&opts.HeadBranch, "head", "H", "", `按源分支(head branch)过滤 (不支持 "<owner>:<branch>" 语法)`)
+	cmd.Flags().StringSliceVarP(&opts.Labels, "label", "l", nil, "按标签(label)过滤")
+	cmd.Flags().StringVarP(&opts.Author, "author", "A", "", "按作者过滤(使用 --app 按 GitHub App 过滤)")
+	cmd.Flags().StringVar(&appAuthor, "app", "", "按 GitHub App 作者过滤")
+	cmd.Flags().StringVarP(&opts.Assignee, "assignee", "a", "", "按被指派人(assignee)过滤")
+	cmd.Flags().StringVarP(&opts.Search, "search", "S", "", "使用 `query` 搜索拉取请求(PR)")
+	cmdutil.NilBoolFlag(cmd, &opts.Draft, "draft", "d", "按草稿(draft)状态过滤")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, api.PullRequestFields)
 
 	_ = cmdutil.RegisterBranchCompletionFlags(f.GitClient, cmd, "base", "head")
@@ -182,16 +182,15 @@ func listRun(opts *ListOptions) error {
 		prListURL := ghrepo.GenerateRepoURL(baseRepo, "pulls")
 
 		// TODO advancedSearchFuture
-		// As of August 2025, the advanced issue search syntax is not supported
-		// in Pull Requests tab of repositories. When it's supported we can
-		// change the argument to true.
+		// 截至 2025 年 8 月，仓库的 Pull Requests 标签页尚不支持高级 issue 搜索语法。
+		// 待其受支持后，可将此处参数改为 true。
 		openURL, err := shared.ListURLWithQuery(prListURL, filters, false)
 		if err != nil {
 			return err
 		}
 
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(openURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
 		}
 		return opts.Browser.Browse(openURL)
 	}
@@ -206,7 +205,7 @@ func listRun(opts *ListOptions) error {
 
 	err = opts.IO.StartPager()
 	if err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "error starting pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器(pager)出错: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -215,7 +214,7 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if listResult.SearchCapped {
-		fmt.Fprintln(opts.IO.ErrOut, "warning: this query uses the Search API which is capped at 1000 results maximum")
+		fmt.Fprintln(opts.IO.ErrOut, "警告: 该查询使用 Search API，结果上限最多 1000 条")
 	}
 	if opts.IO.IsStdoutTTY() {
 		title := shared.ListHeader(ghrepo.FullName(baseRepo), "pull request", len(listResult.PullRequests), listResult.TotalCount, !filters.IsDefault())
@@ -227,13 +226,13 @@ func listRun(opts *ListOptions) error {
 
 	headers := []string{
 		"ID",
-		"TITLE",
-		"BRANCH",
+		"标题",
+		"分支(branch)",
 	}
 	if !isTTY {
-		headers = append(headers, "STATE")
+		headers = append(headers, "状态")
 	}
-	headers = append(headers, "CREATED AT")
+	headers = append(headers, "创建时间")
 
 	table := tableprinter.New(opts.IO, tableprinter.WithHeader(headers...))
 	for _, pr := range listResult.PullRequests {

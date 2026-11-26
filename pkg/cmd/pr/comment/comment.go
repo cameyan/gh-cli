@@ -26,12 +26,11 @@ func NewCmdComment(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder,
 
 	cmd := &cobra.Command{
 		Use:   "comment [<number> | <url> | <branch>]",
-		Short: "Add a comment to a pull request",
+		Short: "向拉取请求(PR)添加评论",
 		Long: heredoc.Docf(`
-			Add a comment to a GitHub pull request.
+			向 GitHub 拉取请求(PR)添加评论。
 
-			Without body text or attachments supplied through flags, the command will
-			interactively prompt for the comment text.
+			若未通过 flag 提供正文文本或附件，该命令将交互式提示输入评论文本。
 
 			Use %[1]s--attach%[1]s to upload an image or video. If the body already references an
 			attached file, such as %[1]s![alt](./login.png)%[1]s, that reference is rewritten to point
@@ -40,25 +39,25 @@ func NewCmdComment(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder,
 			is appended to the end of the comment.
 			You can attach up to 50 files per command.
 
-			Alt text for an image follows the path after %[1]s#%[1]s, as in
-			%[1]s--attach './login.png#The login error state'%[1]s. Without it the filename is used.
-			A reference already in the body keeps the alt text written there. Video renders
-			as a player and has no alt text, so it cannot be given any.
+			图片的替代文本(alt text)为 %[1]s#%[1]s 之后的路径内容，如
+			%[1]s--attach './login.png#The login error state'%[1]s。未提供时使用文件名。
+			正文中已有的引用会保留其中书写的替代文本。视频以播放器形式呈现且没有替代文本，
+			因此无法为其指定。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Add a comment to a pull request
+			# 向拉取请求(PR)添加评论
 			$ gh pr comment 13 --body "Hi from GitHub CLI"
 
-			# Attach a screenshot, with alt text after "#"
+			# 附加截图，"#" 之后为替代文本(alt text)
 			$ gh pr comment 13 --attach './login.png#The login error state'
 
-			# Attach multiple files by repeating the flag
+			# 通过重复 flag 附加多个文件
 			$ gh pr comment 13 --attach ./before.png --attach ./after.png
 		`),
 		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if repoOverride, _ := cmd.Flags().GetString("repo"); repoOverride != "" && len(args) == 0 {
-				return cmdutil.FlagErrorf("argument required when using the --repo flag")
+				return cmdutil.FlagErrorf("使用 --repo flag 时必须提供位置参数")
 			}
 			var selector string
 			if len(args) > 0 {
@@ -82,8 +81,7 @@ func NewCmdComment(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder,
 				return err
 			}
 
-			// An asset is not a body, so an edit that only attaches keeps the
-			// comment it is editing.
+			// 附件不是正文，因此仅附加文件的编辑会保留其正在编辑的评论。
 			opts.KeepExistingBody = true
 
 			return nil
@@ -104,14 +102,14 @@ func NewCmdComment(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder,
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "The comment body `text`")
-	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "Read body text from `file` (use \"-\" to read from standard input)")
-	cmd.Flags().BoolP("editor", "e", false, "Skip prompts and open the text editor to write the body in")
-	cmd.Flags().BoolP("web", "w", false, "Open the web browser to write the comment")
-	cmd.Flags().BoolVar(&opts.EditLast, "edit-last", false, "Edit the last comment of the current user")
-	cmd.Flags().BoolVar(&opts.DeleteLast, "delete-last", false, "Delete the last comment of the current user")
-	cmd.Flags().BoolVar(&opts.DeleteLastConfirmed, "yes", false, "Skip the delete confirmation prompt when --delete-last is provided")
-	cmd.Flags().BoolVar(&opts.CreateIfNone, "create-if-none", false, "Create a new comment if no comments are found. Can be used only with --edit-last")
+	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "评论正文 `text`")
+	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "从 `file` 读取正文文本 (使用 \"-\" 从标准输入读取)")
+	cmd.Flags().BoolP("editor", "e", false, "跳过提示，打开文本编辑器撰写正文")
+	cmd.Flags().BoolP("web", "w", false, "打开 web 浏览器撰写评论")
+	cmd.Flags().BoolVar(&opts.EditLast, "edit-last", false, "编辑当前用户的最后一条评论")
+	cmd.Flags().BoolVar(&opts.DeleteLast, "delete-last", false, "删除当前用户的最后一条评论")
+	cmd.Flags().BoolVar(&opts.DeleteLastConfirmed, "yes", false, "提供 --delete-last 时跳过删除确认提示")
+	cmd.Flags().BoolVar(&opts.CreateIfNone, "create-if-none", false, "未找到任何评论时创建新评论。只能与 --edit-last 一起使用")
 	opts.AttachFlag = attachments.AddFlag(cmd)
 
 	return cmd

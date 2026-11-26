@@ -54,7 +54,7 @@ func GetVariableEntity(orgName, envName string) (VariableEntity, error) {
 	envSet := envName != ""
 
 	if orgSet && envSet {
-		return "", errors.New("cannot specify multiple variable entities")
+		return "", errors.New("无法指定多个变量实体")
 	}
 
 	if orgSet {

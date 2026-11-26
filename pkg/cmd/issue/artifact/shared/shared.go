@@ -53,7 +53,7 @@ func ParseIssueArg(arg string, baseRepo func() (ghrepo.Interface, error)) (int, 
 func ParseArtifactNumber(arg string) (int, error) {
 	number, err := strconv.Atoi(arg)
 	if err != nil || number < 1 {
-		return 0, fmt.Errorf("invalid artifact number: %q", arg)
+		return 0, fmt.Errorf("无效的产物编号: %q", arg)
 	}
 	return number, nil
 }
@@ -62,7 +62,7 @@ func ParseArtifactNumber(arg string) (int, error) {
 // artifact when none is named: no arguments, or a lone argument that isn't an
 // artifact URL, such as an issue alone. It's worded like gh issue develop's
 // "issue number or url is required".
-const MissingArtifactMessage = "artifact number or URL is required"
+const MissingArtifactMessage = "需要提供产物编号或 URL"
 
 // ParseArtifactArgs reads the arguments of a command that names artifacts in
 // either of two forms, {<issue> <artifact-number>... | <artifact-url>...}, and
@@ -112,14 +112,14 @@ func ParseArtifactArgs(args []string, baseRepo func() (ghrepo.Interface, error),
 // numbers are compared.
 func ParseArtifactArg(args []string, baseRepo func() (ghrepo.Interface, error)) (int, func() (ghrepo.Interface, error), int, error) {
 	if len(args) > 1 && isArtifactURL(args[0]) && isArtifactURL(args[1]) {
-		return 0, nil, 0, errors.New("too many arguments")
+		return 0, nil, 0, errors.New("参数过多")
 	}
 	issueNumber, repo, numbers, err := ParseArtifactArgs(args, baseRepo, false)
 	if err != nil {
 		return 0, nil, 0, err
 	}
 	if len(numbers) != 1 {
-		return 0, nil, 0, errors.New("too many arguments")
+		return 0, nil, 0, errors.New("参数过多")
 	}
 	return issueNumber, repo, numbers[0], nil
 }
@@ -156,7 +156,7 @@ func parseArtifactURLs(args []string) (int, func() (ghrepo.Interface, error), []
 		if repo == nil {
 			repo, issueNumber = r, issue
 		} else if issue != issueNumber || !ghrepo.IsSame(r, repo) {
-			return 0, nil, nil, errors.New("artifact URLs must all be on the same issue")
+			return 0, nil, nil, errors.New("所有产物 URL 必须位于同一 issue 中")
 		}
 		if numbers, err = appendNew(numbers, number); err != nil {
 			return 0, nil, nil, err
@@ -170,7 +170,7 @@ func parseArtifactURLs(args []string) (int, func() (ghrepo.Interface, error), []
 // fragment are ignored: only those three are read from it, and requests go to
 // the API.
 func parseArtifactURL(arg string) (ghrepo.Interface, int, int, error) {
-	invalid := fmt.Errorf("invalid artifact URL: %q", arg)
+	invalid := fmt.Errorf("无效的产物 URL: %q", arg)
 	u, err := url.Parse(arg)
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" {
 		return nil, 0, 0, invalid
@@ -193,7 +193,7 @@ func parseArtifactURL(arg string) (ghrepo.Interface, int, int, error) {
 // appendNew appends number to numbers, refusing a number already there.
 func appendNew(numbers []int, number int) ([]int, error) {
 	if slices.Contains(numbers, number) {
-		return nil, fmt.Errorf("duplicate artifact number: %d", number)
+		return nil, fmt.Errorf("重复的产物编号: %d", number)
 	}
 	return append(numbers, number), nil
 }
@@ -209,7 +209,7 @@ func FindVersion(a *client.ArtifactWithVersions, number int) (*client.Version, e
 	i := slices.IndexFunc(a.Versions, func(v client.Version) bool { return v.Version == number })
 	switch {
 	case i < 0:
-		return nil, fmt.Errorf("version %d not found for artifact %d", number, a.Number)
+		return nil, fmt.Errorf("未找到产物 %[2]d 的版本 %[1]d", number, a.Number)
 	case i == 0:
 		return nil, nil
 	}
@@ -221,7 +221,7 @@ func FindVersion(a *client.ArtifactWithVersions, number int) (*client.Version, e
 // instead of an API error. ghe.com hosts pass.
 func CheckHost(host string) error {
 	if ghauth.IsEnterprise(host) {
-		return errors.New("issue artifacts are not supported on GitHub Enterprise Server")
+		return errors.New("GitHub 企业版服务器不支持 issue 产物")
 	}
 	return nil
 }
@@ -272,7 +272,7 @@ func NewUploader(c client.ArtifactClient, repo ghrepo.Interface, issueNumber int
 }
 
 func pullRequestError(repo ghrepo.Interface, number int) error {
-	return fmt.Errorf("%s#%d is a pull request; artifacts are only supported on issues", ghrepo.FullName(repo), number)
+	return fmt.Errorf("%s#%d 是一个 PR；仅在 issue 上支持产物", ghrepo.FullName(repo), number)
 }
 
 // CheckType refuses an artifact whose type this version of gh doesn't know. A
@@ -284,7 +284,7 @@ func CheckType(a client.Artifact) error {
 	case client.TypeGeneric, client.TypePlan, client.TypeLink, client.TypeEmbeddedHTML:
 		return nil
 	}
-	return fmt.Errorf("artifact %d has type %q, which this version of gh doesn't support; upgrade gh", a.Number, a.Type)
+	return fmt.Errorf("产物 %d 的类型为 %q，此版本的 gh 不支持该类型；请升级 gh", a.Number, a.Type)
 }
 
 // SupportsAttachments reports whether an artifact of type artifactType can

@@ -38,40 +38,37 @@ func NewCmdComment(f *cmdutil.Factory, runF func(*CommentOptions) error) *cobra.
 
 	cmd := &cobra.Command{
 		Use:   "comment {<number> | <discussion-url> | <comment-id> | <comment-url>} [flags]",
-		Short: "Add, edit, or delete a comment or a reply on a discussion (preview)",
+		Short: "添加、编辑或删除讨论的评论或回复(预览版)",
 		Long: heredoc.Docf(`
-			Manage comments or replies on a GitHub discussion.
+			管理 GitHub 讨论的评论或回复。
 
-			The positional argument can be a discussion number or URL (to add a new
-			top-level comment), or a comment node ID or comment URL (to reply, edit,
-			or delete that comment).
+			位置参数可以是讨论编号或 URL(用于添加新的顶层评论)，也可以是评论节点
+			ID 或评论 URL(用于回复、编辑或删除该评论)。
 
-			When the argument is a discussion number or URL, the default action is to
-			add a new top-level comment. Likewise, if the argument is a comment URL or ID
-			the default action is to add a reply.
+			当参数为讨论编号或 URL 时，默认操作是添加新的顶层评论。同理，当参数为
+			评论 URL 或 ID 时，默认操作是添加回复。
 
-			Use %[1]s--edit%[1]s to update the comment/reply body, or %[1]s--delete%[1]s to remove it.
+			使用 %[1]s--edit%[1]s 更新评论/回复内容，或使用 %[1]s--delete%[1]s 将其删除。
 
-			The body can be supplied via %[1]s--body%[1]s, %[1]s--body-file%[1]s, or interactively
-			through an editor.
+			评论内容可通过 %[1]s--body%[1]s、%[1]s--body-file%[1]s 提供，或通过编辑器交互式输入。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Add a top-level comment to discussion #123
+			# 向讨论 #123 添加顶层评论
 			$ gh discussion comment 123 --body 'Thanks'
 
-			# Reply to a comment using its URL
+			# 通过 URL 回复某条评论
 			$ gh discussion comment 'https://github.com/OWNER/REPO/discussions/123#discussioncomment-456' --body 'Thanks'
 
-			# Reply to a comment using its node ID
+			# 通过节点 ID 回复某条评论
 			$ gh discussion comment DC_abc123 --body 'Thanks'
 
-			# Edit a comment/reply
+			# 编辑评论/回复
 			$ gh discussion comment 'https://github.com/OWNER/REPO/discussions/123#discussioncomment-456' --edit --body 'Thanks'
 
-			# Delete a comment/reply
+			# 删除评论/回复
 			$ gh discussion comment 'https://github.com/OWNER/REPO/discussions/123#discussioncomment-456' --delete
 
-			# Delete a comment/reply without confirmation prompt
+			# 删除评论/回复且不显示确认提示
 			$ gh discussion comment 'https://github.com/OWNER/REPO/discussions/123#discussioncomment-456' --delete --yes
 		`),
 		Args: cobra.ExactArgs(1),
@@ -85,18 +82,18 @@ func NewCmdComment(f *cmdutil.Factory, runF func(*CommentOptions) error) *cobra.
 			}
 			if opts.Delete {
 				if cmd.Flags().Changed("body") || cmd.Flags().Changed("body-file") {
-					return cmdutil.FlagErrorf("--delete cannot be combined with --body or --body-file")
+					return cmdutil.FlagErrorf("--delete 不能与 --body 或 --body-file 同时使用")
 				}
 			}
 			if opts.Yes && !opts.Delete {
-				return cmdutil.FlagErrorf("--yes can only be used with --delete")
+				return cmdutil.FlagErrorf("--yes 只能与 --delete 一起使用")
 			}
 			if !opts.IO.CanPrompt() && opts.Delete && !opts.Yes {
-				return cmdutil.FlagErrorf("--yes is required when not running interactively with --delete")
+				return cmdutil.FlagErrorf("非交互式运行且使用 --delete 时必须指定 --yes")
 			}
 			if !opts.IO.CanPrompt() && !opts.Delete {
 				if opts.Body == "" && opts.BodyFile == "" {
-					return cmdutil.FlagErrorf("--body or --body-file is required when not running interactively")
+					return cmdutil.FlagErrorf("非交互式运行时必须指定 --body 或 --body-file")
 				}
 			}
 			if err := cmdutil.MutuallyExclusive("specify only one of --body or --body-file",
@@ -112,7 +109,7 @@ func NewCmdComment(f *cmdutil.Factory, runF func(*CommentOptions) error) *cobra.
 			opts.ParsedArg = parsed
 
 			if (opts.Edit || opts.Delete) && (parsed.CommentNodeID == "" && parsed.CommentDatabaseID == 0) {
-				return cmdutil.FlagErrorf("--edit and --delete require a comment ID or comment URL as argument")
+				return cmdutil.FlagErrorf("--edit 和 --delete 需要评论 ID 或评论 URL 作为参数")
 			}
 
 			if opts.ParsedArg.Repo != nil {
@@ -128,11 +125,11 @@ func NewCmdComment(f *cmdutil.Factory, runF func(*CommentOptions) error) *cobra.
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "Comment body text")
-	cmd.Flags().StringVarP(&opts.BodyFile, "body-file", "F", "", "Read body text from file (use \"-\" to read from standard input)")
-	cmd.Flags().BoolVar(&opts.Edit, "edit", false, "Edit the specified comment")
-	cmd.Flags().BoolVar(&opts.Delete, "delete", false, "Delete the specified comment")
-	cmd.Flags().BoolVar(&opts.Yes, "yes", false, "Skip the delete confirmation prompt")
+	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "评论内容文本")
+	cmd.Flags().StringVarP(&opts.BodyFile, "body-file", "F", "", "从文件读取评论内容(使用 \"-\" 表示从标准输入读取)")
+	cmd.Flags().BoolVar(&opts.Edit, "edit", false, "编辑指定的评论")
+	cmd.Flags().BoolVar(&opts.Delete, "delete", false, "删除指定的评论")
+	cmd.Flags().BoolVar(&opts.Yes, "yes", false, "跳过删除确认提示")
 
 	cmdutil.EnableRepoOverride(cmd, f)
 
@@ -173,7 +170,7 @@ func runDelete(opts *CommentOptions, c client.DiscussionClient, baseRepo ghrepo.
 	}
 
 	if !opts.Yes {
-		confirmed, err := opts.Prompter.Confirm("Are you sure you want to delete this comment?", false)
+		confirmed, err := opts.Prompter.Confirm("确定要删除此评论吗?", false)
 		if err != nil {
 			return err
 		}
@@ -265,8 +262,8 @@ func runAdd(opts *CommentOptions, c client.DiscussionClient, baseRepo ghrepo.Int
 	return nil
 }
 
-// resolveCommentID returns the comment node ID, resolving it from the database
-// ID via the API if the arg was a comment URL.
+// resolveCommentID 返回评论节点 ID，若参数为评论 URL，则通过
+// API 将其从数据库 ID 解析而来。
 func resolveCommentID(opts *CommentOptions, c client.DiscussionClient, repo ghrepo.Interface) (string, error) {
 	if opts.ParsedArg.CommentNodeID != "" {
 		return opts.ParsedArg.CommentNodeID, nil
@@ -274,12 +271,12 @@ func resolveCommentID(opts *CommentOptions, c client.DiscussionClient, repo ghre
 	if opts.ParsedArg.CommentDatabaseID != 0 {
 		return c.ResolveCommentNodeID(repo, opts.ParsedArg.CommentDatabaseID)
 	}
-	// We should never reach here due to checks at flag parsing.
-	return "", fmt.Errorf("no comment ID/URL available")
+	// 由于标志解析时的检查，正常不应到达此处。
+	return "", fmt.Errorf("没有可用的评论 ID/URL")
 }
 
-// resolveBody determines the comment body from flags or interactive input.
-// defaultBody is used as the initial content in the editor (e.g., existing comment body for edits).
+// resolveBody 从标志或交互式输入确定评论内容。
+// defaultBody 用作编辑器的初始内容(例如编辑时使用现有评论内容)。
 func resolveBody(opts *CommentOptions, defaultBody string) (string, error) {
 	if opts.BodyFile != "" {
 		b, err := cmdutil.ReadFile(opts.BodyFile, opts.IO.In)
@@ -293,7 +290,7 @@ func resolveBody(opts *CommentOptions, defaultBody string) (string, error) {
 		return opts.Body, nil
 	}
 
-	body, err := opts.Prompter.MarkdownEditor("Body", defaultBody, false)
+	body, err := opts.Prompter.MarkdownEditor("内容", defaultBody, false)
 	if err != nil {
 		return "", err
 	}

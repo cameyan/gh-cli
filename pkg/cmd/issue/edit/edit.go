@@ -17,7 +17,6 @@ import (
 	"github.com/cli/cli/v2/internal/gh"
 	"github.com/cli/cli/v2/internal/gh/ghtelemetry"
 	"github.com/cli/cli/v2/internal/ghrepo"
-	"github.com/cli/cli/v2/internal/text"
 	issueShared "github.com/cli/cli/v2/pkg/cmd/issue/shared"
 	prShared "github.com/cli/cli/v2/pkg/cmd/pr/shared"
 	"github.com/cli/cli/v2/pkg/cmdutil"
@@ -75,33 +74,27 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 
 	cmd := &cobra.Command{
 		Use:   "edit {<numbers> | <urls>}",
-		Short: "Edit issues",
+		Short: "编辑 issue",
 		Long: heredoc.Docf(`
-			Edit one or more issues within the same repository.
+			在同一仓库中编辑一个或多个 issue。
 
-			Editing issues' projects requires authorization with the %[1]sproject%[1]s scope.
-			To authorize, run %[1]sgh auth refresh -s project%[1]s.
+			编辑 issue 项目需要 %[1]sproject%[1]s 范围的授权。要授权，请运行 %[1]sgh auth refresh -s project%[1]s。
 
-			Use %[1]s--attach%[1]s to upload an image or video to a single issue. Without a body
-			flag the issue keeps the body it already has and the attachment is appended to it.
-			If the body references an attached file, such as %[1]s![alt](./login.png)%[1]s, that
-			reference is rewritten to point at the uploaded asset instead. Paths in a
-			%[1]s--body-file%[1]s are relative to its directory, falling back to the working directory.
-			You can attach up to 50 files per command.
+			使用 %[1]s--attach%[1]s 可将图片或视频上传至单个 issue。若未指定正文标记，issue 将保留原有正文，附件将附加至其后。
+			若正文中引用了已附加的文件(如 %[1]s![alt](./login.png)%[1]s)，该引用将被重写以指向上传的资源。%[1]s--body-file%[1]s
+			中的路径相对于其所在目录，若该目录不存在则回退至工作目录。
 
-			Alt text for an image follows the path after %[1]s#%[1]s, as in
-			%[1]s--attach './login.png#The login error state'%[1]s. Without it the filename is used.
-			A reference already in the body keeps the alt text written there. Video renders
-			as a player and has no alt text, so it cannot be given any.
+			每条命令最多可附加 50 个文件。
 
-			If some attachments upload and others fail, the issue is still updated with the
-			ones that succeeded. The command then exits with a non-zero status, but the edited
-			issue URLs are still printed to stdout.
+			图片的替代文本在 %[1]s#%[1]s 之后跟随路径，例如 %[1]s--attach './login.png#登录错误状态'%[1]s。如果没有指定，
+			则使用文件名。正文中已存在的引用会保留其中所写的替代文本。视频会以播放器形式呈现，且没有替代文本，因此无法为其提供替代文本。
 
-			The %[1]s--add-assignee%[1]s and %[1]s--remove-assignee%[1]s flags both support
-			the following special values:
-			- %[1]s@me%[1]s: assign or unassign yourself
-			- %[1]s@copilot%[1]s: assign or unassign Copilot (not supported on GitHub Enterprise Server)
+			如果某些附件上传成功而其他附件失败，issue 仍会更新为成功上传的附件。命令随后会以非零状态退出，但编辑后的 issue URL仍会打
+			印到标准输出。
+
+			%[1]s--add-assignee%[1]s 和 %[1]s--remove-assignee%[1]s 标志均支持以下特殊值:
+			- %[1]s@me%[1]s: 分配或取消分配你自己
+			- %[1]s@copilot%[1]s: 分配或取消分配 Copilot (在 GitHub 企业版服务器上不受支持)
 		`, "`"),
 		Example: heredoc.Doc(`
 			$ gh issue edit 23 --title "I found a bug" --body "Nothing works"
@@ -129,13 +122,13 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 				return err
 			}
 
-			// If the args provided the base repo then use that directly.
+			// 如果参数提供了基础仓库，则直接使用它。
 			if baseRepo, present := baseRepo.Value(); present {
 				opts.BaseRepo = func() (ghrepo.Interface, error) {
 					return baseRepo, nil
 				}
 			} else {
-				// support `-R, --repo` override
+				// 支持 `-R, --repo` 覆盖
 				opts.BaseRepo = f.BaseRepo
 			}
 
@@ -147,7 +140,7 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 			bodyFileProvided := bodyFile != ""
 
 			if err := cmdutil.MutuallyExclusive(
-				"specify only one of `--body` or `--body-file`",
+				"只能指定 `--body` 或 `--body-file` 中的一个",
 				bodyProvided,
 				bodyFileProvided,
 			); err != nil {
@@ -164,7 +157,7 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 			}
 
 			if err := cmdutil.MutuallyExclusive(
-				"specify only one of `--milestone` or `--remove-milestone`",
+				"只能指定 `--milestone` 或 `--remove-milestone` 中的一个",
 				flags.Changed("milestone"),
 				removeMilestone,
 			); err != nil {
@@ -172,7 +165,7 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 			}
 
 			if err := cmdutil.MutuallyExclusive(
-				"specify only one of `--type` or `--remove-type`",
+				"只能指定 `--type` 或 `--remove-type` 中的一个",
 				flags.Changed("type"),
 				opts.RemoveIssueType,
 			); err != nil {
@@ -180,7 +173,7 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 			}
 
 			if err := cmdutil.MutuallyExclusive(
-				"specify only one of --parent or --remove-parent",
+				"只能指定 --parent 或 --remove-parent 中的一个",
 				flags.Changed("parent"),
 				opts.RemoveParent,
 			); err != nil {
@@ -202,10 +195,10 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 			if flags.Changed("milestone") || removeMilestone {
 				opts.Editable.Milestone.Edited = true
 
-				// Note that when `--remove-milestone` is provided, the value of
-				// `opts.Editable.Milestone.Value` will automatically be empty,
-				// which results in milestone association removal. For reference,
-				// see the `Editable.MilestoneId` method.
+				// 注意，当提供 `--remove-milestone` 时，
+				// `opts.Editable.Milestone.Value` 的值会自动为空，
+				// 这会导致里程碑关联被移除。有关参考，
+				// 请参见 `Editable.MilestoneId` 方法。
 			}
 			if flags.Changed("type") {
 				opts.Editable.IssueType.Edited = true
@@ -217,29 +210,29 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 				return err
 			}
 
-			// An empty --parent resolves to no work, so it counts as an edit
-			// only here, where passing the flag at all suppresses the survey.
+			// 空的 --parent 不会产生任何工作，因此仅在此处计为一次编辑，
+			// 在这里只要传入了该旗标就会抑制问卷。
 			hasDeferredFlags := opts.hasDeferredEdits() || flags.Changed("parent")
 
-			// Drop into interactive mode only if the user passed no edit flags at all.
+			// 仅当用户完全没有传入任何编辑旗标时才进入交互模式。
 			if !opts.Editable.Dirty() && !hasDeferredFlags && len(opts.Assets) == 0 {
 				opts.Interactive = true
 			}
 
 			if opts.Interactive && !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("field to edit flag required when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时必须指定要编辑的字段选项")
 			}
 
 			if opts.Interactive && len(opts.IssueNumbers) > 1 {
-				return cmdutil.FlagErrorf("multiple issues cannot be edited interactively")
+				return cmdutil.FlagErrorf("无法以交互方式编辑多个 issue")
 			}
 
 			if len(opts.IssueNumbers) > 1 && len(opts.AddSubIssues) > 0 {
-				return cmdutil.FlagErrorf("`--add-sub-issue` cannot be used when editing multiple issues")
+				return cmdutil.FlagErrorf("编辑多个 issue 时无法使用 `--add-sub-issue`")
 			}
 
 			if len(opts.IssueNumbers) > 1 && len(opts.Assets) > 0 {
-				return cmdutil.FlagErrorf("`--attach` cannot be used when editing multiple issues")
+				return cmdutil.FlagErrorf("编辑多个 issue 时无法使用 `--attach`")
 			}
 
 			if runF != nil {
@@ -250,36 +243,36 @@ func NewCmdEdit(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, ru
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Editable.Title.Value, "title", "t", "", "Set the new title.")
-	cmd.Flags().StringVarP(&opts.Editable.Body.Value, "body", "b", "", "Set the new body.")
-	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "Read body text from `file` (use \"-\" to read from standard input)")
-	cmd.Flags().StringSliceVar(&opts.Editable.Assignees.Add, "add-assignee", nil, "Add assigned users by their `login`. Use \"@me\" to assign yourself, or \"@copilot\" to assign Copilot.")
-	cmd.Flags().StringSliceVar(&opts.Editable.Assignees.Remove, "remove-assignee", nil, "Remove assigned users by their `login`. Use \"@me\" to unassign yourself, or \"@copilot\" to unassign Copilot.")
-	cmd.Flags().StringSliceVar(&opts.Editable.Labels.Add, "add-label", nil, "Add labels by `name`")
-	cmd.Flags().StringSliceVar(&opts.Editable.Labels.Remove, "remove-label", nil, "Remove labels by `name`")
-	cmd.Flags().StringSliceVar(&opts.Editable.Projects.Add, "add-project", nil, "Add the issue to projects by `title`")
-	cmd.Flags().StringSliceVar(&opts.Editable.Projects.Remove, "remove-project", nil, "Remove the issue from projects by `title`")
-	cmd.Flags().StringVarP(&opts.Editable.Milestone.Value, "milestone", "m", "", "Edit the milestone the issue belongs to by `name`")
-	cmd.Flags().BoolVar(&removeMilestone, "remove-milestone", false, "Remove the milestone association from the issue")
-	cmd.Flags().StringVar(&opts.Editable.IssueType.Value, "type", "", "Set the issue type by `name`")
-	cmd.Flags().BoolVar(&opts.RemoveIssueType, "remove-type", false, "Remove the issue type from the issue")
-	cmd.Flags().StringVar(&opts.Parent, "parent", "", "Set the parent issue by `number` or URL")
-	cmd.Flags().BoolVar(&opts.RemoveParent, "remove-parent", false, "Remove the parent issue")
-	cmd.Flags().StringSliceVar(&opts.AddSubIssues, "add-sub-issue", nil, "Add sub-issues by `number` or URL")
-	cmd.Flags().StringSliceVar(&opts.RemoveSubIssues, "remove-sub-issue", nil, "Remove sub-issues by `number` or URL")
-	cmd.Flags().StringSliceVar(&opts.AddBlockedBy, "add-blocked-by", nil, "Add 'blocked by' relationships by issue `number` or URL")
-	cmd.Flags().StringSliceVar(&opts.RemoveBlockedBy, "remove-blocked-by", nil, "Remove 'blocked by' relationships by issue `number` or URL")
-	cmd.Flags().StringSliceVar(&opts.AddBlocking, "add-blocking", nil, "Add 'blocking' relationships by issue `number` or URL")
-	cmd.Flags().StringSliceVar(&opts.RemoveBlocking, "remove-blocking", nil, "Remove 'blocking' relationships by issue `number` or URL")
+	cmd.Flags().StringVarP(&opts.Editable.Title.Value, "title", "t", "", "设置新标题")
+	cmd.Flags().StringVarP(&opts.Editable.Body.Value, "body", "b", "", "设置新正文")
+	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "从 `file` 读取正文文本(使用 \"-\" 从标准输入读取)")
+	cmd.Flags().StringSliceVar(&opts.Editable.Assignees.Add, "add-assignee", nil, "按 `login` 添加负责人。使用 \"@me\" 将自己设为负责人，或使用 \"@copilot\" 将 Copilot 设为负责人")
+	cmd.Flags().StringSliceVar(&opts.Editable.Assignees.Remove, "remove-assignee", nil, "按 `login` 移除负责人。使用 \"@me\" 取消自己的负责人身份，或使用 \"@copilot\" 取消 Copilot 的负责人身份")
+	cmd.Flags().StringSliceVar(&opts.Editable.Labels.Add, "add-label", nil, "按 `name` 添加标签")
+	cmd.Flags().StringSliceVar(&opts.Editable.Labels.Remove, "remove-label", nil, "按 `name` 移除标签")
+	cmd.Flags().StringSliceVar(&opts.Editable.Projects.Add, "add-project", nil, "按 `title` 将 issue 添加到项目")
+	cmd.Flags().StringSliceVar(&opts.Editable.Projects.Remove, "remove-project", nil, "按 `title` 将 issue 从项目中移除")
+	cmd.Flags().StringVarP(&opts.Editable.Milestone.Value, "milestone", "m", "", "按 `name` 编辑 issue 所属的里程碑")
+	cmd.Flags().BoolVar(&removeMilestone, "remove-milestone", false, "移除 issue 的里程碑关联")
+	cmd.Flags().StringVar(&opts.Editable.IssueType.Value, "type", "", "按 `name` 设置 issue 类型")
+	cmd.Flags().BoolVar(&opts.RemoveIssueType, "remove-type", false, "移除 issue 的类型")
+	cmd.Flags().StringVar(&opts.Parent, "parent", "", "按 `number` 或 URL 设置父issue")
+	cmd.Flags().BoolVar(&opts.RemoveParent, "remove-parent", false, "移除父 issue")
+	cmd.Flags().StringSliceVar(&opts.AddSubIssues, "add-sub-issue", nil, "按 `number` 或 URL 添加子 issue")
+	cmd.Flags().StringSliceVar(&opts.RemoveSubIssues, "remove-sub-issue", nil, "按 `number` 或 URL 移除子 issue")
+	cmd.Flags().StringSliceVar(&opts.AddBlockedBy, "add-blocked-by", nil, "按 issue `number` 或 URL 添加 'blocked by' 关系")
+	cmd.Flags().StringSliceVar(&opts.RemoveBlockedBy, "remove-blocked-by", nil, "按issue `number` 或 URL 移除 'blocked by' 关系")
+	cmd.Flags().StringSliceVar(&opts.AddBlocking, "add-blocking", nil, "按issue `number` 或 URL 添加 'blocking' 关系")
+	cmd.Flags().StringSliceVar(&opts.RemoveBlocking, "remove-blocking", nil, "按 issue `number` 或 URL 移除 'blocking' 关系")
 	opts.AttachFlag = attachments.AddFlag(cmd)
 
 	return cmd
 }
 
-// hasDeferredEdits reports whether the run asks for an edit that the deferred
-// update path applies, which Editable.Dirty() cannot see. Setting --type is
-// absent because it sets Editable.IssueType.Edited, which Dirty() already
-// covers; only --remove-type arrives here.
+// hasDeferredEdits 报告本次运行是否请求了延迟更新路径会应用的编辑，
+// 这些编辑是 Editable.Dirty() 无法看到的。未包含设置 --type 的情况，
+// 因为它会设置 Editable.IssueType.Edited，而 Dirty() 已经覆盖了
+// 这一点；只有 --remove-type 会到达这里。
 func (opts *EditOptions) hasDeferredEdits() bool {
 	return opts.RemoveIssueType ||
 		opts.Parent != "" || opts.RemoveParent ||
@@ -299,7 +292,7 @@ func editRun(opts *EditOptions) error {
 		return err
 	}
 
-	// Prompt the user which fields they'd like to edit.
+	// 提示用户选择他们想要编辑的字段。
 	editable := opts.Editable
 	editable.IssueType.Selectable = true
 	if opts.Interactive {
@@ -334,7 +327,7 @@ func editRun(opts *EditOptions) error {
 	}
 	if editable.Projects.Edited {
 		// TODO projectsV1Deprecation
-		// Remove this section as we should no longer add projectCards
+		// 移除此部分，因为我们不应再添加 projectCards
 		projectsV1Support := opts.Detector.ProjectsV1()
 		if projectsV1Support == gh.ProjectsV1Supported {
 			lookupFields = append(lookupFields, "projectCards")
@@ -355,15 +348,15 @@ func editRun(opts *EditOptions) error {
 		lookupFields = append(lookupFields, "repository")
 	}
 
-	// Get all specified issues and make sure they are within the same repo.
+	// 获取所有指定的issue，并确保它们位于同一仓库中。
 	issues, err := issueShared.FindIssuesOrPRs(httpClient, baseRepo, opts.IssueNumbers, lookupFields)
 	if err != nil {
 		return err
 	}
 
-	// NewCmdEdit rejects --attach for more than one issue, so issues[0] is the
-	// only issue. This is the earliest its repository id and permission exist,
-	// so a run that cannot upload stops before any write.
+	// NewCmdEdit 会拒绝针对多个issue的 --attach，因此 issues[0] 是
+	// 唯一的issue。这是其仓库 id 和权限最早存在的地方，
+	// 因此无法上传的运行会在任何写入之前停止。
 	var uploader *attachments.Uploader
 	if len(opts.Assets) > 0 {
 		uploader, err = attachments.NewUploader(httpClient, baseRepo.RepoHost(), issues[0].RepositoryDatabaseID(), issues[0].RepositoryViewerPermission())
@@ -372,24 +365,24 @@ func editRun(opts *EditOptions) error {
 		}
 	}
 
-	// Fetch editable shared fields once for all issues.
+	// 为所有issue一次性获取可编辑的共享字段。
 	apiClient := api.NewClientFromHTTP(httpClient)
 
-	// Wire up search function for assignees when ApiActorsSupported is available.
-	// Interactive mode only supports a single issue, so we use its ID for the search query.
+	// 当 ApiActorsSupported 可用时，为负责人接入搜索函数。
+	// 交互模式仅支持单个issue，因此我们使用其 ID 作为搜索查询。
 	if issueFeatures.ApiActorsSupported && opts.Interactive && len(issues) == 1 {
 		editable.AssigneeSearchFunc = prShared.AssigneeSearchFunc(apiClient, baseRepo, issues[0].ID)
 	}
 
-	opts.IO.StartProgressIndicatorWithLabel("Fetching repository information")
+	opts.IO.StartProgressIndicatorWithLabel("正在获取仓库信息")
 	err = opts.FetchOptions(apiClient, baseRepo, &editable, opts.Detector.ProjectsV1())
 	opts.IO.StopProgressIndicator()
 	if err != nil {
 		return err
 	}
 
-	// Resolve issue type ID before uploading in non-interactive mode.
-	// Interactive mode resolves after the survey sets the value.
+	// 在非交互模式下上传之前先解析issue类型 ID。
+	// 交互模式会在问卷设置该值之后再解析。
 	var issueTypeID string
 	if !opts.Interactive {
 		issueTypeID, err = lookupIssueTypeID(&editable)
@@ -400,16 +393,15 @@ func editRun(opts *EditOptions) error {
 
 	var uploadErr error
 	if uploader != nil {
-		// A body the caller supplied replaces the issue's, including an empty
-		// one.
+		// 调用方提供的正文会替换issue的正文，包括空正文。
 		body := editable.Body.Value
 		if !editable.Body.Edited {
 			body = issues[0].Body
 		}
 
-		// This sits outside the loop below so each file uploads once, and
-		// Clone carries the merged body into the issue. Nothing that can
-		// prompt or cancel may follow an upload.
+		// 此部分位于下方循环之外，因此每个文件只上传一次，而
+		// Clone 会将合并后的正文带入issue。上传之后不得再有任何
+		// 可能提示或取消的操作。
 		var uploadResult attachments.UploadResult
 		body, uploadResult, uploadErr = uploader.UploadAndAttach(context.Background(), body, opts.BodyDir, opts.Assets)
 		opts.AttachEvent.RecordOperations(uploadResult)
@@ -418,31 +410,31 @@ func editRun(opts *EditOptions) error {
 			editable.Body.Value = body
 			editable.Body.Edited = true
 		} else {
-			// The caller's body was written to carry an attachment that never
-			// arrived, so it does not replace what the issue has. Every other
-			// field the caller asked for still applies.
+			// 调用方的正文原本是为了携带一个从未到达的附件，
+			// 因此它不会替换issue已有的正文。调用方要求的其他
+			// 每个字段仍然适用。
 			editable.Body.Edited = false
 		}
 	}
 
-	// Update all issues in parallel.
+	// 并行更新所有issue。
 	editedIssueChan := make(chan string, len(issues))
 	failedIssueChan := make(chan string, len(issues))
 	g := sync.WaitGroup{}
 
-	// Only show progress if we will not prompt below or the survey will break up the progress indicator.
+	// 仅在我们下方不会提示或问卷不会打断进度指示器时显示进度。
 	if !opts.Interactive {
-		opts.IO.StartProgressIndicatorWithLabel(fmt.Sprintf("Updating %d issues", len(issues)))
+		opts.IO.StartProgressIndicatorWithLabel(fmt.Sprintf("正在更新 %d 个 issue", len(issues)))
 	}
 
 	for _, issue := range issues {
-		// Copy variables to capture in the go routine below.
+		// 复制变量以便在下面的 go 例程中捕获。
 		editable := editable.Clone()
 
 		editable.Title.Default = issue.Title
 		editable.Body.Default = issue.Body
-		// We use Actors as the default assignees if Actors are assignable
-		// on this GitHub host.
+		// 如果 Actors 在此 GitHub 主机上可分配，我们将 Actors
+		// 用作默认负责人。
 		// TODO ApiActorsSupported
 		if editable.ApiActorsSupported {
 			editable.Assignees.Default = issue.AssignedActors.DisplayNames()
@@ -464,7 +456,7 @@ func editRun(opts *EditOptions) error {
 			editable.IssueType.Default = issue.IssueType.Name
 		}
 
-		// Allow interactive prompts for one issue; failed earlier if multiple issues specified.
+		// 允许对单个issue进行交互式提示；如果指定了多个issue，则前面已失败。
 		if opts.Interactive {
 			editorCommand, err := opts.DetermineEditor()
 			if err != nil {
@@ -485,17 +477,17 @@ func editRun(opts *EditOptions) error {
 			defer g.Done()
 
 			if err := prShared.UpdateIssue(httpClient, baseRepo, issue.ID, issue.IsPullRequest(), editable); err != nil {
-				failedIssueChan <- fmt.Sprintf("failed to update %s: %s", issue.URL, err)
+				failedIssueChan <- fmt.Sprintf("更新 %s 失败: %s", issue.URL, err)
 				return
 			}
 
 			mutations, err := deferredUpdateIssueOptions(apiClient, baseRepo, issue, opts, issueTypeID)
 			if err != nil {
-				failedIssueChan <- fmt.Sprintf("failed to update %s: %s", issue.URL, err)
+				failedIssueChan <- fmt.Sprintf("更新 %s 失败: %s", issue.URL, err)
 				return
 			}
 			if err := api.DeferredUpdateIssue(apiClient, mutations); err != nil {
-				failedIssueChan <- fmt.Sprintf("failed to update %s:\n%s", issue.URL, err)
+				failedIssueChan <- fmt.Sprintf("更新 %s 失败:\n%s", issue.URL, err)
 				return
 			}
 
@@ -507,19 +499,19 @@ func editRun(opts *EditOptions) error {
 	close(editedIssueChan)
 	close(failedIssueChan)
 
-	// Does nothing if progress was not started above.
+	// 如果上方未启动进度，则不执行任何操作。
 	opts.IO.StopProgressIndicator()
 
-	// Print a sorted list of successfully edited issue URLs to stdout.
+	// 将成功编辑的issue URL 排序后打印到标准输出。
 	editedIssueURLs := make([]string, 0, len(issues))
 	for editedIssueURL := range editedIssueChan {
 		editedIssueURLs = append(editedIssueURLs, editedIssueURL)
 	}
 
 	sort.Strings(editedIssueURLs)
-	// Attaching is the only edit this command drops after parsing the flags,
-	// so it is the only way to reach here with nothing written. An upload that
-	// placed a file sets the body edited, so a dirty editable means a write.
+	// 附加是本命令在解析旗标之后唯一会丢弃的编辑，因此也是唯一
+	// 能在没有写入任何内容的情况下到达此处的方式。成功放置文件的
+	// 上传会将正文标记为已编辑，因此 dirty 的可编辑项意味着有写入。
 	nothingWritten := len(opts.Assets) > 0 && !editable.Dirty() && !opts.hasDeferredEdits()
 	if !nothingWritten {
 		for _, editedIssueURL := range editedIssueURLs {
@@ -527,7 +519,7 @@ func editRun(opts *EditOptions) error {
 		}
 	}
 
-	// Print a sorted list of failures to stderr.
+	// 将失败项排序后打印到标准错误。
 	failedIssueErrors := make([]string, 0, len(issues))
 	for failedIssueError := range failedIssueChan {
 		failedIssueErrors = append(failedIssueErrors, failedIssueError)
@@ -539,23 +531,23 @@ func editRun(opts *EditOptions) error {
 	}
 
 	if len(failedIssueErrors) > 0 {
-		// A failed upload and a failed write have different remedies, so the
-		// write failure cannot stand in for both.
-		return errors.Join(uploadErr, fmt.Errorf("failed to update %s", text.Pluralize(len(failedIssueErrors), "issue")))
+		// 上传失败和写入失败有不同的补救措施，因此写入失败
+		// 不能同时代表两者。
+		return errors.Join(uploadErr, fmt.Errorf("更新 %d 个 issue 失败", len(failedIssueErrors)))
 	}
 
 	return uploadErr
 }
 
-// lookupIssueTypeID resolves the chosen issue type to its node ID using the
-// map populated by FetchOptions.
+// lookupIssueTypeID 使用 FetchOptions 填充的映射，
+// 将选定的issue类型解析为其节点 ID。
 func lookupIssueTypeID(editable *prShared.Editable) (string, error) {
 	if !editable.IssueType.Edited || editable.IssueType.Value == "" {
 		return "", nil
 	}
 	id, ok := editable.IssueTypeNameToID[editable.IssueType.Value]
 	if !ok {
-		return "", fmt.Errorf("type %q not found; available types: %s",
+		return "", fmt.Errorf("类型 %q 未找到，可用类型: %s",
 			editable.IssueType.Value,
 			strings.Join(editable.IssueType.Options, ", "))
 	}
@@ -578,7 +570,7 @@ func deferredUpdateIssueOptions(client *api.Client, baseRepo ghrepo.Interface, i
 	} else if editOpts.Parent != "" {
 		parentID, err := issueShared.ResolveIssueRef(client, baseRepo, editOpts.Parent)
 		if err != nil {
-			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("resolving --parent reference %q: %w", editOpts.Parent, err)
+			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("解析 --parent 引用 %q 失败: %w", editOpts.Parent, err)
 		}
 		updateOpts.ParentID = parentID
 	}
@@ -586,14 +578,14 @@ func deferredUpdateIssueOptions(client *api.Client, baseRepo ghrepo.Interface, i
 	for _, ref := range editOpts.AddSubIssues {
 		id, err := issueShared.ResolveIssueRef(client, baseRepo, ref)
 		if err != nil {
-			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("resolving --add-sub-issue reference %q: %w", ref, err)
+			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("解析 --add-sub-issue 引用 %q 失败: %w", ref, err)
 		}
 		updateOpts.AddSubIssueIDs = append(updateOpts.AddSubIssueIDs, id)
 	}
 	for _, ref := range editOpts.RemoveSubIssues {
 		id, err := issueShared.ResolveIssueRef(client, baseRepo, ref)
 		if err != nil {
-			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("resolving --remove-sub-issue reference %q: %w", ref, err)
+			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("解析 --remove-sub-issue 引用 %q 失败: %w", ref, err)
 		}
 		updateOpts.RemoveSubIssueIDs = append(updateOpts.RemoveSubIssueIDs, id)
 	}
@@ -601,14 +593,14 @@ func deferredUpdateIssueOptions(client *api.Client, baseRepo ghrepo.Interface, i
 	for _, ref := range editOpts.AddBlockedBy {
 		id, err := issueShared.ResolveIssueRef(client, baseRepo, ref)
 		if err != nil {
-			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("resolving --add-blocked-by reference %q: %w", ref, err)
+			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("解析 --add-blocked-by 引用 %q 失败: %w", ref, err)
 		}
 		updateOpts.AddBlockedByIDs = append(updateOpts.AddBlockedByIDs, id)
 	}
 	for _, ref := range editOpts.RemoveBlockedBy {
 		id, err := issueShared.ResolveIssueRef(client, baseRepo, ref)
 		if err != nil {
-			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("resolving --remove-blocked-by reference %q: %w", ref, err)
+			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("解析 --remove-blocked-by 引用 %q 失败: %w", ref, err)
 		}
 		updateOpts.RemoveBlockedByIDs = append(updateOpts.RemoveBlockedByIDs, id)
 	}
@@ -616,14 +608,14 @@ func deferredUpdateIssueOptions(client *api.Client, baseRepo ghrepo.Interface, i
 	for _, ref := range editOpts.AddBlocking {
 		id, err := issueShared.ResolveIssueRef(client, baseRepo, ref)
 		if err != nil {
-			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("resolving --add-blocking reference %q: %w", ref, err)
+			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("解析 --add-blocking 引用 %q 失败: %w", ref, err)
 		}
 		updateOpts.AddBlockingIDs = append(updateOpts.AddBlockingIDs, id)
 	}
 	for _, ref := range editOpts.RemoveBlocking {
 		id, err := issueShared.ResolveIssueRef(client, baseRepo, ref)
 		if err != nil {
-			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("resolving --remove-blocking reference %q: %w", ref, err)
+			return api.DeferredUpdateIssueOptions{}, fmt.Errorf("解析 --remove-blocking 引用 %q 失败: %w", ref, err)
 		}
 		updateOpts.RemoveBlockingIDs = append(updateOpts.RemoveBlockingIDs, id)
 	}

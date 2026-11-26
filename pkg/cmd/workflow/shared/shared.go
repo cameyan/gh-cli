@@ -128,7 +128,7 @@ func selectWorkflow(p iprompter, workflows []Workflow, promptMsg string, states 
 // FindWorkflow looks up a workflow either by numeric database ID, file name, or its Name field
 func FindWorkflow(client *api.Client, repo ghrepo.Interface, workflowSelector string, states []WorkflowState) ([]Workflow, error) {
 	if workflowSelector == "" {
-		return nil, errors.New("empty workflow selector")
+		return nil, errors.New("工作流选择器为空")
 	}
 
 	if _, err := strconv.Atoi(workflowSelector); err == nil || isWorkflowFile(workflowSelector) {
@@ -136,7 +136,7 @@ func FindWorkflow(client *api.Client, repo ghrepo.Interface, workflowSelector st
 		if err != nil {
 			if httpErr, ok := errors.AsType[api.HTTPError](err); ok {
 				if httpErr.StatusCode == 404 {
-					httpErr.Message = fmt.Sprintf("workflow %s not found on the default branch", workflowSelector)
+					httpErr.Message = fmt.Sprintf("在默认分支上未找到工作流 %s", workflowSelector)
 				}
 				return nil, httpErr
 			}
@@ -175,7 +175,7 @@ func getWorkflowByID(client *api.Client, repo ghrepo.Interface, ID string) (*Wor
 func getWorkflowsByName(client *api.Client, repo ghrepo.Interface, name string, states []WorkflowState) ([]Workflow, error) {
 	workflows, err := GetWorkflows(client, repo, 0)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't fetch workflows for %s: %w", ghrepo.FullName(repo), err)
+		return nil, fmt.Errorf("无法获取 %s 的工作流程: %w", ghrepo.FullName(repo), err)
 	}
 
 	var filtered []Workflow
@@ -195,19 +195,19 @@ func ResolveWorkflow(p iprompter, io *iostreams.IOStreams, client *api.Client, r
 	if prompt {
 		workflows, err := GetWorkflows(client, repo, 0)
 		if len(workflows) == 0 {
-			err = errors.New("no workflows are enabled")
+			err = errors.New("未启用任何工作流")
 		}
 
 		if err != nil {
 			var httpErr api.HTTPError
 			if errors.As(err, &httpErr) && httpErr.StatusCode == 404 {
-				err = errors.New("no workflows are enabled")
+				err = errors.New("未启用任何工作流")
 			}
 
-			return nil, fmt.Errorf("could not fetch workflows for %s: %w", ghrepo.FullName(repo), err)
+			return nil, fmt.Errorf("无法获取 %s 的工作流信息: %w", ghrepo.FullName(repo), err)
 		}
 
-		return selectWorkflow(p, workflows, "Select a workflow", states)
+		return selectWorkflow(p, workflows, "选择一个工作流", states)
 	}
 
 	workflows, err := FindWorkflow(client, repo, workflowSelector, states)
@@ -216,7 +216,7 @@ func ResolveWorkflow(p iprompter, io *iostreams.IOStreams, client *api.Client, r
 	}
 
 	if len(workflows) == 0 {
-		return nil, fmt.Errorf("could not find any workflows named %s", workflowSelector)
+		return nil, fmt.Errorf("未找到名为 %s 的任何工作流", workflowSelector)
 	}
 
 	if len(workflows) == 1 {
@@ -225,14 +225,14 @@ func ResolveWorkflow(p iprompter, io *iostreams.IOStreams, client *api.Client, r
 
 	if !io.CanPrompt() {
 		var errMsg strings.Builder
-		errMsg.WriteString("could not resolve to a unique workflow; found:")
+		errMsg.WriteString("无法解析为唯一的工作流，共找到:")
 		for _, workflow := range workflows {
 			errMsg.WriteString(fmt.Sprintf(" %s", workflow.Base()))
 		}
 		return nil, errors.New(errMsg.String())
 	}
 
-	return selectWorkflow(p, workflows, "Which workflow do you mean?", states)
+	return selectWorkflow(p, workflows, "你指的是哪个工作流？", states)
 }
 
 func GetWorkflowContent(client *api.Client, repo ghrepo.Interface, workflow Workflow, ref string) ([]byte, error) {
@@ -256,7 +256,7 @@ func GetWorkflowContent(client *api.Client, repo ghrepo.Interface, workflow Work
 
 	decoded, err := base64.StdEncoding.DecodeString(result.Content)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode workflow file: %w", err)
+		return nil, fmt.Errorf("未能解析工作流文件: %w", err)
 	}
 
 	sanitized, err := io.ReadAll(transform.NewReader(bytes.NewReader(decoded), &asciisanitizer.Sanitizer{}))

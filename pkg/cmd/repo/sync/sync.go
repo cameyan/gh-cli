@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	notFastForwardErrorMessage     = "Update is not a fast forward"
-	branchDoesNotExistErrorMessage = "Reference does not exist"
+	notFastForwardErrorMessage     = "更新不等于快进"
+	branchDoesNotExistErrorMessage = "参考项不存在"
 )
 
 type SyncOptions struct {
@@ -44,30 +44,28 @@ func NewCmdSync(f *cmdutil.Factory, runF func(*SyncOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "sync [<destination-repository>]",
-		Short: "Sync a repository",
+		Short: "同步仓库",
 		Long: heredoc.Docf(`
-			Sync destination repository from source repository. Syncing uses the default branch
-			of the source repository to update the matching branch on the destination
-			repository so they are equal. A fast forward update will be used except when the
-			%[1]s--force%[1]s flag is specified, then the two branches will
-			be synced using a hard reset.
+			从源仓库同步目标仓库。
 
-			Without an argument, the local repository is selected as the destination repository.
+			同步使用源仓库的默认分支更新目标仓库上匹配的分支，使两者一致。除指定 %[1]s--force%[1]s 选项外，
+			将使用快进(fast forward)更新；指定该选项时，将使用硬重置(hard reset)同步两个分支。
 
-			The source repository is the parent of the destination repository by default.
-			This can be overridden with the %[1]s--source%[1]s flag.
+			未提供参数时，本地仓库将被选为目标仓库。
+
+			默认情况下，源仓库是目标仓库的父仓库。可以使用 %[1]s--source%[1]s 选项覆盖此行为。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Sync local repository from remote parent
+			# 从远程父仓库同步本地仓库
 			$ gh repo sync
 
-			# Sync local repository from remote parent on specific branch
+			# 在特定分支上从远程父仓库同步本地仓库
 			$ gh repo sync --branch v1
 
-			# Sync remote fork from its parent
+			# 从其父仓库同步远程 fork 仓库
 			$ gh repo sync owner/cli-fork
 
-			# Sync remote repository from another remote repository
+			# 从另一个远程仓库同步远程仓库
 			$ gh repo sync owner/repo --source owner2/repo2
 		`),
 		Args: cobra.MaximumNArgs(1),
@@ -82,9 +80,9 @@ func NewCmdSync(f *cmdutil.Factory, runF func(*SyncOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.SrcArg, "source", "s", "", "Source repository")
-	cmd.Flags().StringVarP(&opts.Branch, "branch", "b", "", "Branch to sync (default [default branch])")
-	cmd.Flags().BoolVarP(&opts.Force, "force", "", false, "Hard reset the branch of the destination repository to match the source repository")
+	cmd.Flags().StringVarP(&opts.SrcArg, "source", "s", "", "源仓库")
+	cmd.Flags().StringVarP(&opts.Branch, "branch", "b", "", "待同步的分支(默认为 [默认分支])")
+	cmd.Flags().BoolVarP(&opts.Force, "force", "", false, "硬重置目标仓库的分支以匹配源仓库")
 	return cmd
 }
 
@@ -113,7 +111,7 @@ func syncLocalRepo(opts *SyncOptions) error {
 		}
 	}
 
-	// Find remote that matches the srcRepo
+	// 查找与 srcRepo 匹配的远程(remote)
 	var remote string
 	remotes, err := opts.Remotes()
 	if err != nil {
@@ -122,7 +120,7 @@ func syncLocalRepo(opts *SyncOptions) error {
 	if r, err := remotes.FindByRepo(srcRepo.RepoOwner(), srcRepo.RepoName()); err == nil {
 		remote = r.Name
 	} else {
-		return fmt.Errorf("can't find corresponding remote for %s", ghrepo.FullName(srcRepo))
+		return fmt.Errorf("找不到 %s 对应的远程", ghrepo.FullName(srcRepo))
 	}
 
 	if opts.Branch == "" {
@@ -139,7 +137,7 @@ func syncLocalRepo(opts *SyncOptions) error {
 		}
 	}
 
-	// Git fetch might require input from user, so do it before starting progress indicator.
+	// git fetch 可能需要用户输入，因此要在启动进度指示器之前执行。
 	if err := opts.Git.Fetch(remote, fmt.Sprintf("refs/heads/%s", opts.Branch)); err != nil {
 		return err
 	}
@@ -149,14 +147,14 @@ func syncLocalRepo(opts *SyncOptions) error {
 	opts.IO.StopProgressIndicator()
 	if err != nil {
 		if errors.Is(err, divergingError) {
-			return fmt.Errorf("can't sync because there are diverging changes; use `--force` to overwrite the destination branch")
+			return fmt.Errorf("无法同步，因为存在分歧的变更；使用 `--force` 覆盖目标分支")
 		}
 		return err
 	}
 
 	if opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
-		fmt.Fprintf(opts.IO.Out, "%s Synced the \"%s\" branch from \"%s\" to local repository\n",
+		fmt.Fprintf(opts.IO.Out, "%s 已从 \"%s\" 同步 \"%s\" 分支到本地仓库\n",
 			cs.SuccessIcon(),
 			opts.Branch,
 			ghrepo.FullName(srcRepo))
@@ -187,7 +185,7 @@ func syncRemoteRepo(opts *SyncOptions) error {
 	}
 
 	if srcRepo != nil && destRepo.RepoHost() != srcRepo.RepoHost() {
-		return fmt.Errorf("can't sync repositories from different hosts")
+		return fmt.Errorf("无法同步来自不同主机的仓库")
 	}
 
 	opts.IO.StartProgressIndicator()
@@ -195,7 +193,7 @@ func syncRemoteRepo(opts *SyncOptions) error {
 	opts.IO.StopProgressIndicator()
 	if err != nil {
 		if errors.Is(err, divergingError) {
-			return fmt.Errorf("can't sync because there are diverging changes; use `--force` to overwrite the destination branch")
+			return fmt.Errorf("无法同步，因为存在分歧的变更；使用 `--force` 覆盖目标分支")
 		}
 		return err
 	}
@@ -206,7 +204,7 @@ func syncRemoteRepo(opts *SyncOptions) error {
 		if _, after, ok := strings.Cut(baseBranchLabel, ":"); ok {
 			branchName = after
 		}
-		fmt.Fprintf(opts.IO.Out, "%s Synced the \"%s:%s\" branch from \"%s\"\n",
+		fmt.Fprintf(opts.IO.Out, "%s 已从 \"%s\" 同步 \"%s:%s\" 分支\n",
 			cs.SuccessIcon(),
 			destRepo.RepoOwner(),
 			branchName,
@@ -216,7 +214,7 @@ func syncRemoteRepo(opts *SyncOptions) error {
 	return nil
 }
 
-var divergingError = errors.New("diverging changes")
+var divergingError = errors.New("存在分歧的变更")
 
 func executeLocalRepoSync(srcRepo ghrepo.Interface, remote string, opts *SyncOptions) error {
 	git := opts.Git
@@ -243,7 +241,7 @@ func executeLocalRepoSync(srcRepo ghrepo.Interface, remote string, opts *SyncOpt
 	}
 	if currentBranch == branch {
 		if isDirty, err := git.IsDirty(); err == nil && isDirty {
-			return fmt.Errorf("refusing to sync due to uncommitted/untracked local changes\ntip: use `git stash --all` before retrying the sync and run `git stash pop` afterwards")
+			return fmt.Errorf("拒绝同步，因为存在未提交/未跟踪的本地变更\n提示: 重试同步前使用 `git stash --all`，之后运行 `git stash pop`")
 		} else if err != nil {
 			return err
 		}
@@ -261,13 +259,13 @@ func executeLocalRepoSync(srcRepo ghrepo.Interface, remote string, opts *SyncOpt
 			if err := git.UpdateBranch(branch, "FETCH_HEAD"); err != nil {
 				worktrees, worktreeErr := git.Worktrees()
 				if worktreeErr != nil {
-					return fmt.Errorf("cannot update branch %q: %w; also cannot retrieve worktrees: %w", branch, err, worktreeErr)
+					return fmt.Errorf("无法更新分支 %q: %w；同时也无法获取工作树: %w", branch, err, worktreeErr)
 				}
 				if worktree := gitpkg.WorktreeForBranch(worktrees, branch); worktree != nil {
 					if worktree.Prunable {
-						return fmt.Errorf("can't sync %q because stale worktree metadata still associates it with %s\ntip: run `git worktree prune` and retry", branch, worktree.Path)
+						return fmt.Errorf("无法同步 %q，因为过期的工作树元数据仍将其关联到 %s\n提示: 运行 `git worktree prune` 后重试", branch, worktree.Path)
 					}
-					return fmt.Errorf("can't sync %q because it's checked out in another worktree at %s\ntip: run `gh repo sync` from that worktree instead", branch, worktree.Path)
+					return fmt.Errorf("无法同步 %q，因为它已在 %s 处的另一个工作树中检出\n提示: 请改为在该工作树中运行 `gh repo sync`", branch, worktree.Path)
 				}
 				return err
 			}
@@ -281,13 +279,13 @@ func executeLocalRepoSync(srcRepo ghrepo.Interface, remote string, opts *SyncOpt
 	return nil
 }
 
-// ExecuteRemoteRepoSync will take several steps to sync the source and destination repositories.
-// First it will try to use the merge-upstream API endpoint. If this fails due to merge conflicts
-// or unknown merge issues then it will fallback to using the low level git references API endpoint.
-// The reason the fallback is necessary is to better support these error cases. The git references API
-// endpoint allows us to sync repositories that are not fast-forward merge compatible. Additionally,
-// the git references API endpoint gives more detailed error responses as to why the sync failed.
-// Unless the --force flag is specified we will not perform non-fast-forward merges.
+// ExecuteRemoteRepoSync 将通过多个步骤同步源仓库和目标仓库。
+// 首先尝试使用 merge-upstream API 端点。若因合并冲突或未知的合并问题而失败，
+// 则回退到低层级的 git 引用(references) API 端点。
+// 之所以需要回退，是为了更好地处理这些错误情况。git references API
+// 端点允许我们同步不兼容快进(fast-forward)合并的仓库。此外，
+// git references API 端点会给出更详细的同步失败原因说明。
+// 除非指定 --force 标志，否则不会执行非快进合并。
 func executeRemoteRepoSync(client *api.Client, destRepo, srcRepo ghrepo.Interface, opts *SyncOptions) (string, error) {
 	branchName := opts.Branch
 	if branchName == "" {
@@ -311,7 +309,7 @@ func executeRemoteRepoSync(client *api.Client, destRepo, srcRepo ghrepo.Interfac
 			return "", err
 		}
 		if srcRepo == nil {
-			return "", fmt.Errorf("can't determine source repository for %s because repository is not fork", ghrepo.FullName(destRepo))
+			return "", fmt.Errorf("无法确定 %s 的源仓库，因为该仓库不是 fork 仓库", ghrepo.FullName(destRepo))
 		}
 	}
 
@@ -320,9 +318,9 @@ func executeRemoteRepoSync(client *api.Client, destRepo, srcRepo ghrepo.Interfac
 		return "", err
 	}
 
-	// Using string comparison is a brittle way to determine the error returned by the API
-	// endpoint but unfortunately the API returns 422 for many reasons so we must
-	// interpret the message provide better error messaging for our users.
+	// 使用字符串比较来判定 API 端点返回的错误是一种脆弱的方式，
+	// 但遗憾的是 API 会因多种原因返回 422，因此我们必须解读消息，
+	// 为用户提供更好的错误提示。
 	err = syncFork(client, destRepo, branchName, commit.Object.SHA, opts.Force)
 	if err != nil {
 		if httpErr, ok := errors.AsType[api.HTTPError](err); ok {
@@ -330,7 +328,7 @@ func executeRemoteRepoSync(client *api.Client, destRepo, srcRepo ghrepo.Interfac
 			case notFastForwardErrorMessage:
 				return "", divergingError
 			case branchDoesNotExistErrorMessage:
-				return "", fmt.Errorf("%s branch does not exist on %s repository", branchName, ghrepo.FullName(destRepo))
+				return "", fmt.Errorf("%s 分支在仓库 %s 上不存在", branchName, ghrepo.FullName(destRepo))
 			}
 		}
 		return "", err

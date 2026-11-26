@@ -47,7 +47,7 @@ func TestNewCmdFork(t *testing.T) {
 			name:    "git args without repo",
 			cli:     "-- --foo bar",
 			wantErr: true,
-			errMsg:  "repository argument required when passing git clone flags",
+			errMsg:  "传入 git clone 选项时需要提供仓库参数",
 		},
 		{
 			name: "repo",
@@ -63,7 +63,7 @@ func TestNewCmdFork(t *testing.T) {
 			name:    "blank remote name",
 			cli:     "--remote --remote-name=''",
 			wantErr: true,
-			errMsg:  "--remote-name cannot be blank",
+			errMsg:  "--remote-name 不能为空",
 		},
 		{
 			name: "remote name",
@@ -126,13 +126,13 @@ func TestNewCmdFork(t *testing.T) {
 			name:    "empty org",
 			cli:     " --org=''",
 			wantErr: true,
-			errMsg:  "--org cannot be blank",
+			errMsg:  "--org 不能为空",
 		},
 		{
 			name:    "git flags in wrong place",
 			cli:     "--depth 1 OWNER/REPO",
 			wantErr: true,
-			errMsg:  "unknown flag: --depth\nSeparate git clone flags with `--`.",
+			errMsg:  "unknown flag: --depth\n请使用 `--` 分隔 git clone 选项",
 		},
 		{
 			name: "with fork name",
@@ -148,7 +148,7 @@ func TestNewCmdFork(t *testing.T) {
 			name:    "remote with repo argument",
 			cli:     "foo/bar --remote",
 			wantErr: true,
-			errMsg:  "the `--remote` flag is unsupported when a repository argument is provided",
+			errMsg:  "提供了仓库参数时，不支持 `--remote` 选项",
 		},
 	}
 
@@ -247,7 +247,7 @@ func TestRepoFork(t *testing.T) {
 			execStubs: func(cs *run.CommandStubber) {
 				cs.Register(`git remote add fork https://github\.com/someone/REPO\.git`, 0, "")
 			},
-			wantErrOut: "✓ Created fork someone/REPO\n✓ Added remote fork\n",
+			wantErrOut: "✓ 已创建 fork 仓库 someone/REPO\n✓ 已添加远程 fork\n",
 		},
 		{
 			name: "implicit match, no configured protocol",
@@ -268,7 +268,7 @@ func TestRepoFork(t *testing.T) {
 			execStubs: func(cs *run.CommandStubber) {
 				cs.Register(`git remote add fork git@github\.com:someone/REPO\.git`, 0, "")
 			},
-			wantErrOut: "✓ Created fork someone/REPO\n✓ Added remote fork\n",
+			wantErrOut: "✓ 已创建 fork 仓库 someone/REPO\n✓ 已添加远程 fork\n",
 		},
 		{
 			name: "implicit with negative interactive choices",
@@ -280,11 +280,11 @@ func TestRepoFork(t *testing.T) {
 			},
 			httpStubs: forkPost,
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterConfirm("Would you like to add a remote for the fork?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否要为 fork 仓库添加远程?", func(_ string, _ bool) (bool, error) {
 					return false, nil
 				})
 			},
-			wantErrOut: "✓ Created fork someone/REPO\n",
+			wantErrOut: "✓ 已创建 fork 仓库 someone/REPO\n",
 		},
 		{
 			name: "implicit with interactive choices",
@@ -300,11 +300,11 @@ func TestRepoFork(t *testing.T) {
 				cs.Register(`git remote add origin https://github.com/someone/REPO.git`, 0, "")
 			},
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterConfirm("Would you like to add a remote for the fork?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否要为 fork 仓库添加远程?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
 			},
-			wantErrOut: "✓ Created fork someone/REPO\n✓ Renamed remote origin to upstream\n✓ Added remote origin\n",
+			wantErrOut: "✓ 已创建 fork 仓库 someone/REPO\n✓ 已将远程 origin 重命名为 upstream\n✓ 已添加远程 origin\n",
 		},
 		{
 			name: "implicit tty reuse existing remote",
@@ -324,7 +324,7 @@ func TestRepoFork(t *testing.T) {
 				},
 			},
 			httpStubs:  forkPost,
-			wantErrOut: "✓ Created fork someone/REPO\n✓ Using existing remote origin\n",
+			wantErrOut: "✓ 已创建 fork 仓库 someone/REPO\n✓ 使用现有远程 origin\n",
 		},
 		{
 			name: "implicit tty remote exists",
@@ -336,7 +336,7 @@ func TestRepoFork(t *testing.T) {
 			},
 			httpStubs: forkPost,
 			wantErr:   true,
-			errMsg:    "a git remote named 'origin' already exists",
+			errMsg:    "名为 'origin' 的 git 远程已存在",
 		},
 		{
 			name: "implicit tty current owner forked",
@@ -350,7 +350,7 @@ func TestRepoFork(t *testing.T) {
 					httpmock.StringResponse(forkResult))
 			},
 			wantErr: true,
-			errMsg:  "failed to fork: someone/REPO cannot be forked",
+			errMsg:  "派生失败: someone/REPO cannot be forked",
 		},
 		{
 			name: "implicit tty already forked",
@@ -361,7 +361,7 @@ func TestRepoFork(t *testing.T) {
 				},
 			},
 			httpStubs:  forkPost,
-			wantErrOut: "! someone/REPO already exists\n",
+			wantErrOut: "! someone/REPO 已存在\n",
 		},
 		{
 			name: "implicit tty --remote",
@@ -376,7 +376,7 @@ func TestRepoFork(t *testing.T) {
 				cs.Register("git remote rename origin upstream", 0, "")
 				cs.Register(`git remote add origin https://github.com/someone/REPO.git`, 0, "")
 			},
-			wantErrOut: "✓ Created fork someone/REPO\n✓ Renamed remote origin to upstream\n✓ Added remote origin\n",
+			wantErrOut: "✓ 已创建 fork 仓库 someone/REPO\n✓ 已将远程 origin 重命名为 upstream\n✓ 已添加远程 origin\n",
 		},
 		{
 			name: "implicit nontty reuse existing remote",
@@ -407,7 +407,7 @@ func TestRepoFork(t *testing.T) {
 			},
 			httpStubs: forkPost,
 			wantErr:   true,
-			errMsg:    "a git remote named 'origin' already exists",
+			errMsg:    "名为 'origin' 的 git 远程已存在",
 		},
 		{
 			name: "implicit nontty already forked",
@@ -417,7 +417,7 @@ func TestRepoFork(t *testing.T) {
 				},
 			},
 			httpStubs:  forkPost,
-			wantErrOut: "someone/REPO already exists\n",
+			wantErrOut: "someone/REPO 已存在\n",
 		},
 		{
 			name: "implicit nontty --remote",
@@ -454,7 +454,7 @@ func TestRepoFork(t *testing.T) {
 				cs.Register(`git -C REPO fetch upstream`, 0, "")
 				cs.Register(`git -C REPO config --add remote.upstream.gh-resolved base`, 0, "")
 			},
-			wantErrOut: "✓ Created fork someone/REPO\n✓ Cloned fork\n! Repository OWNER/REPO set as the default repository. To learn more about the default repository, run: gh repo set-default --help\n",
+			wantErrOut: "✓ 已创建 fork 仓库 someone/REPO\n✓ 已克隆 fork 仓库\n! 仓库 OWNER/REPO 已被设为默认仓库。要了解默认仓库的更多信息，请运行: gh repo set-default --help\n",
 		},
 		{
 			name: "repo arg fork to org",
@@ -486,7 +486,7 @@ func TestRepoFork(t *testing.T) {
 				cs.Register(`git -C REPO fetch upstream`, 0, "")
 				cs.Register(`git -C REPO config --add remote.upstream.gh-resolved base`, 0, "")
 			},
-			wantErrOut: "✓ Created fork gamehendge/REPO\n✓ Cloned fork\n! Repository OWNER/REPO set as the default repository. To learn more about the default repository, run: gh repo set-default --help\n",
+			wantErrOut: "✓ 已创建 fork 仓库 gamehendge/REPO\n✓ 已克隆 fork 仓库\n! 仓库 OWNER/REPO 已被设为默认仓库。要了解默认仓库的更多信息，请运行: gh repo set-default --help\n",
 		},
 		{
 			name: "repo arg url arg",
@@ -502,7 +502,7 @@ func TestRepoFork(t *testing.T) {
 				cs.Register(`git -C REPO fetch upstream`, 0, "")
 				cs.Register(`git -C REPO config --add remote.upstream.gh-resolved base`, 0, "")
 			},
-			wantErrOut: "✓ Created fork someone/REPO\n✓ Cloned fork\n! Repository OWNER/REPO set as the default repository. To learn more about the default repository, run: gh repo set-default --help\n",
+			wantErrOut: "✓ 已创建 fork 仓库 someone/REPO\n✓ 已克隆 fork 仓库\n! 仓库 OWNER/REPO 已被设为默认仓库。要了解默认仓库的更多信息，请运行: gh repo set-default --help\n",
 		},
 		{
 			name: "repo arg interactive no clone",
@@ -513,11 +513,11 @@ func TestRepoFork(t *testing.T) {
 			},
 			httpStubs: forkPost,
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterConfirm("Would you like to clone the fork?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否要克隆 fork 仓库?", func(_ string, _ bool) (bool, error) {
 					return false, nil
 				})
 			},
-			wantErrOut: "✓ Created fork someone/REPO\n",
+			wantErrOut: "✓ 已创建 fork 仓库 someone/REPO\n",
 		},
 		{
 			name: "repo arg interactive",
@@ -528,7 +528,7 @@ func TestRepoFork(t *testing.T) {
 			},
 			httpStubs: forkPost,
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterConfirm("Would you like to clone the fork?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否要克隆 fork 仓库?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
 			},
@@ -538,7 +538,7 @@ func TestRepoFork(t *testing.T) {
 				cs.Register(`git -C REPO fetch upstream`, 0, "")
 				cs.Register(`git -C REPO config --add remote.upstream.gh-resolved base`, 0, "")
 			},
-			wantErrOut: "✓ Created fork someone/REPO\n✓ Cloned fork\n! Repository OWNER/REPO set as the default repository. To learn more about the default repository, run: gh repo set-default --help\n",
+			wantErrOut: "✓ 已创建 fork 仓库 someone/REPO\n✓ 已克隆 fork 仓库\n! 仓库 OWNER/REPO 已被设为默认仓库。要了解默认仓库的更多信息，请运行: gh repo set-default --help\n",
 		},
 		{
 			name: "repo arg interactive already forked",
@@ -552,7 +552,7 @@ func TestRepoFork(t *testing.T) {
 			},
 			httpStubs: forkPost,
 			promptStubs: func(pm *prompter.MockPrompter) {
-				pm.RegisterConfirm("Would you like to clone the fork?", func(_ string, _ bool) (bool, error) {
+				pm.RegisterConfirm("是否要克隆 fork 仓库?", func(_ string, _ bool) (bool, error) {
 					return true, nil
 				})
 			},
@@ -562,7 +562,7 @@ func TestRepoFork(t *testing.T) {
 				cs.Register(`git -C REPO fetch upstream`, 0, "")
 				cs.Register(`git -C REPO config --add remote.upstream.gh-resolved base`, 0, "")
 			},
-			wantErrOut: "! someone/REPO already exists\n✓ Cloned fork\n! Repository OWNER/REPO set as the default repository. To learn more about the default repository, run: gh repo set-default --help\n",
+			wantErrOut: "! someone/REPO 已存在\n✓ 已克隆 fork 仓库\n! 仓库 OWNER/REPO 已被设为默认仓库。要了解默认仓库的更多信息，请运行: gh repo set-default --help\n",
 		},
 		{
 			name: "repo arg nontty no flags",
@@ -581,7 +581,7 @@ func TestRepoFork(t *testing.T) {
 				},
 			},
 			httpStubs:  forkPost,
-			wantErrOut: "someone/REPO already exists\n",
+			wantErrOut: "someone/REPO 已存在\n",
 		},
 		{
 			name: "repo arg nontty clone arg already exists",
@@ -599,7 +599,7 @@ func TestRepoFork(t *testing.T) {
 				cs.Register(`git -C REPO fetch upstream`, 0, "")
 				cs.Register(`git -C REPO config --add remote.upstream.gh-resolved base`, 0, "")
 			},
-			wantErrOut: "someone/REPO already exists\n",
+			wantErrOut: "someone/REPO 已存在\n",
 		},
 		{
 			name: "repo arg nontty clone arg",
@@ -687,7 +687,7 @@ func TestRepoFork(t *testing.T) {
 					httpmock.REST("PATCH", "repos/OWNER/REPO"),
 					httpmock.StringResponse(renameResult))
 			},
-			wantErrOut: "✓ Created fork OWNER/REPO\n✓ Renamed fork to OWNER/NEW_REPO\n",
+			wantErrOut: "✓ 已创建 fork 仓库 OWNER/REPO\n✓ 已将 fork 仓库重命名为 OWNER/NEW_REPO\n",
 		},
 		{
 			name: "retries clone up to four times if necessary",

@@ -6,7 +6,6 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/cli/cli/v2/internal/gh"
-	"github.com/cli/cli/v2/internal/text"
 	"github.com/cli/cli/v2/pkg/cmdutil"
 	"github.com/cli/cli/v2/pkg/iostreams"
 	"github.com/spf13/cobra"
@@ -30,18 +29,18 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 	cmd := &cobra.Command{
 		Use:   "list",
 		Args:  cobra.MaximumNArgs(1),
-		Short: "List organizations for the authenticated user.",
+		Short: "列出已认证用户所属的组织",
 		Example: heredoc.Doc(`
-			# List the first 30 organizations
+			# 列出前 30 个组织
 			$ gh org list
 
-			# List more organizations
+			# 列出更多组织
 			$ gh org list --limit 100
 		`),
 		Aliases: []string{"ls"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Limit < 1 {
-				return cmdutil.FlagErrorf("invalid limit: %v", opts.Limit)
+				return cmdutil.FlagErrorf("无效的限制值: %v", opts.Limit)
 			}
 
 			if runF != nil {
@@ -51,7 +50,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", 30, "Maximum number of organizations to list")
+	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", 30, "要列出的组织数量上限")
 
 	return cmd
 }
@@ -75,7 +74,7 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "error starting pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器出错: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -93,8 +92,8 @@ func listRun(opts *ListOptions) error {
 
 func listHeader(user string, resultCount, totalCount int) string {
 	if totalCount == 0 {
-		return "There are no organizations associated with @" + user
+		return "@" + user + " 没有关联任何组织"
 	}
 
-	return fmt.Sprintf("Showing %d of %s", resultCount, text.Pluralize(totalCount, "organization"))
+	return fmt.Sprintf("正在显示 %d 个组织（共 %d 个）", resultCount, totalCount)
 }

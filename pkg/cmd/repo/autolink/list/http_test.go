@@ -70,7 +70,7 @@ func TestAutolinkLister_List(t *testing.T) {
 				"message": "Not Found",
 			},
 			status:         http.StatusNotFound,
-			expectedErrMsg: "error getting autolinks: HTTP 404: Perhaps you are missing admin rights to the repository? (https://api.github.com/repos/OWNER/REPO/autolinks)",
+			expectedErrMsg: "获取自动链接时出错: HTTP 404: 可能缺少仓库的管理员权限？(https://api.github.com/repos/OWNER/REPO/autolinks)",
 		},
 		{
 			name: "500 unexpected error",

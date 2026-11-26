@@ -18,12 +18,12 @@ func PrintIssues(io *iostreams.IOStreams, now time.Time, prefix string, totalCou
 	isTTY := io.IsStdoutTTY()
 	headers := []string{"ID"}
 	if !isTTY {
-		headers = append(headers, "STATE")
+		headers = append(headers, "状态")
 	}
 	headers = append(headers,
-		"TITLE",
-		"LABELS",
-		"UPDATED",
+		"标题",
+		"标签",
+		"更新时间",
 	)
 	table := tableprinter.New(io, tableprinter.WithHeader(headers...))
 	for _, issue := range issues {
@@ -44,7 +44,7 @@ func PrintIssues(io *iostreams.IOStreams, now time.Time, prefix string, totalCou
 	_ = table.Render()
 	remaining := totalCount - len(issues)
 	if remaining > 0 {
-		fmt.Fprintf(io.Out, cs.Muted("%sAnd %d more\n"), prefix, remaining)
+		fmt.Fprintf(io.Out, cs.Muted("%s 还有 %d 条未显示\n"), prefix, remaining)
 	}
 }
 

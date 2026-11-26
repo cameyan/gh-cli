@@ -42,21 +42,21 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "delete {<issue> <artifact-number>... | <artifact-url>...}",
-		Short: "Delete issue artifacts (preview)",
+		Short: "删除 issue 产物 (预览版)",
 		Long: heredoc.Docf(`
-			Delete artifacts from an issue. A deleted artifact can't be restored.
+			从 issue 中删除产物，删除后的产物无法恢复。
 
-			Name artifacts by their issue and numbers, or by their URLs, which must all be
-			on one issue. %[1]s<issue>%[1]s is an issue number or URL.
+			按 issue 和编号命名产物，或按其 URL 命名，所有内容必须位于同一 issue 中。
+			%[1]s<issue>%[1]s 是 issue 或 URL。
 
-			In a terminal, deletion requires confirmation. %[1]s--yes%[1]s skips the prompt and is
-			required when prompting is unavailable.
+			在终端中，删除操作需要确认。%[1]s--yes%[1]s 可跳过提示，且在无法进行交互
+			提示时必须使用。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Delete artifact 2 from issue 142
+			# 从 issue 142 中删除产物 2
 			$ gh issue artifact delete 142 2
 
-			# Delete two artifacts without a prompt
+			# 删除 2、5 两个产物，无需提示
 			$ gh issue artifact delete 142 2 5 --yes
 		`),
 		Args: cmdutil.MinimumArgs(1, shared.MissingArtifactMessage),
@@ -68,7 +68,7 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 			}
 
 			if !opts.IO.CanPrompt() && !opts.Confirmed {
-				return cmdutil.FlagErrorf("--yes required when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时依赖 --yes 参数")
 			}
 			opts.Client = shared.ClientFunc(f)
 
@@ -79,7 +79,7 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.Confirmed, "yes", false, "Confirm deletion without prompting")
+	cmd.Flags().BoolVar(&opts.Confirmed, "yes", false, "确认删除，无需提示")
 
 	return cmd
 }
@@ -136,11 +136,11 @@ func deleteRun(opts *DeleteOptions) error {
 					printFailure(opts.IO, l.number, l.err)
 				}
 			}
-			fmt.Fprintln(opts.IO.ErrOut, "No artifacts were deleted.")
+			fmt.Fprintln(opts.IO.ErrOut, "未删除任何产物")
 			return cmdutil.SilentError
 		}
 
-		fmt.Fprintf(opts.IO.Out, "%s Deleted artifacts cannot be recovered.\n", cs.WarningIcon())
+		fmt.Fprintf(opts.IO.Out, "%s 删除的产物无法恢复\n", cs.WarningIcon())
 		confirmed, err := opts.Prompter.Confirm(confirmationPrompt(lookups, issueRef), false)
 		if err != nil {
 			return err
@@ -165,7 +165,7 @@ func deleteRun(opts *DeleteOptions) error {
 		// Like gh issue delete, a deleted artifact is reported on stderr, and
 		// only in a terminal: a script already knows the numbers it passed.
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "%s Deleted artifact %d (%s) from %s\n", cs.SuccessIconWithColor(cs.Red), l.number, l.name, issueRef)
+			fmt.Fprintf(opts.IO.ErrOut, "%[1]s 从 %[4]s 中删除了产物 %[2]d (%[3]s)\n", cs.SuccessIconWithColor(cs.Red), l.number, l.name, issueRef)
 		}
 	}
 
@@ -183,7 +183,7 @@ func printFailure(ios *iostreams.IOStreams, number int, err error) {
 		fmt.Fprintf(ios.ErrOut, "%d: %s\n", number, shared.FailureReason(err))
 		return
 	}
-	shared.PrintFailure(ios, shared.Result{Number: number}, fmt.Sprintf("delete artifact %d", number), err)
+	shared.PrintFailure(ios, shared.Result{Number: number}, fmt.Sprintf("删除产物 %d", number), err)
 }
 
 // confirmationPrompt asks once for every artifact, naming each one, such as
@@ -198,7 +198,7 @@ func confirmationPrompt(lookups []lookup, issueRef string) string {
 	if len(artifacts) > 1 {
 		noun = "artifacts"
 	}
-	return fmt.Sprintf("Delete %s %s from %s?", noun, joinList(artifacts), issueRef)
+	return fmt.Sprintf("从 %[3]s 中删除产物 %[1]s %[2]s？", noun, joinList(artifacts), issueRef)
 }
 
 // joinList joins items the way the prompt reads them: "a", "a and b", or

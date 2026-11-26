@@ -15,33 +15,33 @@ import (
 func NewCmdSearch(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "search <command>",
-		Short: "Search for repositories, issues, and pull requests",
+		Short: "搜索仓库、issue 和 PR",
 		Long: heredoc.Docf(`
-			Search across all of GitHub.
+			在整个 GitHub 范围内搜索。
 
-			Excluding search results that match a qualifier
+			排除匹配某个限定符的搜索结果
 
-			In a browser, the GitHub search syntax supports excluding results that match a search qualifier
-			by prefixing the qualifier with a hyphen. For example, to search for issues that
-			do not have the label "bug", you would use %[1]s-label:bug%[1]s as a search qualifier.
+			在浏览器中，GitHub 搜索语法支持通过在限定符前加连字符来排除匹配该限定符的结果。
+			例如，要搜索没有 "bug" 标签的 issue，可以使用 %[1]s-label:bug%[1]s 作为搜索限定符。
 
-			%[1]sgh%[1]s supports this syntax in %[1]sgh search%[1]s as well, but it requires extra
-			command line arguments to avoid the hyphen being interpreted as a command line flag because it begins with a hyphen.
+			%[1]sgh%[1]s 在 %[1]sgh search%[1]s 中同样支持该语法，但它需要额外的命令行参数，
+			以避免以连字符开头的查询被解释为命令行选项。
 
-			On Unix-like systems, you can use the %[1]s--%[1]s argument to indicate that
-			the arguments that follow are not a flag, but rather a query string. For example:
+			在类 Unix 系统上，可以使用 %[1]s--%[1]s 参数来表明其后的参数不是选项，而是查询字符串。例如:
 
 			$ gh search issues -- "my-search-query -label:bug"
 
-			On PowerShell, you must use both the %[1]s--%[2]s%[1]s argument and the %[1]s--%[1]s argument to
-			produce the same effect. For example:
+			在 PowerShell 上，必须同时使用 %[1]s--%[2]s%[1]s 参数和 %[1]s--%[1]s 参数才能达到同样效果。例如:
 
 			$ gh --%[2]s search issues -- "my search query -label:bug"
 
-			See the following for more information:
-			- GitHub search syntax: <https://docs.github.com/en/search-github/getting-started-with-searching-on-github/understanding-the-search-syntax#exclude-results-that-match-a-qualifier>
-			- The PowerShell stop parse flag %[1]s--%[2]s%[1]s: <https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parsing?view=powershell-7.5#the-stop-parsing-token>
-			- The Unix-like %[1]s--%[1]s argument: <https://www.gnu.org/software/bash/manual/bash.html#Shell-Builtin-Commands-1>
+			更多信息请参见:
+			- GitHub 搜索语法:
+			  <https://docs.github.com/en/search-github/getting-started-with-searching-on-github/understanding-the-search-syntax#exclude-results-that-match-a-qualifier>
+			- PowerShell 的停止解析 flag %[1]s--%[2]s%[1]s:
+			  <https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parsing?view=powershell-7.5#the-stop-parsing-token>
+			- 类 Unix 系统的 %[1]s--%[1]s 参数:
+			  <https://www.gnu.org/software/bash/manual/bash.html#Shell-Builtin-Commands-1>
 		`, "`", "%"),
 	}
 

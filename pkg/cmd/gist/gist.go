@@ -16,13 +16,13 @@ import (
 func NewCmdGist(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "gist <command>",
-		Short: "Manage gists",
-		Long:  `Work with GitHub gists.`,
+		Short: "管理 gist",
+		Long:  `使用 GitHub gist。`,
 		Annotations: map[string]string{
 			"help:arguments": heredoc.Doc(`
-				A gist can be supplied as argument in either of the following formats:
-				- by ID, e.g. 5b0e0062eb8e9654adad7bb1d81cc75f
-				- by URL, e.g. "https://gist.github.com/OWNER/5b0e0062eb8e9654adad7bb1d81cc75f"
+				gist 可以通过以下任一格式作为参数提供:
+				- 通过 ID，例如 5b0e0062eb8e9654adad7bb1d81cc75f
+				- 通过 URL，例如 "https://gist.github.com/OWNER/5b0e0062eb8e9654adad7bb1d81cc75f"
 			`),
 		},
 		GroupID: "core",

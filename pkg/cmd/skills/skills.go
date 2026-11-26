@@ -13,36 +13,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewCmdSkills returns the top-level "skill" command.
+// NewCmdSkills 返回顶层 "skill" 命令。
 func NewCmdSkills(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "skill <command>",
-		Short: "Install and manage agent skills (preview)",
+		Short: "安装和管理 agent 技能(预览版)",
 		Long: heredoc.Doc(`
-			Install and manage agent skills from GitHub repositories.
+			从 GitHub 仓库安装和管理 agent 技能。
 
-			Working with agent skills in the GitHub CLI is in preview and
-			subject to change without notice.
+			在 GitHub CLI 中使用 agent 技能的功能处于预览阶段，可能随时变更，恕不另行通知。
 		`),
 		Aliases: []string{"skills"},
 		GroupID: "core",
 		Example: heredoc.Doc(`
-			# Search for skills
+			# 搜索技能
 			$ gh skill search terraform
 
-			# Install a skill
+			# 安装技能
 			$ gh skill install github/awesome-copilot documentation-writer
 
-			# List installed skills
+			# 列出已安装的技能
 			$ gh skill list
 
-			# Preview a skill before installing
+			# 安装前预览技能
 			$ gh skill preview github/awesome-copilot documentation-writer
 
-			# Update all installed skills
+			# 更新所有已安装的技能
 			$ gh skill update --all
 
-			# Validate skills for publishing
+			# 校验待发布的技能
 			$ gh skill publish --dry-run
 		`),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {

@@ -114,7 +114,7 @@ func TestSetRun(t *testing.T) {
 				Expansion: "bar",
 			},
 			wantExpansion: "bar",
-			wantStderr:    "- Creating alias for foo: bar\n✓ Added alias foo\n",
+			wantStderr:    "- 为 foo 创建别名: bar\n✓ 添加别名 foo\n",
 		},
 		{
 			name: "creates alias",
@@ -132,7 +132,7 @@ func TestSetRun(t *testing.T) {
 				Expansion: "!gh issue list | grep",
 			},
 			wantExpansion: "!gh issue list | grep",
-			wantStderr:    "- Creating alias for igrep: !gh issue list | grep\n✓ Added alias igrep\n",
+			wantStderr:    "- 为 igrep 创建别名: !gh issue list | grep\n✓ 添加别名 igrep\n",
 		},
 		{
 			name: "creates shell alias",
@@ -151,7 +151,7 @@ func TestSetRun(t *testing.T) {
 				IsShell:   true,
 			},
 			wantExpansion: "!gh issue list | grep",
-			wantStderr:    "- Creating alias for igrep: !gh issue list | grep\n✓ Added alias igrep\n",
+			wantStderr:    "- 为 igrep 创建别名: !gh issue list | grep\n✓ 添加别名 igrep\n",
 		},
 		{
 			name: "creates shell alias using flag",
@@ -170,7 +170,7 @@ func TestSetRun(t *testing.T) {
 				Expansion: "bar baz --author='$1' --label='$2'",
 			},
 			wantExpansion: "bar baz --author='$1' --label='$2'",
-			wantStderr:    "- Creating alias for foo: bar baz --author='$1' --label='$2'\n✓ Added alias foo\n",
+			wantStderr:    "- 为 foo 创建别名: bar baz --author='$1' --label='$2'\n✓ 添加别名 foo\n",
 		},
 		{
 			name: "creates alias where expansion has args",
@@ -189,7 +189,7 @@ func TestSetRun(t *testing.T) {
 			},
 			stdin:         `bar baz --author="$1" --label="$2"`,
 			wantExpansion: `bar baz --author="$1" --label="$2"`,
-			wantStderr:    "- Creating alias for foo: bar baz --author=\"$1\" --label=\"$2\"\n✓ Added alias foo\n",
+			wantStderr:    "- 为 foo 创建别名: bar baz --author=\"$1\" --label=\"$2\"\n✓ 添加别名 foo\n",
 		},
 		{
 			name: "creates alias from stdin",
@@ -209,7 +209,7 @@ func TestSetRun(t *testing.T) {
 				OverwriteExisting: true,
 			},
 			wantExpansion: "bar",
-			wantStderr:    "- Creating alias for co: bar\n! Changed alias co\n",
+			wantStderr:    "- 为 co 创建别名: bar\n! 修改了别名 co\n",
 		},
 		{
 			name: "overwrites existing alias",
@@ -228,8 +228,8 @@ func TestSetRun(t *testing.T) {
 				Expansion: "bar",
 			},
 			wantExpansion: "pr checkout",
-			wantErrMsg:    "X Could not create alias co: name already taken, use the --clobber flag to overwrite it",
-			wantStderr:    "- Creating alias for co: bar\n",
+			wantErrMsg:    "X 无法创建别名 co: 名称已被占用，请使用 --clobber 标志覆盖它",
+			wantStderr:    "- 为 co 创建别名: bar\n",
 		},
 		{
 			name: "fails when alias name is an existing alias",
@@ -238,7 +238,7 @@ func TestSetRun(t *testing.T) {
 				Expansion: "bar",
 			},
 			wantExpansion: "pr checkout",
-			wantErrMsg:    "X Could not create alias co: name already taken, use the --clobber flag to overwrite it",
+			wantErrMsg:    "X 无法创建别名 co: 名称已被占用，请使用 --clobber 标志覆盖它",
 		},
 		{
 			name: "fails when alias expansion is not an existing command tty",
@@ -247,8 +247,8 @@ func TestSetRun(t *testing.T) {
 				Name:      "foo",
 				Expansion: "baz",
 			},
-			wantErrMsg: "X Could not create alias foo: expansion does not correspond to a gh command, extension, or alias",
-			wantStderr: "- Creating alias for foo: baz\n",
+			wantErrMsg: "X 无法创建别名 foo: 该扩展名不对应任何 gh 命令、扩展或别名",
+			wantStderr: "- 为 foo 创建别名: baz\n",
 		},
 		{
 			name: "fails when alias expansion is not an existing command",
@@ -256,7 +256,7 @@ func TestSetRun(t *testing.T) {
 				Name:      "foo",
 				Expansion: "baz",
 			},
-			wantErrMsg: "X Could not create alias foo: expansion does not correspond to a gh command, extension, or alias",
+			wantErrMsg: "X 无法创建别名 foo: 该扩展名不对应任何 gh 命令、扩展或别名",
 		},
 	}
 	for _, tt := range tests {

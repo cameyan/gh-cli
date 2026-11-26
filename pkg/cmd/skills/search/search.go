@@ -33,12 +33,11 @@ const (
 	defaultLimit = 15
 	maxResults   = 1000 // GitHub Code Search API hard limit
 
-	// searchPageSize is the number of raw results to request from the
-	// GitHub Search API per call (max allowed).
+	// searchPageSize 是每次调用 GitHub Search API 请求的原始结果数 (允许的最大值)。
 	searchPageSize = 100
 )
 
-// SkillSearchFields defines the set of fields available for --json output.
+// SkillSearchFields 定义 --json 输出可用的字段集合。
 var SkillSearchFields = []string{
 	"repo",
 	"skillName",
@@ -54,17 +53,18 @@ type SearchOptions struct {
 	HttpClient     func() (*http.Client, error)
 	Config         func() (gh.Config, error)
 	Prompter       prompter.Prompter
-	ExecutablePath string // path to the current gh binary for install subprocess
+	ExecutablePath string // 当前 gh 二进制路径，用于安装子进程
 	Exporter       cmdutil.Exporter
 
 	// User inputs
+	// 用户输入
 	Query string
-	Owner string // optional: scope results to a specific GitHub owner
+	Owner string // 可选: 将结果限定到特定的 GitHub owner
 	Page  int
 	Limit int
 }
 
-// NewCmdSearch creates the "skills search" command.
+// NewCmdSearch 创建 "skills search" 命令。
 func NewCmdSearch(f *cmdutil.Factory, telemetry ghtelemetry.EventRecorder, runF func(*SearchOptions) error) *cobra.Command {
 	opts := &SearchOptions{
 		IO:             f.IOStreams,
@@ -77,52 +77,51 @@ func NewCmdSearch(f *cmdutil.Factory, telemetry ghtelemetry.EventRecorder, runF 
 
 	cmd := &cobra.Command{
 		Use:   "search <query> [flags]",
-		Short: "Search for skills across GitHub (preview)",
+		Short: "在 GitHub 上搜索技能 (预览版)",
 		Long: heredoc.Docf(`
-			Search across all public GitHub repositories for skills matching a keyword.
+			在所有公开的 GitHub 仓库中搜索与关键词匹配的技能。
 
-			Uses the GitHub Code Search API to find %[1]sSKILL.md%[1]s files whose name or
-			description matches the query term.
+			使用 GitHub Code Search API 查找名称或描述与查询词匹配的
+			%[1]sSKILL.md%[1]s 文件。
 
-			Results are ranked by relevance: skills whose name contains the query
-			term appear first.
+			结果按相关性排序: 名称包含查询词的技能排在最前。
 
-			Use %[1]s--owner%[1]s to scope results to a specific GitHub user or organization.
+			使用 %[1]s--owner%[1]s 将结果限定到特定的 GitHub 用户或组织。
 
-			In interactive mode, you can select skills from the results to install directly.
+			交互模式下，可以从结果中选择技能直接安装。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Search for skills related to terraform
+			# 搜索与 terraform 相关的技能
 			$ gh skill search terraform
 
-			# Search for skills from a specific owner
+			# 搜索特定 owner 的技能
 			$ gh skill search terraform --owner hashicorp
 
-			# View the second page of results
+			# 查看结果的第二页
 			$ gh skill search terraform --page 2
 
-			# Limit results to 5
+			# 将结果限制为 5 条
 			$ gh skill search terraform --limit 5
 		`),
-		Args: cmdutil.MinimumArgs(1, "cannot search: query argument required"),
+		Args: cmdutil.MinimumArgs(1, "无法搜索: 需要查询参数"),
 		RunE: func(c *cobra.Command, args []string) error {
 			opts.Query = strings.Join(args, " ")
 
 			if len(strings.TrimSpace(opts.Query)) < 2 {
-				return cmdutil.FlagErrorf("search query must be at least 2 characters")
+				return cmdutil.FlagErrorf("搜索查询至少需要 2 个字符")
 			}
 
 			if opts.Page < 1 {
-				return cmdutil.FlagErrorf("invalid page number: %d", opts.Page)
+				return cmdutil.FlagErrorf("无效的页码: %d", opts.Page)
 			}
 
 			if opts.Limit < 1 {
-				return cmdutil.FlagErrorf("invalid limit: %d", opts.Limit)
+				return cmdutil.FlagErrorf("无效的 limit: %d", opts.Limit)
 			}
 
 			opts.Owner = strings.TrimSpace(opts.Owner)
 			if opts.Owner != "" && !couldBeOwner(opts.Owner) {
-				return cmdutil.FlagErrorf("invalid owner %q: must be a valid GitHub username or organization", opts.Owner)
+				return cmdutil.FlagErrorf("无效的 owner %q: 必须是有效的 GitHub 用户名或组织", opts.Owner)
 			}
 
 			if runF != nil {
@@ -132,22 +131,22 @@ func NewCmdSearch(f *cmdutil.Factory, telemetry ghtelemetry.EventRecorder, runF 
 		},
 	}
 
-	cmd.Flags().IntVar(&opts.Page, "page", 1, "Page number of results to fetch")
-	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", defaultLimit, "Maximum number of results per page")
-	cmd.Flags().StringVar(&opts.Owner, "owner", "", "Filter results to a specific GitHub user or organization")
+	cmd.Flags().IntVar(&opts.Page, "page", 1, "要获取的结果页码")
+	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", defaultLimit, "每页最大结果数")
+	cmd.Flags().StringVar(&opts.Owner, "owner", "", "将结果筛选到特定的 GitHub 用户或组织")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, SkillSearchFields)
 
 	return cmd
 }
 
-// codeSearchResult represents the GitHub Code Search API response.
+// codeSearchResult 表示 GitHub Code Search API 响应。
 type codeSearchResult struct {
 	TotalCount        int              `json:"total_count"`
 	IncompleteResults bool             `json:"incomplete_results"`
 	Items             []codeSearchItem `json:"items"`
 }
 
-// codeSearchItem represents a single code search hit.
+// codeSearchItem 表示单条代码搜索命中。
 type codeSearchItem struct {
 	Name       string               `json:"name"`
 	Path       string               `json:"path"`
@@ -155,26 +154,26 @@ type codeSearchItem struct {
 	Repository codeSearchRepository `json:"repository"`
 }
 
-// codeSearchRepository is the repo info embedded in a code search hit.
+// codeSearchRepository 是代码搜索命中中内嵌的仓库信息。
 type codeSearchRepository struct {
 	FullName string `json:"full_name"`
 }
 
-// skillResult is a deduplicated search result.
+// skillResult 是去重后的搜索结果。
 type skillResult struct {
 	Repo        string
-	Owner       string // parsed from Repo
-	RepoName    string // parsed from Repo
+	Owner       string // 从 Repo 解析
+	RepoName    string // 从 Repo 解析
 	SkillName   string
-	Namespace   string // namespace prefix: author/scope for skills/{author}/* or plugin name for plugins/{plugin}/skills/*
+	Namespace   string // 命名空间前缀: skills/{author}/* 为 author/scope，plugins/{plugin}/skills/* 为插件名
 	Description string
-	Path        string // original file path (e.g. skills/terraform/SKILL.md)
+	Path        string // 原始文件路径 (如 skills/terraform/SKILL.md)
 	BlobSHA     string
-	Stars       int // repository stargazer count
+	Stars       int // 仓库 star 数
 }
 
-// qualifiedName returns the namespace-qualified skill name (e.g. "author/skill")
-// or just the skill name if there is no namespace.
+// qualifiedName 返回带命名空间的技能名 (如 "author/skill")，
+// 无命名空间时仅返回技能名。
 func (s skillResult) qualifiedName() string {
 	if s.Namespace != "" {
 		return s.Namespace + "/" + s.SkillName
@@ -182,7 +181,7 @@ func (s skillResult) qualifiedName() string {
 	return s.SkillName
 }
 
-// ExportData implements cmdutil.exportable for --json output.
+// ExportData 实现 cmdutil.exportable，用于 --json 输出。
 func (s skillResult) ExportData(fields []string) map[string]any {
 	data := map[string]any{}
 	for _, f := range fields {
@@ -221,7 +220,7 @@ func searchRun(opts *SearchOptions) error {
 		return err
 	}
 
-	opts.IO.StartProgressIndicatorWithLabel("Searching for skills")
+	opts.IO.StartProgressIndicatorWithLabel("正在搜索技能")
 
 	skills, err := searchByKeyword(apiClient, host, opts.Query, opts.Owner, opts.Page, opts.Limit)
 	if err != nil {
@@ -235,6 +234,7 @@ func searchRun(opts *SearchOptions) error {
 	}
 
 	// Pre-rank before expensive enrichment, then truncate working set.
+	// 在开销较大的数据补充前先预排序，然后截断工作集。
 	rankByRelevance(skills, opts.Query)
 	skills = truncateForProcessing(skills, opts.Page, opts.Limit)
 
@@ -242,6 +242,7 @@ func searchRun(opts *SearchOptions) error {
 	opts.IO.StopProgressIndicator()
 
 	// Filter out noise and re-rank with enriched data (descriptions, stars).
+	// 过滤噪声，并使用补充后的数据 (描述、star 数) 重新排序。
 	skills = filterByRelevance(skills, opts.Query)
 	if len(skills) == 0 {
 		return noResults(opts, noResultsMessage(opts))
@@ -251,15 +252,18 @@ func searchRun(opts *SearchOptions) error {
 	// Collapse duplicate skill names across repos, keeping up to 3
 	// top-ranked instances of each. Prevents aggregator repos
 	// (which copy popular skills) from flooding results.
+	// 合并跨仓库的重复技能名，每个名称最多保留排名前 3 的实例，
+	// 防止聚合仓库 (复制热门技能的仓库) 刷屏结果。
 	skills = deduplicateByName(skills)
 
 	// Paginate to the requested page window.
+	// 分页到请求的页窗口。
 	var totalPages int
 	skills, totalPages = paginate(skills, opts.Page, opts.Limit)
 	if len(skills) == 0 {
-		msg := fmt.Sprintf("no skills found on page %d for query %q", opts.Page, opts.Query)
+		msg := fmt.Sprintf("查询 %q 在第 %d 页没有找到技能", opts.Query, opts.Page)
 		if opts.Owner != "" {
-			msg = fmt.Sprintf("no skills found on page %d for query %q from owner %q", opts.Page, opts.Query, opts.Owner)
+			msg = fmt.Sprintf("owner %q 的查询 %q 在第 %d 页没有找到技能", opts.Owner, opts.Query, opts.Page)
 		}
 		return noResults(opts, msg)
 	}
@@ -267,19 +271,19 @@ func searchRun(opts *SearchOptions) error {
 	return renderResults(opts, skills, totalPages)
 }
 
-// noResultsMessage returns an appropriate "no results" message.
+// noResultsMessage 返回合适的"无结果"消息。
 func noResultsMessage(opts *SearchOptions) string {
 	if opts.Owner != "" {
-		return fmt.Sprintf("no skills found matching %q from owner %q", opts.Query, opts.Owner)
+		return fmt.Sprintf("owner %q 下没有与 %q 匹配的技能", opts.Owner, opts.Query)
 	}
-	return fmt.Sprintf("no skills found matching %q", opts.Query)
+	return fmt.Sprintf("没有与 %q 匹配的技能", opts.Query)
 }
 
-// searchByKeyword runs parallel searches: content match, path match, owner
-// match (for single-word queries), and (for multi-word queries) a hyphenated
-// content match to catch skill names like "mcp-apps" when the user types
-// "mcp apps". When owner is non-empty, all queries are scoped to that
-// GitHub user/org via user:<owner> and the implicit owner search is skipped.
+// searchByKeyword 并行执行多路搜索: 内容匹配、路径匹配、owner 匹配
+// (针对单词查询)，以及 (针对多词查询) 连字符形式的内容匹配，
+// 以便用户输入 "mcp apps" 时能命中 "mcp-apps" 这类技能名。
+// 当 owner 非空时，所有查询都通过 user:<owner> 限定到该 GitHub
+// 用户/组织，并跳过隐式 owner 搜索。
 func searchByKeyword(client *api.Client, host, queryTerm, owner string, page, limit int) ([]skillResult, error) {
 	ownerScope := ""
 	if owner != "" {
@@ -313,6 +317,9 @@ func searchByKeyword(client *api.Client, host, queryTerm, owner string, page, li
 	// GitHub username, fire an additional user:<query> search to discover
 	// skills published by that org. Results compete on the same footing as
 	// everything else (no scoring boost).
+	// 未显式设置 --owner 且查询看起来可能是 GitHub 用户名时，
+	// 额外发起一次 user:<query> 搜索，以发现该组织发布的技能。
+	// 结果与其他来源在同一基准上竞争 (无加分)。
 	if owner == "" && couldBeOwner(queryTerm) {
 		ownerQ := fmt.Sprintf("filename:SKILL.md user:%s", queryTerm)
 		wg.Go(func() {
@@ -323,6 +330,8 @@ func searchByKeyword(client *api.Client, host, queryTerm, owner string, page, li
 	// When the query has spaces (e.g. "mcp apps"), run an additional content
 	// search with the hyphenated form ("mcp-apps") so we don't miss skills
 	// whose names use hyphens as word separators.
+	// 查询包含空格时 (如 "mcp apps")，额外执行一次连字符形式
+	// ("mcp-apps") 的内容搜索，避免漏掉名称以连字符分词的技能。
 	if hasSpaces {
 		hyphenQ := fmt.Sprintf("filename:SKILL.md %s%s", pathTerm, ownerScope)
 		wg.Go(func() {
@@ -339,6 +348,7 @@ func searchByKeyword(client *api.Client, host, queryTerm, owner string, page, li
 	}
 
 	// Merge: path-matched > hyphen-matched > owner-matched > primary content.
+	// 合并: 路径匹配 > 连字符匹配 > owner 匹配 > 主内容搜索。
 	var merged []codeSearchItem
 
 	if pathErr == nil && pathResult != nil {
@@ -355,7 +365,7 @@ func searchByKeyword(client *api.Client, host, queryTerm, owner string, page, li
 	return deduplicateResults(merged), nil
 }
 
-// noResults returns an empty JSON array for exporters or a no-results error.
+// noResults 为导出器返回空 JSON 数组，或返回无结果错误。
 func noResults(opts *SearchOptions, msg string) error {
 	if opts.Exporter != nil {
 		return opts.Exporter.Write(opts.IO, []skillResult{})
@@ -363,10 +373,10 @@ func noResults(opts *SearchOptions, msg string) error {
 	return cmdutil.NewNoResultsError(msg)
 }
 
-// truncateForProcessing caps the working set before expensive enrichment.
-// Each skill in the working set triggers a blob fetch (description) and
-// potentially a repo fetch (stars), so keeping this small matters for
-// performance. Pre-ranking ensures the best candidates are at the top.
+// truncateForProcessing 在开销较大的数据补充前限制工作集大小。
+// 工作集中的每个技能都会触发一次 blob 获取 (描述) 以及可能的仓库
+// 获取 (star 数)，因此保持该集合较小对性能很重要。预排序确保
+// 最优候选排在前面。
 func truncateForProcessing(skills []skillResult, page, limit int) []skillResult {
 	maxToProcess := page * limit * 3
 	if len(skills) > maxToProcess {
@@ -375,9 +385,8 @@ func truncateForProcessing(skills []skillResult, page, limit int) []skillResult 
 	return skills
 }
 
-// enrichSkills fetches descriptions and star counts concurrently.
-// Each function collects results into a map; merges happen after both complete
-// to avoid concurrent writes to the shared skills slice.
+// enrichSkills 并发获取描述与 star 数。各函数将结果收集到 map 中；
+// 两者都完成后才合并，避免对共享的 skills 切片并发写入。
 func enrichSkills(client *api.Client, host string, skills []skillResult) {
 	var descMap map[int]string
 	var starsMap map[int]int
@@ -404,7 +413,7 @@ func enrichSkills(client *api.Client, host string, skills []skillResult) {
 	}
 }
 
-// paginate slices results to the requested page window.
+// paginate 将结果切分到请求的页窗口。
 func paginate(skills []skillResult, page, limit int) ([]skillResult, int) {
 	total := len(skills)
 	totalPages := (total + limit - 1) / limit
@@ -416,12 +425,10 @@ func paginate(skills []skillResult, page, limit int) ([]skillResult, int) {
 	return skills[start:end], totalPages
 }
 
-// deduplicateByName caps the number of results with the same qualified skill
-// name. Since results are pre-sorted by relevance score, the first occurrences
-// are the best instances. This prevents aggregator repos (which copy
-// popular skills verbatim) from flooding results while still showing
-// a few alternative sources. Namespaced skills (e.g. "author/skill") are
-// treated as distinct from bare names.
+// deduplicateByName 限制相同限定技能名的结果数量。由于结果已按
+// 相关性得分预排序，先出现的即最优实例。这可以防止聚合仓库
+// (原样复制热门技能的仓库) 刷屏结果，同时仍展示少量备选来源。
+// 带命名空间的技能 (如 "author/skill") 与裸名称视为不同。
 func deduplicateByName(skills []skillResult) []skillResult {
 	const maxPerName = 3
 	counts := make(map[string]int)
@@ -437,31 +444,32 @@ func deduplicateByName(skills []skillResult) []skillResult {
 	return result
 }
 
-// renderResults handles all output modes: JSON, interactive picker, or table.
+// renderResults 处理所有输出模式: JSON、交互选择器或表格。
 func renderResults(opts *SearchOptions, skills []skillResult, totalPages int) error {
 	if opts.Exporter != nil {
 		return opts.Exporter.Write(opts.IO, skills)
 	}
 
 	cs := opts.IO.ColorScheme()
-	header := fmt.Sprintf("\n%s Showing %s matching %q",
+	header := fmt.Sprintf("\n%s 显示 %s，匹配 %q",
 		cs.SuccessIcon(),
 		text.Pluralize(len(skills), "skill"),
 		opts.Query,
 	)
 	if totalPages > 1 {
-		header += fmt.Sprintf(" (page %d/%d)", opts.Page, totalPages)
+		header += fmt.Sprintf(" (第 %d/%d 页)", opts.Page, totalPages)
 	}
 
 	if opts.IO.CanPrompt() {
 		fmt.Fprintln(opts.IO.ErrOut, header)
 		if opts.Page < totalPages {
-			fmt.Fprintf(opts.IO.ErrOut, "Use --page %d for more results.\n", opts.Page+1)
+			fmt.Fprintf(opts.IO.ErrOut, "使用 --page %d 查看更多结果。\n", opts.Page+1)
 		}
 		return promptInstall(opts, skills)
 	}
 
 	// Non-interactive mode: render table.
+	// 非交互模式: 渲染表格。
 	if opts.IO.IsStdoutTTY() {
 		fmt.Fprintln(opts.IO.Out, header)
 		fmt.Fprintln(opts.IO.Out)
@@ -472,13 +480,13 @@ func renderResults(opts *SearchOptions, skills []skillResult, totalPages int) er
 	}
 
 	if opts.IO.IsStdoutTTY() && opts.Page < totalPages {
-		fmt.Fprintf(opts.IO.ErrOut, "\nUse --page %d for more results.\n", opts.Page+1)
+		fmt.Fprintf(opts.IO.ErrOut, "\n使用 --page %d 查看更多结果。\n", opts.Page+1)
 	}
 
 	return nil
 }
 
-// renderTable outputs a formatted table of skill results.
+// renderTable 输出格式化的技能结果表格。
 func renderTable(io *iostreams.IOStreams, skills []skillResult) error {
 	isTTY := io.IsStdoutTTY()
 	tw := io.TerminalWidth()
@@ -499,8 +507,8 @@ func renderTable(io *iostreams.IOStreams, skills []skillResult) error {
 	return table.Render()
 }
 
-// promptInstall shows a multi-select picker for the user to choose skills
-// to install from the search results, then runs the install command for each.
+// promptInstall 显示多选选择器，让用户从搜索结果中选择要安装的技能，
+// 然后为每个技能运行安装命令。
 func promptInstall(opts *SearchOptions, skills []skillResult) error {
 	fmt.Fprintln(opts.IO.ErrOut)
 
@@ -508,6 +516,8 @@ func promptInstall(opts *SearchOptions, skills []skillResult) error {
 
 	// Reserve space for the checkbox UI prefix ("[ ] ") and the description
 	// indent ("\n       " = 7 chars), then use the remaining terminal width.
+	// 为复选框 UI 前缀 ("[ ] ") 和描述缩进 ("\n       " = 7 字符) 预留空间，
+	// 其余使用终端宽度。
 	tw := opts.IO.TerminalWidth()
 	descWidth := max(tw-11, 30)
 
@@ -526,7 +536,7 @@ func promptInstall(opts *SearchOptions, skills []skillResult) error {
 	}
 
 	indices, err := opts.Prompter.MultiSelect(
-		"Select skills to install:",
+		"选择要安装的技能:",
 		nil,
 		options,
 	)
@@ -546,15 +556,17 @@ func promptInstall(opts *SearchOptions, skills []skillResult) error {
 	})
 
 	// Prompt for target agent host (once for all selected skills)
+	// 提示选择目标 agent 宿主 (所有选定技能共用一次)
 	hostNames := registry.AgentNames()
-	hostIdx, err := opts.Prompter.Select("Select target agent:", "", hostNames)
+	hostIdx, err := opts.Prompter.Select("选择目标 agent:", "", hostNames)
 	if err != nil {
 		return err
 	}
 	host := registry.Agents[hostIdx]
 
 	// Prompt for installation scope
-	scopeIdx, err := opts.Prompter.Select("Installation scope:", "", registry.ScopeLabels(""))
+	// 提示选择安装作用域
+	scopeIdx, err := opts.Prompter.Select("安装作用域:", "", registry.ScopeLabels(""))
 	if err != nil {
 		return err
 	}
@@ -566,7 +578,7 @@ func promptInstall(opts *SearchOptions, skills []skillResult) error {
 	for _, idx := range indices {
 		s := skills[idx]
 		displayName := s.qualifiedName()
-		fmt.Fprintf(opts.IO.ErrOut, "\n%s Installing %s from %s...\n",
+		fmt.Fprintf(opts.IO.ErrOut, "\n%s 正在从 %s 安装 %s...\n",
 			cs.Blue("::"), displayName, s.Repo)
 
 		//nolint:gosec // executable is the current gh binary
@@ -575,7 +587,7 @@ func promptInstall(opts *SearchOptions, skills []skillResult) error {
 		cmd.Stdout = opts.IO.Out
 		cmd.Stderr = opts.IO.ErrOut
 		if err := cmd.Run(); err != nil {
-			fmt.Fprintf(opts.IO.ErrOut, "%s Failed to install %s from %s: %s\n",
+			fmt.Fprintf(opts.IO.ErrOut, "%s 从 %s 安装 %s 失败: %s\n",
 				cs.Red("!"), displayName, s.Repo, err)
 		}
 	}
@@ -603,13 +615,13 @@ func installCommandArgs(skill skillResult, agent, scope string) []string {
 	}
 }
 
-// relevanceScore computes a numeric ranking score for a search result.
-// Higher scores rank first. Signals (in priority order):
-//   - Exact skill name match (3 000 points)
-//   - Partial skill name match (1 000 points)
-//   - Namespace match (500 points)
-//   - Description contains query (100 points)
-//   - Repository stars (sqrt bonus, ~2 400 for 6k stars)
+// relevanceScore 为搜索结果计算数值相关性得分。
+// 得分越高排名越靠前。信号 (按优先级排序):
+//   - 技能名精确匹配 (3000 分)
+//   - 技能名部分匹配 (1000 分)
+//   - 命名空间匹配 (500 分)
+//   - 描述包含查询词 (100 分)
+//   - 仓库 star 数 (√n 加分，6k star 约 2400 分)
 func relevanceScore(s skillResult, query string) int {
 	term := strings.ToLower(query)
 	termHyphen := strings.ReplaceAll(term, " ", "-")
@@ -617,6 +629,8 @@ func relevanceScore(s skillResult, query string) int {
 
 	// Name match. Normalize spaces to hyphens since skill directory names
 	// use hyphens as word separators (e.g. query "mcp apps" > "mcp-apps").
+	// 名称匹配。将空格规范化为连字符，因为技能目录名使用连字符分词
+	// (如查询 "mcp apps" > "mcp-apps")。
 	skillLower := strings.ToLower(s.SkillName)
 	if skillLower == term || skillLower == termHyphen {
 		score += 3_000
@@ -625,17 +639,21 @@ func relevanceScore(s skillResult, query string) int {
 	}
 
 	// Namespace match.
+	// 命名空间匹配。
 	if s.Namespace != "" && strings.Contains(strings.ToLower(s.Namespace), term) {
 		score += 500
 	}
 
 	// Description match.
+	// 描述匹配。
 	if strings.Contains(strings.ToLower(s.Description), term) {
 		score += 100
 	}
 
 	// Stars bonus: use √n scaling so popular repos rank meaningfully higher
 	// without completely drowning out less-popular but more relevant results.
+	// star 加分: 使用 √n 缩放，让热门仓库的排名显著提高，
+	// 又不至于完全淹没相关性更高但较冷门的结果。
 	if s.Stars > 0 {
 		score += int(math.Sqrt(float64(s.Stars)) * 30)
 	}
@@ -643,9 +661,8 @@ func relevanceScore(s skillResult, query string) int {
 	return score
 }
 
-// filterByRelevance removes results that are not meaningfully related to
-// the query. A result is kept if the query term appears in the skill name,
-// the namespace, the YAML description, or the repository owner or name.
+// filterByRelevance 移除与查询无实质关联的结果。若查询词出现在
+// 技能名、命名空间、YAML 描述或仓库 owner 或名称中，则保留该结果。
 func filterByRelevance(skills []skillResult, query string) []skillResult {
 	queryTerm := strings.ToLower(query)
 	termHyphen := strings.ReplaceAll(queryTerm, " ", "-")
@@ -670,7 +687,7 @@ func filterByRelevance(skills []skillResult, query string) []skillResult {
 	return filtered
 }
 
-// rankByRelevance sorts results by multi-signal score, highest first.
+// rankByRelevance 按多信号得分降序排序结果。
 func rankByRelevance(skills []skillResult, query string) {
 	sort.SliceStable(skills, func(i, j int) bool {
 		return relevanceScore(skills[i], query) > relevanceScore(skills[j], query)
@@ -776,7 +793,7 @@ func fetchPrimaryPages(client *api.Client, host, query string, displayPage, disp
 	return allItems, totalCount, nil
 }
 
-// deduplicateResults extracts unique (repo, namespace, skill name) triples from code search hits.
+// deduplicateResults 从代码搜索命中中提取唯一的 (仓库, 命名空间, 技能名) 三元组。
 func deduplicateResults(items []codeSearchItem) []skillResult {
 	// skillResultKey is a typed map key that deduplicates by (repo, namespace,
 	// skill name). All fields are lowercased for case-insensitive comparison.
@@ -818,7 +835,7 @@ func deduplicateResults(items []codeSearchItem) []skillResult {
 	return results
 }
 
-// splitRepo splits "owner/repo" into its components.
+// splitRepo 将 "owner/repo" 拆分为各组成部分。
 func splitRepo(fullName string) (string, string) {
 	parts := strings.SplitN(fullName, "/", 2)
 	if len(parts) != 2 {
@@ -827,8 +844,8 @@ func splitRepo(fullName string) (string, string) {
 	return parts[0], parts[1]
 }
 
-// fetchDescriptions fetches SKILL.md frontmatter descriptions concurrently
-// for all search results. Each result may come from a different repo.
+// fetchDescriptions 并发获取所有搜索结果的 SKILL.md frontmatter 描述。
+// 每个结果可能来自不同的仓库。
 func fetchDescriptions(client *api.Client, host string, skills []skillResult) map[int]string {
 	const maxWorkers = 10
 	sem := make(chan struct{}, maxWorkers)
@@ -866,14 +883,13 @@ func fetchDescriptions(client *api.Client, host string, skills []skillResult) ma
 	return descs
 }
 
-// extractSkillInfo derives the skill name and namespace from a SKILL.md path,
-// but only if the path matches a known skill convention. Returns empty strings
-// for non-conforming paths.
+// extractSkillInfo 从 SKILL.md 路径推导技能名与命名空间，
+// 但仅当路径符合已知技能约定时才推导；不符合时返回空字符串。
 func extractSkillInfo(filePath string) (name, namespace string) {
 	return discovery.MatchSkillPath(filePath)
 }
 
-// formatStars formats a star count for display (e.g. 1700 > "1.7k").
+// formatStars 格式化 star 数用于展示 (如 1700 > "1.7k")。
 // TODO kw: Could be swapped for go-humanize.
 func formatStars(n int) string {
 	if n >= 1000 {
@@ -882,13 +898,12 @@ func formatStars(n int) string {
 	return fmt.Sprintf("%d", n)
 }
 
-// repoInfo holds the subset of repository metadata we fetch for ranking.
+// repoInfo 保存为排序而获取的仓库元数据子集。
 type repoInfo struct {
 	StargazersCount int `json:"stargazers_count"`
 }
 
-// fetchRepoStars fetches stargazer counts for each unique repository in
-// the result set, using bounded concurrency.
+// fetchRepoStars 以有界并发获取结果集中每个唯一仓库的 star 数。
 func fetchRepoStars(client *api.Client, host string, skills []skillResult) map[int]int {
 	const maxWorkers = 10
 	sem := make(chan struct{}, maxWorkers)

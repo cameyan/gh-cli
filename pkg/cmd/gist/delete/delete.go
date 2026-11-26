@@ -37,29 +37,29 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "delete {<id> | <url>}",
-		Short: "Delete a gist",
+		Short: "删除 gist",
 		Long: heredoc.Docf(`
-			Delete a GitHub gist.
+			删除 GitHub gist。
 
-			To delete a gist interactively, use %[1]sgh gist delete%[1]s with no arguments.
+			要交互式删除 gist，请不带参数运行 %[1]sgh gist delete%[1]s。
 
-			To delete a gist non-interactively, supply the gist id or url.
+			要以非交互方式删除 gist，请提供 gist 的 id 或 url。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Delete a gist interactively
+			# 交互式删除 gist
 			$ gh gist delete
 
-			# Delete a gist non-interactively
+			# 以非交互方式删除 gist
 			$ gh gist delete 1234
 		`),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(c *cobra.Command, args []string) error {
 			if !opts.IO.CanPrompt() && !opts.Confirmed {
-				return cmdutil.FlagErrorf("--yes required when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时必须指定 --yes")
 			}
 
 			if !opts.IO.CanPrompt() && len(args) == 0 {
-				return cmdutil.FlagErrorf("id or url argument required in non-interactive mode")
+				return cmdutil.FlagErrorf("非交互式模式下必须指定 id 或 url 参数")
 			}
 
 			if len(args) == 1 {
@@ -72,7 +72,7 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 			return deleteRun(&opts)
 		},
 	}
-	cmd.Flags().BoolVar(&opts.Confirmed, "yes", false, "Confirm deletion without prompting")
+	cmd.Flags().BoolVar(&opts.Confirmed, "yes", false, "无需提示直接确认删除")
 	return cmd
 }
 
@@ -109,12 +109,12 @@ func deleteRun(opts *DeleteOptions) error {
 		return err
 	}
 	if gist.ID == "" {
-		fmt.Fprintln(opts.IO.Out, "No gists found.")
+		fmt.Fprintln(opts.IO.Out, "未找到 gist。")
 		return nil
 	}
 
 	if !opts.Confirmed {
-		confirmed, err := opts.Prompter.Confirm(fmt.Sprintf("Delete %q gist?", gist.Filename()), false)
+		confirmed, err := opts.Prompter.Confirm(fmt.Sprintf("删除 gist %q 吗?", gist.Filename()), false)
 		if err != nil {
 			return err
 		}
@@ -126,7 +126,7 @@ func deleteRun(opts *DeleteOptions) error {
 	apiClient := api.NewClientFromHTTP(client)
 	if err := deleteGist(apiClient, host, gist.ID); err != nil {
 		if errors.Is(err, shared.NotFoundErr) {
-			return fmt.Errorf("unable to delete gist %q: either the gist is not found or it is not owned by you", gist.Filename())
+			return fmt.Errorf("无法删除 gist %q: 要么该 gist 未找到，要么它不属于你", gist.Filename())
 		}
 		return err
 	}
@@ -134,7 +134,7 @@ func deleteRun(opts *DeleteOptions) error {
 	if opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
 		fmt.Fprintf(opts.IO.Out,
-			"%s Gist %q deleted\n",
+			"%s gist %q 已删除\n",
 			cs.SuccessIcon(),
 			gist.Filename())
 	}

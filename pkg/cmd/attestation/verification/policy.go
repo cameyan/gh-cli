@@ -11,13 +11,13 @@ import (
 	"github.com/sigstore/sigstore-go/pkg/verify"
 )
 
-// represents the GitHub hosted runner in the certificate RunnerEnvironment extension
+// 表示证书(certificate) RunnerEnvironment 扩展中的 GitHub 托管运行器(runner)
 const GitHubRunner = "github-hosted"
 
-// BuildDigestPolicyOption builds a verify.ArtifactPolicyOption
-// from the given artifact digest and digest algorithm
+// BuildDigestPolicyOption 根据给定的制品(artifact)摘要(digest)与摘要算法
+// 构建一个 verify.ArtifactPolicyOption
 func BuildDigestPolicyOption(a artifact.DigestedArtifact) (verify.ArtifactPolicyOption, error) {
-	// sigstore-go expects the artifact digest to be decoded from hex
+	// sigstore-go 期望制品(artifact)摘要(digest)是从十六进制解码得到的
 	decoded, err := hex.DecodeString(a.Digest())
 	if err != nil {
 		return nil, err
@@ -34,19 +34,19 @@ type EnforcementCriteria struct {
 
 func (c EnforcementCriteria) Valid() error {
 	if c.Certificate.Issuer == "" {
-		return fmt.Errorf("Issuer must be set")
+		return fmt.Errorf("必须设置 Issuer")
 	}
 	if c.Certificate.RunnerEnvironment != "" && c.Certificate.RunnerEnvironment != GitHubRunner {
-		return fmt.Errorf("RunnerEnvironment must be set to either \"\" or %s", GitHubRunner)
+		return fmt.Errorf("RunnerEnvironment 必须设置为 \"\" 或 %s", GitHubRunner)
 	}
 	if c.Certificate.SourceRepositoryOwnerURI == "" {
-		return fmt.Errorf("SourceRepositoryOwnerURI must be set")
+		return fmt.Errorf("必须设置 SourceRepositoryOwnerURI")
 	}
 	if c.PredicateType == "" {
-		return fmt.Errorf("PredicateType must be set")
+		return fmt.Errorf("必须设置 PredicateType")
 	}
 	if c.SANRegex == "" && c.SAN == "" {
-		return fmt.Errorf("SANRegex or SAN must be set")
+		return fmt.Errorf("必须设置 SANRegex 或 SAN")
 	}
 	return nil
 }
@@ -54,33 +54,33 @@ func (c EnforcementCriteria) Valid() error {
 func (c EnforcementCriteria) BuildPolicyInformation() string {
 	policyAttr := [][]string{}
 
-	policyAttr = appendStr(policyAttr, "- Predicate type must match", c.PredicateType)
+	policyAttr = appendStr(policyAttr, "- 断言类型必须匹配", c.PredicateType)
 
-	policyAttr = appendStr(policyAttr, "- Source Repository Owner URI must match", c.Certificate.SourceRepositoryOwnerURI)
+	policyAttr = appendStr(policyAttr, "- 源仓库所有者 URI 必须匹配", c.Certificate.SourceRepositoryOwnerURI)
 
 	if c.Certificate.SourceRepositoryURI != "" {
-		policyAttr = appendStr(policyAttr, "- Source Repository URI must match", c.Certificate.SourceRepositoryURI)
+		policyAttr = appendStr(policyAttr, "- 源仓库 URI 必须匹配", c.Certificate.SourceRepositoryURI)
 	}
 
 	if c.Certificate.BuildSignerDigest != "" {
-		policyAttr = appendStr(policyAttr, "- Build signer digest must match", c.Certificate.BuildSignerDigest)
+		policyAttr = appendStr(policyAttr, "- 构建签名者摘要必须匹配", c.Certificate.BuildSignerDigest)
 	}
 	if c.Certificate.SourceRepositoryDigest != "" {
-		policyAttr = appendStr(policyAttr, "- Source repo digest digest must match", c.Certificate.SourceRepositoryDigest)
+		policyAttr = appendStr(policyAttr, "- 源仓库摘要必须匹配", c.Certificate.SourceRepositoryDigest)
 	}
 	if c.Certificate.SourceRepositoryRef != "" {
-		policyAttr = appendStr(policyAttr, "- Source repo ref must match", c.Certificate.SourceRepositoryRef)
+		policyAttr = appendStr(policyAttr, "- 源仓库引用必须匹配", c.Certificate.SourceRepositoryRef)
 	}
 
 	if c.SAN != "" {
-		policyAttr = appendStr(policyAttr, "- Subject Alternative Name must match", c.SAN)
+		policyAttr = appendStr(policyAttr, "- 使用者备用名称必须匹配", c.SAN)
 	} else if c.SANRegex != "" {
-		policyAttr = appendStr(policyAttr, "- Subject Alternative Name must match regex", c.SANRegex)
+		policyAttr = appendStr(policyAttr, "- 使用者备用名称必须匹配正则", c.SANRegex)
 	}
 
-	policyAttr = appendStr(policyAttr, "- OIDC Issuer must match", c.Certificate.Issuer)
+	policyAttr = appendStr(policyAttr, "- OIDC 签发者必须匹配", c.Certificate.Issuer)
 	if c.Certificate.RunnerEnvironment == GitHubRunner {
-		policyAttr = appendStr(policyAttr, "- Action workflow Runner Environment must match ", GitHubRunner)
+		policyAttr = appendStr(policyAttr, "- Action 工作流运行环境必须匹配", GitHubRunner)
 	}
 
 	maxColLen := 0

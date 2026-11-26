@@ -106,40 +106,39 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 
 	cmd := &cobra.Command{
 		Use:   "create {<issue-number> | <issue-url>} [<file>[#<name>] | <url>]...",
-		Short: "Create issue artifacts (preview)",
+		Short: "创建 issue 产物 (预览版)",
 		Long: heredoc.Docf(`
-			Create one artifact for each file or URL. A text file becomes a document
-			named after the file; add %[1]s#<name>%[1]s to choose a different name. A %[1]s.html%[1]s or
-			%[1]s.htm%[1]s file becomes an HTML document. A URL, or a %[1]s.url%[1]s Internet Shortcut
-			file, becomes a link; a URL is named after its host.
+			为每个文件或 URL 创建一个项目。文本文件会生成一个以文件名命名的文档；若要使用其他名称，
+			可添加 %[1]s#<name>%[1]s。%[1]s.html%[1]s 或 %[1]s.htm%[1]s 文件会生成 HTML
+			文档。URL 或 %[1]s.url%[1]s 互联网快捷方式文件会生成链接；URL 的名称以其主机名命名。
 
-			Artifact names can't contain some characters, such as parentheses. When a
-			file's name has them, they're removed: %[1]splan (1).md%[1]s is named %[1]splan 1.md%[1]s.
+			产物名称不能包含某些字符，例如括号。当文件名包含这些字符时，它们会被移除: %[1]splan (1).md%[1]s
+			会被重命名为 %[1]splan 1.md%[1]s。
 
-			Use %[1]s--body%[1]s to create a single document from text, or %[1]s--body-file%[1]s to create
-			one artifact from a file (%[1]s-%[1]s reads standard input). %[1]s--name%[1]s sets its name.
+			使用 %[1]s--body%[1]s 从文本创建单个产物，或使用 %[1]s--body-file%[1]s 从文件创
+			建单个产物(%[1]s-%[1]s 读取标准输入)。%[1]s--name%[1]s 用于设置其名称。
 
-			Documents are saved as %[1]sgeneric%[1]s, and HTML documents as %[1]sembedded_html%[1]s. Use
-			%[1]s--type%[1]s to set the type of every document instead, whatever the file
-			extension. A plan currently behaves the same as a generic document.
+			产物保存为 %[1]sgeneric%[1]s，HTML 产物保存为 %[1]sembedded_html%[1]s。请改用
+			%[1]s--type%[1]s 来设置每个产物的类型，无论文件扩展名如何。目前计划的行为与通用产物
+			相同。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Create a document from a file
+			# 根据文件创建产物
 			$ gh issue artifact create 142 signin-plan.md
 
-			# Create documents from two files, naming the first
+			# 根据两个文件创建产物，并为第一个产物命名
 			$ gh issue artifact create 142 'docs/signin-plan.md#Sign-in plan' oauth-research.md
 
-			# Create an HTML document from a file
+			# 根据文件创建 HTML 产物
 			$ gh issue artifact create 142 menu-prototype.html
 
-			# Create a link with a name
+			# 创建带名称的链接
 			$ gh issue artifact create 142 https://github.com/monalisa/monas-cafe/wiki/OAuth-runbook --name 'Staging OAuth runbook'
 
-			# Create a document from standard input
+			# 根据标准输入创建产物
 			$ cat order-sync.log | gh issue artifact create 142 --body-file - --name 'Order sync log'
 
-			# Upload an image that the document references
+			# 上传产物引用的图片
 			$ gh issue artifact create 142 signin-plan.md --attach ./signin-flow.png
 		`),
 		Aliases: []string{"new"},
@@ -155,20 +154,20 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 			bodySet := cmd.Flags().Changed("body")
 			bodyFileSet := bodyFile != ""
 			nameSet := cmd.Flags().Changed("name")
-			if err := cmdutil.MutuallyExclusive("specify only one of `--body` or `--body-file`", bodySet, bodyFileSet); err != nil {
+			if err := cmdutil.MutuallyExclusive("仅指定 `--body` 或 `--body-file` 中的一个即可", bodySet, bodyFileSet); err != nil {
 				return err
 			}
 
 			fileArgs := args[1:]
 			switch {
 			case len(fileArgs) == 0 && !bodySet && !bodyFileSet:
-				return cmdutil.FlagErrorf("specify a file or URL, or use `--body` or `--body-file`")
+				return cmdutil.FlagErrorf("指定一个文件或 URL，或使用 `--body` 或 `--body-file`")
 			case len(fileArgs) > 0 && (bodySet || bodyFileSet):
-				return cmdutil.FlagErrorf("specify files or one of `--body` and `--body-file`, not both")
+				return cmdutil.FlagErrorf("指定文件或 `--body` 和 `--body-file` 中的一个，但不能同时指定两者")
 			case nameSet && len(fileArgs) > 1:
-				return cmdutil.FlagErrorf("`--name` can only be used when creating one artifact")
+				return cmdutil.FlagErrorf("`--name` 只能在创建单个产物时使用")
 			case nameSet && name == "":
-				return cmdutil.FlagErrorf("`--name` cannot be blank")
+				return cmdutil.FlagErrorf("`--name` 不能为空")
 			}
 
 			// Standard input is only read with --body-file -, so a stdin that
@@ -176,14 +175,14 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 			switch {
 			case bodySet || bodyFile == "-":
 				if !nameSet {
-					return cmdutil.FlagErrorf("`--name` is required with `--body` or `--body-file -`")
+					return cmdutil.FlagErrorf("`--name` 必须与 `--body` 或 `--body-file -` 一起使用")
 				}
 				if !bodySet {
 					opts.Sources = []source{{kind: fromStdin, arg: "-", name: name}}
 					break
 				}
 				if strings.TrimSpace(body) == "" {
-					return cmdutil.FlagErrorf("`--body` cannot be blank")
+					return cmdutil.FlagErrorf("`--body` 不能为空")
 				}
 				opts.Sources = []source{{kind: fromBodyFlag, name: name, body: body}}
 			case bodyFileSet:
@@ -199,14 +198,14 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 				if nameSet {
 					// Earlier validation guarantees exactly one positional source.
 					if opts.Sources[0].name != "" {
-						return cmdutil.FlagErrorf("specify the name with `#<name>` or `--name`, not both")
+						return cmdutil.FlagErrorf("使用 `#<name>` 或 `--name` 指定名称，但不能同时使用两者")
 					}
 					opts.Sources[0].name = name
 				}
 			}
 
 			if cmd.Flags().Changed("type") && slices.ContainsFunc(opts.Sources, source.isLink) {
-				return cmdutil.FlagErrorf("`--type` only applies to documents; links are created from URLs and .url files")
+				return cmdutil.FlagErrorf("`--type` 仅适用于产物；链接是从 URL 和 .url 文件创建的")
 			}
 			// --attach needs at least one artifact whose type supports
 			// attachments. Links and HTML documents don't, since --attach
@@ -216,7 +215,7 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 				if kind == client.TypeEmbeddedHTML {
 					kind = "HTML"
 				}
-				return cmdutil.FlagErrorf("`--attach` can't be used with %s artifacts", kind)
+				return cmdutil.FlagErrorf("`--attach` 不能与 %s 产物一起使用", kind)
 			}
 
 			opts.AttachEvent = attachments.BeginTelemetry(telemetry, cmd.CommandPath(), opts.AttachFlag.Count())
@@ -233,10 +232,10 @@ func NewCmdCreate(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, 
 		},
 	}
 
-	cmd.Flags().StringVarP(&body, "body", "b", "", "Content for a single document")
-	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "Read content for a single artifact from `file` (use \"-\" to read from standard input)")
-	cmd.Flags().StringVar(&name, "name", "", "Name for a single artifact")
-	cmdutil.StringEnumFlag(cmd, &opts.Type, "type", "", "", []string{client.TypeGeneric, client.TypePlan, client.TypeEmbeddedHTML}, "Type for documents")
+	cmd.Flags().StringVarP(&body, "body", "b", "", "单个产物的内容")
+	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "从 `file` 读取单个产物的内容(使用 \"-\" 表示从标准输入读取)")
+	cmd.Flags().StringVar(&name, "name", "", "单个产物的名称")
+	cmdutil.StringEnumFlag(cmd, &opts.Type, "type", "", "", []string{client.TypeGeneric, client.TypePlan, client.TypeEmbeddedHTML}, "产物类型")
 	opts.AttachFlag = attachments.AddFlag(cmd)
 
 	return cmd
@@ -258,10 +257,10 @@ func parseSource(arg string) (source, error) {
 	// Only --body-file reads standard input, and "-" is how a result line
 	// names it.
 	if path == "-" {
-		return source{}, cmdutil.FlagErrorf("cannot create an artifact from `-`; use `--body-file -` to read standard input")
+		return source{}, cmdutil.FlagErrorf("无法从 `-` 创建产物；请使用 `--body-file -` 读取标准输入")
 	}
 	if path != arg && name == "" {
-		return source{}, cmdutil.FlagErrorf("artifact name after `#` cannot be blank in %q", arg)
+		return source{}, cmdutil.FlagErrorf("`#` 后的产物名称在 %q 中不能为空", arg)
 	}
 	return source{kind: fromFile, arg: path, name: name}, nil
 }
@@ -339,7 +338,7 @@ func createRun(opts *CreateOptions) error {
 
 		result.Number = created.Number
 		result.Name = text.RemoveExcessiveWhitespace(created.Name)
-		message := fmt.Sprintf("Created artifact %d (%s) on %s", created.Number, result.Name, issueRef)
+		message := fmt.Sprintf("在 %s 上创建了产物 %d (%s) on %s", issueRef, created.Number, result.Name)
 		if a.attachErr != nil {
 			shared.PrintPartialFailure(opts.IO, "created", result, message, a.attachErr)
 			failed = true
@@ -364,13 +363,13 @@ func readSource(s source, stdin io.ReadCloser, typeFlag string) (artifact, error
 	case fromStdin:
 		body, _, err := shared.ReadContent(s.arg, stdin)
 		if err != nil {
-			return a, fmt.Errorf("failed to read artifact content from standard input: %w", err)
+			return a, fmt.Errorf("无法从标准输入读取产物内容: %w", err)
 		}
 		a.body = body
 	case fromURL:
 		u, ok := shared.HTTPURL(s.arg)
 		if !ok {
-			return a, fmt.Errorf("invalid link URL %q: must be an http(s) URL with a host, in printable ASCII with no spaces", s.arg)
+			return a, fmt.Errorf("无效的链接 URL %q: 必须是一个包含主机的 http(s) URL，且只能使用可打印的 ASCII 字符，不能包含空格。", s.arg)
 		}
 		a.body = u
 		if a.name == "" {
@@ -384,12 +383,12 @@ func readSource(s source, stdin io.ReadCloser, typeFlag string) (artifact, error
 	case fromFile:
 		content, dir, err := shared.ReadContent(s.arg, stdin)
 		if err != nil {
-			return a, fmt.Errorf("failed to read artifact content from %s: %w", s.arg, err)
+			return a, fmt.Errorf("无法从 %s 读取产物内容: %w", s.arg, err)
 		}
 		if shared.IsShortcutFile(s.arg) {
 			u, err := shared.ShortcutURL(content)
 			if errors.Is(err, shared.ErrNoShortcutSection) {
-				return a, fmt.Errorf("%s: %w; pass the URL as an argument instead", s.arg, err)
+				return a, fmt.Errorf("%s: %w；改为将 URL 作为参数传递", s.arg, err)
 			} else if err != nil {
 				return a, fmt.Errorf("%s: %w", s.arg, err)
 			}
@@ -400,11 +399,11 @@ func readSource(s source, stdin io.ReadCloser, typeFlag string) (artifact, error
 		if a.name == "" {
 			a.name = nameFromFile(s.arg)
 			if a.name == "" {
-				hint := "name it with `#<name>` or `--name`"
+				hint := "使用 `#<name>` 或 `--name` 为其命名"
 				if s.bodyFile {
-					hint = "name it with `--name`"
+					hint = "使用 `--name` 命名"
 				}
-				return a, fmt.Errorf("cannot derive an artifact name from %s: the file name has no letters or numbers; %s", s.arg, hint)
+				return a, fmt.Errorf("无法从 %s 中推导出产物名称: 文件名中没有字母或数字；%s", s.arg, hint)
 			}
 		}
 	}
@@ -481,13 +480,13 @@ func attach(opts *CreateOptions, uploader *attachments.Uploader, artifacts []art
 // when there are several documents and none to append them to.
 func unreferencedError(paths []string) error {
 	if len(paths) == 1 {
-		return fmt.Errorf("no file references %s; reference it in a file, or attach it when creating a single artifact", paths[0])
+		return fmt.Errorf("无文件引用 %s；在文件中引用它，或在创建单个产物时将其附加", paths[0])
 	}
 	list := paths[0] + " or " + paths[1]
 	if len(paths) > 2 {
 		list = strings.Join(paths[:len(paths)-1], ", ") + ", or " + paths[len(paths)-1]
 	}
-	return fmt.Errorf("no file references %s; reference them in a file, or attach them when creating a single artifact", list)
+	return fmt.Errorf("无文件引用 %s；在文件中引用它们，或在创建单个产物时将其附加", list)
 }
 
 // createAction names an artifact in its failure line by what it was created
@@ -495,9 +494,9 @@ func unreferencedError(paths []string) error {
 func createAction(a artifact) string {
 	switch a.source.kind {
 	case fromStdin:
-		return "create artifact from standard input"
+		return "从标准输入创建产物"
 	case fromBodyFlag:
-		return fmt.Sprintf("create artifact (%s)", text.RemoveExcessiveWhitespace(a.name))
+		return fmt.Sprintf("创建产物 (%s)", text.RemoveExcessiveWhitespace(a.name))
 	}
-	return "create artifact from " + a.source.arg
+	return "从 " + a.source.arg + "创建产物"
 }

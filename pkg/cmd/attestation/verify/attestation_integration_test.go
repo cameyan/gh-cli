@@ -49,7 +49,7 @@ func TestVerifyAttestations(t *testing.T) {
 	a, err := artifact.NewDigestedArtifact(nil, artifactPath, "sha512")
 	require.NoError(t, err)
 
-	t.Run("all attestations pass verification", func(t *testing.T) {
+	t.Run("所有证明(attestation)均通过验证", func(t *testing.T) {
 		attestations := getAttestationsFor(t, "../test/data/sigstore-js-2.1.0_with_2_bundles.jsonl")
 		require.Len(t, attestations, 2)
 		results, errMsg, err := verifyAttestations(*a, attestations, sgVerifier, ec)
@@ -58,7 +58,7 @@ func TestVerifyAttestations(t *testing.T) {
 		require.Len(t, results, 2)
 	})
 
-	t.Run("passes verification with 2/3 attestations passing Sigstore verification", func(t *testing.T) {
+	t.Run("2/3 个证明(attestation)通过 Sigstore 验证的情况", func(t *testing.T) {
 		invalidBundle := getAttestationsFor(t, "../test/data/sigstore-js-2.1.0-bundle-v0.1.json")
 		attestations := getAttestationsFor(t, "../test/data/sigstore-js-2.1.0_with_2_bundles.jsonl")
 		attestations = append(attestations, invalidBundle[0])
@@ -70,7 +70,7 @@ func TestVerifyAttestations(t *testing.T) {
 		require.Len(t, results, 2)
 	})
 
-	t.Run("fails verification when Sigstore verification fails", func(t *testing.T) {
+	t.Run("当 Sigstore 验证失败时判定验证失败", func(t *testing.T) {
 		invalidBundle := getAttestationsFor(t, "../test/data/sigstore-js-2.1.0-bundle-v0.1.json")
 		invalidBundle2 := getAttestationsFor(t, "../test/data/sigstore-js-2.1.0-bundle-v0.1.json")
 		attestations := append(invalidBundle, invalidBundle2...)
@@ -78,11 +78,11 @@ func TestVerifyAttestations(t *testing.T) {
 
 		results, errMsg, err := verifyAttestations(*a, attestations, sgVerifier, ec)
 		require.Error(t, err)
-		require.Contains(t, errMsg, "✗ Sigstore verification failed")
+		require.Contains(t, errMsg, "✗ Sigstore 验证失败")
 		require.Nil(t, results)
 	})
 
-	t.Run("attestations fail to verify when cert extensions don't match enforcement criteria", func(t *testing.T) {
+	t.Run("当证书(certificate)扩展与执行标准(enforcement criteria)不匹配时证明(attestation)验证失败", func(t *testing.T) {
 		sgjAttestation := getAttestationsFor(t, "../test/data/sigstore-js-2.1.0_with_2_bundles.jsonl")
 		reusableWorkflowAttestations := getAttestationsFor(t, "../test/data/reusable-workflow-attestation.sigstore.json")
 		attestations := []*api.Attestation{sgjAttestation[0], reusableWorkflowAttestations[0], sgjAttestation[1]}
@@ -93,11 +93,11 @@ func TestVerifyAttestations(t *testing.T) {
 		mockResults := []*verification.AttestationProcessingResult{&sgjResult, &rwfResult, &sgjResult}
 		mockSgVerifier := verification.NewMockSigstoreVerifierWithMockResults(t, mockResults)
 
-		// we want to test that attestations that pass Sigstore verification but fail
-		// cert extension verification are filtered out properly in the second step
-		// in verifyAttestations. By using a mock Sigstore verifier, we can ensure
-		// that the call to verification.VerifyCertExtensions in verifyAttestations
-		// is filtering out attestations as expected
+		// 我们想测试通过 Sigstore 验证但未通过证书(certificate)扩展验证的证明(attestation)
+		// 会在 verifyAttestations 的第二步中被正确过滤。
+		// 通过使用 mock Sigstore 验证器(verifier)，我们可以确保
+		// verifyAttestations 中对 verification.VerifyCertExtensions 的调用
+		// 按预期过滤证明(attestation)
 		results, errMsg, err := verifyAttestations(*a, attestations, mockSgVerifier, ec)
 		require.NoError(t, err)
 		require.Zero(t, errMsg)
@@ -107,7 +107,7 @@ func TestVerifyAttestations(t *testing.T) {
 		}
 	})
 
-	t.Run("fails verification when cert extension verification fails", func(t *testing.T) {
+	t.Run("当证书(certificate)扩展验证失败时判定验证失败", func(t *testing.T) {
 		attestations := getAttestationsFor(t, "../test/data/sigstore-js-2.1.0_with_2_bundles.jsonl")
 		require.Len(t, attestations, 2)
 
@@ -116,7 +116,7 @@ func TestVerifyAttestations(t *testing.T) {
 
 		results, errMsg, err := verifyAttestations(*a, attestations, sgVerifier, expectedCriteria)
 		require.Error(t, err)
-		require.Contains(t, errMsg, "✗ Policy verification failed")
+		require.Contains(t, errMsg, "✗ 策略(policy)验证失败")
 		require.Nil(t, results)
 	})
 }

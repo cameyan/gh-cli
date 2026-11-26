@@ -30,7 +30,7 @@ func TestOfficialExtensionStubRun(t *testing.T) {
 			name:          "non-TTY in CI auto-installs without prompting",
 			isTTY:         false,
 			ciEnv:         "1",
-			wantStderr:    "Successfully installed github/gh-cool",
+			wantStderr:    "已成功安装 github/gh-cool",
 			wantInstalled: true,
 		},
 		{
@@ -43,14 +43,14 @@ func TestOfficialExtensionStubRun(t *testing.T) {
 			name:          "TTY confirmed installs",
 			isTTY:         true,
 			confirmResult: true,
-			wantStderr:    "Successfully installed github/gh-cool",
+			wantStderr:    "已成功安装 github/gh-cool",
 			wantInstalled: true,
 		},
 		{
 			name:          "TTY in CI auto-installs without prompting",
 			isTTY:         true,
 			ciEnv:         "1",
-			wantStderr:    "Successfully installed github/gh-cool",
+			wantStderr:    "已成功安装 github/gh-cool",
 			wantInstalled: true,
 		},
 		{

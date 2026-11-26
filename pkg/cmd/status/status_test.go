@@ -109,7 +109,7 @@ func TestStatusRun(t *testing.T) {
 					httpmock.StringResponse(`[]`))
 			},
 			opts:    &StatusOptions{},
-			wantOut: "Assigned Issues                       │ Assigned Pull Requests                \nNothing here ^_^                      │ Nothing here ^_^                      \n                                      │                                       \nReview Requests                       │ Mentions                              \nNothing here ^_^                      │ Nothing here ^_^                      \n                                      │                                       \nRepository Activity\nNothing here ^_^\n\n",
+			wantOut: "被指派的 Issue                        │ 被指派的 Pull Request                 \n这里什么都没有 ^_^                    │ 这里什么都没有 ^_^                    \n                                      │                                       \n审核请求                              │ 提及                                  \n这里什么都没有 ^_^                    │ 这里什么都没有 ^_^                    \n                                      │                                       \n仓库活动\n这里什么都没有 ^_^\n\n",
 		},
 		{
 			name: "notifications 404 is tolerated",
@@ -128,7 +128,7 @@ func TestStatusRun(t *testing.T) {
 					httpmock.StringResponse(`[]`))
 			},
 			opts:    &StatusOptions{},
-			wantOut: "Assigned Issues                       │ Assigned Pull Requests                \nNothing here ^_^                      │ Nothing here ^_^                      \n                                      │                                       \nReview Requests                       │ Mentions                              \nNothing here ^_^                      │ Nothing here ^_^                      \n                                      │                                       \nRepository Activity\nNothing here ^_^\n\n",
+			wantOut: "被指派的 Issue                        │ 被指派的 Pull Request                 \n这里什么都没有 ^_^                    │ 这里什么都没有 ^_^                    \n                                      │                                       \n审核请求                              │ 提及                                  \n这里什么都没有 ^_^                    │ 这里什么都没有 ^_^                    \n                                      │                                       \n仓库活动\n这里什么都没有 ^_^\n\n",
 		},
 		{
 			name: "something",
@@ -162,7 +162,7 @@ func TestStatusRun(t *testing.T) {
 					httpmock.FileResponse("./fixtures/events.json"))
 			},
 			opts:    &StatusOptions{},
-			wantOut: "Assigned Issues                       │ Assigned Pull Requests                \nvilmibm/testing#157     yolo          │ cli/cli#5272  Pin extensions          \ncli/cli#3223            Repo garden...│ rpd/todo#73   Board up RPD windows    \nrpd/todo#514            Reducing zo...│ cli/cli#4768  Issue Frecency          \nvilmibm/testing#74      welp          │                                       \nadreyer/arkestrator#22  complete mo...│                                       \n                                      │                                       \nReview Requests                       │ Mentions                              \ncli/cli#5272          Pin extensions  │ rpd/todo#110               hello @j...\nvilmibm/testing#1234  Foobar          │ cli/cli#1096               @jillval...\nrpd/todo#50           Welcome party...│ vilmibm/gh-screensaver#15  a messag...\ncli/cli#4671          This pull req...│                                       \nrpd/todo#49           Haircut for Leon│                                       \n                                      │                                       \nRepository Activity\nrpd/todo#5326         new PR                        Only write UTF-8 BOM on W...\nvilmibm/testing#5325  comment on Ability to sea...  We are working on dedicat...\ncli/cli#5319          comment on [Codespaces] D...  Wondering if we shouldn't...\ncli/cli#5300          new issue                     Terminal bell when a runn...\n\n",
+			wantOut: "被指派的 Issue                        │ 被指派的 Pull Request                 \nvilmibm/testing#157     yolo          │ cli/cli#5272  Pin extensions          \ncli/cli#3223            Repo garden...│ rpd/todo#73   Board up RPD windows    \nrpd/todo#514            Reducing zo...│ cli/cli#4768  Issue Frecency          \nvilmibm/testing#74      welp          │                                       \nadreyer/arkestrator#22  complete mo...│                                       \n                                      │                                       \n审核请求                              │ 提及                                  \ncli/cli#5272          Pin extensions  │ rpd/todo#110               hello @j...\nvilmibm/testing#1234  Foobar          │ cli/cli#1096               @jillval...\nrpd/todo#50           Welcome party...│ vilmibm/gh-screensaver#15  a messag...\ncli/cli#4671          This pull req...│                                       \nrpd/todo#49           Haircut for Leon│                                       \n                                      │                                       \n仓库活动\nrpd/todo#5326         新 PR                         Only write UTF-8 BOM on W...\nvilmibm/testing#5325  评论于 Ability to search ...  We are working on dedicat...\ncli/cli#5319          评论于 [Codespaces] Disal...  Wondering if we shouldn't...\ncli/cli#5300          新 issue                      Terminal bell when a runn...\n\n",
 		},
 		{
 			name: "exclude a repository",
@@ -197,7 +197,7 @@ func TestStatusRun(t *testing.T) {
 			},
 			// NOTA BENE: you'll see cli/cli in search results because that happens
 			// server side and the fixture doesn't account for that
-			wantOut: "Assigned Issues                       │ Assigned Pull Requests                \nvilmibm/testing#157     yolo          │ cli/cli#5272  Pin extensions          \ncli/cli#3223            Repo garden...│ rpd/todo#73   Board up RPD windows    \nrpd/todo#514            Reducing zo...│ cli/cli#4768  Issue Frecency          \nvilmibm/testing#74      welp          │                                       \nadreyer/arkestrator#22  complete mo...│                                       \n                                      │                                       \nReview Requests                       │ Mentions                              \ncli/cli#5272          Pin extensions  │ rpd/todo#110               hello @j...\nvilmibm/testing#1234  Foobar          │ vilmibm/gh-screensaver#15  a messag...\nrpd/todo#50           Welcome party...│                                       \ncli/cli#4671          This pull req...│                                       \nrpd/todo#49           Haircut for Leon│                                       \n                                      │                                       \nRepository Activity\nrpd/todo#5326         new PR                        Only write UTF-8 BOM on W...\nvilmibm/testing#5325  comment on Ability to sea...  We are working on dedicat...\n\n",
+			wantOut: "被指派的 Issue                        │ 被指派的 Pull Request                 \nvilmibm/testing#157     yolo          │ cli/cli#5272  Pin extensions          \ncli/cli#3223            Repo garden...│ rpd/todo#73   Board up RPD windows    \nrpd/todo#514            Reducing zo...│ cli/cli#4768  Issue Frecency          \nvilmibm/testing#74      welp          │                                       \nadreyer/arkestrator#22  complete mo...│                                       \n                                      │                                       \n审核请求                              │ 提及                                  \ncli/cli#5272          Pin extensions  │ rpd/todo#110               hello @j...\nvilmibm/testing#1234  Foobar          │ vilmibm/gh-screensaver#15  a messag...\nrpd/todo#50           Welcome party...│                                       \ncli/cli#4671          This pull req...│                                       \nrpd/todo#49           Haircut for Leon│                                       \n                                      │                                       \n仓库活动\nrpd/todo#5326         新 PR                         Only write UTF-8 BOM on W...\nvilmibm/testing#5325  评论于 Ability to search ...  We are working on dedicat...\n\n",
 		},
 		{
 			name: "exclude repositories",
@@ -223,7 +223,7 @@ func TestStatusRun(t *testing.T) {
 			},
 			// NOTA BENE: you'll see cli/cli in search results because that happens
 			// server side and the fixture doesn't account for that
-			wantOut: "Assigned Issues                       │ Assigned Pull Requests                \nvilmibm/testing#157     yolo          │ cli/cli#5272  Pin extensions          \ncli/cli#3223            Repo garden...│ rpd/todo#73   Board up RPD windows    \nrpd/todo#514            Reducing zo...│ cli/cli#4768  Issue Frecency          \nvilmibm/testing#74      welp          │                                       \nadreyer/arkestrator#22  complete mo...│                                       \n                                      │                                       \nReview Requests                       │ Mentions                              \ncli/cli#5272          Pin extensions  │ vilmibm/gh-screensaver#15  a messag...\nvilmibm/testing#1234  Foobar          │                                       \nrpd/todo#50           Welcome party...│                                       \ncli/cli#4671          This pull req...│                                       \nrpd/todo#49           Haircut for Leon│                                       \n                                      │                                       \nRepository Activity\nvilmibm/testing#5325  comment on Ability to sea...  We are working on dedicat...\n\n",
+			wantOut: "被指派的 Issue                        │ 被指派的 Pull Request                 \nvilmibm/testing#157     yolo          │ cli/cli#5272  Pin extensions          \ncli/cli#3223            Repo garden...│ rpd/todo#73   Board up RPD windows    \nrpd/todo#514            Reducing zo...│ cli/cli#4768  Issue Frecency          \nvilmibm/testing#74      welp          │                                       \nadreyer/arkestrator#22  complete mo...│                                       \n                                      │                                       \n审核请求                              │ 提及                                  \ncli/cli#5272          Pin extensions  │ vilmibm/gh-screensaver#15  a messag...\nvilmibm/testing#1234  Foobar          │                                       \nrpd/todo#50           Welcome party...│                                       \ncli/cli#4671          This pull req...│                                       \nrpd/todo#49           Haircut for Leon│                                       \n                                      │                                       \n仓库活动\nvilmibm/testing#5325  评论于 Ability to search ...  We are working on dedicat...\n\n",
 		},
 		{
 			name: "filter to an org",
@@ -253,7 +253,7 @@ func TestStatusRun(t *testing.T) {
 			opts: &StatusOptions{
 				Org: "rpd",
 			},
-			wantOut: "Assigned Issues                       │ Assigned Pull Requests                \nvilmibm/testing#157     yolo          │ cli/cli#5272  Pin extensions          \ncli/cli#3223            Repo garden...│ rpd/todo#73   Board up RPD windows    \nrpd/todo#514            Reducing zo...│ cli/cli#4768  Issue Frecency          \nvilmibm/testing#74      welp          │                                       \nadreyer/arkestrator#22  complete mo...│                                       \n                                      │                                       \nReview Requests                       │ Mentions                              \ncli/cli#5272          Pin extensions  │ rpd/todo#110  hello @jillvalentine ...\nvilmibm/testing#1234  Foobar          │                                       \nrpd/todo#50           Welcome party...│                                       \ncli/cli#4671          This pull req...│                                       \nrpd/todo#49           Haircut for Leon│                                       \n                                      │                                       \nRepository Activity\nrpd/todo#5326  new PR  Only write UTF-8 BOM on Windows where it is needed\n\n",
+			wantOut: "被指派的 Issue                        │ 被指派的 Pull Request                 \nvilmibm/testing#157     yolo          │ cli/cli#5272  Pin extensions          \ncli/cli#3223            Repo garden...│ rpd/todo#73   Board up RPD windows    \nrpd/todo#514            Reducing zo...│ cli/cli#4768  Issue Frecency          \nvilmibm/testing#74      welp          │                                       \nadreyer/arkestrator#22  complete mo...│                                       \n                                      │                                       \n审核请求                              │ 提及                                  \ncli/cli#5272          Pin extensions  │ rpd/todo#110  hello @jillvalentine ...\nvilmibm/testing#1234  Foobar          │                                       \nrpd/todo#50           Welcome party...│                                       \ncli/cli#4671          This pull req...│                                       \nrpd/todo#49           Haircut for Leon│                                       \n                                      │                                       \n仓库活动\nrpd/todo#5326  新 PR  Only write UTF-8 BOM on Windows where it is needed\n\n",
 		},
 		{
 			name: "forbidden errors",
@@ -297,23 +297,23 @@ func TestStatusRun(t *testing.T) {
 					httpmock.FileResponse("./fixtures/events.json"))
 			},
 			opts: &StatusOptions{},
-			wantOut: heredoc.Doc(`
-				Assigned Issues                       │ Assigned Pull Requests                
-				vilmibm/testing#157  yolo             │ cli/cli#5272  Pin extensions          
-				                                      │                                       
-				Review Requests                       │ Mentions                              
-				cli/cli#5272  Pin extensions          │ cli/cli#1096               @jillval...
-				                                      │ vilmibm/gh-screensaver#15  a messag...
-				                                                                              
-				Repository Activity
-				rpd/todo#5326         new PR                        Only write UTF-8 BOM on W...
-				vilmibm/testing#5325  comment on Ability to sea...  We are working on dedicat...
-				cli/cli#5319          comment on [Codespaces] D...  Wondering if we shouldn't...
-				cli/cli#5300          new issue                     Terminal bell when a runn...
-				
-				warning: Resource protected by organization SAML enforcement. You must grant your OAuth token access to this organization.
-				warning: You don't have permission to access this resource.
-			`),
+      wantOut: heredoc.Doc(`
+          被指派的 Issue                        │ 被指派的 Pull Request
+          vilmibm/testing#157  yolo             │ cli/cli#5272  Pin extensions
+                                                │
+          审核请求                              │ 提及
+          cli/cli#5272  Pin extensions          │ cli/cli#1096               @jillval...
+                                                │ vilmibm/gh-screensaver#15  a messag...
+
+          仓库活动
+          rpd/todo#5326         新 PR                         Only write UTF-8 BOM on W...
+          vilmibm/testing#5325  评论于 Ability to search ...  We are working on dedicat...
+          cli/cli#5319          评论于 [Codespaces] Disal...  Wondering if we shouldn't...
+          cli/cli#5300          新 issue                      Terminal bell when a runn...
+
+          警告: Resource protected by organization SAML enforcement. You must grant your OAuth token access to this organization.
+          警告: You don't have permission to access this resource.
+      `),
 		},
 		{
 			name: "not found errors",
@@ -349,28 +349,28 @@ func TestStatusRun(t *testing.T) {
 					httpmock.FileResponse("./fixtures/events.json"))
 			},
 			opts: &StatusOptions{},
-			wantOut: heredoc.Doc(`
-				Assigned Issues                       │ Assigned Pull Requests                
-				vilmibm/testing#157     yolo          │ cli/cli#5272  Pin extensions          
-				cli/cli#3223            Repo garden...│ rpd/todo#73   Board up RPD windows    
-				rpd/todo#514            Reducing zo...│ cli/cli#4768  Issue Frecency          
-				vilmibm/testing#74      welp          │                                       
-				adreyer/arkestrator#22  complete mo...│                                       
-				                                      │                                       
-				Review Requests                       │ Mentions                              
-				cli/cli#5272          Pin extensions  │ rpd/todo#110               hello @j...
-				vilmibm/testing#1234  Foobar          │ cli/cli#1096               @jillval...
-				rpd/todo#50           Welcome party...│ vilmibm/gh-screensaver#15  a messag...
-				cli/cli#4671          This pull req...│                                       
-				rpd/todo#49           Haircut for Leon│                                       
-				                                      │                                       
-				Repository Activity
-				rpd/todo#5326         new PR                        Only write UTF-8 BOM on W...
-				vilmibm/testing#5325  comment on Ability to sea...  We are working on dedicat...
-				cli/cli#5319          comment on [Codespaces] D...  Wondering if we shouldn't...
-				cli/cli#5300          new issue                     Terminal bell when a runn...
-				
-			`),
+      wantOut: heredoc.Doc(`
+        被指派的 Issue                        │ 被指派的 Pull Request
+        vilmibm/testing#157     yolo          │ cli/cli#5272  Pin extensions
+        cli/cli#3223            Repo garden...│ rpd/todo#73   Board up RPD windows
+        rpd/todo#514            Reducing zo...│ cli/cli#4768  Issue Frecency
+        vilmibm/testing#74      welp          │
+        adreyer/arkestrator#22  complete mo...│
+                                              │
+        审核请求                              │ 提及
+        cli/cli#5272          Pin extensions  │ rpd/todo#110               hello @j...
+        vilmibm/testing#1234  Foobar          │ cli/cli#1096               @jillval...
+        rpd/todo#50           Welcome party...│ vilmibm/gh-screensaver#15  a messag...
+        cli/cli#4671          This pull req...│
+        rpd/todo#49           Haircut for Leon│
+                                              │
+        仓库活动
+        rpd/todo#5326         新 PR                         Only write UTF-8 BOM on W...
+        vilmibm/testing#5325  评论于 Ability to search ...  We are working on dedicat...
+        cli/cli#5319          评论于 [Codespaces] Disal...  Wondering if we shouldn't...
+        cli/cli#5300          新 issue                      Terminal bell when a runn...
+
+      `),
 		},
 		{
 			name: "notification errors",
@@ -410,7 +410,7 @@ func TestStatusRun(t *testing.T) {
 					httpmock.StringResponse(`[]`))
 			},
 			opts:       &StatusOptions{},
-			wantErrMsg: "could not load notifications: could not fetch comment: HTTP 429 (https://api.github.com/repos/rpd/todo/issues/110)",
+			wantErrMsg: "无法加载通知: 无法获取评论: HTTP 429 (https://api.github.com/repos/rpd/todo/issues/110)",
 		},
 		{
 			name: "search errors",
@@ -448,7 +448,7 @@ func TestStatusRun(t *testing.T) {
 					httpmock.StringResponse(`[]`))
 			},
 			opts:       &StatusOptions{},
-			wantErrMsg: "failed to search: could not search for assignments: GraphQL: Not found. (assignments.nodes.0)",
+			wantErrMsg: "搜索失败: 无法搜索指派结果: GraphQL: Not found. (assignments.nodes.0)",
 		},
 	}
 

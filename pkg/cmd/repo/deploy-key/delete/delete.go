@@ -26,7 +26,7 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "delete <key-id>",
-		Short: "Delete a deploy key from a GitHub repository",
+		Short: "从 GitHub 仓库删除部署密钥",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.BaseRepo = f.BaseRepo
@@ -62,6 +62,6 @@ func deleteRun(opts *DeleteOptions) error {
 	}
 
 	cs := opts.IO.ColorScheme()
-	_, err = fmt.Fprintf(opts.IO.Out, "%s Deploy key deleted from %s\n", cs.SuccessIconWithColor(cs.Red), cs.Bold(ghrepo.FullName(repo)))
+	_, err = fmt.Fprintf(opts.IO.Out, "%s 已从 %s 中删除部署密钥\n", cs.SuccessIconWithColor(cs.Red), cs.Bold(ghrepo.FullName(repo)))
 	return err
 }

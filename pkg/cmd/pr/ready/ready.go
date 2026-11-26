@@ -31,21 +31,20 @@ func NewCmdReady(f *cmdutil.Factory, runF func(*ReadyOptions) error) *cobra.Comm
 
 	cmd := &cobra.Command{
 		Use:   "ready [<number> | <url> | <branch>]",
-		Short: "Mark a pull request as ready for review",
+		Short: "将拉取请求(PR)标记为可审核(ready for review)",
 		Long: heredoc.Docf(`
-			Mark a pull request as ready for review.
+			将拉取请求(PR)标记为可审核(ready for review)。
 
-			Without an argument, the pull request that belongs to the current branch
-			is marked as ready.
+			若未提供参数，将把属于当前分支的拉取请求(PR)标记为可审核。
 
-			If supported by your plan, convert to draft with %[1]s--undo%[1]s
+			若您的套餐(plan)支持，可使用 %[1]s--undo%[1]s 转换为草稿(draft)
 		`, "`"),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Finder = shared.NewFinder(f)
 
 			if repoOverride, _ := cmd.Flags().GetString("repo"); repoOverride != "" && len(args) == 0 {
-				return cmdutil.FlagErrorf("argument required when using the --repo flag")
+				return cmdutil.FlagErrorf("使用 --repo flag 时必须提供位置参数")
 			}
 
 			if len(args) > 0 {
@@ -59,7 +58,7 @@ func NewCmdReady(f *cmdutil.Factory, runF func(*ReadyOptions) error) *cobra.Comm
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.Undo, "undo", false, `Convert a pull request to "draft"`)
+	cmd.Flags().BoolVar(&opts.Undo, "undo", false, `将拉取请求(PR)转换为"草稿(draft)"`)
 	return cmd
 }
 
@@ -76,7 +75,7 @@ func readyRun(opts *ReadyOptions) error {
 	}
 
 	if !pr.IsOpen() {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Pull request %s#%d is closed. Only draft pull requests can be marked as \"ready for review\"\n", cs.FailureIcon(), ghrepo.FullName(baseRepo), pr.Number)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 拉取请求(PR) %s#%d 已关闭。只有草稿(draft)拉取请求才能被标记为\"可审核(ready for review)\"\n", cs.FailureIcon(), ghrepo.FullName(baseRepo), pr.Number)
 		return cmdutil.SilentError
 	}
 
@@ -86,29 +85,29 @@ func readyRun(opts *ReadyOptions) error {
 	}
 	apiClient := api.NewClientFromHTTP(httpClient)
 
-	if opts.Undo { // convert to draft
+	if opts.Undo { // 转换为草稿(draft)
 		if pr.IsDraft {
-			fmt.Fprintf(opts.IO.ErrOut, "%s Pull request %s#%d is already \"in draft\"\n", cs.WarningIcon(), ghrepo.FullName(baseRepo), pr.Number)
+			fmt.Fprintf(opts.IO.ErrOut, "%s 拉取请求(PR) %s#%d 已是\"草稿(draft)\"状态\n", cs.WarningIcon(), ghrepo.FullName(baseRepo), pr.Number)
 			return nil
 		}
 		err = api.ConvertPullRequestToDraft(apiClient, baseRepo, pr)
 		if err != nil {
-			return fmt.Errorf("API call failed: %w", err)
+			return fmt.Errorf("API 调用失败: %w", err)
 		}
 
-		fmt.Fprintf(opts.IO.ErrOut, "%s Pull request %s#%d is converted to \"draft\"\n", cs.SuccessIconWithColor(cs.Green), ghrepo.FullName(baseRepo), pr.Number)
-	} else { // mark as ready for review
+		fmt.Fprintf(opts.IO.ErrOut, "%s 拉取请求(PR) %s#%d 已转换为\"草稿(draft)\"\n", cs.SuccessIconWithColor(cs.Green), ghrepo.FullName(baseRepo), pr.Number)
+	} else { // 标记为可审核(ready for review)
 		if !pr.IsDraft {
-			fmt.Fprintf(opts.IO.ErrOut, "%s Pull request %s#%d is already \"ready for review\"\n", cs.WarningIcon(), ghrepo.FullName(baseRepo), pr.Number)
+			fmt.Fprintf(opts.IO.ErrOut, "%s 拉取请求(PR) %s#%d 已是\"可审核(ready for review)\"状态\n", cs.WarningIcon(), ghrepo.FullName(baseRepo), pr.Number)
 			return nil
 		}
 
 		err = api.PullRequestReady(apiClient, baseRepo, pr)
 		if err != nil {
-			return fmt.Errorf("API call failed: %w", err)
+			return fmt.Errorf("API 调用失败: %w", err)
 		}
 
-		fmt.Fprintf(opts.IO.ErrOut, "%s Pull request %s#%d is marked as \"ready for review\"\n", cs.SuccessIconWithColor(cs.Green), ghrepo.FullName(baseRepo), pr.Number)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 拉取请求(PR) %s#%d 已被标记为\"可审核(ready for review)\"\n", cs.SuccessIconWithColor(cs.Green), ghrepo.FullName(baseRepo), pr.Number)
 	}
 
 	return nil

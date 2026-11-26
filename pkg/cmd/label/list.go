@@ -34,33 +34,33 @@ func newCmdList(f *cmdutil.Factory, runF func(*listOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List labels in a repository",
+		Short: "列出仓库中的标签",
 		Long: heredoc.Docf(`
-			Display labels in a GitHub repository.
+			列出 GitHub 仓库中的标签。
 
-			When using the %[1]s--search%[1]s flag results are sorted by best match of the query.
-			This behavior cannot be configured with the %[1]s--order%[1]s or %[1]s--sort%[1]s flags.
+			使用 %[1]s--search%[1]s 选项时，结果按与查询的最佳匹配度排序。
+			该行为无法通过 %[1]s--order%[1]s 或 %[1]s--sort%[1]s 选项配置。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Sort labels by name
+			# 按名称排序标签
 			$ gh label list --sort name
 
-			# Find labels with "bug" in the name or description
+			# 查找名称或描述中含 "bug" 的标签
 			$ gh label list --search bug
 		`),
 		Args:    cobra.NoArgs,
 		Aliases: []string{"ls"},
 		RunE: func(c *cobra.Command, args []string) error {
-			// support `-R, --repo` override
+			// 支持 `-R, --repo` 覆盖
 			opts.BaseRepo = f.BaseRepo
 
 			if opts.Query.Limit < 1 {
-				return cmdutil.FlagErrorf("invalid limit: %v", opts.Query.Limit)
+				return cmdutil.FlagErrorf("无效的限制值: %v", opts.Query.Limit)
 			}
 
 			if opts.Query.Query != "" &&
 				(c.Flags().Changed("order") || c.Flags().Changed("sort")) {
-				return cmdutil.FlagErrorf("cannot specify `--order` or `--sort` with `--search`")
+				return cmdutil.FlagErrorf("`--order` 或 `--sort` 不能与 `--search` 同时指定")
 			}
 
 			if runF != nil {
@@ -70,11 +70,11 @@ func newCmdList(f *cmdutil.Factory, runF func(*listOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "List labels in the web browser")
-	cmd.Flags().IntVarP(&opts.Query.Limit, "limit", "L", 30, "Maximum number of labels to fetch")
-	cmd.Flags().StringVarP(&opts.Query.Query, "search", "S", "", "Search label names and descriptions")
-	cmdutil.StringEnumFlag(cmd, &opts.Query.Order, "order", "", defaultOrder, []string{"asc", "desc"}, "Order of labels returned")
-	cmdutil.StringEnumFlag(cmd, &opts.Query.Sort, "sort", "", defaultSort, []string{"created", "name"}, "Sort fetched labels")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在 web 浏览器中列出标签")
+	cmd.Flags().IntVarP(&opts.Query.Limit, "limit", "L", 30, "获取的最大标签数量")
+	cmd.Flags().StringVarP(&opts.Query.Query, "search", "S", "", "搜索标签名称与描述")
+	cmdutil.StringEnumFlag(cmd, &opts.Query.Order, "order", "", defaultOrder, []string{"asc", "desc"}, "返回标签的顺序")
+	cmdutil.StringEnumFlag(cmd, &opts.Query.Sort, "sort", "", defaultSort, []string{"created", "name"}, "对获取的标签排序")
 
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, labelFields)
 
@@ -96,7 +96,7 @@ func listRun(opts *listOptions) error {
 		labelListURL := ghrepo.GenerateRepoURL(baseRepo, "labels")
 
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(labelListURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(labelListURL))
 		}
 
 		return opts.Browser.Browse(labelListURL)
@@ -115,9 +115,9 @@ func listRun(opts *listOptions) error {
 
 	if len(labels) == 0 {
 		if opts.Query.Query != "" {
-			return cmdutil.NewNoResultsError(fmt.Sprintf("no labels in %s matched your search", ghrepo.FullName(baseRepo)))
+			return cmdutil.NewNoResultsError(fmt.Sprintf("%s 中没有匹配您搜索的标签", ghrepo.FullName(baseRepo)))
 		}
-		return cmdutil.NewNoResultsError(fmt.Sprintf("no labels found in %s", ghrepo.FullName(baseRepo)))
+		return cmdutil.NewNoResultsError(fmt.Sprintf("%s 中未找到任何标签", ghrepo.FullName(baseRepo)))
 	}
 
 	if opts.Exporter != nil {
@@ -134,10 +134,10 @@ func listRun(opts *listOptions) error {
 
 func printLabels(io *iostreams.IOStreams, labels []label) error {
 	cs := io.ColorScheme()
-	table := tableprinter.New(io, tableprinter.WithHeader("NAME", "DESCRIPTION", "COLOR"))
+	table := tableprinter.New(io, tableprinter.WithHeader("名称", "描述", "颜色"))
 
 	for _, label := range labels {
-		// Colorize the label using tableprinter's WithColor function for it to handle non-TTY situations
+		// 使用 tableprinter 的 WithColor 函数为标签着色，以处理非 TTY 的情况
 		labelColor := tableprinter.WithColor(func(s string) string {
 			return cs.Label(label.Color, s)
 		})
@@ -153,5 +153,5 @@ func printLabels(io *iostreams.IOStreams, labels []label) error {
 }
 
 func listHeader(repoName string, count int, totalCount int) string {
-	return fmt.Sprintf("Showing %d of %s in %s", count, text.Pluralize(totalCount, "label"), repoName)
+	return fmt.Sprintf("列出 %s 中的 %d 个标签，共 %d 条", repoName, count, totalCount)
 }

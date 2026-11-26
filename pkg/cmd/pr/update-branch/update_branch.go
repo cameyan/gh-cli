@@ -36,15 +36,15 @@ func NewCmdUpdateBranch(f *cmdutil.Factory, runF func(*UpdateBranchOptions) erro
 
 	cmd := &cobra.Command{
 		Use:   "update-branch [<number> | <url> | <branch>]",
-		Short: "Update a pull request branch",
+		Short: "更新拉取请求(PR)的分支(branch)",
 		Long: heredoc.Docf(`
-			Update a pull request branch with latest changes of the base branch.
+			使用基础分支(base branch)的最新变更更新拉取请求(PR)的分支。
 
-			Without an argument, the pull request that belongs to the current branch is selected.
+			不带参数时，将选择属于当前分支的拉取请求。
 
-			The default behavior is to update with a merge commit (i.e., merging the base branch
-			into the PR's branch). To reconcile the changes with rebasing on top of the base
-			branch, the %[1]s--rebase%[1]s option should be provided.
+			默认行为是通过合并提交(merge commit)来更新(即把基础分支合并进 PR 的分支)。
+			若要通过变基(rebase)到基础分支之上的方式来调和这些变更，应提供
+			%[1]s--rebase%[1]s 选项。
 		`, "`"),
 		Example: heredoc.Doc(`
 			$ gh pr update-branch 23
@@ -56,7 +56,7 @@ func NewCmdUpdateBranch(f *cmdutil.Factory, runF func(*UpdateBranchOptions) erro
 			opts.Finder = shared.NewFinder(f)
 
 			if repoOverride, _ := cmd.Flags().GetString("repo"); repoOverride != "" && len(args) == 0 {
-				return cmdutil.FlagErrorf("argument required when using the --repo flag")
+				return cmdutil.FlagErrorf("使用 --repo flag 时必须提供位置参数")
 			}
 
 			if len(args) > 0 {
@@ -71,7 +71,7 @@ func NewCmdUpdateBranch(f *cmdutil.Factory, runF func(*UpdateBranchOptions) erro
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.Rebase, "rebase", false, "Update PR branch by rebasing on top of latest base branch")
+	cmd.Flags().BoolVar(&opts.Rebase, "rebase", false, "通过变基(rebase)到最新基础分支之上来更新 PR 分支")
 
 	return cmd
 }
@@ -89,7 +89,7 @@ func updateBranchRun(opts *UpdateBranchOptions) error {
 
 	cs := opts.IO.ColorScheme()
 	if pr.Mergeable == api.PullRequestMergeableConflicting {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Cannot update PR branch due to conflicts\n", cs.FailureIcon())
+		fmt.Fprintf(opts.IO.ErrOut, "%s 由于存在冲突(conflict)，无法更新 PR 分支\n", cs.FailureIcon())
 		return cmdutil.SilentError
 	}
 
@@ -101,8 +101,8 @@ func updateBranchRun(opts *UpdateBranchOptions) error {
 
 	headRef := pr.HeadRefName
 	if pr.HeadRepositoryOwner.Login != repo.RepoOwner() {
-		// Only prepend the `owner:` to comparison head ref if the PR head
-		// branch is on another repo (e.g., a fork).
+		// 仅当 PR 的 head 分支位于另一个仓库(例如 fork)时，
+		// 才在比较用 head ref 前加上 `owner:`。
 		headRef = pr.HeadRepositoryOwner.Login + ":" + headRef
 	}
 
@@ -114,8 +114,8 @@ func updateBranchRun(opts *UpdateBranchOptions) error {
 	}
 
 	if comparison.BehindBy == 0 {
-		// The PR branch is not behind the base branch, so it'a already up-to-date.
-		fmt.Fprintf(opts.IO.Out, "%s PR branch already up-to-date\n", cs.SuccessIcon())
+		// PR 分支并不落后于基础分支，因此它已是最新状态。
+		fmt.Fprintf(opts.IO.Out, "%s PR 分支已是最新\n", cs.SuccessIcon())
 		return nil
 	}
 
@@ -123,20 +123,20 @@ func updateBranchRun(opts *UpdateBranchOptions) error {
 	err = updatePullRequestBranch(apiClient, repo, pr.ID, pr.HeadRefOid, opts.Rebase)
 	opts.IO.StopProgressIndicator()
 	if err != nil {
-		// TODO: this is a best effort approach and not a resilient way of handling API errors.
+		// TODO: 这是一种尽力而为的方式，并非健壮的 API 错误处理方法。
 		if strings.Contains(err.Error(), "GraphQL: merge conflict between base and head (updatePullRequestBranch)") {
-			fmt.Fprintf(opts.IO.ErrOut, "%s Cannot update PR branch due to conflicts\n", cs.FailureIcon())
+			fmt.Fprintf(opts.IO.ErrOut, "%s 由于存在冲突(conflict)，无法更新 PR 分支\n", cs.FailureIcon())
 			return cmdutil.SilentError
 		}
 		return err
 	}
 
-	fmt.Fprintf(opts.IO.Out, "%s PR branch updated\n", cs.SuccessIcon())
+	fmt.Fprintf(opts.IO.Out, "%s PR 分支已更新\n", cs.SuccessIcon())
 	return nil
 }
 
-// updatePullRequestBranch calls the GraphQL API endpoint to update the given PR
-// branch with latest changes of its base.
+// updatePullRequestBranch 调用 GraphQL API 端点，使用其基础分支的最新变更
+// 更新给定的 PR 分支。
 func updatePullRequestBranch(apiClient *api.Client, repo ghrepo.Interface, pullRequestID string, expectedHeadOid string, rebase bool) error {
 	updateMethod := githubv4.PullRequestBranchUpdateMethodMerge
 	if rebase {

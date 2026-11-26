@@ -31,7 +31,7 @@ func TestRunInspect(t *testing.T) {
 		SigstoreVerifier: verification.NewMockSigstoreVerifier(t),
 	}
 
-	t.Run("with valid bundle and default output", func(t *testing.T) {
+	t.Run("bundle 有效且使用默认输出的情况", func(t *testing.T) {
 		testIO, _, out, _ := iostreams.Test()
 		opts.Logger = io.NewHandler(testIO)
 
@@ -41,7 +41,7 @@ func TestRunInspect(t *testing.T) {
 		assert.Regexp(t, "PredicateType:......... https://slsa.dev/provenance/v1", outputStr)
 	})
 
-	t.Run("with missing bundle path", func(t *testing.T) {
+	t.Run("缺少 bundle 路径的情况", func(t *testing.T) {
 		customOpts := opts
 		customOpts.BundlePath = test.NormalizeRelativePath("../test/data/non-existent-sigstoreBundle.json")
 		require.Error(t, runInspect(&customOpts))

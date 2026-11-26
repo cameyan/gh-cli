@@ -33,8 +33,8 @@ func NewCmdView(f *cmdutil.Factory, runF func(*viewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view <id>",
-		Short: "View an autolink reference",
-		Long:  "View an autolink reference for a repository.",
+		Short: "查看自动链接引用",
+		Long:  "查看仓库的自动链接引用",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			httpClient, err := f.HttpClient()
@@ -71,25 +71,25 @@ func viewRun(opts *viewOptions) error {
 	autolink, err := opts.AutolinkClient.View(repo, opts.ID)
 
 	if err != nil {
-		return fmt.Errorf("%s %w", cs.Red("error viewing autolink:"), err)
+		return fmt.Errorf("%s %w", cs.Red("查看自动链接时出错:"), err)
 	}
 
 	if opts.Exporter != nil {
 		return opts.Exporter.Write(opts.IO, autolink)
 	}
 
-	fmt.Fprintf(out, "Autolink in %s\n\n", cs.Bold(ghrepo.FullName(repo)))
+	fmt.Fprintf(out, "%s 中的自动链接\n\n", cs.Bold(ghrepo.FullName(repo)))
 
 	fmt.Fprint(out, cs.Bold("ID: "))
 	fmt.Fprintln(out, cs.Cyanf("%d", autolink.ID))
 
-	fmt.Fprint(out, cs.Bold("Key Prefix: "))
+	fmt.Fprint(out, cs.Bold("键前缀: "))
 	fmt.Fprintln(out, autolink.KeyPrefix)
 
-	fmt.Fprint(out, cs.Bold("URL Template: "))
+	fmt.Fprint(out, cs.Bold("URL 模板: "))
 	fmt.Fprintln(out, autolink.URLTemplate)
 
-	fmt.Fprint(out, cs.Bold("Alphanumeric: "))
+	fmt.Fprint(out, cs.Bold("字母数字: "))
 	fmt.Fprintln(out, autolink.IsAlphanumeric)
 
 	return nil

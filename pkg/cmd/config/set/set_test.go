@@ -141,7 +141,7 @@ func Test_setRun(t *testing.T) {
 				Value:  "api-gateway.example.com",
 			},
 			wantsErr: true,
-			errMsg:   "--host required when setting api_host",
+			errMsg:   "设置 api_host 时必须提供 --host",
 		},
 		{
 			name: "set global key with hostname",
@@ -152,7 +152,7 @@ func Test_setRun(t *testing.T) {
 				Value:    "enabled",
 			},
 			wantsErr: true,
-			errMsg:   "--host cannot be used when setting clipboard",
+			errMsg:   "设置 clipboard 时不能使用 --host",
 		},
 		{
 			name: "set unknown key",
@@ -162,7 +162,7 @@ func Test_setRun(t *testing.T) {
 				Value:  "someValue",
 			},
 			expectedValue: "someValue",
-			stderr:        "! warning: 'unknownKey' is not a known configuration key\n",
+			stderr:        "! 警告: 'unknownKey' 不是已知的配置键\n",
 		},
 		{
 			name: "set invalid value",
@@ -172,7 +172,7 @@ func Test_setRun(t *testing.T) {
 				Value:  "invalid",
 			},
 			wantsErr: true,
-			errMsg:   "failed to set \"git_protocol\" to \"invalid\": valid values are 'https', 'ssh'",
+			errMsg:   "将 \"git_protocol\" 设置为 \"invalid\" 失败: 有效值为 'https', 'ssh'",
 		},
 	}
 	for _, tt := range tests {
@@ -201,7 +201,7 @@ func Test_setRun(t *testing.T) {
 
 func Test_ValidateValue(t *testing.T) {
 	err := ValidateValue("git_protocol", "sshpps")
-	assert.EqualError(t, err, "invalid value")
+	assert.EqualError(t, err, "无效的值")
 
 	err = ValidateValue("git_protocol", "ssh")
 	assert.NoError(t, err)
@@ -210,7 +210,7 @@ func Test_ValidateValue(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = ValidateValue("clipboard", "sometimes")
-	assert.EqualError(t, err, "invalid value")
+	assert.EqualError(t, err, "无效的值")
 
 	err = ValidateValue("clipboard", "enabled")
 	assert.NoError(t, err)
@@ -224,7 +224,7 @@ func Test_ValidateValue(t *testing.T) {
 
 func Test_ValidateKey(t *testing.T) {
 	err := ValidateKey("invalid")
-	assert.EqualError(t, err, "invalid key")
+	assert.EqualError(t, err, "无效的键")
 
 	err = ValidateKey("git_protocol")
 	assert.NoError(t, err)
@@ -252,9 +252,9 @@ func Test_ValidateKey(t *testing.T) {
 }
 
 func Test_validateScope(t *testing.T) {
-	assert.EqualError(t, validateScope("api_host", ""), "--host required when setting api_host")
+	assert.EqualError(t, validateScope("api_host", ""), "设置 api_host 时必须提供 --host")
 	assert.NoError(t, validateScope("api_host", "github.example.com"))
-	assert.EqualError(t, validateScope("clipboard", "github.com"), "--host cannot be used when setting clipboard")
+	assert.EqualError(t, validateScope("clipboard", "github.com"), "设置 clipboard 时不能使用 --host")
 	assert.NoError(t, validateScope("clipboard", ""))
 	assert.NoError(t, validateScope("prompt", "github.com"))
 	assert.NoError(t, validateScope("prefer_editor_prompt", "github.com"))

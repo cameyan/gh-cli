@@ -20,12 +20,12 @@ func newRebuildCmd(app *App) *cobra.Command {
 
 	rebuildCmd := &cobra.Command{
 		Use:   "rebuild",
-		Short: "Rebuild a codespace",
+		Short: "重建 codespace",
 		Long: heredoc.Doc(`
-			Rebuilding recreates your codespace.
+			重建会重新创建你的 codespace。
 
-			Your code and any current changes will be preserved. Your codespace will be rebuilt using
-			your working directory's dev container. A full rebuild also removes cached Docker images.
+			你的代码和当前的所有更改都会保留。codespace 将使用你工作目录中的
+			dev container 重建。完整重建还会移除缓存的 Docker 镜像。
 		`),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -35,7 +35,7 @@ func newRebuildCmd(app *App) *cobra.Command {
 
 	selector = AddCodespaceSelector(rebuildCmd, app.apiClient)
 
-	rebuildCmd.Flags().BoolVar(&fullRebuild, "full", false, "Perform a full rebuild")
+	rebuildCmd.Flags().BoolVar(&fullRebuild, "full", false, "执行完整重建")
 
 	return rebuildCmd
 }
@@ -50,19 +50,20 @@ func (a *App) Rebuild(ctx context.Context, selector *CodespaceSelector, full boo
 	}
 
 	// There's no need to rebuild again because users can't modify their codespace while it rebuilds
+	// 无需再次重建，因为重建期间用户无法修改自己的 codespace
 	if codespace.State == api.CodespaceStateRebuilding {
-		fmt.Fprintf(a.io.Out, "%s is already rebuilding\n", codespace.Name)
+		fmt.Fprintf(a.io.Out, "%s 已在重建中\n", codespace.Name)
 		return nil
 	}
 
 	codespaceConnection, err := codespaces.GetCodespaceConnection(ctx, a, a.apiClient, codespace)
 	if err != nil {
-		return fmt.Errorf("error connecting to codespace: %w", err)
+		return fmt.Errorf("连接 codespace 时出错: %w", err)
 	}
 
 	fwd, err := portforwarder.NewPortForwarder(ctx, codespaceConnection)
 	if err != nil {
-		return fmt.Errorf("failed to create port forwarder: %w", err)
+		return fmt.Errorf("创建端口转发器失败: %w", err)
 	}
 	defer safeClose(fwd, &err)
 
@@ -74,9 +75,9 @@ func (a *App) Rebuild(ctx context.Context, selector *CodespaceSelector, full boo
 
 	err = invoker.RebuildContainer(ctx, full)
 	if err != nil {
-		return fmt.Errorf("rebuilding codespace via session: %w", err)
+		return fmt.Errorf("通过会话重建 codespace 失败: %w", err)
 	}
 
-	fmt.Fprintf(a.io.Out, "%s is rebuilding\n", codespace.Name)
+	fmt.Fprintf(a.io.Out, "%s 正在重建\n", codespace.Name)
 	return nil
 }

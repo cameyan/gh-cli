@@ -26,13 +26,13 @@ func (s stubAuthConfig) ActiveTokenWithRefresh(string) (gh.Credential, gh.Refres
 func TestGetJobRequiresRepoAndJobID(t *testing.T) {
 	client := &CAPIClient{}
 	_, err := client.GetJob(context.Background(), "", "", "only-job-id")
-	assert.EqualError(t, err, "owner, repo, and jobID are required")
+	assert.EqualError(t, err, "必须提供 owner、repo 和 jobID")
 	_, err = client.GetJob(context.Background(), "", "only-repo", "")
-	assert.EqualError(t, err, "owner, repo, and jobID are required")
+	assert.EqualError(t, err, "必须提供 owner、repo 和 jobID")
 	_, err = client.GetJob(context.Background(), "only-owner", "", "")
-	assert.EqualError(t, err, "owner, repo, and jobID are required")
+	assert.EqualError(t, err, "必须提供 owner、repo 和 jobID")
 	_, err = client.GetJob(context.Background(), "", "", "")
-	assert.EqualError(t, err, "owner, repo, and jobID are required")
+	assert.EqualError(t, err, "必须提供 owner、repo 和 jobID")
 }
 
 func TestGetJob(t *testing.T) {
@@ -144,7 +144,7 @@ func TestGetJob(t *testing.T) {
 					httpmock.StatusStringResponse(404, `{}`),
 				)
 			},
-			wantErr: "failed to get job: 404 Not Found",
+			wantErr: "获取 job 失败: 404 Not Found",
 		},
 		{
 			name: "API error",
@@ -154,7 +154,7 @@ func TestGetJob(t *testing.T) {
 					httpmock.StatusStringResponse(500, `{}`),
 				)
 			},
-			wantErr: "failed to get job: 500 Internal Server Error",
+			wantErr: "获取 job 失败: 500 Internal Server Error",
 		},
 		{
 			name: "invalid JSON response",
@@ -164,7 +164,7 @@ func TestGetJob(t *testing.T) {
 					httpmock.StatusStringResponse(200, ``),
 				)
 			},
-			wantErr: "failed to decode get job response: EOF",
+			wantErr: "解码获取 job 响应失败: EOF",
 		},
 	}
 
@@ -198,14 +198,14 @@ func TestCreateJobRequiresRepoAndProblemStatement(t *testing.T) {
 	client := &CAPIClient{}
 
 	_, err := client.CreateJob(context.Background(), "", "only-repo", "", "", "")
-	assert.EqualError(t, err, "owner and repo are required")
+	assert.EqualError(t, err, "必须提供 owner 和 repo")
 	_, err = client.CreateJob(context.Background(), "only-owner", "", "", "", "")
-	assert.EqualError(t, err, "owner and repo are required")
+	assert.EqualError(t, err, "必须提供 owner 和 repo")
 	_, err = client.CreateJob(context.Background(), "", "", "", "", "")
-	assert.EqualError(t, err, "owner and repo are required")
+	assert.EqualError(t, err, "必须提供 owner 和 repo")
 
 	_, err = client.CreateJob(context.Background(), "owner", "repo", "", "", "")
-	assert.EqualError(t, err, "problem statement is required")
+	assert.EqualError(t, err, "必须提供 problem statement")
 }
 
 func TestCreateJob(t *testing.T) {
@@ -377,7 +377,7 @@ func TestCreateJob(t *testing.T) {
 					}`)),
 				)
 			},
-			wantErr: "failed to create job: 500 Internal Server Error: some error",
+			wantErr: "创建 job 失败: 500 Internal Server Error: some error",
 		},
 		{
 			name: "API error",
@@ -387,7 +387,7 @@ func TestCreateJob(t *testing.T) {
 					httpmock.StatusStringResponse(500, `{}`),
 				)
 			},
-			wantErr: "failed to create job: 500 Internal Server Error: ",
+			wantErr: "创建 job 失败: 500 Internal Server Error: ",
 		},
 		{
 			name: "invalid JSON response, non-HTTP 200",
@@ -397,7 +397,7 @@ func TestCreateJob(t *testing.T) {
 					httpmock.StatusStringResponse(401, `Unauthorized`),
 				)
 			},
-			wantErr: "failed to create job: 401 Unauthorized",
+			wantErr: "创建 job 失败: 401 Unauthorized",
 		},
 		{
 			name: "invalid JSON response, HTTP 200",
@@ -407,7 +407,7 @@ func TestCreateJob(t *testing.T) {
 					httpmock.StatusStringResponse(200, ``),
 				)
 			},
-			wantErr: "failed to decode create job response: EOF",
+			wantErr: "解码创建 job 响应失败: EOF",
 		},
 	}
 

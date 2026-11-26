@@ -88,28 +88,27 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "list [flags]",
-		Short: "List discussions in a repository (preview)",
+		Short: "列出仓库中的讨论(预览版)",
 		Long: heredoc.Doc(`
-			List discussions in a GitHub repository. By default, only open discussions
-			are shown.
+			列出 GitHub 仓库中的讨论。默认只显示处于打开状态的讨论。
 		`),
 		Example: heredoc.Doc(`
-			# List open discussions
+			# 列出打开状态的讨论
 			$ gh discussion list
 
-			# List discussions with a specific category
+			# 列出指定分类的讨论
 			$ gh discussion list --category General
 
-			# List closed discussions by author
+			# 按作者列出已关闭的讨论
 			$ gh discussion list --state closed --author monalisa
 
-			# List all discussions (closed or open) by label
+			# 按标签列出所有讨论(关闭或打开)
 			$ gh discussion list --state all --label bug,enhancement
 
-			# List answered Q&A discussions as JSON
+			# 以 JSON 格式列出已解答的问答讨论
 			$ gh discussion list --answered --json number,title,url
 
-			# List unanswered Q&A discussions as JSON
+			# 以 JSON 格式列出未解答的问答讨论
 			$ gh discussion list --answered=false --json number,title,url
 		`),
 		Aliases: []string{"ls"},
@@ -119,7 +118,7 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 			opts.Client = shared.DiscussionClientFunc(f)
 
 			if opts.Limit < 1 {
-				return cmdutil.FlagErrorf("invalid limit: %v", opts.Limit)
+				return cmdutil.FlagErrorf("无效的 limit: %v", opts.Limit)
 			}
 
 			if runF != nil {
@@ -131,23 +130,23 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmdutil.EnableRepoOverride(cmd, f)
 
-	cmd.Flags().StringVarP(&opts.Author, "author", "A", "", "Filter by author")
-	cmd.Flags().StringVarP(&opts.Category, "category", "c", "", "Filter by category name or slug")
-	cmd.Flags().StringSliceVarP(&opts.Labels, "label", "l", nil, "Filter by label")
-	cmdutil.StringEnumFlag(cmd, &opts.State, "state", "s", stateOpen, []string{stateOpen, stateClosed, stateAll}, "Filter by state")
-	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", defaultLimit, "Maximum number of discussions to fetch")
-	cmdutil.NilBoolFlag(cmd, &opts.Answered, "answered", "", "Filter by answered state")
-	cmdutil.StringEnumFlag(cmd, &opts.Sort, "sort", "", sortUpdated, []string{sortCreated, sortUpdated}, "Sort by field")
-	cmdutil.StringEnumFlag(cmd, &opts.Order, "order", "", orderDesc, []string{orderAsc, orderDesc}, "Order of results")
-	cmd.Flags().StringVarP(&opts.Search, "search", "S", "", "Search discussions with `query`")
-	cmd.Flags().StringVar(&opts.After, "after", "", "Cursor for the next page of results")
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "List discussions in the web browser")
+	cmd.Flags().StringVarP(&opts.Author, "author", "A", "", "按作者筛选")
+	cmd.Flags().StringVarP(&opts.Category, "category", "c", "", "按分类名称或 slug 筛选")
+	cmd.Flags().StringSliceVarP(&opts.Labels, "label", "l", nil, "按标签筛选")
+	cmdutil.StringEnumFlag(cmd, &opts.State, "state", "s", stateOpen, []string{stateOpen, stateClosed, stateAll}, "按状态筛选")
+	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", defaultLimit, "最多获取的讨论数量")
+	cmdutil.NilBoolFlag(cmd, &opts.Answered, "answered", "", "按是否已解答筛选")
+	cmdutil.StringEnumFlag(cmd, &opts.Sort, "sort", "", sortUpdated, []string{sortCreated, sortUpdated}, "排序字段")
+	cmdutil.StringEnumFlag(cmd, &opts.Order, "order", "", orderDesc, []string{orderAsc, orderDesc}, "结果排序方式")
+	cmd.Flags().StringVarP(&opts.Search, "search", "S", "", "使用 `query` 搜索讨论")
+	cmd.Flags().StringVar(&opts.After, "after", "", "下一页结果的游标")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在网页浏览器中列出讨论")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, discussionListFields)
 
 	return cmd
 }
 
-// toFilterState maps CLI state strings to domain-level filter state pointers.
+// toFilterState 将 CLI 状态字符串映射为领域层的状态筛选指针。
 // "all" maps to nil (no state filter).
 func toFilterState(v string) *string {
 	switch v {
@@ -253,11 +252,11 @@ func listRun(opts *ListOptions) error {
 	}
 
 	if len(result.Discussions) == 0 {
-		return cmdutil.NewNoResultsError(fmt.Sprintf("no discussions found in %s", ghrepo.FullName(repo)))
+		return cmdutil.NewNoResultsError(fmt.Sprintf("在 %s 中未找到讨论", ghrepo.FullName(repo)))
 	}
 
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "error starting pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器出错: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -297,7 +296,7 @@ func openInBrowser(opts *ListOptions, repo ghrepo.Interface) error {
 	}
 
 	if opts.IO.IsStderrTTY() {
-		fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(discussionsURL))
+		fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(discussionsURL))
 	}
 	return opts.Browser.Browse(discussionsURL)
 }
@@ -305,11 +304,11 @@ func openInBrowser(opts *ListOptions, repo ghrepo.Interface) error {
 func listHeader(repoName string, count, total int, state string) string {
 	switch state {
 	case stateOpen:
-		return fmt.Sprintf("Showing %d of %d open discussions in %s", count, total, repoName)
+		return fmt.Sprintf("显示 %s 中 %d 条打开状态的讨论(共 %d 条)", repoName, count, total)
 	case stateClosed:
-		return fmt.Sprintf("Showing %d of %d closed discussions in %s", count, total, repoName)
+		return fmt.Sprintf("显示 %s 中 %d 条已关闭的讨论(共 %d 条)", repoName, count, total)
 	default:
-		return fmt.Sprintf("Showing %d of %d discussions in %s", count, total, repoName)
+		return fmt.Sprintf("显示 %s 中 %d 条讨论(共 %d 条)", repoName, count, total)
 	}
 }
 
@@ -375,6 +374,6 @@ func printDiscussions(opts *ListOptions, repoName string, discussions []client.D
 	_ = tp.Render()
 
 	if remaining := totalCount - len(discussions); isTerminal && remaining > 0 {
-		fmt.Fprintf(opts.IO.Out, cs.Muted("And %d more\n"), remaining)
+		fmt.Fprintf(opts.IO.Out, cs.Muted("还有 %d 条未显示\n"), remaining)
 	}
 }

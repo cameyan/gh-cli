@@ -50,8 +50,8 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view [<id> | <url>]",
-		Short: "View a gist",
-		Long:  `View the given gist or select from recent gists.`,
+		Short: "查看 gist",
+		Long:  `查看指定的 gist 或从最近的 gist 中选择。`,
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 1 {
@@ -69,11 +69,11 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.Raw, "raw", "r", false, "Print raw instead of rendered gist contents")
-	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "Open gist in the browser")
-	cmd.Flags().BoolVar(&opts.ListFiles, "files", false, "List file names from the gist")
-	cmd.Flags().StringVarP(&opts.Filename, "filename", "f", "", "Display a single file from the gist")
-	cmd.Flags().BoolVar(&opts.AllowEscapeSequences, "allow-escape-sequences", false, "Allow printing terminal escape sequences")
+	cmd.Flags().BoolVarP(&opts.Raw, "raw", "r", false, "打印原始内容而非渲染后的 gist 内容")
+	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "在浏览器中打开 gist")
+	cmd.Flags().BoolVar(&opts.ListFiles, "files", false, "列出 gist 中的文件名")
+	cmd.Flags().StringVarP(&opts.Filename, "filename", "f", "", "显示 gist 中的单个文件")
+	cmd.Flags().BoolVar(&opts.AllowEscapeSequences, "allow-escape-sequences", false, "允许打印终端转义序列")
 
 	return cmd
 }
@@ -100,7 +100,7 @@ func viewRun(opts *ViewOptions) error {
 	cs := opts.IO.ColorScheme()
 	if gistID == "" {
 		if !opts.IO.CanPrompt() {
-			return cmdutil.FlagErrorf("gist ID or URL required when not running interactively")
+			return cmdutil.FlagErrorf("非交互式运行时必须指定 gist ID 或 URL")
 		}
 
 		gist, err := shared.PromptGists(opts.Prompter, client, hostname, cs)
@@ -109,7 +109,7 @@ func viewRun(opts *ViewOptions) error {
 		}
 
 		if gist.ID == "" {
-			fmt.Fprintln(opts.IO.Out, "No gists found.")
+			fmt.Fprintln(opts.IO.Out, "未找到 gist。")
 			return nil
 		}
 		gistID = gist.ID
@@ -121,7 +121,7 @@ func viewRun(opts *ViewOptions) error {
 			gistURL = ghinstance.GistPrefix(hostname) + gistID
 		}
 		if opts.IO.IsStderrTTY() {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(gistURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(gistURL))
 		}
 		return opts.Browser.Browse(gistURL)
 	}
@@ -141,13 +141,13 @@ func viewRun(opts *ViewOptions) error {
 
 	opts.IO.DetectTerminalTheme()
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "starting pager failed: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
 	render := func(gf *shared.GistFile) error {
-		// Treat the file content as untrusted external bytes. The truncated
-		// path fetches the full content from the raw URL.
+		// 将文件内容视为不可信的外部字节。被截断的
+		// 路径会从原始 URL 获取完整内容。
 		content := iostreams.NewUntrusted(gf.Content)
 		if gf.Truncated {
 			fullContent, err := shared.GetRawGistFile(client, hostname, safeurl.NewImmutableSafeURL(gf.RawURL))
@@ -160,16 +160,16 @@ func viewRun(opts *ViewOptions) error {
 
 		if shared.IsBinaryContents(content.RawBytes()) {
 			if len(gist.Files) == 1 || opts.Filename != "" {
-				return fmt.Errorf("error: file is binary")
+				return fmt.Errorf("错误: 文件为二进制文件")
 			}
-			_, err = fmt.Fprintln(opts.IO.Out, cs.Muted("(skipping rendering binary content)"))
+			_, err = fmt.Fprintln(opts.IO.Out, cs.Muted("(跳过渲染二进制内容)"))
 			return nil
 		}
 
 		if strings.Contains(gf.Type, "markdown") && !opts.Raw {
-			// Markdown rendering emits application-styled output to Out, so its
-			// input is sanitized here; --allow-escape-sequences applies to the
-			// raw dump below.
+			// Markdown 渲染会向 Out 输出应用样式的输出，因此其
+			// 输入在此处被净化; --allow-escape-sequences 作用于
+			// 下面的原始转储。
 			rendered, err := markdown.Render(content.String(),
 				markdown.WithTheme(opts.IO.TerminalTheme()),
 				markdown.WithWrap(opts.IO.TerminalWidth()))
@@ -180,13 +180,13 @@ func viewRun(opts *ViewOptions) error {
 			return err
 		}
 
-		// Raw dump. On a terminal, ContentOut renders escape sequences inert.
-		// When the output is piped, refuse content carrying escape sequences
-		// rather than silently rewriting the bytes; --allow-escape-sequences
-		// forces raw.
+		// 原始转储。在终端上，ContentOut 会让转义序列失效。
+		// 当输出被管道传递时，拒绝携带转义序列的内容，
+		// 而不是静默改写字节; --allow-escape-sequences
+		// 强制使用原始内容。
 		if !opts.AllowEscapeSequences && !opts.IO.IsStdoutTTY() {
 			if iostreams.ContainsEscapeSequence(content.RawBytes()) {
-				return errors.New("gist file contains terminal escape sequences; pass --allow-escape-sequences to view it anyway")
+				return errors.New("gist 文件包含终端转义序列; 传入 --allow-escape-sequences 仍可查看它")
 			}
 			opts.IO.SetContentSanitization(false)
 		}
@@ -205,7 +205,7 @@ func viewRun(opts *ViewOptions) error {
 	if opts.Filename != "" {
 		gistFile, ok := gist.Files[opts.Filename]
 		if !ok {
-			return fmt.Errorf("gist has no such file: %q", opts.Filename)
+			return fmt.Errorf("gist 中没有这样的文件: %q", opts.Filename)
 		}
 		return render(gistFile)
 	}

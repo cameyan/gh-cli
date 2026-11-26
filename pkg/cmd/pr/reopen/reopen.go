@@ -30,7 +30,7 @@ func NewCmdReopen(f *cmdutil.Factory, runF func(*ReopenOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "reopen {<number> | <url> | <branch>}",
-		Short: "Reopen a pull request",
+		Short: "重新打开拉取请求(PR)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Finder = shared.NewFinder(f)
@@ -46,7 +46,7 @@ func NewCmdReopen(f *cmdutil.Factory, runF func(*ReopenOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Comment, "comment", "c", "", "Add a reopening comment")
+	cmd.Flags().StringVarP(&opts.Comment, "comment", "c", "", "添加一条重新打开的评论")
 
 	return cmd
 }
@@ -64,12 +64,12 @@ func reopenRun(opts *ReopenOptions) error {
 	}
 
 	if pr.State == "MERGED" {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Pull request %s#%d (%s) can't be reopened because it was already merged\n", cs.FailureIcon(), ghrepo.FullName(baseRepo), pr.Number, pr.Title)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 拉取请求(PR) %s#%d (%s) 已被合并，无法重新打开\n", cs.FailureIcon(), ghrepo.FullName(baseRepo), pr.Number, pr.Title)
 		return cmdutil.SilentError
 	}
 
 	if pr.IsOpen() {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Pull request %s#%d (%s) is already open\n", cs.WarningIcon(), ghrepo.FullName(baseRepo), pr.Number, pr.Title)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 拉取请求(PR) %s#%d (%s) 已处于打开状态\n", cs.WarningIcon(), ghrepo.FullName(baseRepo), pr.Number, pr.Title)
 		return nil
 	}
 
@@ -96,10 +96,10 @@ func reopenRun(opts *ReopenOptions) error {
 
 	err = api.PullRequestReopen(httpClient, baseRepo, pr.ID)
 	if err != nil {
-		return fmt.Errorf("API call failed: %w", err)
+		return fmt.Errorf("API 调用失败: %w", err)
 	}
 
-	fmt.Fprintf(opts.IO.ErrOut, "%s Reopened pull request %s#%d (%s)\n", cs.SuccessIconWithColor(cs.Green), ghrepo.FullName(baseRepo), pr.Number, pr.Title)
+	fmt.Fprintf(opts.IO.ErrOut, "%s 已重新打开拉取请求(PR) %s#%d (%s)\n", cs.SuccessIconWithColor(cs.Green), ghrepo.FullName(baseRepo), pr.Number, pr.Title)
 
 	return nil
 }

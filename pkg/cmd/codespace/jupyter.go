@@ -17,7 +17,7 @@ func newJupyterCmd(app *App) *cobra.Command {
 
 	jupyterCmd := &cobra.Command{
 		Use:   "jupyter",
-		Short: "Open a codespace in JupyterLab",
+		Short: "在 JupyterLab 中打开 codespace",
 		Args:  noArgsConstraint,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.Jupyter(cmd.Context(), selector)
@@ -41,12 +41,12 @@ func (a *App) Jupyter(ctx context.Context, selector *CodespaceSelector) (err err
 
 	codespaceConnection, err := codespaces.GetCodespaceConnection(ctx, a, a.apiClient, codespace)
 	if err != nil {
-		return fmt.Errorf("error connecting to codespace: %w", err)
+		return fmt.Errorf("连接 codespace 时出错: %w", err)
 	}
 
 	fwd, err := portforwarder.NewPortForwarder(ctx, codespaceConnection)
 	if err != nil {
-		return fmt.Errorf("failed to create port forwarder: %w", err)
+		return fmt.Errorf("创建端口转发器失败: %w", err)
 	}
 	defer safeClose(fwd, &err)
 
@@ -55,7 +55,7 @@ func (a *App) Jupyter(ctx context.Context, selector *CodespaceSelector) (err err
 		serverPort int
 		serverUrl  string
 	)
-	err = a.RunWithProgress("Starting JupyterLab on codespace", func() (err error) {
+	err = a.RunWithProgress("正在 codespace 上启动 JupyterLab", func() (err error) {
 		invoker, err = rpc.CreateInvoker(ctx, fwd)
 		if err != nil {
 			return
@@ -90,7 +90,7 @@ func (a *App) Jupyter(ctx context.Context, selector *CodespaceSelector) (err err
 
 	err = a.browser.Browse(targetURL)
 	if err != nil {
-		return fmt.Errorf("failed to open JupyterLab in browser: %w", err)
+		return fmt.Errorf("在浏览器中打开 JupyterLab 失败: %w", err)
 	}
 
 	fmt.Fprintln(a.io.Out, targetURL)

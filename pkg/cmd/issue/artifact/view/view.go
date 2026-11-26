@@ -47,46 +47,43 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view {<issue> <artifact-number> | <artifact-url>}",
-		Short: "View an issue artifact (preview)",
+		Short: "查看一个 issue 产物 (预览版)",
 		Long: heredoc.Docf(`
-			Display an issue artifact's name, type, authors, content, and edit history. A
-			link shows its URL.
+			显示 issue 产物的名称、类型、作者、内容和编辑历史。一个链接显示其 URL。
 
-			Name the artifact by its issue and number, or by its URL. %[1]s<issue>%[1]s is an
-			issue number or URL.
+			产物的名称由其 issue 和编号或其 URL 命名。%[1]s<issue>%[1]s 是 issue 编号或 URL。
 
-			By default, the current version is shown. Use %[1]s--version%[1]s to show an earlier
-			version from the edit history.
+			默认情况下，显示当前版本。使用 %[1]s--version%[1]s 可从编辑历史中显示历史版本。
 
-			With %[1]s--web%[1]s, open a document's page on GitHub, or a link's URL.
+			使用 %[1]s--web%[1]s，可在 GitHub 上打开文档页面或链接的 URL。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# View artifact 2 on issue 142
+			# 查看 issue 142 中的产物 2
 			$ gh issue artifact view 142 2
 
-			# View an earlier version
+			# 查看历史版本
 			$ gh issue artifact view 142 2 --version 5
 
-			# View an artifact by its URL
+			# 通过 URL 查看产物
 			$ gh issue artifact view https://github.com/monalisa/monas-cafe/issues/142/artifacts/3
 
-			# Open a link artifact in the browser
+			# 在浏览器中打开产物链接
 			$ gh issue artifact view 142 3 --web
 
-			# Print an artifact's body
+			# 打印产物的内容
 			$ gh issue artifact view 142 2 --json body --jq .body
 		`),
 		Args: cmdutil.RangeArgs(1, 2, shared.MissingArtifactMessage),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			versionSet := cmd.Flags().Changed("version")
-			if err := cmdutil.MutuallyExclusive("specify only one of `--version` or `--json`", versionSet, opts.Exporter != nil); err != nil {
+			if err := cmdutil.MutuallyExclusive("仅指定 `--version` 或 `--json` 其中之一即可", versionSet, opts.Exporter != nil); err != nil {
 				return err
 			}
-			if err := cmdutil.MutuallyExclusive("specify only one of `--version` or `--web`", versionSet, opts.WebMode); err != nil {
+			if err := cmdutil.MutuallyExclusive("仅指定 `--version` 或 `--web` 其中之一即可", versionSet, opts.WebMode); err != nil {
 				return err
 			}
 			if versionSet && opts.Version < 1 {
-				return cmdutil.FlagErrorf("invalid version: %v", opts.Version)
+				return cmdutil.FlagErrorf("无效版本: %v", opts.Version)
 			}
 
 			var err error
@@ -103,8 +100,8 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "Open a document's page on GitHub, or a link's URL")
-	cmd.Flags().IntVar(&opts.Version, "version", 0, "Show the version with this `number` from the edit history")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在 GitHub 上打开文档的页面，或链接的 URL")
+	cmd.Flags().IntVar(&opts.Version, "version", 0, "显示编辑历史中带有此 `编号` 的版本")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, client.ArtifactWithVersionsFields)
 
 	return cmd
@@ -154,7 +151,7 @@ func viewRun(opts *ViewOptions) error {
 
 	opts.IO.DetectTerminalTheme()
 	if err := opts.IO.StartPager(); err != nil {
-		fmt.Fprintf(opts.IO.ErrOut, "error starting pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 	defer opts.IO.StopPager()
 
@@ -171,13 +168,13 @@ func openInBrowser(opts *ViewOptions, a client.Artifact) error {
 	if a.Type == client.TypeLink {
 		u, ok := shared.HTTPURL(a.Body)
 		if !ok {
-			return fmt.Errorf("artifact %d doesn't link to an http(s) URL; `--web` only opens http(s) URLs", a.Number)
+			return fmt.Errorf("产物 %d 未链接到 http(s) URL，`--web` 仅支持打开 http(s) URL", a.Number)
 		}
 		target, shown = u, u
 	}
 
 	if opts.IO.IsStdoutTTY() {
-		fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", shown)
+		fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", shown)
 	}
 	return opts.Browser.Browse(target)
 }
@@ -199,15 +196,15 @@ func printRawArtifact(out io.Writer, a *client.ArtifactWithVersions, viewing *cl
 		version = strconv.Itoa(viewing.Version)
 	}
 
-	fmt.Fprintf(out, "name:\t%s\n", text.RemoveExcessiveWhitespace(name))
-	fmt.Fprintf(out, "number:\t%d\n", a.Number)
-	fmt.Fprintf(out, "version:\t%s\n", version)
-	fmt.Fprintf(out, "type:\t%s\n", a.Type)
-	fmt.Fprintf(out, "creator:\t%s\n", login(a.Creator))
-	fmt.Fprintf(out, "created:\t%s\n", timestamp(a.CreatedAt))
-	fmt.Fprintf(out, "updated-by:\t%s\n", login(updatedBy))
-	fmt.Fprintf(out, "updated:\t%s\n", timestamp(updatedAt))
-	fmt.Fprintf(out, "url:\t%s\n", a.URL)
+	fmt.Fprintf(out, "名称:\t%s\n", text.RemoveExcessiveWhitespace(name))
+	fmt.Fprintf(out, "编号:\t%d\n", a.Number)
+	fmt.Fprintf(out, "版本:\t%s\n", version)
+	fmt.Fprintf(out, "类型:\t%s\n", a.Type)
+	fmt.Fprintf(out, "创建者:\t%s\n", login(a.Creator))
+	fmt.Fprintf(out, "创建日期:\t%s\n", timestamp(a.CreatedAt))
+	fmt.Fprintf(out, "更新者:\t%s\n", login(updatedBy))
+	fmt.Fprintf(out, "更新日期:\t%s\n", timestamp(updatedAt))
+	fmt.Fprintf(out, "链接:\t%s\n", a.URL)
 	fmt.Fprintln(out, "--")
 	fmt.Fprintln(out, body)
 }
@@ -249,14 +246,14 @@ func printHumanArtifact(opts *ViewOptions, repo ghrepo.Interface, a *client.Arti
 	}
 
 	if len(a.Versions) > 0 {
-		fmt.Fprintln(out, cs.Bold("Edit history"))
+		fmt.Fprintln(out, cs.Bold("编辑历史"))
 		if err := printEditHistory(opts.IO, now, a.Versions, viewing); err != nil {
 			return err
 		}
 		fmt.Fprintln(out)
 	}
 
-	fmt.Fprintln(out, cs.Muted("View this artifact on GitHub: "+a.URL))
+	fmt.Fprintln(out, cs.Muted("在 GitHub 上查看此产物: "+a.URL))
 	return nil
 }
 
@@ -265,10 +262,10 @@ func printHumanArtifact(opts *ViewOptions, repo ghrepo.Interface, a *client.Arti
 // and who saved it. A part whose time is null is left out, and so is the
 // update of an artifact that was never edited.
 func metadataLine(a client.Artifact, viewing *client.Version, now time.Time) string {
-	parts := []string{fmt.Sprintf("Artifact %d", a.Number), a.Type}
+	parts := []string{fmt.Sprintf("产物 %d", a.Number), a.Type}
 
 	if viewing != nil {
-		parts = append(parts, fmt.Sprintf("Version %d", viewing.Version))
+		parts = append(parts, fmt.Sprintf("版本 %d", viewing.Version))
 		if viewing.CreatedAt != nil {
 			action := "updated"
 			if viewing.Version == 1 {
@@ -280,10 +277,10 @@ func metadataLine(a client.Artifact, viewing *client.Version, now time.Time) str
 	}
 
 	if a.CreatedAt != nil {
-		parts = append(parts, fmt.Sprintf("%s created %s", displayName(a.Creator), text.FuzzyAgo(now, *a.CreatedAt)))
+		parts = append(parts, fmt.Sprintf("%s 已创建 %s", displayName(a.Creator), text.FuzzyAgo(now, *a.CreatedAt)))
 	}
 	if a.UpdatedAt != nil && (a.CreatedAt == nil || !a.UpdatedAt.Equal(*a.CreatedAt)) {
-		parts = append(parts, fmt.Sprintf("%s updated %s", displayName(a.UpdatedByActor), text.FuzzyAgo(now, *a.UpdatedAt)))
+		parts = append(parts, fmt.Sprintf("%s 已更新 %s", displayName(a.UpdatedByActor), text.FuzzyAgo(now, *a.UpdatedAt)))
 	}
 	return strings.Join(parts, " • ")
 }

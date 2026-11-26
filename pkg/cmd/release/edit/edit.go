@@ -41,12 +41,12 @@ func NewCmdEdit(f *cmdutil.Factory, runF func(*EditOptions) error) *cobra.Comman
 		DisableFlagsInUseLine: true,
 
 		Use:   "edit <tag>",
-		Short: "Edit a release",
+		Short: "编辑发布(release)",
 		Example: heredoc.Doc(`
-			# Publish a release that was previously a draft
+			# 将之前为草稿的发布(release)正式发布
 			$ gh release edit v1.0 --draft=false
 
-			# Update the release notes from the content of a file
+			# 从文件内容更新发布说明
 			$ gh release edit v1.0 --notes-file /path/to/release_notes.md
 		`),
 		Args: cobra.ExactArgs(1),
@@ -54,7 +54,7 @@ func NewCmdEdit(f *cmdutil.Factory, runF func(*EditOptions) error) *cobra.Comman
 			opts.BaseRepo = f.BaseRepo
 
 			if cmd.Flags().NFlag() == 0 {
-				return cmdutil.FlagErrorf("use flags to specify properties to edit")
+				return cmdutil.FlagErrorf("请使用 flag 指定要编辑的属性")
 			}
 
 			if notesFile != "" {
@@ -73,16 +73,16 @@ func NewCmdEdit(f *cmdutil.Factory, runF func(*EditOptions) error) *cobra.Comman
 		},
 	}
 
-	cmdutil.NilBoolFlag(cmd, &opts.Draft, "draft", "", "Save the release as a draft instead of publishing it")
-	cmdutil.NilBoolFlag(cmd, &opts.Prerelease, "prerelease", "", "Mark the release as a prerelease")
-	cmdutil.NilBoolFlag(cmd, &opts.IsLatest, "latest", "", "Explicitly mark the release as \"Latest\"")
-	cmdutil.NilStringFlag(cmd, &opts.Body, "notes", "n", "Release notes")
-	cmdutil.NilStringFlag(cmd, &opts.Name, "title", "t", "Release title")
-	cmdutil.NilStringFlag(cmd, &opts.DiscussionCategory, "discussion-category", "", "Start a discussion in the specified category when publishing a draft")
-	cmd.Flags().StringVar(&opts.Target, "target", "", "Target `branch` or full commit SHA (default [main branch])")
-	cmd.Flags().StringVar(&opts.TagName, "tag", "", "The name of the tag")
-	cmd.Flags().StringVarP(&notesFile, "notes-file", "F", "", "Read release notes from `file` (use \"-\" to read from standard input)")
-	cmd.Flags().BoolVar(&opts.VerifyTag, "verify-tag", false, "Abort in case the git tag doesn't already exist in the remote repository")
+	cmdutil.NilBoolFlag(cmd, &opts.Draft, "draft", "", "将发布保存为草稿(draft)而不是正式发布")
+	cmdutil.NilBoolFlag(cmd, &opts.Prerelease, "prerelease", "", "将发布标记为预发布(pre-release)")
+	cmdutil.NilBoolFlag(cmd, &opts.IsLatest, "latest", "", "显式将该发布标记为\"最新(Latest)\"")
+	cmdutil.NilStringFlag(cmd, &opts.Body, "notes", "n", "发布说明(release notes)")
+	cmdutil.NilStringFlag(cmd, &opts.Name, "title", "t", "发布标题")
+	cmdutil.NilStringFlag(cmd, &opts.DiscussionCategory, "discussion-category", "", "发布草稿时在指定分类下发起讨论(discussion)")
+	cmd.Flags().StringVar(&opts.Target, "target", "", "目标 `branch` 或完整提交 SHA (默认 [main 分支])")
+	cmd.Flags().StringVar(&opts.TagName, "tag", "", "标签(tag)名称")
+	cmd.Flags().StringVarP(&notesFile, "notes-file", "F", "", "从 `file` 读取发布说明 (使用 \"-\" 从标准输入读取)")
+	cmd.Flags().BoolVar(&opts.VerifyTag, "verify-tag", false, "若 git 标签(tag)在远端仓库中不存在则中止")
 
 	_ = cmdutil.RegisterBranchCompletionFlags(f.GitClient, cmd, "target")
 
@@ -107,7 +107,7 @@ func editRun(tag string, opts *EditOptions) error {
 
 	params := getParams(opts)
 
-	// If we don't provide any tag name, the API will remove the current tag from the release
+	// 如果不提供任何标签(tag)名，API 会将当前标签从发布(release)中移除
 	if _, ok := params["tag_name"]; !ok {
 		params["tag_name"] = release.TagName
 	}
@@ -118,7 +118,7 @@ func editRun(tag string, opts *EditOptions) error {
 			return err
 		}
 		if !remoteTagPresent {
-			return fmt.Errorf("tag %s doesn't exist in the repo %s, aborting due to --verify-tag flag",
+			return fmt.Errorf("标签(tag) %s 在仓库 %s 中不存在，因 --verify-tag flag 而中止",
 				opts.TagName, ghrepo.FullName(baseRepo))
 		}
 	}
@@ -165,7 +165,7 @@ func getParams(opts *EditOptions) map[string]any {
 	}
 
 	if opts.IsLatest != nil {
-		// valid values: true/false/legacy
+		// 有效取值: true/false/legacy
 		params["make_latest"] = fmt.Sprintf("%v", *opts.IsLatest)
 	}
 

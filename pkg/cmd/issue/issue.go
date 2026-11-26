@@ -25,8 +25,8 @@ import (
 func NewCmdIssue(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "issue <command>",
-		Short: "Manage issues",
-		Long:  `Work with GitHub issues.`,
+		Short: "管理 issue",
+		Long:  `使用 GitHub issue 进行工作`,
 		Example: heredoc.Doc(`
 			$ gh issue list
 			$ gh issue create --label bug
@@ -34,9 +34,9 @@ func NewCmdIssue(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder) *
 		`),
 		Annotations: map[string]string{
 			"help:arguments": heredoc.Doc(`
-				An issue can be supplied as argument in any of the following formats:
-				- by number, e.g. "123"; or
-				- by URL, e.g. "https://github.com/OWNER/REPO/issues/123".
+				可以通过以下任意格式在参数中提供 issue:
+				- 通过编号, 例如 "123"; 或
+				- 通过 URL, 例如 "https://github.com/OWNER/REPO/issues/123".
 			`),
 		},
 		GroupID: "core",
@@ -44,13 +44,13 @@ func NewCmdIssue(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder) *
 
 	cmdutil.EnableRepoOverride(cmd, f)
 
-	cmdutil.AddGroup(cmd, "General commands",
+	cmdutil.AddGroup(cmd, "通用命令",
 		cmdList.NewCmdList(f, nil),
 		cmdCreate.NewCmdCreate(f, telemetry, nil),
 		cmdStatus.NewCmdStatus(f, nil),
 	)
 
-	cmdutil.AddGroup(cmd, "Targeted commands",
+	cmdutil.AddGroup(cmd, "定向命令",
 		cmdView.NewCmdView(f, nil),
 		cmdComment.NewCmdComment(f, telemetry, nil),
 		cmdClose.NewCmdClose(f, nil),

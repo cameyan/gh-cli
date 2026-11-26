@@ -171,10 +171,10 @@ func TestLogin(t *testing.T) {
 				Prompter: &prompter.PrompterMock{
 					SelectFunc: func(prompt, _ string, opts []string) (int, error) {
 						switch prompt {
-						case "What is your preferred protocol for Git operations on this host?":
+						case "在此主机上进行 Git 操作时，您首选的协议是什么？":
 							return prompter.IndexFor(opts, "SSH")
-						case "How would you like to authenticate GitHub CLI?":
-							return prompter.IndexFor(opts, "Paste an authentication token")
+						case "您希望如何向 GitHub CLI 进行身份验证？":
+							return prompter.IndexFor(opts, "粘贴身份验证令牌")
 						}
 						return -1, prompter.NoSuchPromptErr(prompt)
 					},
@@ -237,12 +237,12 @@ func TestLogin(t *testing.T) {
 				}
 
 				assert.Equal(t, heredoc.Docf(`
-				Tip: you can generate a Personal Access Token here https://example.com/settings/tokens
-				The minimum required scopes are 'repo', 'read:org', 'admin:public_key'.
+				提示: 您可以在此处生成个人访问令牌 https://example.com/settings/tokens，
+				所需的最低作用域为 'repo', 'read:org', 'admin:public_key'。
 				- gh config set -h example.com git_protocol ssh
-				✓ Configured git protocol
-				✓ Uploaded the SSH key to your GitHub account: %s
-				✓ Logged in as monalisa
+				✓ 已配置 git 协议
+				✓ 已将 SSH 密钥上传到您的 GitHub 账户: %s
+				✓ 已以 monalisa 身份登录
 			`, filepath.Join(sshDir, "id_ed25519.pub")), stderr)
 			},
 		},
@@ -252,8 +252,8 @@ func TestLogin(t *testing.T) {
 				Prompter: &prompter.PrompterMock{
 					SelectFunc: func(prompt, _ string, opts []string) (int, error) {
 						switch prompt {
-						case "How would you like to authenticate GitHub CLI?":
-							return prompter.IndexFor(opts, "Paste an authentication token")
+						case "您希望如何向 GitHub CLI 进行身份验证？":
+							return prompter.IndexFor(opts, "粘贴身份验证令牌")
 						}
 						return -1, prompter.NoSuchPromptErr(prompt)
 					},
@@ -317,12 +317,12 @@ func TestLogin(t *testing.T) {
 				}
 
 				assert.Equal(t, heredoc.Docf(`
-				Tip: you can generate a Personal Access Token here https://example.com/settings/tokens
-				The minimum required scopes are 'repo', 'read:org', 'admin:public_key'.
+				提示: 您可以在此处生成个人访问令牌 https://example.com/settings/tokens，
+				所需的最低作用域为 'repo', 'read:org', 'admin:public_key'。
 				- gh config set -h example.com git_protocol ssh
-				✓ Configured git protocol
-				✓ Uploaded the SSH key to your GitHub account: %s
-				✓ Logged in as monalisa
+				✓ 已配置 git 协议
+				✓ 已将 SSH 密钥上传到您的 GitHub 账户: %s
+				✓ 已以 monalisa 身份登录
 			`, filepath.Join(sshDir, "id_ed25519.pub")), stderr)
 			},
 		},
@@ -331,8 +331,8 @@ func TestLogin(t *testing.T) {
 			opts: LoginOptions{
 				Prompter: &prompter.PrompterMock{
 					SelectFunc: func(prompt, _ string, opts []string) (int, error) {
-						if prompt == "How would you like to authenticate GitHub CLI?" {
-							return prompter.IndexFor(opts, "Paste an authentication token")
+						if prompt == "您希望如何向 GitHub CLI 进行身份验证？" {
+							return prompter.IndexFor(opts, "粘贴身份验证令牌")
 						}
 						return -1, prompter.NoSuchPromptErr(prompt)
 					},
@@ -360,11 +360,11 @@ func TestLogin(t *testing.T) {
 				"example.com:git_protocol": "ssh",
 			},
 			stderr: heredoc.Doc(`
-				Tip: you can generate a Personal Access Token here https://example.com/settings/tokens
-				The minimum required scopes are 'repo', 'read:org'.
+				提示: 您可以在此处生成个人访问令牌 https://example.com/settings/tokens，
+				所需的最低作用域为 'repo', 'read:org'。
 				- gh config set -h example.com git_protocol ssh
-				✓ Configured git protocol
-				✓ Logged in as monalisa
+				✓ 已配置 git 协议
+				✓ 已以 monalisa 身份登录
 			`),
 		},
 		{
@@ -596,8 +596,8 @@ func TestAuthenticatingGitCredentials(t *testing.T) {
 		GitProtocol: "https",
 		Prompter: &prompter.PrompterMock{
 			SelectFunc: func(prompt, _ string, opts []string) (int, error) {
-				if prompt == "How would you like to authenticate GitHub CLI?" {
-					return prompter.IndexFor(opts, "Paste an authentication token")
+				if prompt == "您希望如何向 GitHub CLI 进行身份验证？" {
+					return prompter.IndexFor(opts, "粘贴身份验证令牌")
 				}
 				return -1, prompter.NoSuchPromptErr(prompt)
 			},

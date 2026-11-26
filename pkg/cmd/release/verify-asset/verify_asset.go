@@ -40,24 +40,24 @@ func NewCmdVerifyAsset(f *cmdutil.Factory, runF func(*VerifyAssetConfig) error) 
 
 	cmd := &cobra.Command{
 		Use:   "verify-asset [<tag>] <file-path>",
-		Short: "Verify that a given asset originated from a release",
+		Short: "校验给定资产(asset)是否源自某个发布(release)",
 		Long: heredoc.Doc(`
-			Verify that a given asset file originated from a specific GitHub Release using cryptographically signed attestations.
+			使用经密码学签名的证明(attestation)，校验给定的资产(asset)文件是否源自特定的 GitHub Release。
 
-			An attestation is a claim made by GitHub regarding a release and its assets.
+			证明(attestation)是 GitHub 就某个发布(release)及其资产所作的声明。
 
-  			This command checks that the asset you provide matches a valid attestation for the specified release (or the latest release, if no tag is given).
-			It ensures the asset's integrity by validating that the asset's digest matches the subject in the attestation and that the attestation is associated with the release.
+  			该命令检查您提供的资产是否与指定发布(release)的有效证明匹配(若未提供 tag，则为最新发布)。
+			它通过验证资产的摘要(digest)是否与证明中的 subject 匹配，以及证明是否与该发布关联，来确保资产的完整性。
 		`),
 		Args: cobra.MaximumNArgs(2),
 		Example: heredoc.Doc(`
-			# Verify an asset from the latest release
+			# 校验来自最新发布(release)的资产
 			$ gh release verify-asset ./dist/my-asset.zip
 
-			# Verify an asset from a specific release tag
+			# 校验来自指定发布标签(tag)的资产
 			$ gh release verify-asset v1.2.3 ./dist/my-asset.zip
 
-			# Verify an asset from a specific release tag and output the attestation in JSON format
+			# 校验来自指定发布标签的资产，并以 JSON 格式输出证明
 			$ gh release verify-asset v1.2.3 ./dist/my-asset.zip --format json
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -67,14 +67,14 @@ func NewCmdVerifyAsset(f *cmdutil.Factory, runF func(*VerifyAssetConfig) error) 
 			} else if len(args) == 1 {
 				opts.AssetFilePath = args[0]
 			} else {
-				return cmdutil.FlagErrorf("you must specify an asset filepath")
+				return cmdutil.FlagErrorf("必须指定资产(asset)文件路径")
 			}
 
 			opts.AssetFilePath = filepath.Clean(opts.AssetFilePath)
 
 			baseRepo, err := f.BaseRepo()
 			if err != nil {
-				return fmt.Errorf("failed to determine base repository: %w", err)
+				return fmt.Errorf("确定基础仓库失败: %w", err)
 			}
 			opts.BaseRepo = baseRepo
 
@@ -114,7 +114,7 @@ func NewCmdVerifyAsset(f *cmdutil.Factory, runF func(*VerifyAssetConfig) error) 
 		},
 	}
 	cmdutil.AddFormatFlags(cmd, &opts.Exporter)
-	cmd.Flags().StringVarP(&opts.TrustedRoot, "custom-trusted-root", "", "", "Path to a trusted_root.jsonl file; likely for offline verification.")
+	cmd.Flags().StringVarP(&opts.TrustedRoot, "custom-trusted-root", "", "", "trusted_root.jsonl 文件的路径; 通常用于离线校验。")
 	cmd.Flags().MarkHidden("custom-trusted-root")
 
 	return cmd
@@ -136,7 +136,7 @@ func verifyAssetRun(config *VerifyAssetConfig) error {
 
 	fileName := getFileName(opts.AssetFilePath)
 
-	// Calculate the digest of the file
+	// 计算文件的摘要(digest)
 	fileDigest, err := artifact.NewDigestedArtifact(nil, opts.AssetFilePath, "sha256")
 	if err != nil {
 		return err
@@ -149,66 +149,65 @@ func verifyAssetRun(config *VerifyAssetConfig) error {
 
 	releaseRefDigest := artifact.NewDigestedArtifactForRelease(ref, shared.DigestAlgForRef(ref))
 
-	// Find attestations for the release tag SHA
+	// 查找发布标签(tag) SHA 对应的证明(attestation)
 	attestations, err := config.AttClient.GetByDigest(api.FetchParams{
 		Digest:        releaseRefDigest.DigestWithAlg(),
 		PredicateType: "release",
 		Owner:         baseRepo.RepoOwner(),
 		Repo:          baseRepo.RepoOwner() + "/" + baseRepo.RepoName(),
-		// TODO: Allow this value to be set via a flag.
-		// The limit is set to 100 to ensure we fetch all attestations for a given SHA.
-		// While multiple attestations can exist for a single SHA,
-		// only one attestation is associated with each release tag.
+		// TODO: 允许通过 flag 设置该值。
+		// 上限设为 100 以确保获取给定 SHA 的全部证明(attestation)。
+		// 虽然一个 SHA 可以对应多个证明，但每个发布标签(tag)只关联一个证明。
 		Initiator: "github",
 		Limit:     100,
 	})
 	if err != nil {
-		return fmt.Errorf("no attestations found for tag %s (%s)", tagName, releaseRefDigest.DigestWithAlg())
+		return fmt.Errorf("未找到标签(tag) %s (%s) 的证明(attestation)", tagName, releaseRefDigest.DigestWithAlg())
 	}
 
-	// Filter attestations by tag name
+	// 按标签(tag)名过滤证明(attestation)
 	filteredAttestations, err := shared.FilterAttestationsByTag(attestations, tagName)
 	if err != nil {
-		return fmt.Errorf("error parsing attestations for tag %s: %w", tagName, err)
+		return fmt.Errorf("解析标签(tag) %s 的证明(attestation)出错: %w", tagName, err)
 	}
 
 	if len(filteredAttestations) == 0 {
-		return fmt.Errorf("no attestations found for release %s in %s/%s", tagName, baseRepo.RepoOwner(), baseRepo.RepoName())
+		return fmt.Errorf("在 %s/%s 中未找到发布(release) %s 的证明(attestation)", baseRepo.RepoOwner(), baseRepo.RepoName(), tagName)
 	}
 
-	// Filter attestations by subject digest
+	// 按 subject 摘要(digest)过滤证明(attestation)
 	filteredAttestations, err = shared.FilterAttestationsByFileDigest(filteredAttestations, fileDigest.Digest())
 	if err != nil {
-		return fmt.Errorf("error parsing attestations for digest %s: %w", fileDigest.DigestWithAlg(), err)
+		return fmt.Errorf("解析摘要(digest) %s 的证明(attestation)出错: %w", fileDigest.DigestWithAlg(), err)
 	}
 
 	if len(filteredAttestations) == 0 {
-		return fmt.Errorf("attestation for %s does not contain subject %s", tagName, fileDigest.DigestWithAlg())
+		return fmt.Errorf("%s 的证明(attestation)不包含 subject %s", tagName, fileDigest.DigestWithAlg())
 	}
 
-	// Verify attestation
+	// 校验证明(attestation)
 	verified, err := config.AttVerifier.VerifyAttestation(releaseRefDigest, filteredAttestations[0])
 	if err != nil {
-		return fmt.Errorf("failed to verify attestation for tag %s: %w", tagName, err)
+		return fmt.Errorf("校验标签(tag) %s 的证明(attestation)失败: %w", tagName, err)
 	}
 
-	// If an exporter is provided with the --json flag, write the results to the terminal in JSON format
+	// 如果通过 --json flag 提供了导出器(exporter)，则以 JSON 格式将结果写入终端
 	if opts.Exporter != nil {
 		return opts.Exporter.Write(config.IO, verified)
 	}
 
 	io := config.IO
 	cs := io.ColorScheme()
-	fmt.Fprintf(io.Out, "Calculated digest for %s: %s\n", fileName, fileDigest.DigestWithAlg())
-	fmt.Fprintf(io.Out, "Resolved tag %s to %s\n", tagName, releaseRefDigest.DigestWithAlg())
-	fmt.Fprint(io.Out, "Loaded attestation from GitHub API\n\n")
-	fmt.Fprintf(io.Out, cs.Green("%s Verification succeeded! %s is present in release %s\n"), cs.SuccessIcon(), fileName, tagName)
+	fmt.Fprintf(io.Out, "已计算 %s 的摘要(digest): %s\n", fileName, fileDigest.DigestWithAlg())
+	fmt.Fprintf(io.Out, "已将标签(tag) %s 解析为 %s\n", tagName, releaseRefDigest.DigestWithAlg())
+	fmt.Fprint(io.Out, "已从 GitHub API 加载证明(attestation)\n\n")
+	fmt.Fprintf(io.Out, cs.Green("%s 校验成功! %s 存在于发布(release) %s 中\n"), cs.SuccessIcon(), fileName, tagName)
 
 	return nil
 }
 
 func getFileName(filePath string) string {
-	// Get the file name from the file path
+	// 从文件路径中获取文件名
 	_, fileName := filepath.Split(filePath)
 	return fileName
 }

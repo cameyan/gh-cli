@@ -67,29 +67,29 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view [<session-id> | <pr-number> | <pr-url> | <pr-branch>]",
-		Short: "View an agent task session (preview)",
+		Short: "查看 agent 任务会话(预览版)",
 		Long: heredoc.Doc(`
-			View an agent task session.
+			查看 agent 任务会话
 		`),
 		Example: heredoc.Doc(`
-			# View an agent task by session ID
+			# 按 session ID 查看 agent 任务
 			$ gh agent-task view e2fa49d2-f164-4a56-ab99-498090b8fcdf
 
-			# View an agent task by pull request number in current repo
+			# 按当前仓库中的 PR 编号查看 agent 任务
 			$ gh agent-task view 12345
 
-			# View an agent task by pull request number
+			# 按 PR 编号查看 agent 任务
 			$ gh agent-task view --repo OWNER/REPO 12345
 
-			# View an agent task by pull request reference
+			# 按 PR 引用查看 agent 任务
 			$ gh agent-task view OWNER/REPO#12345
 
-			# View a pull request agents tasks in the browser
+			# 在浏览器中查看 PR 的 agent 任务
 			$ gh agent-task view 12345 --web
 		`),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Support -R/--repo override
+			// 支持 -R/--repo 覆盖
 			opts.BaseRepo = f.BaseRepo
 
 			if len(args) > 0 {
@@ -102,11 +102,11 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 			}
 
 			if opts.SessionID == "" && !opts.IO.CanPrompt() {
-				return fmt.Errorf("session ID is required when not running interactively")
+				return fmt.Errorf("非交互模式下必须提供 session ID")
 			}
 
 			if opts.Follow && !opts.Log {
-				return cmdutil.FlagErrorf("--log is required when providing --follow")
+				return cmdutil.FlagErrorf("提供 --follow 时必须同时提供 --log")
 			}
 
 			if opts.Finder == nil {
@@ -122,9 +122,9 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmdutil.EnableRepoOverride(cmd, f)
 
-	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "Open agent task in the browser")
-	cmd.Flags().BoolVar(&opts.Log, "log", false, "Show agent session logs")
-	cmd.Flags().BoolVar(&opts.Follow, "follow", false, "Follow agent session logs")
+	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "在浏览器中打开 agent 任务")
+	cmd.Flags().BoolVar(&opts.Log, "log", false, "显示 agent 会话日志")
+	cmd.Flags().BoolVar(&opts.Follow, "follow", false, "持续跟踪 agent 会话日志")
 
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, capi.SessionFields)
 
@@ -140,7 +140,7 @@ func viewRun(opts *ViewOptions) error {
 	ctx := context.Background()
 	cs := opts.IO.ColorScheme()
 
-	opts.IO.StartProgressIndicatorWithLabel("Fetching agent session...")
+	opts.IO.StartProgressIndicatorWithLabel("正在获取 agent 会话...")
 	defer opts.IO.StopProgressIndicator()
 
 	var session *capi.Session
@@ -149,7 +149,7 @@ func viewRun(opts *ViewOptions) error {
 		sess, err := capiClient.GetSession(ctx, opts.SessionID)
 		if err != nil {
 			if errors.Is(err, capi.ErrSessionNotFound) {
-				fmt.Fprintln(opts.IO.ErrOut, "session not found")
+				fmt.Fprintln(opts.IO.ErrOut, "未找到会话")
 				return cmdutil.SilentError
 			}
 			return err
@@ -162,13 +162,13 @@ func viewRun(opts *ViewOptions) error {
 			if sess.PullRequest != nil {
 				webURL = fmt.Sprintf("%s/agent-sessions/%s", sess.PullRequest.URL, url.PathEscape(sess.ID))
 			} else {
-				// Currently the web Copilot Agents home GUI does not support focusing
-				// on a given session, so we should just navigate to the home page.
+				// 目前网页端的 Copilot Agents 主页不支持聚焦到某个特定会话，
+				// 因此我们只能跳转到主页。
 				webURL = capi.AgentsHomeURL
 			}
 
 			if opts.IO.IsStdoutTTY() {
-				fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(webURL))
+				fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(webURL))
 			}
 			return opts.Browser.Browse(webURL)
 		}
@@ -179,12 +179,11 @@ func viewRun(opts *ViewOptions) error {
 		var prURL string
 
 		if opts.SelectorArg != "" {
-			// Finder does not support the PR/issue reference format (e.g. owner/repo#123)
-			// so we need to check if the selector arg is a reference and fetch the PR
-			// directly.
+			// Finder 不支持 PR/issue 引用格式 (如 owner/repo#123)，
+			// 因此我们需要检查选择器参数是否为引用格式，并直接获取对应的 PR。
 			if repo, num, err := prShared.ParseFullReference(opts.SelectorArg); err == nil {
-				// Since the selector was a reference (i.e. without hostname data), we need to
-				// check the base repo to get the hostname.
+				// 由于选择器是引用格式 (即不包含主机名信息)，我们需要
+				// 查询基础仓库来获取主机名。
 				baseRepo, err := opts.BaseRepo()
 				if err != nil {
 					return err
@@ -192,12 +191,12 @@ func viewRun(opts *ViewOptions) error {
 
 				hostname := baseRepo.RepoHost()
 				if hostname != ghinstance.Default() {
-					return fmt.Errorf("agent tasks are not supported on this host: %s", hostname)
+					return fmt.Errorf("此主机不支持 agent 任务: %s", hostname)
 				}
 
 				prID, prURL, err = capiClient.GetPullRequestDatabaseID(ctx, hostname, repo.RepoOwner(), repo.RepoName(), num)
 				if err != nil {
-					return fmt.Errorf("failed to fetch pull request: %w", err)
+					return fmt.Errorf("获取 PR 失败: %w", err)
 				}
 			}
 		}
@@ -215,12 +214,12 @@ func viewRun(opts *ViewOptions) error {
 			}
 
 			if repo.RepoHost() != ghinstance.Default() {
-				return fmt.Errorf("agent tasks are not supported on this host: %s", repo.RepoHost())
+				return fmt.Errorf("此主机不支持 agent 任务: %s", repo.RepoHost())
 			}
 
 			databaseID, err := strconv.ParseInt(pr.FullDatabaseID, 10, 64)
 			if err != nil {
-				return fmt.Errorf("failed to parse pull request: %w", err)
+				return fmt.Errorf("解析 PR 失败: %w", err)
 			}
 
 			prID = databaseID
@@ -229,27 +228,26 @@ func viewRun(opts *ViewOptions) error {
 
 		sessions, err := capiClient.ListSessionsByResourceID(ctx, "pull", prID, defaultLimit)
 		if err != nil {
-			return fmt.Errorf("failed to list sessions for pull request: %w", err)
+			return fmt.Errorf("列出 PR 的会话失败: %w", err)
 		}
 
 		if len(sessions) == 0 {
-			fmt.Fprintln(opts.IO.ErrOut, "no session found for pull request")
+			fmt.Fprintln(opts.IO.ErrOut, "该 PR 没有找到会话")
 			return cmdutil.SilentError
 		}
 
 		opts.IO.StopProgressIndicator()
 
 		if opts.Web {
-			// Note that, we needed to make sure the PR exists and it has at least one session
-			// associated with it, other wise the `/agent-sessions` page would display the 404
-			// error.
+			// 注意，我们必须确保 PR 存在且至少关联了一个会话，
+			// 否则 `/agent-sessions` 页面会显示 404 错误。
 
-			// We don't need to navigate to a specific session; if there's only one session
-			// then the GUI will automatically show it, otherwise the user can select from the
-			// list. This is to avoid unnecessary prompting.
+			// 我们不需要跳转到特定会话；如果只有一个会话，
+			// 界面会自动显示它，否则用户可以从列表中选择。
+			// 这样做是为了避免不必要的提示。
 			webURL := prURL + "/agent-sessions"
 			if opts.IO.IsStdoutTTY() {
-				fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(webURL))
+				fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(webURL))
 			}
 			return opts.Browser.Browse(webURL)
 		}
@@ -260,14 +258,14 @@ func viewRun(opts *ViewOptions) error {
 			options := make([]string, 0, len(sessions))
 			for _, session := range sessions {
 				options = append(options, fmt.Sprintf(
-					"%s %s • updated %s",
+					"%s %s • 更新于 %s",
 					shared.SessionSymbol(cs, session.State),
 					session.Name,
 					text.FuzzyAgo(now, session.LastUpdatedAt),
 				))
 			}
 
-			selected, err := opts.Prompter.Select("Select a session", "", options)
+			selected, err := opts.Prompter.Select("选择一个会话", "", options)
 			if err != nil {
 				return err
 			}
@@ -275,11 +273,11 @@ func viewRun(opts *ViewOptions) error {
 			selectedSession = sessions[selected]
 		}
 
-		opts.IO.StartProgressIndicatorWithLabel("Fetching agent session...")
+		opts.IO.StartProgressIndicatorWithLabel("正在获取 agent 会话...")
 		defer opts.IO.StopProgressIndicator()
 
-		// Sessions returned by ListSessionsByResourceID do not have all fields populated.
-		// So, we need to fetch the individual session to get all the details.
+		// ListSessionsByResourceID 返回的会话并不包含所有字段。
+		// 因此我们需要单独获取该会话以拿到全部详情。
 		session, err = capiClient.GetSession(ctx, selectedSession.ID)
 		if err != nil {
 			return err
@@ -309,23 +307,23 @@ func printSession(opts *ViewOptions, session *capi.Session) {
 	)
 
 	if session.User != nil {
-		fmt.Fprintf(opts.IO.Out, "Started on behalf of %s %s\n", session.User.Login, text.FuzzyAgo(time.Now(), session.CreatedAt))
+		fmt.Fprintf(opts.IO.Out, "代表 %s 发起于 %s\n", session.User.Login, text.FuzzyAgo(time.Now(), session.CreatedAt))
 	} else {
-		// Should never happen, but we need to cover the path
-		fmt.Fprintf(opts.IO.Out, "Started %s\n", text.FuzzyAgo(time.Now(), session.CreatedAt))
+		// 正常情况下不应发生，但我们需要覆盖该路径
+		fmt.Fprintf(opts.IO.Out, "发起于 %s\n", text.FuzzyAgo(time.Now(), session.CreatedAt))
 	}
 
 	usedPremiumRequests := strings.TrimSuffix(fmt.Sprintf("%.1f", session.PremiumRequests), ".0")
-	usedPremiumRequestsNote := fmt.Sprintf("Used %s premium request(s)", usedPremiumRequests)
+	usedPremiumRequestsNote := fmt.Sprintf("已使用 %s 个高级请求", usedPremiumRequests)
 
 	var durationNote string
 	if session.CompletedAt.After(session.CreatedAt) {
-		durationNote = fmt.Sprintf(" • Duration %s", session.CompletedAt.Sub(session.CreatedAt).Round(time.Second).String())
+		durationNote = fmt.Sprintf(" • 耗时 %s", session.CompletedAt.Sub(session.CreatedAt).Round(time.Second).String())
 	}
 
 	fmt.Fprintf(opts.IO.Out, "%s%s\n", cs.Muted(usedPremiumRequestsNote), cs.Muted(durationNote))
 
-	// Note that when the session is just created, a PR is not yet available for it.
+	// 注意，会话刚创建时还没有可用的 PR。
 	if session.PullRequest != nil {
 		fmt.Fprintf(opts.IO.Out, "\n%s%s • %s\n",
 			session.PullRequest.Repository.NameWithOwner,
@@ -344,25 +342,25 @@ func printSession(opts *ViewOptions, session *capi.Session) {
 
 		message := session.Error.Message
 		if message == "" {
-			message = "An error occurred"
+			message = "发生了一个错误"
 		}
 		fmt.Fprintf(opts.IO.Out, "\n%s %s\n", cs.FailureIconWithColor(cs.Red), message)
 
 		if workflowRunURL != "" {
-			// We don't need to prefix the link with any text (e.g. "checkout the logs here")
-			// because the error message already contains all the information.
+			// 我们不需要在链接前添加任何文字 (如 "在此查看日志")，
+			// 因为错误消息本身已经包含了全部信息。
 			fmt.Fprintf(opts.IO.Out, "%s\n", workflowRunURL)
 		}
 	}
 
 	if !opts.Log {
-		fmt.Fprint(opts.IO.Out, cs.Mutedf("\nFor detailed session logs, try:\ngh agent-task view '%s' --log\n", session.ID))
+		fmt.Fprint(opts.IO.Out, cs.Mutedf("\n查看详细的会话日志，请尝试:\ngh agent-task view '%s' --log\n", session.ID))
 	} else if !opts.Follow {
-		fmt.Fprint(opts.IO.Out, cs.Mutedf("\nTo follow session logs, try:\ngh agent-task view '%s' --log --follow\n", session.ID))
+		fmt.Fprint(opts.IO.Out, cs.Mutedf("\n持续跟踪会话日志，请尝试:\ngh agent-task view '%s' --log --follow\n", session.ID))
 	}
 
 	if session.PullRequest != nil {
-		fmt.Fprintln(opts.IO.Out, cs.Muted("\nView this session on GitHub:"))
+		fmt.Fprintln(opts.IO.Out, cs.Muted("\n在 GitHub 上查看此会话:"))
 		fmt.Fprintln(opts.IO.Out, cs.Muted(fmt.Sprintf("%s/agent-sessions/%s", session.PullRequest.URL, url.PathEscape(session.ID))))
 	}
 }
@@ -375,7 +373,7 @@ func printLogs(opts *ViewOptions, capiClient capi.CapiClient, sessionID string) 
 	if err := opts.IO.StartPager(); err == nil {
 		defer opts.IO.StopPager()
 	} else {
-		fmt.Fprintf(opts.IO.ErrOut, "error starting pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器失败: %v\n", err)
 	}
 
 	if opts.Follow {
@@ -397,7 +395,7 @@ func printLogs(opts *ViewOptions, capiClient capi.CapiClient, sessionID string) 
 
 	raw, err := capiClient.GetSessionLogs(ctx, sessionID)
 	if err != nil {
-		return fmt.Errorf("failed to fetch session logs: %w", err)
+		return fmt.Errorf("获取会话日志失败: %w", err)
 	}
 
 	_, err = renderer.Render(raw, opts.IO.Out, opts.IO)

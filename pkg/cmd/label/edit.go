@@ -33,22 +33,22 @@ func newCmdEdit(f *cmdutil.Factory, runF func(*editOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "edit <name>",
-		Short: "Edit a label",
+		Short: "编辑一个标签",
 		Long: heredoc.Docf(`
-			Update a label on GitHub.
+			更新 GitHub 上的标签。
 
-			A label can be renamed using the %[1]s--name%[1]s flag.
+			可以使用 %[1]s--name%[1]s 选项重命名标签。
 
-			The label color needs to be 6 character hex value.
+			标签颜色必须是 6 位十六进制值。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Update the color of the bug label
+			# 更新 bug 标签的颜色
 			$ gh label edit bug --color FF0000
 
-			# Rename and edit the description of the bug label
+			# 重命名 bug 标签并编辑其描述
 			$ gh label edit bug --name big-bug --description "Bigger than normal bug"
 		`),
-		Args: cmdutil.ExactArgs(1, "cannot update label: name argument required"),
+		Args: cmdutil.ExactArgs(1, "无法更新标签: 需要提供 name 参数"),
 		RunE: func(c *cobra.Command, args []string) error {
 			opts.BaseRepo = f.BaseRepo
 			opts.Name = args[0]
@@ -56,7 +56,7 @@ func newCmdEdit(f *cmdutil.Factory, runF func(*editOptions) error) *cobra.Comman
 			if opts.Description == "" &&
 				opts.Color == "" &&
 				opts.NewName == "" {
-				return cmdutil.FlagErrorf("specify at least one of `--color`, `--description`, or `--name`")
+				return cmdutil.FlagErrorf("至少指定 `--color`、`--description` 或 `--name` 之一")
 			}
 			if runF != nil {
 				return runF(&opts)
@@ -65,9 +65,9 @@ func newCmdEdit(f *cmdutil.Factory, runF func(*editOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Description, "description", "d", "", "Description of the label")
-	cmd.Flags().StringVarP(&opts.Color, "color", "c", "", "Color of the label")
-	cmd.Flags().StringVarP(&opts.NewName, "name", "n", "", "New name of the label")
+	cmd.Flags().StringVarP(&opts.Description, "description", "d", "", "标签的描述")
+	cmd.Flags().StringVarP(&opts.Color, "color", "c", "", "标签的颜色")
+	cmd.Flags().StringVarP(&opts.NewName, "name", "n", "", "标签的新名称")
 
 	return cmd
 }
@@ -89,14 +89,14 @@ func editRun(opts *editOptions) error {
 	opts.IO.StopProgressIndicator()
 	if err != nil {
 		if errors.Is(err, errLabelAlreadyExists) {
-			return fmt.Errorf("label with name %q already exists", opts.NewName)
+			return fmt.Errorf("名为 %q 的标签已存在", opts.NewName)
 		}
 		return err
 	}
 
 	if opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
-		successMsg := fmt.Sprintf("%s Label %q updated in %s\n", cs.SuccessIcon(), opts.Name, ghrepo.FullName(baseRepo))
+		successMsg := fmt.Sprintf("%s 已更新 %s 中的标签 %q\n", cs.SuccessIcon(), opts.Name, ghrepo.FullName(baseRepo))
 		fmt.Fprint(opts.IO.Out, successMsg)
 	}
 

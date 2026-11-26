@@ -37,7 +37,7 @@ func TestNewCmdImport(t *testing.T) {
 				Filename:          "",
 				OverwriteExisting: false,
 			},
-			wantsError: "no filename passed and nothing on STDIN",
+			wantsError: "未传递文件名，且标准输入 STDIN 中无内容",
 		},
 		{
 			name: "no filename and stdin is not tty",
@@ -63,7 +63,7 @@ func TestNewCmdImport(t *testing.T) {
 				Filename:          "aliases1 aliases2",
 				OverwriteExisting: false,
 			},
-			wantsError: "too many arguments",
+			wantsError: "参数过多",
 		},
 		{
 			name: "clobber flag",
@@ -109,8 +109,8 @@ func TestNewCmdImport(t *testing.T) {
 
 func TestImportRun(t *testing.T) {
 	tmpFile := filepath.Join(t.TempDir(), "aliases.yml")
-	importFileMsg := fmt.Sprintf(`- Importing aliases from file %q`, tmpFile)
-	importStdinMsg := "- Importing aliases from standard input"
+	importFileMsg := fmt.Sprintf(`- 从文件 %q 导入别名`, tmpFile)
+	importStdinMsg := "- 从标准输入导入别名"
 
 	tests := []struct {
 		name          string
@@ -137,7 +137,7 @@ func TestImportRun(t *testing.T) {
                     co: pr checkout
                     igrep: '!gh issue list --label="$1" | grep "$2"'
             `),
-			wantStderr: importFileMsg + "\n✓ Added alias co\n✓ Added alias igrep\n\n",
+			wantStderr: importFileMsg + "\n✓ 添加别名 co\n✓ 添加别名 igrep\n\n",
 		},
 		{
 			name: "with existing aliases",
@@ -176,7 +176,7 @@ func TestImportRun(t *testing.T) {
                             }'
                 editor: vim
             `),
-			wantStderr: importFileMsg + "\n✓ Added alias co\n✓ Added alias users\n\n",
+			wantStderr: importFileMsg + "\n✓ 添加别名 co\n✓ 添加别名 users\n\n",
 		},
 		{
 			name: "from stdin",
@@ -199,7 +199,7 @@ func TestImportRun(t *testing.T) {
                         --label=enhancement
                     igrep: '!gh issue list --label="$1" | grep "$2"'
             `),
-			wantStderr: importStdinMsg + "\n✓ Added alias co\n✓ Added alias features\n✓ Added alias igrep\n\n",
+			wantStderr: importStdinMsg + "\n✓ 添加别名 co\n✓ 添加别名 features\n✓ 添加别名 igrep\n\n",
 		},
 		{
 			name: "already taken aliases",
@@ -225,7 +225,7 @@ func TestImportRun(t *testing.T) {
                     igrep: '!gh issue list --label="$1" | grep "$2"'
                 editor: vim
             `),
-			wantStderr: importFileMsg + "\nX Could not import alias co: name already taken\n✓ Added alias igrep\n\n",
+			wantStderr: importFileMsg + "\nX 无法导入别名 co: 名称已被占用\n✓ 添加别名 igrep\n\n",
 		},
 		{
 			name: "override aliases",
@@ -251,7 +251,7 @@ func TestImportRun(t *testing.T) {
                     igrep: '!gh issue list --label="$1" | grep "$2"'
                 editor: vim
             `),
-			wantStderr: importFileMsg + "\n! Changed alias co\n✓ Added alias igrep\n\n",
+			wantStderr: importFileMsg + "\n! 修改了别名 co\n✓ 添加别名 igrep\n\n",
 		},
 		{
 			name: "alias is a gh command",
@@ -267,9 +267,9 @@ func TestImportRun(t *testing.T) {
 			wantStderr: strings.Join(
 				[]string{
 					importFileMsg,
-					"X Could not import alias api: already a gh command or extension",
-					"X Could not import alias issue: already a gh command or extension",
-					"X Could not import alias pr: already a gh command or extension\n\n",
+					"X 无法导入别名 api: 已经是 gh 命令或扩展",
+					"X 无法导入别名 issue: 已经是 gh 命令或扩展",
+					"X 无法导入别名 pr: 已经是 gh 命令或扩展\n\n",
 				},
 				"\n",
 			),
@@ -287,8 +287,8 @@ func TestImportRun(t *testing.T) {
 			wantStderr: strings.Join(
 				[]string{
 					importFileMsg,
-					"X Could not import alias alias1: expansion does not correspond to a gh command, extension, or alias",
-					"X Could not import alias alias2: expansion does not correspond to a gh command, extension, or alias\n\n",
+					"X 无法导入别名 alias1: 该扩展名不对应 gh 命令、扩展或别名",
+					"X 无法导入别名 alias2: 该扩展名不对应 gh 命令、扩展或别名\n\n",
 				},
 				"\n",
 			),

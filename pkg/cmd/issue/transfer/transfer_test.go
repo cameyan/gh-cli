@@ -150,7 +150,7 @@ func Test_transferRun_noflags(t *testing.T) {
 	output, err := runCommand(http, "")
 
 	if err != nil {
-		assert.Equal(t, "issue and destination repository are required", err.Error())
+		assert.Equal(t, "必须提供议题和目标仓库", err.Error())
 	}
 
 	assert.Equal(t, "", output.String())

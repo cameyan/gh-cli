@@ -13,10 +13,10 @@ import (
 func NewCmdVariable(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "variable <command>",
-		Short: "Manage GitHub Actions variables",
+		Short: "管理 GitHub Actions 变量",
 		Long: heredoc.Docf(`
-			Variables can be set at the repository, environment or organization level for use in
-			GitHub Actions or Dependabot. Run %[1]sgh help variable set%[1]s to learn how to get started.
+			变量可以在存储库、环境或组织级别进行设置，以便在 GitHub Actions 或 Dependabot 中使用。
+			运行 %[1]sgh help variable set%[1]s 以了解如何开始使用。
 		`, "`"),
 	}
 

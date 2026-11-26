@@ -54,56 +54,52 @@ func NewCmdDownload(f *cmdutil.Factory, runF func(*DownloadOptions) error) *cobr
 
 	cmd := &cobra.Command{
 		Use:   "download {<issue> [<artifact-number>...] | <artifact-url>...}",
-		Short: "Download issue artifacts (preview)",
+		Short: "下载 issue 产物 (预览版)",
 		Long: heredoc.Docf(`
-			Download issue artifacts to files. Without artifact numbers, every artifact
-			on the issue is downloaded. Artifacts can also be named by their URLs, which
-			must all be on one issue. %[1]s<issue>%[1]s is an issue number or URL.
+			将 issue 产物下载到文件中。如果没有产物编号，issue 中的所有产物都会被下载。产物也可以按其 URL 命名，
+			且所有 URL 必须属于同一个 issue。%[1]s<issue>%[1]s 是 issue 编号或 URL。
 
-			Each file is named %[1]s<number>-<name>%[1]s. Markdown documents end in %[1]s.md%[1]s, HTML
-			documents in %[1]s.html%[1]s, and links are saved as %[1]s.url%[1]s Internet Shortcut files.
-			If a file already exists, that artifact fails unless you use %[1]s--clobber%[1]s to
-			overwrite it or %[1]s--skip-existing%[1]s to skip it.
+			每个文件被命名为 %[1]s<number>-<name>%[1]s。Markdown 文档以 %[1]s.md%[1]s 结尾，HTML 文档以
+			%[1]s.html%[1]s 结尾，链接保存为 %[1]s.url%[1]s 互联网快捷方式文件。如果文件已存在，除非使用 %[1]s--clobber%[1]s
+			覆盖它或 %[1]s--skip-existing%[1]s 跳过它，否则该产物将失败。
 
-			Use %[1]s--dir%[1]s to choose the directory to download files into, %[1]s--output%[1]s to
-			choose the path for a single artifact, or %[1]s--output -%[1]s to print its content.
-			Use %[1]s--version%[1]s with a single artifact to download an earlier version from
-			its edit history.
+			使用 %[1]s--dir%[1]s 选择下载文件的目录，%[1]s--output%[1]s 选择单个产物的路径，或使用 %[1]s--output -%[1]s
+			打印其内容。使用 %[1]s--version%[1]s 与单个产物配合，可从其编辑历史中下载历史版本。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Download every artifact on issue 142
+			# 下载 issue 142 中的所有产物
 			$ gh issue artifact download 142
 
-			# Download two artifacts into a folder
+			# 将 2、5 两个产物下载到一个文件夹中
 			$ gh issue artifact download 142 2 5 --dir notes
 
-			# Print one artifact's content
+			# 打印一个产物的内容
 			$ gh issue artifact download 142 2 --output -
 
-			# Download an earlier version of one artifact
+			# 下载一个产物的早期版本
 			$ gh issue artifact download 142 2 --version 5
 		`),
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := cmdutil.MutuallyExclusive("specify only one of `--clobber` or `--skip-existing`", opts.Clobber, opts.SkipExisting); err != nil {
+			if err := cmdutil.MutuallyExclusive("仅指定 `--clobber` 或 `--skip-existing` 其中之一", opts.Clobber, opts.SkipExisting); err != nil {
 				return err
 			}
 			outputSet := cmd.Flags().Changed("output")
-			if err := cmdutil.MutuallyExclusive("specify only one of `--dir` or `--output`", cmd.Flags().Changed("dir"), outputSet); err != nil {
+			if err := cmdutil.MutuallyExclusive("仅指定 `--dir` 或 `--output` 其中之一", cmd.Flags().Changed("dir"), outputSet); err != nil {
 				return err
 			}
 			// A blank path would otherwise download every artifact under
 			// its usual name.
 			if outputSet && opts.Output == "" {
-				return cmdutil.FlagErrorf("`--output` cannot be blank")
+				return cmdutil.FlagErrorf("`--output` 不能为空")
 			}
 			// A blank directory would otherwise be the current directory.
 			if cmd.Flags().Changed("dir") && opts.Dir == "" {
-				return cmdutil.FlagErrorf("`--dir` cannot be blank")
+				return cmdutil.FlagErrorf("`--dir` 不能为空")
 			}
 			versionSet := cmd.Flags().Changed("version")
 			if versionSet && opts.Version < 1 {
-				return cmdutil.FlagErrorf("invalid version: %v", opts.Version)
+				return cmdutil.FlagErrorf("无效版本: %v", opts.Version)
 			}
 
 			var err error
@@ -116,10 +112,10 @@ func NewCmdDownload(f *cmdutil.Factory, runF func(*DownloadOptions) error) *cobr
 			// One path holds one file, and each artifact numbers its own
 			// versions, so both flags need exactly one artifact.
 			if outputSet && len(opts.ArtifactNumbers) != 1 {
-				return cmdutil.FlagErrorf("`--output` requires exactly one artifact number")
+				return cmdutil.FlagErrorf("`--output` 需要且仅需要一个产物编号")
 			}
 			if versionSet && len(opts.ArtifactNumbers) != 1 {
-				return cmdutil.FlagErrorf("`--version` requires exactly one artifact number")
+				return cmdutil.FlagErrorf("`--version` 需要且仅需要一个产物编号")
 			}
 			opts.Client = shared.ClientFunc(f)
 
@@ -130,11 +126,11 @@ func NewCmdDownload(f *cmdutil.Factory, runF func(*DownloadOptions) error) *cobr
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Dir, "dir", "D", ".", "The `directory` to download files into")
-	cmd.Flags().StringVarP(&opts.Output, "output", "O", "", "The `file` to write a single artifact to (use \"-\" to write to standard output)")
-	cmd.Flags().BoolVar(&opts.Clobber, "clobber", false, "Overwrite existing files of the same name")
-	cmd.Flags().BoolVar(&opts.SkipExisting, "skip-existing", false, "Skip downloading when files of the same name exist")
-	cmd.Flags().IntVar(&opts.Version, "version", 0, "Download the version with this `number` from the edit history")
+	cmd.Flags().StringVarP(&opts.Dir, "dir", "D", ".", "用于下载文件的 `目录`")
+	cmd.Flags().StringVarP(&opts.Output, "output", "O", "", "要写入单个产物的 `文件`(使用\"-\"表示写入标准输出)")
+	cmd.Flags().BoolVar(&opts.Clobber, "clobber", false, "覆盖同名现有文件")
+	cmd.Flags().BoolVar(&opts.SkipExisting, "skip-existing", false, "跳过下载同名文件时的情况")
+	cmd.Flags().IntVar(&opts.Version, "version", 0, "从编辑历史中下载带有此 `编号` 的版本")
 
 	return cmd
 }
@@ -176,7 +172,7 @@ func downloadRun(opts *DownloadOptions) error {
 			return err
 		}
 		if len(artifacts) == 0 {
-			return fmt.Errorf("no artifacts to download from %s#%d", ghrepo.FullName(repo), opts.IssueNumber)
+			return fmt.Errorf("没有可从 %s#%d 下载的产物", ghrepo.FullName(repo), opts.IssueNumber)
 		}
 		for _, a := range artifacts {
 			failed = !downloadArtifact(opts, w, &client.ArtifactWithVersions{Artifact: a}) || failed
@@ -236,7 +232,7 @@ func downloadArtifact(opts *DownloadOptions, w *fileWriter, a *client.ArtifactWi
 		shared.PrintFailure(opts.IO, result, "write "+path, withoutPath(err, path))
 		return false
 	case skipped:
-		shared.PrintSkip(opts.IO, result, path, "already exists")
+		shared.PrintSkip(opts.IO, result, path, "已存在")
 	default:
 		shared.PrintSuccess(opts.IO, "written", result, opts.IO.ColorScheme().SuccessIcon(), path)
 	}
@@ -244,7 +240,7 @@ func downloadArtifact(opts *DownloadOptions, w *fileWriter, a *client.ArtifactWi
 }
 
 func downloadAction(number int) string {
-	return fmt.Sprintf("download artifact %d", number)
+	return fmt.Sprintf("下载产物 %d", number)
 }
 
 // selectVersion returns the name and body to download: the current
@@ -314,7 +310,7 @@ func artifactFileName(number int, name, artifactType string) (string, error) {
 	// target directory.
 	fileName := prefix + stem + ext
 	if !filepath.IsLocal(fileName) || filepath.Base(fileName) != fileName {
-		return "", fmt.Errorf("unsafe file name %q", fileName)
+		return "", fmt.Errorf("不安全的文件名 %q", fileName)
 	}
 	return fileName, nil
 }
@@ -383,7 +379,7 @@ func trimTrailingSeparators(path string) string {
 	return path[:end]
 }
 
-var errAlreadyExists = errors.New("already exists (use `--clobber` to overwrite or `--skip-existing` to skip)")
+var errAlreadyExists = errors.New("已存在(使用 `--clobber` 覆盖或 `--skip-existing` 跳过)")
 
 // afterCheck runs after write checks a file's path and before it writes the
 // file. Tests replace it to change the file system in between, as another
@@ -402,9 +398,9 @@ func (w *fileWriter) write(path string, a client.Artifact, body string) (bool, e
 		case w.skipExisting:
 			return true, nil
 		case info.Mode()&fs.ModeSymlink != 0:
-			return false, errors.New("is a symlink")
+			return false, errors.New("是一个符号链接")
 		case !info.Mode().IsRegular():
-			return false, errors.New("is not a regular file")
+			return false, errors.New("不是一个普通文件")
 		case !w.clobber:
 			return false, errAlreadyExists
 		}
@@ -473,7 +469,7 @@ func fileContent(a client.Artifact, body string) ([]byte, error) {
 	}
 	u, ok := shared.HTTPURL(body)
 	if !ok {
-		return nil, fmt.Errorf("artifact %d doesn't link to an http(s) URL", a.Number)
+		return nil, fmt.Errorf("产物 %d 未链接到 http(s) URL", a.Number)
 	}
 	return []byte("[InternetShortcut]\r\nURL=" + u + "\r\n"), nil
 }

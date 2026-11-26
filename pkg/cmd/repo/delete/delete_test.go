@@ -44,7 +44,7 @@ func TestNewCmdDelete(t *testing.T) {
 			input:      "OWNER/REPO",
 			output:     DeleteOptions{RepoArg: "OWNER/REPO"},
 			wantErr:    true,
-			wantErrMsg: "--yes required when not running interactively",
+			wantErrMsg: "非交互模式下运行时，需要 --yes",
 		},
 		{
 			name:   "base repo resolution",
@@ -58,26 +58,26 @@ func TestNewCmdDelete(t *testing.T) {
 			input:      "--yes",
 			output:     DeleteOptions{Confirmed: false}, // --yes should be ignored
 			wantErr:    false,
-			wantStderr: "Warning: `--yes` is ignored since no repository was specified\n",
+			wantStderr: "警告: 由于未指定仓库，`--yes` 已被忽略\n",
 		},
 		{
 			name:       "yes flag error when no argument notty",
 			input:      "--yes",
 			wantErr:    true,
-			wantErrMsg: "cannot non-interactively delete current repository. Please specify a repository or run interactively",
+			wantErrMsg: "无法以非交互方式删除当前仓库。请指定仓库名称或以交互方式运行",
 		},
 		{
 			name:       "confirm flag error when no argument notty",
 			input:      "--confirm",
 			wantErr:    true,
-			wantErrMsg: "cannot non-interactively delete current repository. Please specify a repository or run interactively",
+			wantErrMsg: "无法以非交互方式删除当前仓库。请指定仓库名称或以交互方式运行",
 		},
 		{
 			name:       "confirm flag also ignored when no argument tty",
 			tty:        true,
 			input:      "--confirm",
 			output:     DeleteOptions{Confirmed: false}, // --confirm should also be ignored
-			wantStderr: "Warning: `--yes` is ignored since no repository was specified\n",
+			wantStderr: "警告: 由于未指定仓库，`--yes` 已被忽略\n",
 			// Note: This does not confuse the user, as deprecation warnings are shown: "Flag --confirm has been deprecated, use `--yes` instead"
 		},
 		{
@@ -251,7 +251,7 @@ func Test_deleteRun(t *testing.T) {
 			opts:       &DeleteOptions{RepoArg: "OWNER/REPO", Confirmed: true},
 			wantErr:    true,
 			errMsg:     "SilentError",
-			wantStderr: "X Failed to delete repository: OWNER/REPO has changed name or transferred ownership\n",
+			wantStderr: "X 删除仓库失败: OWNER/REPO 已更名或已转移所有权\n",
 			httpStubs: func(reg *httpmock.Registry) {
 				reg.Register(
 					httpmock.REST("GET", "repos/OWNER/REPO"),

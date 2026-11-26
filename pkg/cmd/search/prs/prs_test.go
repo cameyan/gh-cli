@@ -25,7 +25,7 @@ func TestNewCmdPrs(t *testing.T) {
 			name:    "no arguments",
 			input:   "",
 			wantErr: true,
-			errMsg:  "specify search keywords or flags",
+			errMsg:  "请指定搜索关键字或 flag",
 		},
 		{
 			name:  "keyword arguments",
@@ -68,7 +68,7 @@ func TestNewCmdPrs(t *testing.T) {
 			name:    "invalid limit flag",
 			input:   "--limit 1001",
 			wantErr: true,
-			errMsg:  "`--limit` must be between 1 and 1000",
+			errMsg:  "`--limit` 必须在 1 到 1000 之间",
 		},
 		{
 			name:  "order flag",
@@ -105,7 +105,7 @@ func TestNewCmdPrs(t *testing.T) {
 			name:    "invalid author and app flags",
 			input:   "--author test --app dependabot",
 			wantErr: true,
-			errMsg:  "specify only `--author` or `--app`",
+			errMsg:  "只能指定 `--author` 或 `--app` 之一",
 		},
 		{
 			name: "qualifier flags",

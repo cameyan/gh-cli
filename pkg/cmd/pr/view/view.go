@@ -25,7 +25,7 @@ type ViewOptions struct {
 	IO      *iostreams.IOStreams
 	Browser browser.Browser
 	// TODO projectsV1Deprecation
-	// Remove this detector since it is only used for test validation.
+	// 该探测器(detector)仅用于测试校验，请移除它。
 	Detector fd.Detector
 
 	Finder   shared.PRFinder
@@ -50,12 +50,11 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   "view [<number> | <url> | <branch>]",
-		Short: "View a pull request",
+		Short: "查看拉取请求(PR)",
 		Long: heredoc.Docf(`
-			Display the title, body, and other information about a pull request.
+			显示拉取请求(PR)的标题、正文及其他信息。
 
-			Without an argument, the pull request that belongs to the current branch
-			is displayed.
+			不带参数时，将显示属于当前分支的拉取请求。
 
 			When %[1]s--comments%[1]s is used, terminal output includes the pull request details, comments,
 			and reviews. When output is piped or redirected, only comments and reviews are printed.
@@ -68,7 +67,7 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 		`, "`"),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := cmdutil.MutuallyExclusive("specify only one of --comments or --json",
+			if err := cmdutil.MutuallyExclusive("只能指定 --comments 或 --json 之一",
 				opts.Comments, opts.Exporter != nil); err != nil {
 				return err
 			}
@@ -76,7 +75,7 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 			opts.Finder = shared.NewFinder(f)
 
 			if repoOverride, _ := cmd.Flags().GetString("repo"); repoOverride != "" && len(args) == 0 {
-				return cmdutil.FlagErrorf("argument required when using the --repo flag")
+				return cmdutil.FlagErrorf("使用 --repo flag 时必须提供位置参数")
 			}
 
 			if len(args) > 0 {
@@ -90,8 +89,8 @@ func NewCmdView(f *cmdutil.Factory, runF func(*ViewOptions) error) *cobra.Comman
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.BrowserMode, "web", "w", false, "Open a pull request in the browser")
-	cmd.Flags().BoolVarP(&opts.Comments, "comments", "c", false, "View pull request comments")
+	cmd.Flags().BoolVarP(&opts.BrowserMode, "web", "w", false, "在浏览器中打开拉取请求(PR)")
+	cmd.Flags().BoolVarP(&opts.Comments, "comments", "c", false, "查看拉取请求(PR)的评论")
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, api.PullRequestFields)
 
 	return cmd
@@ -131,7 +130,7 @@ func viewRun(opts *ViewOptions) error {
 	if opts.BrowserMode {
 		openURL := pr.URL
 		if connectedToTerminal {
-			fmt.Fprintf(opts.IO.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(openURL))
+			fmt.Fprintf(opts.IO.ErrOut, "正在浏览器中打开 %s。\n", text.DisplayURL(openURL))
 		}
 		return opts.Browser.Browse(openURL)
 	}
@@ -142,7 +141,7 @@ func viewRun(opts *ViewOptions) error {
 	if err := opts.IO.StartPager(); err == nil {
 		defer opts.IO.StopPager()
 	} else {
-		fmt.Fprintf(opts.IO.ErrOut, "failed to start pager: %v\n", err)
+		fmt.Fprintf(opts.IO.ErrOut, "启动分页器(pager)失败: %v\n", err)
 	}
 
 	if opts.Exporter != nil {
@@ -188,9 +187,9 @@ func printRawPrPreview(io *iostreams.IOStreams, pr *api.PullRequest) error {
 	fmt.Fprintf(out, "deletions:\t%s\n", cs.Red(strconv.Itoa(pr.Deletions)))
 	var autoMerge string
 	if pr.AutoMergeRequest == nil {
-		autoMerge = "disabled"
+		autoMerge = "已禁用"
 	} else {
-		autoMerge = fmt.Sprintf("enabled\t%s\t%s",
+		autoMerge = fmt.Sprintf("已启用\t%s\t%s",
 			pr.AutoMergeRequest.EnabledBy.Login,
 			strings.ToLower(pr.AutoMergeRequest.MergeMethod))
 	}
@@ -206,26 +205,26 @@ func printHumanPrPreview(opts *ViewOptions, baseRepo ghrepo.Interface, pr *api.P
 	out := opts.IO.Out
 	cs := opts.IO.ColorScheme()
 
-	// Header (Title and State)
+	// 头部(标题与状态)
 	fmt.Fprintf(out, "%s %s#%d\n", cs.Bold(pr.Title), ghrepo.FullName(baseRepo), pr.Number)
 	fmt.Fprintf(out,
-		"%s • %s wants to merge %s into %s from %s • %s\n",
+		"%s • %s 想将 %s 合并到 %s，来源分支为 %s • %s\n",
 		shared.StateTitleWithColor(cs, *pr),
 		pr.Author.DisplayName(),
-		text.Pluralize(pr.Commits.TotalCount, "commit"),
+		text.Pluralize(pr.Commits.TotalCount, "个提交"),
 		pr.BaseRefName,
 		pr.HeadRefName,
 		text.FuzzyAgo(opts.Now(), pr.CreatedAt),
 	)
 
-	// added/removed
+	// 新增/删除
 	fmt.Fprintf(out,
 		"%s %s",
 		cs.Green("+"+strconv.Itoa(pr.Additions)),
 		cs.Red("-"+strconv.Itoa(pr.Deletions)),
 	)
 
-	// checks
+	// 检查
 	checks := pr.ChecksStatus()
 	if summary := shared.PrCheckStatusSummaryWithColor(cs, checks); summary != "" {
 		fmt.Fprintf(out, " • %s\n", summary)
@@ -233,62 +232,62 @@ func printHumanPrPreview(opts *ViewOptions, baseRepo ghrepo.Interface, pr *api.P
 		fmt.Fprintln(out)
 	}
 
-	// Reactions
+	// 回应(reaction)
 	if reactions := shared.ReactionGroupList(pr.ReactionGroups); reactions != "" {
 		fmt.Fprint(out, reactions)
 		fmt.Fprintln(out)
 	}
 
-	// Metadata
+	// 元数据
 	if reviewers := prReviewerList(*pr, cs); reviewers != "" {
-		fmt.Fprint(out, cs.Bold("Reviewers: "))
+		fmt.Fprint(out, cs.Bold("审核者: "))
 		fmt.Fprintln(out, reviewers)
 	}
 	if assignees := prAssigneeList(*pr); assignees != "" {
-		fmt.Fprint(out, cs.Bold("Assignees: "))
+		fmt.Fprint(out, cs.Bold("被指派人: "))
 		fmt.Fprintln(out, assignees)
 	}
 	if labels := prLabelList(*pr, cs); labels != "" {
-		fmt.Fprint(out, cs.Bold("Labels: "))
+		fmt.Fprint(out, cs.Bold("标签: "))
 		fmt.Fprintln(out, labels)
 	}
 	if projects := prProjectList(*pr); projects != "" {
-		fmt.Fprint(out, cs.Bold("Projects: "))
+		fmt.Fprint(out, cs.Bold("项目: "))
 		fmt.Fprintln(out, projects)
 	}
 	if pr.Milestone != nil {
-		fmt.Fprint(out, cs.Bold("Milestone: "))
+		fmt.Fprint(out, cs.Bold("里程碑: "))
 		fmt.Fprintln(out, pr.Milestone.Title)
 	}
 
-	// Auto-Merge status
+	// 自动合并(auto-merge)状态
 	autoMerge := pr.AutoMergeRequest
 	if autoMerge != nil {
 		var mergeMethod string
 		switch autoMerge.MergeMethod {
 		case "MERGE":
-			mergeMethod = "a merge commit"
+			mergeMethod = "合并提交(merge commit)"
 		case "REBASE":
-			mergeMethod = "rebase and merge"
+			mergeMethod = "变基并合并(rebase and merge)"
 		case "SQUASH":
-			mergeMethod = "squash and merge"
+			mergeMethod = "压缩并合并(squash and merge)"
 		default:
-			mergeMethod = fmt.Sprintf("an unknown merge method (%s)", autoMerge.MergeMethod)
+			mergeMethod = fmt.Sprintf("未知的合并方式(%s)", autoMerge.MergeMethod)
 		}
 		fmt.Fprintf(out,
-			"%s %s by %s, using %s\n",
-			cs.Bold("Auto-merge:"),
-			cs.Green("enabled"),
+			"%s %s，由 %s 操作，使用 %s\n",
+			cs.Bold("自动合并:"),
+			cs.Green("已启用"),
 			autoMerge.EnabledBy.Login,
 			mergeMethod,
 		)
 	}
 
-	// Body
+	// 正文
 	var md string
 	var err error
 	if pr.Body == "" {
-		md = fmt.Sprintf("\n  %s\n\n", cs.Muted("No description provided"))
+		md = fmt.Sprintf("\n  %s\n\n", cs.Muted("未提供描述"))
 	} else {
 		md, err = markdown.Render(pr.Body,
 			markdown.WithTheme(opts.IO.TerminalTheme()),
@@ -299,7 +298,7 @@ func printHumanPrPreview(opts *ViewOptions, baseRepo ghrepo.Interface, pr *api.P
 	}
 	fmt.Fprintf(out, "\n%s\n", md)
 
-	// Reviews and Comments
+	// 审核与评论
 	if pr.Comments.TotalCount > 0 || pr.Reviews.TotalCount > 0 {
 		preview := !opts.Comments
 		comments, err := shared.CommentList(opts.IO, pr.Comments, pr.DisplayableReviews(), preview)
@@ -309,14 +308,14 @@ func printHumanPrPreview(opts *ViewOptions, baseRepo ghrepo.Interface, pr *api.P
 		fmt.Fprint(out, comments)
 	}
 
-	// Footer
-	fmt.Fprintf(out, cs.Muted("View this pull request on GitHub: %s\n"), pr.URL)
+	// 页脚
+	fmt.Fprintf(out, cs.Muted("在 GitHub 上查看此拉取请求(PR): %s\n"), pr.URL)
 
 	return nil
 }
 
 const (
-	requestedReviewState        = "REQUESTED" // This is our own state for review request
+	requestedReviewState        = "REQUESTED" // 这是我们为审核请求自定义的状态
 	approvedReviewState         = "APPROVED"
 	changesRequestedReviewState = "CHANGES_REQUESTED"
 	commentedReviewState        = "COMMENTED"
@@ -329,20 +328,20 @@ type reviewerState struct {
 	State string
 }
 
-// formattedReviewerState formats a reviewerState with state color
+// formattedReviewerState 用状态对应的颜色格式化 reviewerState
 func formattedReviewerState(cs *iostreams.ColorScheme, reviewer *reviewerState) string {
 	var displayState string
 	switch reviewer.State {
 	case requestedReviewState:
-		displayState = cs.Yellow("Requested")
+		displayState = cs.Yellow("已请求(Requested)")
 	case approvedReviewState:
-		displayState = cs.Green("Approved")
+		displayState = cs.Green("已批准(Approved)")
 	case changesRequestedReviewState:
-		displayState = cs.Red("Changes requested")
+		displayState = cs.Red("已请求变更(Changes requested)")
 	case commentedReviewState, dismissedReviewState:
-		// Show "DISMISSED" review as "COMMENTED", since "dismissed" only makes
-		// sense when displayed in an events timeline but not in the final tally.
-		displayState = "Commented"
+		// 将 "DISMISSED" 的审核显示为 "COMMENTED"，因为 "已驳回(dismissed)"
+		// 只在事件时间线中有意义，不适合出现在最终统计里。
+		displayState = "已评论(Commented)"
 	default:
 		displayState = text.Title(reviewer.State)
 	}
@@ -350,7 +349,7 @@ func formattedReviewerState(cs *iostreams.ColorScheme, reviewer *reviewerState) 
 	return fmt.Sprintf("%s (%s)", reviewer.Name, displayState)
 }
 
-// prReviewerList generates a reviewer list with their last state
+// prReviewerList 生成带各自最后状态的审核者(reviewer)列表
 func prReviewerList(pr api.PullRequest, cs *iostreams.ColorScheme) string {
 	reviewerStates := parseReviewers(pr)
 	reviewers := make([]string, 0, len(reviewerStates))
@@ -368,7 +367,7 @@ func prReviewerList(pr api.PullRequest, cs *iostreams.ColorScheme) string {
 
 const ghostName = "ghost"
 
-// parseReviewers parses given Reviews and ReviewRequests
+// parseReviewers 解析给定的审核(review)与审核请求
 func parseReviewers(pr api.PullRequest) []*reviewerState {
 	reviewerStates := make(map[string]*reviewerState)
 
@@ -385,7 +384,7 @@ func parseReviewers(pr api.PullRequest) []*reviewerState {
 		}
 	}
 
-	// Overwrite reviewer's state if a review request for the same reviewer exists.
+	// 若同一审核者已存在审核请求，则覆盖其状态。
 	for _, reviewRequest := range pr.ReviewRequests.Nodes {
 		name := reviewRequest.RequestedReviewer.DisplayName()
 		reviewerStates[name] = &reviewerState{
@@ -394,7 +393,7 @@ func parseReviewers(pr api.PullRequest) []*reviewerState {
 		}
 	}
 
-	// Convert map to slice for ease of sort
+	// 将 map 转换为切片以便排序
 	result := make([]*reviewerState, 0, len(reviewerStates))
 	for _, reviewer := range reviewerStates {
 		if reviewer.State == pendingReviewState {
@@ -406,7 +405,7 @@ func parseReviewers(pr api.PullRequest) []*reviewerState {
 	return result
 }
 
-// sortReviewerStates puts completed reviews before review requests and sorts names alphabetically
+// sortReviewerStates 将已完成的审核排在审核请求之前，并按名称的字母顺序排序
 func sortReviewerStates(reviewerStates []*reviewerState) {
 	sort.Slice(reviewerStates, func(i, j int) bool {
 		if reviewerStates[i].State == requestedReviewState &&
@@ -444,7 +443,7 @@ func prLabelList(pr api.PullRequest, cs *iostreams.ColorScheme) string {
 		return ""
 	}
 
-	// ignore case sort
+	// 忽略大小写排序
 	sort.SliceStable(pr.Labels.Nodes, func(i, j int) bool {
 		return strings.ToLower(pr.Labels.Nodes[i].Name) < strings.ToLower(pr.Labels.Nodes[j].Name)
 	})
@@ -474,7 +473,7 @@ func prProjectList(pr api.PullRequest) string {
 	for _, project := range pr.ProjectItems.Nodes {
 		colName := project.Status.Name
 		if colName == "" {
-			colName = "No Status"
+			colName = "无状态"
 		}
 		projectNames = append(projectNames, fmt.Sprintf("%s (%s)", project.Project.Title, colName))
 	}
@@ -485,7 +484,7 @@ func prProjectList(pr api.PullRequest) string {
 		}
 		colName := project.Column.Name
 		if colName == "" {
-			colName = "Awaiting triage"
+			colName = "待分类(triage)"
 		}
 		projectNames = append(projectNames, fmt.Sprintf("%s (%s)", project.Project.Name, colName))
 	}

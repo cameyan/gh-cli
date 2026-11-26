@@ -23,9 +23,9 @@ type gitExecuter struct {
 	client *git.Client
 }
 
-// UpdateBranch moves branch to ref. It uses `git branch --force` rather than
-// `git update-ref` because update-ref will happily move a branch that is checked out in
-// another worktree, leaving that worktree's index and working tree stale.
+// UpdateBranch 将 branch 移动到 ref。它使用 `git branch --force` 而不是
+// `git update-ref`，因为 update-ref 会顺利地移动在另一个工作树(worktree)中
+// 检出的分支，导致该工作树的索引(index)和工作树过时。
 func (g *gitExecuter) UpdateBranch(branch, ref string) error {
 	cmd, err := g.client.Command(context.Background(), "branch", "--force", "--", branch, ref)
 	if err != nil {

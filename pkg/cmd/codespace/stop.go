@@ -21,18 +21,18 @@ func newStopCmd(app *App) *cobra.Command {
 
 	stopCmd := &cobra.Command{
 		Use:   "stop",
-		Short: "Stop a running codespace",
+		Short: "停止正在运行的 codespace",
 		Args:  noArgsConstraint,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.orgName != "" && opts.selector.codespaceName != "" && opts.userName == "" {
-				return cmdutil.FlagErrorf("using `--org` with `--codespace` requires `--user`")
+				return cmdutil.FlagErrorf("`--org` 与 `--codespace` 同时使用时需要 `--user`")
 			}
 			return app.StopCodespace(cmd.Context(), opts)
 		},
 	}
 	opts.selector = AddCodespaceSelector(stopCmd, app.apiClient)
-	stopCmd.Flags().StringVarP(&opts.orgName, "org", "o", "", "The `login` handle of the organization (admin-only)")
-	stopCmd.Flags().StringVarP(&opts.userName, "user", "u", "", "The `username` to stop codespace for (used with --org)")
+	stopCmd.Flags().StringVarP(&opts.orgName, "org", "o", "", "组织的 `login` 句柄 (仅限管理员)")
+	stopCmd.Flags().StringVarP(&opts.userName, "user", "u", "", "要停止其 codespace 的 `username` (与 --org 配合使用)")
 
 	return stopCmd
 }
@@ -46,7 +46,7 @@ func (a *App) StopCodespace(ctx context.Context, opts *stopOptions) error {
 
 	if codespaceName == "" {
 		var codespaces []*api.Codespace
-		err := a.RunWithProgress("Fetching codespaces", func() (err error) {
+		err := a.RunWithProgress("正在获取 codespace", func() (err error) {
 			codespaces, err = a.apiClient.ListCodespaces(ctx, api.ListCodespacesOptions{
 				RepoName: repoName,
 				OrgName:  opts.orgName,
@@ -55,7 +55,7 @@ func (a *App) StopCodespace(ctx context.Context, opts *stopOptions) error {
 			return
 		})
 		if err != nil {
-			return fmt.Errorf("failed to list codespaces: %w", err)
+			return fmt.Errorf("列出 codespace 失败: %w", err)
 		}
 
 		var runningCodespaces []*api.Codespace
@@ -66,20 +66,20 @@ func (a *App) StopCodespace(ctx context.Context, opts *stopOptions) error {
 			}
 		}
 		if len(runningCodespaces) == 0 {
-			return errors.New("no running codespaces")
+			return errors.New("没有正在运行的 codespace")
 		}
 
 		includeOwner := opts.orgName != ""
 		skipPromptForSingleOption := repoName != ""
 		codespace, err := chooseCodespaceFromList(ctx, runningCodespaces, includeOwner, skipPromptForSingleOption)
 		if err != nil {
-			return fmt.Errorf("failed to choose codespace: %w", err)
+			return fmt.Errorf("选择 codespace 失败: %w", err)
 		}
 		codespaceName = codespace.Name
 		ownerName = codespace.Owner.Login
 	} else {
 		var c *api.Codespace
-		err := a.RunWithProgress("Fetching codespace", func() (err error) {
+		err := a.RunWithProgress("正在获取 codespace", func() (err error) {
 			if opts.orgName == "" {
 				c, err = a.apiClient.GetCodespace(ctx, codespaceName, false)
 			} else {
@@ -88,21 +88,21 @@ func (a *App) StopCodespace(ctx context.Context, opts *stopOptions) error {
 			return
 		})
 		if err != nil {
-			return fmt.Errorf("failed to get codespace: %q: %w", codespaceName, err)
+			return fmt.Errorf("获取 codespace 失败: %q: %w", codespaceName, err)
 		}
 
 		cs := codespace{c}
 		if !cs.running() {
-			return fmt.Errorf("codespace %q is not running", codespaceName)
+			return fmt.Errorf("codespace %q 未在运行", codespaceName)
 		}
 	}
 
-	err := a.RunWithProgress("Stopping codespace", func() (err error) {
+	err := a.RunWithProgress("正在停止 codespace", func() (err error) {
 		err = a.apiClient.StopCodespace(ctx, codespaceName, opts.orgName, ownerName)
 		return
 	})
 	if err != nil {
-		return fmt.Errorf("failed to stop codespace: %w", err)
+		return fmt.Errorf("停止 codespace 失败: %w", err)
 	}
 
 	return nil

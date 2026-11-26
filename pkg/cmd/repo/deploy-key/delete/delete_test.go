@@ -38,7 +38,7 @@ func Test_deleteRun(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, "", stderr.String())
-	assert.Equal(t, "✓ Deploy key deleted from OWNER/REPO\n", stdout.String())
+	assert.Equal(t, "✓ 已从 OWNER/REPO 中删除部署密钥\n", stdout.String())
 }
 
 func TestDeleteDeployKeyHTTPError(t *testing.T) {

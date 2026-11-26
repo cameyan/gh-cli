@@ -78,33 +78,31 @@ func NewCmdFork(f *cmdutil.Factory, runF func(*ForkOptions) error) *cobra.Comman
 		Use: "fork [<repository>] [-- <gitflags>...]",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if cmd.ArgsLenAtDash() == 0 && len(args[1:]) > 0 {
-				return cmdutil.FlagErrorf("repository argument required when passing git clone flags")
+				return cmdutil.FlagErrorf("传入 git clone 选项时需要提供仓库参数")
 			}
 			return nil
 		},
-		Short: "Create a fork of a repository",
+		Short: "创建一个派生(fork)仓库",
 		Long: heredoc.Docf(`
-			Create a fork of a repository.
+			创建一个派生(fork)仓库。
 
-			With no argument, creates a fork of the current repository. Otherwise, forks
-			the specified repository.
+			不带参数时，为当前仓库创建派生(fork)仓库。否则，为指定的仓库创建派生(fork)仓库。
 
-			By default, the new fork is set to be your %[1]sorigin%[1]s remote and any existing
-			origin remote is renamed to %[1]supstream%[1]s. To alter this behavior, you can set
-			a name for the new fork's remote with %[1]s--remote-name%[1]s.
+			默认情况下, 新的派生(fork)仓库会被设为您的 %[1]sorigin%[1]s 远程，并且任何现有的 origin 远程会被重命名为 %[1]supstream%[1]s。
+			若要更改此行为, 可以通过 %[1]s--remote-name%[1]s 为新派生(fork)仓库的远程设置名称。
 
-			The %[1]supstream%[1]s remote will be set as the default remote repository.
+			%[1]supstream%[1]s 远程将被设为默认远程仓库。
 
-			Additional %[1]sgit clone%[1]s flags can be passed after %[1]s--%[1]s.
+			可在 %[1]s--%[1]s 之后传入额外的 %[1]sgit clone%[1]s 选项。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Fork a repository
+			# 派生(fork)一个仓库
 			$ gh repo fork owner/repo
 
-			# Fork a repository and clone it locally
+			# 派生(fork)一个仓库并在本地克隆
 			$ gh repo fork owner/repo --clone
 
-			# Fork a repository without cloning it, skip the prompt
+			# 派生(fork)一个仓库但不克隆, 并跳过提示
 			$ gh repo fork owner/repo --clone=false
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -115,21 +113,21 @@ func NewCmdFork(f *cmdutil.Factory, runF func(*ForkOptions) error) *cobra.Comman
 			}
 
 			if cmd.Flags().Changed("org") && opts.Organization == "" {
-				return cmdutil.FlagErrorf("--org cannot be blank")
+				return cmdutil.FlagErrorf("--org 不能为空")
 			}
 
 			if opts.RemoteName == "" {
-				return cmdutil.FlagErrorf("--remote-name cannot be blank")
+				return cmdutil.FlagErrorf("--remote-name 不能为空")
 			} else if !cmd.Flags().Changed("remote-name") {
-				opts.Rename = true // Any existing 'origin' will be renamed to upstream
+				opts.Rename = true // 任何现有的 'origin' 都将被重命名为 upstream
 			}
 
 			if opts.Repository != "" && cmd.Flags().Changed("remote") {
-				return cmdutil.FlagErrorf("the `--remote` flag is unsupported when a repository argument is provided")
+				return cmdutil.FlagErrorf("提供了仓库参数时，不支持 `--remote` 选项")
 			}
 
 			if promptOk {
-				// We can prompt for these if they were not specified.
+						// 若未指定, 则可以对它们进行提示。
 				opts.PromptClone = !cmd.Flags().Changed("clone")
 				opts.PromptRemote = !cmd.Flags().Changed("remote")
 			}
@@ -144,15 +142,15 @@ func NewCmdFork(f *cmdutil.Factory, runF func(*ForkOptions) error) *cobra.Comman
 		if err == pflag.ErrHelp {
 			return err
 		}
-		return cmdutil.FlagErrorf("%w\nSeparate git clone flags with `--`.", err)
+		return cmdutil.FlagErrorf("%w\n请使用 `--` 分隔 git clone 选项", err)
 	})
 
-	cmd.Flags().BoolVar(&opts.Clone, "clone", false, "Clone the fork")
-	cmd.Flags().BoolVar(&opts.Remote, "remote", false, "Add a git remote for the fork")
-	cmd.Flags().StringVar(&opts.RemoteName, "remote-name", defaultRemoteName, "Specify the name for the new remote")
-	cmd.Flags().StringVar(&opts.Organization, "org", "", "Create the fork in an organization")
-	cmd.Flags().StringVar(&opts.ForkName, "fork-name", "", "Rename the forked repository")
-	cmd.Flags().BoolVar(&opts.DefaultBranchOnly, "default-branch-only", false, "Only include the default branch in the fork")
+	cmd.Flags().BoolVar(&opts.Clone, "clone", false, "克隆 fork 仓库")
+	cmd.Flags().BoolVar(&opts.Remote, "remote", false, "为 fork 仓库添加 git 远程")
+	cmd.Flags().StringVar(&opts.RemoteName, "remote-name", defaultRemoteName, "指定新远程的名称")
+	cmd.Flags().StringVar(&opts.Organization, "org", "", "在组织中创建 fork 仓库")
+	cmd.Flags().StringVar(&opts.ForkName, "fork-name", "", "重命名 fork 仓库")
+	cmd.Flags().BoolVar(&opts.DefaultBranchOnly, "default-branch-only", false, "fork 时仅包含默认分支")
 
 	return cmd
 }
@@ -160,11 +158,11 @@ func NewCmdFork(f *cmdutil.Factory, runF func(*ForkOptions) error) *cobra.Comman
 func forkRun(opts *ForkOptions) error {
 	var repoToFork ghrepo.Interface
 	var err error
-	inParent := false // whether or not we're forking the repo we're currently "in"
+	inParent := false // 是否正在为我们当前所处的仓库创建派生
 	if opts.Repository == "" {
 		baseRepo, err := opts.BaseRepo()
 		if err != nil {
-			return fmt.Errorf("unable to determine base repository: %w", err)
+			return fmt.Errorf("无法确定基础仓库: %w", err)
 		}
 		inParent = true
 		repoToFork = baseRepo
@@ -174,27 +172,27 @@ func forkRun(opts *ForkOptions) error {
 		if isURL(repoArg) {
 			parsedURL, err := url.Parse(repoArg)
 			if err != nil {
-				return fmt.Errorf("did not understand argument: %w", err)
+				return fmt.Errorf("无法识别参数: %w", err)
 			}
 
 			repoToFork, err = ghrepo.FromURL(parsedURL)
 			if err != nil {
-				return fmt.Errorf("did not understand argument: %w", err)
+				return fmt.Errorf("无法识别参数: %w", err)
 			}
 
 		} else if strings.HasPrefix(repoArg, "git@") {
 			parsedURL, err := git.ParseURL(repoArg)
 			if err != nil {
-				return fmt.Errorf("did not understand argument: %w", err)
+				return fmt.Errorf("无法识别参数: %w", err)
 			}
 			repoToFork, err = ghrepo.FromURL(parsedURL)
 			if err != nil {
-				return fmt.Errorf("did not understand argument: %w", err)
+				return fmt.Errorf("无法识别参数: %w", err)
 			}
 		} else {
 			repoToFork, err = ghrepo.FromFullName(repoArg)
 			if err != nil {
-				return fmt.Errorf("argument error: %w", err)
+				return fmt.Errorf("参数错误: %w", err)
 			}
 		}
 	}
@@ -206,7 +204,7 @@ func forkRun(opts *ForkOptions) error {
 
 	httpClient, err := opts.HttpClient()
 	if err != nil {
-		return fmt.Errorf("unable to create client: %w", err)
+		return fmt.Errorf("无法创建客户端: %w", err)
 	}
 
 	apiClient := api.NewClientFromHTTP(httpClient)
@@ -215,27 +213,25 @@ func forkRun(opts *ForkOptions) error {
 	forkedRepo, err := api.ForkRepo(apiClient, repoToFork, opts.Organization, opts.ForkName, opts.DefaultBranchOnly)
 	opts.IO.StopProgressIndicator()
 	if err != nil {
-		return fmt.Errorf("failed to fork: %w", err)
+		return fmt.Errorf("fork 失败: %w", err)
 	}
 
-	// This is weird. There is not an efficient way to determine via the GitHub API whether or not a
-	// given user has forked a given repo. We noticed, also, that the create fork API endpoint just
-	// returns the fork repo data even if it already exists -- with no change in status code or
-	// anything. We thus check the created time to see if the repo is brand new or not; if it's not,
-	// we assume the fork already existed and report an error.
+	// 这有点奇怪。通过 GitHub API 无法高效地判断给定用户是否已经派生过给定仓库。我们还注意到,
+	// 创建派生的 API 端点即使派生已存在, 也会直接返回派生仓库数据 -- 状态码或其它内容均无变化。
+	// 因此我们检查创建时间来判断仓库是否为全新创建; 若不是, 则假定派生已存在并报告错误。
 	createdAgo := opts.Since(forkedRepo.CreatedAt)
 	if createdAgo > time.Minute {
 		if connectedToTerminal {
 			fmt.Fprintf(stderr, "%s %s %s\n",
 				cs.Yellow("!"),
 				cs.Bold(ghrepo.FullName(forkedRepo)),
-				"already exists")
+				"已存在")
 		} else {
-			fmt.Fprintf(stderr, "%s already exists\n", ghrepo.FullName(forkedRepo))
+			fmt.Fprintf(stderr, "%s 已存在\n", ghrepo.FullName(forkedRepo))
 		}
 	} else {
 		if connectedToTerminal {
-			fmt.Fprintf(stderr, "%s Created fork %s\n", cs.SuccessIconWithColor(cs.Green), cs.Bold(ghrepo.FullName(forkedRepo)))
+			fmt.Fprintf(stderr, "%s 已创建 fork 仓库 %s\n", cs.SuccessIconWithColor(cs.Green), cs.Bold(ghrepo.FullName(forkedRepo)))
 		} else {
 			fmt.Fprintln(opts.IO.Out, ghrepo.GenerateRepoURL(forkedRepo, ""))
 		}
@@ -245,10 +241,10 @@ func forkRun(opts *ForkOptions) error {
 	if opts.ForkName != "" && !strings.EqualFold(forkedRepo.RepoName(), shared.NormalizeRepoName(opts.ForkName)) {
 		forkedRepo, err = api.RenameRepo(apiClient, forkedRepo, opts.ForkName)
 		if err != nil {
-			return fmt.Errorf("could not rename fork: %w", err)
+			return fmt.Errorf("重命名 fork 仓库失败: %w", err)
 		}
 		if connectedToTerminal {
-			fmt.Fprintf(stderr, "%s Renamed fork to %s\n", cs.SuccessIconWithColor(cs.Green), cs.Bold(ghrepo.FullName(forkedRepo)))
+			fmt.Fprintf(stderr, "%s 已将 fork 仓库重命名为 %s\n", cs.SuccessIconWithColor(cs.Green), cs.Bold(ghrepo.FullName(forkedRepo)))
 		}
 	}
 
@@ -292,14 +288,14 @@ func forkRun(opts *ForkOptions) error {
 
 		if remote, err := remotes.FindByRepo(forkedRepo.RepoOwner(), forkedRepo.RepoName()); err == nil {
 			if connectedToTerminal {
-				fmt.Fprintf(stderr, "%s Using existing remote %s\n", cs.SuccessIcon(), cs.Bold(remote.Name))
+				fmt.Fprintf(stderr, "%s 使用现有远程 %s\n", cs.SuccessIcon(), cs.Bold(remote.Name))
 			}
 			return nil
 		}
 
 		remoteDesired := opts.Remote
 		if opts.PromptRemote {
-			remoteDesired, err = opts.Prompter.Confirm("Would you like to add a remote for the fork?", false)
+			remoteDesired, err = opts.Prompter.Confirm("是否要为 fork 仓库添加远程?", false)
 			if err != nil {
 				return err
 			}
@@ -325,10 +321,10 @@ func forkRun(opts *ForkOptions) error {
 					}
 
 					if connectedToTerminal {
-						fmt.Fprintf(stderr, "%s Renamed remote %s to %s\n", cs.SuccessIcon(), cs.Bold(remoteName), cs.Bold(renameTarget))
+						fmt.Fprintf(stderr, "%s 已将远程 %s 重命名为 %s\n", cs.SuccessIcon(), cs.Bold(remoteName), cs.Bold(renameTarget))
 					}
 				} else {
-					return fmt.Errorf("a git remote named '%s' already exists", remoteName)
+					return fmt.Errorf("名为 '%s' 的 git 远程已存在", remoteName)
 				}
 			}
 
@@ -336,23 +332,23 @@ func forkRun(opts *ForkOptions) error {
 
 			_, err = gitClient.AddRemote(ctx, remoteName, forkedRepoCloneURL, []string{})
 			if err != nil {
-				return fmt.Errorf("failed to add remote: %w", err)
+				return fmt.Errorf("添加远程失败: %w", err)
 			}
 
 			if connectedToTerminal {
-				fmt.Fprintf(stderr, "%s Added remote %s\n", cs.SuccessIcon(), cs.Bold(remoteName))
+				fmt.Fprintf(stderr, "%s 已添加远程 %s\n", cs.SuccessIcon(), cs.Bold(remoteName))
 			}
 		}
 	} else {
 		cloneDesired := opts.Clone
 		if opts.PromptClone {
-			cloneDesired, err = opts.Prompter.Confirm("Would you like to clone the fork?", false)
+			cloneDesired, err = opts.Prompter.Confirm("是否要克隆 fork 仓库?", false)
 			if err != nil {
 				return err
 			}
 		}
 		if cloneDesired {
-			// Allow injecting alternative BackOff in tests.
+			// 允许在测试中注入替代的 BackOff。
 			if opts.BackOff == nil {
 				bo := backoff.NewConstantBackOff(2 * time.Second)
 				opts.BackOff = bo
@@ -372,7 +368,7 @@ func forkRun(opts *ForkOptions) error {
 			}, backoff.WithContext(backoff.WithMaxRetries(opts.BackOff, 3), ctx))
 
 			if err != nil {
-				return fmt.Errorf("failed to clone fork: %w", err)
+				return fmt.Errorf("克隆 fork 仓库失败: %w", err)
 			}
 
 			gc := gitClient.Copy()
@@ -393,8 +389,8 @@ func forkRun(opts *ForkOptions) error {
 			}
 
 			if connectedToTerminal {
-				fmt.Fprintf(stderr, "%s Cloned fork\n", cs.SuccessIcon())
-				fmt.Fprintf(stderr, "%s Repository %s set as the default repository. To learn more about the default repository, run: gh repo set-default --help\n", cs.WarningIcon(), cs.Bold(ghrepo.FullName(repoToFork)))
+				fmt.Fprintf(stderr, "%s 已克隆 fork 仓库\n", cs.SuccessIcon())
+				fmt.Fprintf(stderr, "%s 仓库 %s 已被设为默认仓库。要了解默认仓库的更多信息，请运行: gh repo set-default --help\n", cs.WarningIcon(), cs.Bold(ghrepo.FullName(repoToFork)))
 			}
 		}
 	}

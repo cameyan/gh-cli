@@ -38,8 +38,8 @@ func NewCmdEnable(f *cmdutil.Factory, runF func(*EnableOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "enable [<workflow-id> | <workflow-name>]",
-		Short: "Enable a workflow",
-		Long:  "Enable a workflow, allowing it to be run and show up when listing workflows.",
+		Short: "启用一个工作流",
+		Long:  "启用一个工作流，使其能够运行并在列出工作流时显示出来",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// support `-R, --repo` override
@@ -48,7 +48,7 @@ func NewCmdEnable(f *cmdutil.Factory, runF func(*EnableOptions) error) *cobra.Co
 			if len(args) > 0 {
 				opts.Selector = args[0]
 			} else if !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("workflow ID or name required when not running interactively")
+				return cmdutil.FlagErrorf("非交互式运行时需要工作流 ID 或名称")
 			} else {
 				opts.Prompt = true
 			}
@@ -66,7 +66,7 @@ func NewCmdEnable(f *cmdutil.Factory, runF func(*EnableOptions) error) *cobra.Co
 func runEnable(opts *EnableOptions) error {
 	c, err := opts.HttpClient()
 	if err != nil {
-		return fmt.Errorf("could not build http client: %w", err)
+		return fmt.Errorf("无法构建 HTTP 客户端: %w", err)
 	}
 	client := api.NewClientFromHTTP(c)
 
@@ -80,7 +80,7 @@ func runEnable(opts *EnableOptions) error {
 		opts.IO, client, repo, opts.Prompt, opts.Selector, states)
 	if err != nil {
 		if _, ok := errors.AsType[shared.FilteredAllError](err); ok {
-			return errors.New("there are no disabled workflows to enable")
+			return errors.New("没有禁用的工作流可供启用")
 		}
 		return err
 	}
@@ -91,12 +91,12 @@ func runEnable(opts *EnableOptions) error {
 	}
 	err = client.REST(repo.RepoHost(), "PUT", path.String(), nil, nil)
 	if err != nil {
-		return fmt.Errorf("failed to enable workflow: %w", err)
+		return fmt.Errorf("启动工作流失败: %w", err)
 	}
 
 	if opts.IO.CanPrompt() {
 		cs := opts.IO.ColorScheme()
-		fmt.Fprintf(opts.IO.Out, "%s Enabled %s\n", cs.SuccessIcon(), cs.Bold(workflow.Name))
+		fmt.Fprintf(opts.IO.Out, "%s 已启用 %s\n", cs.SuccessIcon(), cs.Bold(workflow.Name))
 	}
 
 	return nil

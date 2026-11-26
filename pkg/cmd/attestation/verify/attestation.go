@@ -11,11 +11,11 @@ import (
 )
 
 func getAttestations(o *Options, a artifact.DigestedArtifact) ([]*api.Attestation, string, error) {
-	// Fetch attestations from GitHub API within this if block since predicate type
-	// filter is done when the API is called
+	// 在该 if 代码块内从 GitHub API 获取证明(attestation)，
+	// 因为谓词类型(predicate type)过滤是在 API 调用时完成的
 	if o.FetchAttestationsFromGitHubAPI() {
 		if o.APIClient == nil {
-			errMsg := "✗ No APIClient provided"
+			errMsg := "✗ 未提供 APIClient"
 			return nil, errMsg, errors.New(errMsg)
 		}
 
@@ -30,16 +30,16 @@ func getAttestations(o *Options, a artifact.DigestedArtifact) ([]*api.Attestatio
 
 		attestations, err := o.APIClient.GetByDigest(params)
 		if err != nil {
-			msg := "✗ Loading attestations from GitHub API failed"
+			msg := "✗ 从 GitHub API 加载证明失败"
 			return nil, msg, err
 		}
 		pluralAttestation := text.Pluralize(len(attestations), "attestation")
-		msg := fmt.Sprintf("Loaded %s from GitHub API", pluralAttestation)
+		msg := fmt.Sprintf("已从 GitHub API 加载 %s", pluralAttestation)
 		return attestations, msg, nil
 	}
 
-	// Fetch attestations from local bundle or OCI registry
-	// Predicate type filtering is done after the attestations are fetched
+	// 从本地 bundle 或 OCI 镜像仓库(registry)获取证明(attestation)
+	// 谓词类型(predicate type)过滤在获取证明(attestation)之后进行
 	var attestations []*api.Attestation
 	var err error
 	var msg string
@@ -47,17 +47,17 @@ func getAttestations(o *Options, a artifact.DigestedArtifact) ([]*api.Attestatio
 		attestations, err = verification.GetLocalAttestations(o.BundlePath)
 		if err != nil {
 			pluralAttestation := text.Pluralize(len(attestations), "attestation")
-			msg = fmt.Sprintf("Loaded %s from %s", pluralAttestation, o.BundlePath)
+			msg = fmt.Sprintf("已从 %s 加载 %s", o.BundlePath, pluralAttestation)
 		} else {
-			msg = fmt.Sprintf("Loaded %d attestations from %s", len(attestations), o.BundlePath)
+			msg = fmt.Sprintf("已从 %s 加载 %d 个证明", o.BundlePath, len(attestations))
 		}
 	} else if o.UseBundleFromRegistry {
 		attestations, err = verification.GetOCIAttestations(o.OCIClient, a)
 		if err != nil {
-			msg = "✗ Loading attestations from OCI registry failed"
+			msg = "✗ 从 OCI 镜像仓库加载证明失败"
 		} else {
 			pluralAttestation := text.Pluralize(len(attestations), "attestation")
-			msg = fmt.Sprintf("Loaded %s from OCI registry", pluralAttestation)
+			msg = fmt.Sprintf("已从 OCI 镜像仓库加载 %s", pluralAttestation)
 		}
 	}
 	if err != nil {
@@ -74,20 +74,20 @@ func getAttestations(o *Options, a artifact.DigestedArtifact) ([]*api.Attestatio
 func verifyAttestations(art artifact.DigestedArtifact, att []*api.Attestation, sgVerifier verification.SigstoreVerifier, ec verification.EnforcementCriteria) ([]*verification.AttestationProcessingResult, string, error) {
 	sgPolicy, err := buildSigstoreVerifyPolicy(ec, art)
 	if err != nil {
-		logMsg := "✗ Failed to build Sigstore verification policy"
+		logMsg := "✗ 构建 Sigstore 验证策略失败"
 		return nil, logMsg, err
 	}
 
 	sigstoreVerified, err := sgVerifier.Verify(att, sgPolicy)
 	if err != nil {
-		logMsg := "✗ Sigstore verification failed"
+		logMsg := "✗ Sigstore 验证失败"
 		return nil, logMsg, err
 	}
 
-	// Verify extensions
+	// 验证扩展(extensions)
 	certExtVerified, err := verification.VerifyCertExtensions(sigstoreVerified, ec)
 	if err != nil {
-		logMsg := "✗ Policy verification failed"
+		logMsg := "✗ 策略验证失败"
 		return nil, logMsg, err
 	}
 

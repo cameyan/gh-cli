@@ -95,7 +95,7 @@ func GistIDFromURL(gistURL string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("Invalid gist URL %s", u)
+	return "", fmt.Errorf("无效的 gist URL %s", u)
 }
 
 const maxPerPage = 100
@@ -240,7 +240,7 @@ func PromptGists(prompter prompter.Prompter, client *http.Client, host string, c
 		opts[i] = fmt.Sprintf("%s %s %s", cs.Bold(gist.Filename()), gist.TruncDescription(), cs.Muted(gistTime))
 	}
 
-	result, err := prompter.Select("Select a gist", "", opts)
+	result, err := prompter.Select("选择 gist", "", opts)
 
 	if err != nil {
 		return &Gist{}, err
@@ -249,15 +249,14 @@ func PromptGists(prompter prompter.Prompter, client *http.Client, host string, c
 	return &gists[result], nil
 }
 
-// GetRawGistFile fetches the full content of a gist file from its raw URL. The
-// bytes are external content, so they are returned as iostreams.Untrusted to
-// force callers to choose between sanitized display and raw round-tripping.
-// The rawURL is supplied by the API and points at gist.githubusercontent.com rather than the
-// API host, so it is requested as an absolute URL. The hostname only configures the client.
+// GetRawGistFile 从 gist 文件的原始 URL 获取其完整内容。这些字节属于外部内容，
+// 因此以 iostreams.Untrusted 返回，以强制调用方在净化后的显示与原始往返之间做出选择。
+// rawURL 由 API 提供，指向 gist.githubusercontent.com 而非 API 主机，
+// 因此以绝对 URL 的形式请求。hostname 仅用于配置客户端。
 func GetRawGistFile(httpClient *http.Client, hostname string, rawURL safeurl.SafeURL) (iostreams.Untrusted, error) {
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api 客户端机械式推广的一部分。
+	// 后续可考虑是否将 api 客户端注入此调用点，而非在此构造
 	resp, err := api.NewClientFromHTTP(httpClient).Request(hostname, http.MethodGet, rawURL.String(), nil)
 	if err != nil {
 		return iostreams.Untrusted{}, err

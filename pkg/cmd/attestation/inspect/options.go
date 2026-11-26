@@ -9,7 +9,7 @@ import (
 	"github.com/cli/cli/v2/pkg/cmdutil"
 )
 
-// Options captures the options for the inspect command
+// Options 捕获 inspect 命令的选项
 type Options struct {
 	ArtifactPath     string
 	BundlePath       string
@@ -22,7 +22,7 @@ type Options struct {
 	Tenant           string
 }
 
-// Clean cleans the file path option values
+// Clean 清理文件路径选项值
 func (opts *Options) Clean() {
 	opts.BundlePath = filepath.Clean(opts.BundlePath)
 }

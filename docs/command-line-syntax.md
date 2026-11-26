@@ -1,60 +1,60 @@
-# How we document our command line syntax
+# 我们如何编写命令行语法的文档
 
-## Literal text
+## 字面文本
 
-Use plain text for parts of the command that cannot be changed.
+命令中不可更改的部分使用纯文本。
 
-_example:_
+_示例：_
 `gh help`
-The argument help is required in this command.
+此命令中必须提供参数 help。
 
-## Placeholder values
+## 占位符值
 
-Use angled brackets to represent a value the user must replace. No other expressions can be contained within the angled brackets.
+使用尖括号表示用户必须替换的值。尖括号内不能包含其他表达式。
 
-_example:_
+_示例：_
 `gh pr view <issue-number>`
-Replace `<issue-number>` with an issue number.
+将 `<issue-number>` 替换为问题编号。
 
-## Optional arguments
+## 可选参数
 
-Place optional arguments in square brackets. Mutually exclusive arguments can be included inside square brackets if they are separated with vertical bars.
+将可选参数放在方括号中。互斥参数可以用竖线分隔后放入方括号内。
 
-_example:_
+_示例：_
 `gh pr checkout [--web]`
-The argument `--web` is optional.
+参数 `--web` 是可选的。
 
 `gh pr view [<number> | <url>]`
-The `<number>` and `<url>` arguments are optional.
+`<number>` 和 `<url>` 参数是可选的。
 
-## Required mutually exclusive arguments
+## 必需的互斥参数
 
-Place required mutually exclusive arguments inside braces, separate arguments with vertical bars.
+将必需的互斥参数放在花括号中，参数之间用竖线分隔。
 
-_example:_
+_示例：_
 `gh pr {view | create}`
 
-## Repeatable arguments
+## 可重复参数
 
-Ellipsis represent arguments that can appear multiple times.
+省略号表示可以多次出现的参数。
 
-_example:_
+_示例：_
 `gh pr close <pr-number>...`
 
-## Variable naming
+## 变量命名
 
-For multi-word variables use dash-case (all lower case with words separated by dashes)
+多词变量使用 dash-case（全部小写，单词之间用短横线分隔）。
 
-_example:_
+_示例：_
 `gh pr checkout <issue-number>`
 
-## Additional examples
+## 其他示例
 
-_optional argument with placeholder:_
+_带占位符的可选参数：_
 `command sub-command [<arg>]`
 
-_required argument with mutually exclusive options:_
+_带互斥选项的必需参数：_
 `command sub-command {<path> | <string> | literal}`
 
-_optional argument with mutually exclusive options:_
+_带互斥选项的可选参数：_
 `command sub-command [<path> | <string>]`

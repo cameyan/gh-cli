@@ -38,14 +38,14 @@ type runDetails struct {
 	Metadata metadata `json:"metadata"`
 }
 
-// Predicate captures the predicate of a given attestation
+// Predicate 捕获给定证明(attestation)的谓词(predicate)
 type Predicate struct {
 	BuildDefinition buildDefinition `json:"buildDefinition"`
 	RunDetails      runDetails      `json:"runDetails"`
 }
 
-// AttestationDetail captures attestation source details
-// that will be returned by the inspect command
+// AttestationDetail 捕获证明(attestation)的来源细节，
+// 这些细节将由 inspect 命令返回
 type AttestationDetail struct {
 	OrgName        string `json:"orgName"`
 	OrgID          string `json:"orgId"`
@@ -60,13 +60,13 @@ func getOrgAndRepo(tenant, repoURL string) (string, string, error) {
 	if tenant == "" {
 		after, found = strings.CutPrefix(repoURL, "https://github.com/")
 		if !found {
-			return "", "", fmt.Errorf("failed to get org and repo from %s", repoURL)
+			return "", "", fmt.Errorf("从 %s 获取组织和仓库失败", repoURL)
 		}
 	} else {
 		after, found = strings.CutPrefix(repoURL,
 			fmt.Sprintf("https://%s.ghe.com/", tenant))
 		if !found {
-			return "", "", fmt.Errorf("failed to get org and repo from %s", repoURL)
+			return "", "", fmt.Errorf("从 %s 获取组织和仓库失败", repoURL)
 		}
 	}
 
@@ -77,28 +77,28 @@ func getOrgAndRepo(tenant, repoURL string) (string, string, error) {
 func getAttestationDetail(tenant string, attr api.Attestation) (AttestationDetail, error) {
 	envelope, err := attr.Bundle.Envelope()
 	if err != nil {
-		return AttestationDetail{}, fmt.Errorf("failed to get envelope from bundle: %v", err)
+		return AttestationDetail{}, fmt.Errorf("从签名包获取签名信封失败: %v", err)
 	}
 
 	statement, err := envelope.EnvelopeContent().Statement()
 	if err != nil {
-		return AttestationDetail{}, fmt.Errorf("failed to get statement from envelope: %v", err)
+		return AttestationDetail{}, fmt.Errorf("从签名信封获取声明内容失败: %v", err)
 	}
 
 	var predicate Predicate
 	predicateJson, err := json.Marshal(statement.Predicate)
 	if err != nil {
-		return AttestationDetail{}, fmt.Errorf("failed to marshal predicate: %v", err)
+		return AttestationDetail{}, fmt.Errorf("序列化断言失败: %v", err)
 	}
 
 	err = json.Unmarshal(predicateJson, &predicate)
 	if err != nil {
-		return AttestationDetail{}, fmt.Errorf("failed to unmarshal predicate: %v", err)
+		return AttestationDetail{}, fmt.Errorf("反序列化断言失败: %v", err)
 	}
 
 	org, repo, err := getOrgAndRepo(tenant, predicate.BuildDefinition.ExternalParameters.Workflow.Repository)
 	if err != nil {
-		return AttestationDetail{}, fmt.Errorf("failed to parse attestation content: %v", err)
+		return AttestationDetail{}, fmt.Errorf("解析证明内容失败: %v", err)
 	}
 
 	return AttestationDetail{

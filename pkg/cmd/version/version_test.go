@@ -12,7 +12,7 @@ func TestFormat(t *testing.T) {
 }
 
 func TestFormatDebugBuild(t *testing.T) {
-	expects := "gh version 1.4.0 (2020-12-15) [debug build]\nhttps://github.com/cli/cli/releases/tag/v1.4.0\n"
+	expects := "gh 版本: 1.4.0 (2020-12-15) [debug build]\nhttps://github.com/cli/cli/releases/tag/v1.4.0\n"
 	if got := format("1.4.0", "2020-12-15", true); got != expects {
 		t.Errorf("format() = %q, wants %q", got, expects)
 	}

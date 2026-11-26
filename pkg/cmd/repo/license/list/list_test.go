@@ -157,7 +157,7 @@ func TestListRun(t *testing.T) {
 			wantStdout: "",
 			wantStderr: "",
 			wantErr:    true,
-			errMsg:     "No repository licenses found",
+			errMsg:     "未找到存储库许可证",
 			opts:       &ListOptions{},
 		},
 	}

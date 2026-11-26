@@ -71,7 +71,7 @@ func NewCmdLogin(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, r
 	cmd := &cobra.Command{
 		Use:   "login",
 		Args:  cobra.ExactArgs(0),
-		Short: "Log in to a GitHub account",
+		Short: "登录 GitHub 账户",
 		Long: heredoc.Docf(`
 			Authenticate with a GitHub host.
 
@@ -120,16 +120,16 @@ func NewCmdLogin(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, r
 			<https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps/>.
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Start interactive setup
+			# 启动交互式设置
 			$ gh auth login
 
-			# Open a browser to authenticate and copy one-time OAuth code to clipboard
+			# 打开浏览器进行身份验证，并将一次性 OAuth 码复制到剪贴板
 			$ gh auth login --web --clipboard
 
-			# Authenticate against github.com by reading the token from a file
+			# 通过从文件读取令牌向 github.com 进行身份验证
 			$ gh auth login --with-token < mytoken.txt
 
-			# Authenticate with specific host
+			# 向特定主机进行身份验证
 			$ gh auth login --hostname enterprise.internal
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -138,20 +138,20 @@ func NewCmdLogin(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, r
 			}
 
 			if tokenStdin && opts.Web {
-				return cmdutil.FlagErrorf("specify only one of `--web` or `--with-token`")
+				return cmdutil.FlagErrorf("只能指定 `--web` 或 `--with-token` 其中之一")
 			}
 			if tokenStdin && len(opts.Scopes) > 0 {
-				return cmdutil.FlagErrorf("specify only one of `--scopes` or `--with-token`")
+				return cmdutil.FlagErrorf("只能指定 `--scopes` 或 `--with-token` 其中之一")
 			}
 			if tokenStdin && opts.Expiring != nil && *opts.Expiring {
-				return cmdutil.FlagErrorf("specify only one of `--expiring` or `--with-token`")
+				return cmdutil.FlagErrorf("只能指定 `--expiring` 或 `--with-token` 其中之一")
 			}
 
 			if tokenStdin {
 				defer opts.IO.In.Close()
 				token, err := io.ReadAll(opts.IO.In)
 				if err != nil {
-					return fmt.Errorf("failed to read token from standard input: %w", err)
+					return fmt.Errorf("从标准输入读取令牌失败: %w", err)
 				}
 				opts.Token = strings.TrimSpace(string(token))
 			}
@@ -162,7 +162,7 @@ func NewCmdLogin(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, r
 
 			if cmd.Flags().Changed("hostname") {
 				if err := ghinstance.HostnameValidator(opts.Hostname); err != nil {
-					return cmdutil.FlagErrorf("error parsing hostname: %w", err)
+					return cmdutil.FlagErrorf("解析主机名失败: %w", err)
 				}
 			}
 
@@ -179,21 +179,21 @@ func NewCmdLogin(f *cmdutil.Factory, telemetry ghtelemetry.InvocationRecorder, r
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "The hostname of the GitHub instance to authenticate with")
-	cmd.Flags().StringSliceVarP(&opts.Scopes, "scopes", "s", nil, "Additional authentication scopes to request")
-	cmd.Flags().BoolVar(&tokenStdin, "with-token", false, "Read token from standard input")
-	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "Open a browser to authenticate")
-	cmdutil.NilBoolFlag(cmd, &opts.Clipboard, "clipboard", "c", "Copy one-time OAuth device code to clipboard")
-	cmdutil.StringEnumFlag(cmd, &opts.GitProtocol, "git-protocol", "p", "", []string{"ssh", "https"}, "The protocol to use for git operations on this host")
+	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "要进行身份验证的 GitHub 实例的主机名")
+	cmd.Flags().StringSliceVarP(&opts.Scopes, "scopes", "s", nil, "要请求的额外身份验证作用域")
+	cmd.Flags().BoolVar(&tokenStdin, "with-token", false, "从标准输入读取令牌")
+	cmd.Flags().BoolVarP(&opts.Web, "web", "w", false, "打开浏览器进行身份验证")
+	cmdutil.NilBoolFlag(cmd, &opts.Clipboard, "clipboard", "c", "将一次性 OAuth 设备码复制到剪贴板")
+	cmdutil.StringEnumFlag(cmd, &opts.GitProtocol, "git-protocol", "p", "", []string{"ssh", "https"}, "此主机上 git 操作使用的协议")
 
-	// secure storage became the default on 2023/4/04; this flag is left as a no-op for backwards compatibility
+	// 安全存储(secure storage)于 2023/4/04 起成为默认；此标志保留为无操作(no-op)以保持向后兼容
 	var secureStorage bool
-	cmd.Flags().BoolVar(&secureStorage, "secure-storage", false, "Save authentication credentials in secure credential store")
+	cmd.Flags().BoolVar(&secureStorage, "secure-storage", false, "将身份验证凭据保存在安全的凭据存储中")
 	_ = cmd.Flags().MarkHidden("secure-storage")
 
-	cmd.Flags().BoolVar(&opts.InsecureStorage, "insecure-storage", false, "Save authentication credentials in plain text instead of credential store")
-	cmd.Flags().BoolVar(&opts.SkipSSHKeyPrompt, "skip-ssh-key", false, "Skip generate/upload SSH key prompt")
-	cmdutil.NilBoolFlag(cmd, &opts.Expiring, "expiring", "", "Prefer expiring credentials that gh refreshes automatically, if the host supports them")
+	cmd.Flags().BoolVar(&opts.InsecureStorage, "insecure-storage", false, "以明文形式保存身份验证凭据，而非使用凭据存储库")
+	cmd.Flags().BoolVar(&opts.SkipSSHKeyPrompt, "skip-ssh-key", false, "跳过生成/上传 SSH 密钥提示")
+	cmdutil.NilBoolFlag(cmd, &opts.Expiring, "expiring", "", "如果主机支持，优先使用 GitHub 自动刷新的含过期时间凭证")
 
 	return cmd
 }
@@ -215,14 +215,14 @@ func loginRun(opts *LoginOptions) error {
 		}
 	}
 
-	// The go-gh Config object currently does not support case-insensitive lookups for host names,
-	// so normalize the host name case here before performing any lookups with it or persisting it.
+	// go-gh 的 Config 对象目前不支持对主机名进行大小写不敏感的查找，
+	// 因此在用它执行任何查找或持久化之前，先在此处将主机名归一化为小写。
 	// https://github.com/cli/go-gh/pull/105
 	hostname = strings.ToLower(hostname)
 
 	if src, writeable := shared.AuthTokenWriteable(authCfg, hostname); !writeable {
-		fmt.Fprintf(opts.IO.ErrOut, "The value of the %s environment variable is being used for authentication.\n", src)
-		fmt.Fprint(opts.IO.ErrOut, "To have GitHub CLI store credentials instead, first clear the value from the environment.\n")
+		fmt.Fprintf(opts.IO.ErrOut, "环境变量 %s 的值正在用于身份验证\n", src)
+		fmt.Fprint(opts.IO.ErrOut, "若要改为让 GitHub CLI 存储凭据，请先从环境中清除该值\n")
 		return cmdutil.SilentError
 	}
 
@@ -238,14 +238,14 @@ func loginRun(opts *LoginOptions) error {
 
 	if opts.Token != "" {
 		if err := shared.HasMinimumScopes(httpClient, hostname, opts.Token); err != nil {
-			return fmt.Errorf("error validating token: %w", err)
+			return fmt.Errorf("验证令牌失败: %w", err)
 		}
 		username, err := shared.GetCurrentLogin(httpClient, hostname, opts.Token)
 		if err != nil {
-			return fmt.Errorf("error retrieving current user: %w", err)
+			return fmt.Errorf("获取当前用户失败: %w", err)
 		}
 
-		// Adding a user key ensures that a nonempty host section gets written to the config file.
+		// 添加 user 键可确保非空的主机部分被写入配置文件。
 		_, loginErr := authCfg.Login(hostname, username, opts.Token, opts.GitProtocol, !opts.InsecureStorage)
 		return loginErr
 	}
@@ -254,7 +254,7 @@ func loginRun(opts *LoginOptions) error {
 	// the config. Enterprise Server hosts are skipped because they may not support expiring tokens.
 	if opts.IO.IsStderrTTY() && opts.Expiring == nil && !ghauth.IsEnterprise(hostname) && !shared.ShouldUseExpiring(cfg, nil, hostname) {
 		cs := opts.IO.ColorScheme()
-		fmt.Fprintf(opts.IO.ErrOut, "%s Did you know that expiring tokens can be requested with %s? Read more at %s\n",
+		fmt.Fprintf(opts.IO.ErrOut, "%s 你知道吗？已过期的令牌可以通过 %s 重新申请？更多信息请访问 %s\n",
 			cs.WarningIcon(), cs.Bold("--expiring"), "https://gh.io/gh-expiring-tokens")
 	}
 
@@ -299,7 +299,7 @@ func loginRun(opts *LoginOptions) error {
 func promptForHostname(opts *LoginOptions) (string, error) {
 	options := []string{"GitHub.com", "Other"}
 	hostType, err := opts.Prompter.Select(
-		"Where do you use GitHub?",
+	"您在哪里使用 GitHub？",
 		options[0],
 		options)
 	if err != nil {

@@ -49,23 +49,23 @@ func NewCmdReview(f *cmdutil.Factory, runF func(*ReviewOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "review [<number> | <url> | <branch>]",
-		Short: "Add a review to a pull request",
+		Short: "向拉取请求(PR)添加审核(review)",
 		Long: heredoc.Doc(`
-			Add a review to a pull request.
+			向拉取请求(PR)添加审核(review)。
 
-			Without an argument, the pull request that belongs to the current branch is reviewed.
+			若未提供参数，将审核属于当前分支的拉取请求(PR)。
 		`),
 		Example: heredoc.Doc(`
-			# Approve the pull request of the current branch
+			# 批准(approve)当前分支的拉取请求(PR)
 			$ gh pr review --approve
 
-			# Leave a review comment for the current branch
+			# 为当前分支的拉取请求留下审核评论
 			$ gh pr review --comment -b "interesting"
 
-			# Add a review for a specific pull request
+			# 为指定的拉取请求(PR)添加审核(review)
 			$ gh pr review 123
 
-			# Request changes on a specific pull request
+			# 对指定的拉取请求(PR)请求变更(request changes)
 			$ gh pr review 123 -r -b "needs more ASCII art"
 		`),
 		Args: cobra.MaximumNArgs(1),
@@ -73,7 +73,7 @@ func NewCmdReview(f *cmdutil.Factory, runF func(*ReviewOptions) error) *cobra.Co
 			opts.Finder = shared.NewFinder(f)
 
 			if repoOverride, _ := cmd.Flags().GetString("repo"); repoOverride != "" && len(args) == 0 {
-				return cmdutil.FlagErrorf("argument required when using the --repo flag")
+				return cmdutil.FlagErrorf("使用 --repo flag 时必须提供位置参数")
 			}
 
 			if len(args) > 0 {
@@ -84,7 +84,7 @@ func NewCmdReview(f *cmdutil.Factory, runF func(*ReviewOptions) error) *cobra.Co
 			bodyFileProvided := bodyFile != ""
 
 			if err := cmdutil.MutuallyExclusive(
-				"specify only one of `--body` or `--body-file`",
+				"只能指定 `--body` 或 `--body-file` 之一",
 				bodyProvided,
 				bodyFileProvided,
 			); err != nil {
@@ -107,26 +107,26 @@ func NewCmdReview(f *cmdutil.Factory, runF func(*ReviewOptions) error) *cobra.Co
 				found++
 				opts.ReviewType = api.ReviewRequestChanges
 				if opts.Body == "" {
-					return cmdutil.FlagErrorf("body cannot be blank for request-changes review")
+					return cmdutil.FlagErrorf("请求变更(request-changes)审核的正文不能为空")
 				}
 			}
 			if flagComment {
 				found++
 				opts.ReviewType = api.ReviewComment
 				if opts.Body == "" {
-					return cmdutil.FlagErrorf("body cannot be blank for comment review")
+					return cmdutil.FlagErrorf("评论(comment)审核的正文不能为空")
 				}
 			}
 
 			if found == 0 && opts.Body == "" {
 				if !opts.IO.CanPrompt() {
-					return cmdutil.FlagErrorf("--approve, --request-changes, or --comment required when not running interactively")
+					return cmdutil.FlagErrorf("非交互式运行时必须提供 --approve、--request-changes 或 --comment")
 				}
 				opts.InteractiveMode = true
 			} else if found == 0 && opts.Body != "" {
-				return cmdutil.FlagErrorf("--body unsupported without --approve, --request-changes, or --comment")
+				return cmdutil.FlagErrorf("--body 必须与 --approve、--request-changes 或 --comment 之一配合使用")
 			} else if found > 1 {
-				return cmdutil.FlagErrorf("need exactly one of --approve, --request-changes, or --comment")
+				return cmdutil.FlagErrorf("必须且只能指定 --approve、--request-changes 或 --comment 之一")
 			}
 
 			if runF != nil {
@@ -136,11 +136,11 @@ func NewCmdReview(f *cmdutil.Factory, runF func(*ReviewOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().BoolVarP(&flagApprove, "approve", "a", false, "Approve pull request")
-	cmd.Flags().BoolVarP(&flagRequestChanges, "request-changes", "r", false, "Request changes on a pull request")
-	cmd.Flags().BoolVarP(&flagComment, "comment", "c", false, "Comment on a pull request")
-	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "Specify the body of a review")
-	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "Read body text from `file` (use \"-\" to read from standard input)")
+	cmd.Flags().BoolVarP(&flagApprove, "approve", "a", false, "批准(approve)拉取请求(PR)")
+	cmd.Flags().BoolVarP(&flagRequestChanges, "request-changes", "r", false, "对拉取请求(PR)请求变更(request changes)")
+	cmd.Flags().BoolVarP(&flagComment, "comment", "c", false, "对拉取请求(PR)发表评论(comment)")
+	cmd.Flags().StringVarP(&opts.Body, "body", "b", "", "指定审核(review)的正文")
+	cmd.Flags().StringVarP(&bodyFile, "body-file", "F", "", "从 `file` 读取正文文本 (使用 \"-\" 从标准输入读取)")
 
 	return cmd
 }
@@ -162,7 +162,7 @@ func reviewRun(opts *ReviewOptions) error {
 			return err
 		}
 		if reviewData == nil {
-			fmt.Fprint(opts.IO.ErrOut, "Discarding.\n")
+			fmt.Fprint(opts.IO.ErrOut, "正在丢弃。\n")
 			return nil
 		}
 	} else {
@@ -180,7 +180,7 @@ func reviewRun(opts *ReviewOptions) error {
 
 	err = api.AddReview(apiClient, baseRepo, pr, reviewData)
 	if err != nil {
-		return fmt.Errorf("failed to create review: %w", err)
+		return fmt.Errorf("创建审核(review)失败: %w", err)
 	}
 
 	if !opts.IO.IsStdoutTTY() || !opts.IO.IsStderrTTY() {
@@ -191,20 +191,20 @@ func reviewRun(opts *ReviewOptions) error {
 
 	switch reviewData.State {
 	case api.ReviewComment:
-		fmt.Fprintf(opts.IO.ErrOut, "%s Reviewed pull request %s#%d\n", cs.Muted("-"), ghrepo.FullName(baseRepo), pr.Number)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 已审核(reviewed)拉取请求(PR) %s#%d\n", cs.Muted("-"), ghrepo.FullName(baseRepo), pr.Number)
 	case api.ReviewApprove:
-		fmt.Fprintf(opts.IO.ErrOut, "%s Approved pull request %s#%d\n", cs.SuccessIcon(), ghrepo.FullName(baseRepo), pr.Number)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 已批准(approved)拉取请求(PR) %s#%d\n", cs.SuccessIcon(), ghrepo.FullName(baseRepo), pr.Number)
 	case api.ReviewRequestChanges:
-		fmt.Fprintf(opts.IO.ErrOut, "%s Requested changes to pull request %s#%d\n", cs.Red("+"), ghrepo.FullName(baseRepo), pr.Number)
+		fmt.Fprintf(opts.IO.ErrOut, "%s 已对拉取请求(PR) %s#%d 请求变更(requested changes)\n", cs.Red("+"), ghrepo.FullName(baseRepo), pr.Number)
 	}
 
 	return nil
 }
 
 func reviewSurvey(opts *ReviewOptions) (*api.PullRequestReviewInput, error) {
-	options := []string{"Comment", "Approve", "Request Changes"}
+	options := []string{"评论", "批准", "请求变更"}
 	reviewType, err := opts.Prompter.Select(
-		"What kind of review do you want to give?",
+		"您想提交哪种类型的审核(review)?",
 		options[0],
 		options)
 	if err != nil {
@@ -221,7 +221,7 @@ func reviewSurvey(opts *ReviewOptions) (*api.PullRequestReviewInput, error) {
 	case 2:
 		reviewState = api.ReviewRequestChanges
 	default:
-		panic("unreachable state")
+		panic("不应到达的状态")
 	}
 
 	blankAllowed := false
@@ -229,13 +229,13 @@ func reviewSurvey(opts *ReviewOptions) (*api.PullRequestReviewInput, error) {
 		blankAllowed = true
 	}
 
-	body, err := opts.Prompter.MarkdownEditor("Review body", "", blankAllowed)
+	body, err := opts.Prompter.MarkdownEditor("审核(review)正文", "", blankAllowed)
 	if err != nil {
 		return nil, err
 	}
 
 	if body == "" && (reviewState == api.ReviewComment || reviewState == api.ReviewRequestChanges) {
-		return nil, errors.New("this type of review cannot be blank")
+		return nil, errors.New("该类型的审核(review)不能为空")
 	}
 
 	if len(body) > 0 {
@@ -246,10 +246,10 @@ func reviewSurvey(opts *ReviewOptions) (*api.PullRequestReviewInput, error) {
 			return nil, err
 		}
 
-		fmt.Fprintf(opts.IO.Out, "Got:\n%s", renderedBody)
+		fmt.Fprintf(opts.IO.Out, "收到:\n%s", renderedBody)
 	}
 
-	confirm, err := opts.Prompter.Confirm("Submit?", true)
+	confirm, err := opts.Prompter.Confirm("提交?", true)
 	if err != nil {
 		return nil, err
 	}

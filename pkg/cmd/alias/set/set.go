@@ -34,24 +34,20 @@ func NewCmdSet(f *cmdutil.Factory, runF func(*SetOptions) error) *cobra.Command 
 
 	cmd := &cobra.Command{
 		Use:   "set <alias> <expansion>",
-		Short: "Create a shortcut for a gh command",
+		Short: "为 gh 命令创建快捷方式",
 		Long: heredoc.Docf(`
-			Define a word that will expand to a full gh command when invoked.
+			定义一个单词，当调用时将扩展为完整的 gh 命令。
 
-			The expansion may specify additional arguments and flags. If the expansion includes
-			positional placeholders such as %[1]s$1%[1]s, extra arguments that follow the alias will be
-			inserted appropriately. Otherwise, extra arguments will be appended to the expanded
-			command.
+			扩展可以指定额外的参数和标志。如果扩展包含位置占位符，如 %[1]s$1%[1]s。则别名之后的额外参数
+			将被适当地插入。否则，额外参数将被附加到扩展后的命令中。
 
-			Use %[1]s-%[1]s as expansion argument to read the expansion string from standard input. This
-			is useful to avoid quoting issues when defining expansions.
+			使用 %[1]s-%[1]s 作为扩展参数，可以从标准输入读取扩展字符串。这在定义扩展时有助于避免引号问题。
 
-			If the expansion starts with %[1]s!%[1]s or if %[1]s--shell%[1]s was given, the expansion is a shell
-			expression that will be evaluated through the %[1]ssh%[1]s interpreter when the alias is
-			invoked. This allows for chaining multiple commands via piping and redirection.
+			如果扩展以 %[1]s!%[1]s 开头，或者如果指定了 %[1]s--shell%[1]s，那么该扩展就是一个 shell 表达式，
+			当调用别名时，将通过 %[1]ssh%[1]s 解释器进行求值。这允许通过管道和重定向来链接多个命令。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Note: Command Prompt on Windows requires using double quotes for arguments
+			# 注意: Windows上的命令提示符需要使用双引号来包裹参数
 			$ gh alias set pv 'pr view'
 			$ gh pv -w 123  #=> gh pr view -w 123
 
@@ -86,8 +82,8 @@ func NewCmdSet(f *cmdutil.Factory, runF func(*SetOptions) error) *cobra.Command 
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.IsShell, "shell", "s", false, "Declare an alias to be passed through a shell interpreter")
-	cmd.Flags().BoolVar(&opts.OverwriteExisting, "clobber", false, "Overwrite existing aliases of the same name")
+	cmd.Flags().BoolVarP(&opts.IsShell, "shell", "s", false, "声明一个别名，以便通过 shell 解释器传递")
+	cmd.Flags().BoolVar(&opts.OverwriteExisting, "clobber", false, "覆盖同名的现有别名")
 
 	return cmd
 }
@@ -103,7 +99,7 @@ func setRun(opts *SetOptions) error {
 
 	expansion, err := getExpansion(opts)
 	if err != nil {
-		return fmt.Errorf("did not understand expansion: %w", err)
+		return fmt.Errorf("不理解扩张: %w", err)
 	}
 
 	if opts.IsShell && !strings.HasPrefix(expansion, "!") {
@@ -112,7 +108,7 @@ func setRun(opts *SetOptions) error {
 
 	isTerminal := opts.IO.IsStdoutTTY()
 	if isTerminal {
-		fmt.Fprintf(opts.IO.ErrOut, "- Creating alias for %s: %s\n", cs.Bold(opts.Name), cs.Bold(expansion))
+		fmt.Fprintf(opts.IO.ErrOut, "- 为 %s 创建别名: %s\n", cs.Bold(opts.Name), cs.Bold(expansion))
 	}
 
 	var existingAlias bool
@@ -122,13 +118,13 @@ func setRun(opts *SetOptions) error {
 
 	if !opts.validAliasName(opts.Name) {
 		if !existingAlias {
-			return fmt.Errorf("%s Could not create alias %s: already a gh command or extension",
+			return fmt.Errorf("%s 无法创建别名 %s: 已经是 gh 命令或扩展",
 				cs.FailureIcon(),
 				cs.Bold(opts.Name))
 		}
 
 		if existingAlias && !opts.OverwriteExisting {
-			return fmt.Errorf("%s Could not create alias %s: name already taken, use the --clobber flag to overwrite it",
+			return fmt.Errorf("%s 无法创建别名 %s: 名称已被占用，请使用 --clobber 标志覆盖它",
 				cs.FailureIcon(),
 				cs.Bold(opts.Name),
 			)
@@ -136,7 +132,7 @@ func setRun(opts *SetOptions) error {
 	}
 
 	if !opts.validAliasExpansion(expansion) {
-		return fmt.Errorf("%s Could not create alias %s: expansion does not correspond to a gh command, extension, or alias",
+		return fmt.Errorf("%s 无法创建别名 %s: 该扩展名不对应任何 gh 命令、扩展或别名",
 			cs.FailureIcon(),
 			cs.Bold(opts.Name))
 	}
@@ -148,9 +144,9 @@ func setRun(opts *SetOptions) error {
 		return err
 	}
 
-	successMsg := fmt.Sprintf("%s Added alias %s", cs.SuccessIcon(), cs.Bold(opts.Name))
+	successMsg := fmt.Sprintf("%s 添加别名 %s", cs.SuccessIcon(), cs.Bold(opts.Name))
 	if existingAlias && opts.OverwriteExisting {
-		successMsg = fmt.Sprintf("%s Changed alias %s",
+		successMsg = fmt.Sprintf("%s 修改了别名 %s",
 			cs.WarningIcon(),
 			cs.Bold(opts.Name))
 	}
@@ -166,7 +162,7 @@ func getExpansion(opts *SetOptions) (string, error) {
 	if opts.Expansion == "-" {
 		stdin, err := io.ReadAll(opts.IO.In)
 		if err != nil {
-			return "", fmt.Errorf("failed to read from STDIN: %w", err)
+			return "", fmt.Errorf("无法从标准输入读取数据: %w", err)
 		}
 
 		return string(stdin), nil

@@ -112,7 +112,7 @@ func TestNewTrustedRootWithTenancy(t *testing.T) {
 
 	cli := "--hostname foo-bar.ghe.com"
 
-	t.Run("Host with NO auth configured", func(t *testing.T) {
+	t.Run("主机未配置身份认证", func(t *testing.T) {
 		f := &cmdutil.Factory{
 			IOStreams: testIO,
 			Config: func() (gh.Config, error) {
@@ -140,10 +140,10 @@ func TestNewTrustedRootWithTenancy(t *testing.T) {
 		_, err := cmd.ExecuteC()
 
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "not authenticated")
+		assert.ErrorContains(t, err, "身份认证")
 	})
 
-	t.Run("Host with auth configured", func(t *testing.T) {
+	t.Run("主机已配置身份认证", func(t *testing.T) {
 		f := &cmdutil.Factory{
 			IOStreams: testIO,
 			Config: func() (gh.Config, error) {
@@ -175,7 +175,7 @@ func TestNewTrustedRootWithTenancy(t *testing.T) {
 }
 
 var newTUFErrClient tufClientInstantiator = func(o *tuf.Options) (*tuf.Client, error) {
-	return nil, fmt.Errorf("failed to create TUF client")
+	return nil, fmt.Errorf("创建 TUF 客户端失败")
 }
 
 func TestGetTrustedRoot(t *testing.T) {
@@ -191,17 +191,17 @@ func TestGetTrustedRoot(t *testing.T) {
 	client := &http.Client{}
 	httpmock.ReplaceTripper(client, reg)
 
-	t.Run("failed to create TUF root", func(t *testing.T) {
+	t.Run("创建 TUF 根失败", func(t *testing.T) {
 		err := getTrustedRoot(newTUFErrClient, opts, client)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "failed to create TUF client")
+		require.ErrorContains(t, err, "创建 TUF 客户端失败")
 	})
 
-	t.Run("fails because the root cannot be found", func(t *testing.T) {
+	t.Run("因找不到根而失败", func(t *testing.T) {
 		opts.TufRootPath = test.NormalizeRelativePath("./does/not/exist/root.json")
 		err := getTrustedRoot(tuf.New, opts, client)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "failed to read root file")
+		require.ErrorContains(t, err, "读取根文件")
 	})
 
 }

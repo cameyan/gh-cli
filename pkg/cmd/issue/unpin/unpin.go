@@ -34,20 +34,20 @@ func NewCmdUnpin(f *cmdutil.Factory, runF func(*UnpinOptions) error) *cobra.Comm
 
 	cmd := &cobra.Command{
 		Use:   "unpin {<number> | <url>}",
-		Short: "Unpin an issue",
+		Short: "取消置顶 issue",
 		Long: heredoc.Doc(`
-			Unpin an issue from a repository.
+			从仓库取消置顶 issue。
 
-			The issue can be specified by issue number or URL.
+			可以通过 issue 编号或 URL 指定 issue。
 		`),
 		Example: heredoc.Doc(`
-			# Unpin issue from the current repository
+			# 从当前仓库取消置顶 issue
 			$ gh issue unpin 23
 
-			# Unpin issue by URL
+			# 通过 URL 取消置顶 issue
 			$ gh issue unpin https://github.com/owner/repo/issues/23
 
-			# Unpin an issue from specific repository
+			# 从指定仓库取消置顶 issue
 			$ gh issue unpin 23 --repo owner/repo
 		`),
 		Args: cobra.ExactArgs(1),
@@ -57,13 +57,13 @@ func NewCmdUnpin(f *cmdutil.Factory, runF func(*UnpinOptions) error) *cobra.Comm
 				return err
 			}
 
-			// If the args provided the base repo then use that directly.
+			// 如果参数提供了基础仓库，则直接使用它。
 			if baseRepo, present := baseRepo.Value(); present {
 				opts.BaseRepo = func() (ghrepo.Interface, error) {
 					return baseRepo, nil
 				}
 			} else {
-				// support `-R, --repo` override
+				// 支持 `-R, --repo` 覆盖
 				opts.BaseRepo = f.BaseRepo
 			}
 
@@ -99,7 +99,7 @@ func unpinRun(opts *UnpinOptions) error {
 	}
 
 	if !issue.IsPinned {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Issue %s#%d (%s) is not pinned\n", cs.Yellow("!"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
+		fmt.Fprintf(opts.IO.ErrOut, "%s issue %s#%d (%s) 未置顶\n", cs.Yellow("!"), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
 		return nil
 	}
 
@@ -108,7 +108,7 @@ func unpinRun(opts *UnpinOptions) error {
 		return err
 	}
 
-	fmt.Fprintf(opts.IO.ErrOut, "%s Unpinned issue %s#%d (%s)\n", cs.SuccessIconWithColor(cs.Red), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
+	fmt.Fprintf(opts.IO.ErrOut, "%s 已取消置顶 issue %s#%d (%s)\n", cs.SuccessIconWithColor(cs.Red), ghrepo.FullName(baseRepo), issue.Number, issue.Title)
 
 	return nil
 }

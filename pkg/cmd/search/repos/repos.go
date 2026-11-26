@@ -37,49 +37,48 @@ func NewCmdRepos(f *cmdutil.Factory, runF func(*ReposOptions) error) *cobra.Comm
 
 	cmd := &cobra.Command{
 		Use:   "repos [<query>]",
-		Short: "Search for repositories",
+		Short: "搜索仓库",
 		Long: heredoc.Docf(`
-			Search for repositories on GitHub.
+			在 GitHub 上搜索仓库。
 
-			The command supports constructing queries using the GitHub search syntax,
-			using the parameter and qualifier flags, or a combination of the two.
+			该命令支持使用 GitHub 搜索语法、参数与限定符 flags，或两者的组合来构造查询。
 
-			GitHub search syntax is documented at:
+			GitHub 搜索语法文档见:
 			<https://docs.github.com/search-github/searching-on-github/searching-for-repositories>
 
-			For more information on handling search queries containing a hyphen, run %[1]sgh search --help%[1]s.
+			有关处理包含连字符的搜索查询的更多信息，请运行 %[1]sgh search --help%[1]s。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Search repositories matching set of keywords "cli" and "shell"
+			# 搜索匹配关键字集合 "cli" 和 "shell" 的仓库
 			$ gh search repos cli shell
 
-			# Search repositories matching phrase "vim plugin"
+			# 搜索匹配短语 "vim plugin" 的仓库
 			$ gh search repos "vim plugin"
 
-			# Search repositories using raw search qualifiers as separate arguments
+			# 以独立参数的形式使用原始搜索限定符搜索仓库
 			$ gh search repos topic:github 'stars:>5000'
 
-			# Search repositories public repos in the microsoft organization
+			# 搜索 microsoft 组织中的公开仓库
 			$ gh search repos --owner=microsoft --visibility=public
 
-			# Search repositories with a set of topics
+			# 搜索具有一组主题的仓库
 			$ gh search repos --topic=unix,terminal
 
-			# Search repositories by coding language and number of good first issues
+			# 按编程语言和 "good first issue" 数量搜索仓库
 			$ gh search repos --language=go --good-first-issues=">=10"
 
-			# Search repositories without topic "linux"
+			# 搜索没有 "linux" 主题的仓库
 			$ gh search repos -- -topic:linux
 
-			# Search repositories excluding archived repositories
+			# 搜索时排除已归档的仓库
 			$ gh search repos --archived=false
 		`),
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) == 0 && c.Flags().NFlag() == 0 {
-				return cmdutil.FlagErrorf("specify search keywords or flags")
+				return cmdutil.FlagErrorf("请指定搜索关键字或 flag")
 			}
 			if opts.Query.Limit < 1 || opts.Query.Limit > shared.SearchMaxResults {
-				return cmdutil.FlagErrorf("`--limit` must be between 1 and 1000")
+				return cmdutil.FlagErrorf("`--limit` 必须在 1 到 1000 之间")
 			}
 			if c.Flags().Changed("order") {
 				opts.Query.Order = order
@@ -100,33 +99,33 @@ func NewCmdRepos(f *cmdutil.Factory, runF func(*ReposOptions) error) *cobra.Comm
 		},
 	}
 
-	// Output flags
+	// 输出 flags
 	cmdutil.AddJSONFlags(cmd, &opts.Exporter, search.RepositoryFields)
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "Open the search query in the web browser")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "在 web 浏览器中打开搜索查询")
 
-	// Query parameter flags
-	cmd.Flags().IntVarP(&opts.Query.Limit, "limit", "L", 30, "Maximum number of repositories to fetch")
-	cmdutil.StringEnumFlag(cmd, &order, "order", "", "desc", []string{"asc", "desc"}, "Order of repositories returned, ignored unless '--sort' flag is specified")
-	cmdutil.StringEnumFlag(cmd, &sort, "sort", "", "best-match", []string{"forks", "help-wanted-issues", "stars", "updated"}, "Sort fetched repositories")
+	// 查询参数 flags
+	cmd.Flags().IntVarP(&opts.Query.Limit, "limit", "L", 30, "获取仓库的最大数量")
+	cmdutil.StringEnumFlag(cmd, &order, "order", "", "desc", []string{"asc", "desc"}, "返回仓库的排序方向，除非指定 '--sort' 选项，否则将被忽略")
+	cmdutil.StringEnumFlag(cmd, &sort, "sort", "", "best-match", []string{"forks", "help-wanted-issues", "stars", "updated"}, "对获取的仓库排序")
 
-	// Query qualifier flags
-	cmdutil.NilBoolFlag(cmd, &opts.Query.Qualifiers.Archived, "archived", "", "Filter based on the repository archived state {true|false}")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Created, "created", "", "Filter based on created at `date`")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Followers, "followers", "", "Filter based on `number` of followers")
-	cmdutil.StringEnumFlag(cmd, &opts.Query.Qualifiers.Fork, "include-forks", "", "", []string{"false", "true", "only"}, "Include forks in fetched repositories")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Forks, "forks", "", "Filter on `number` of forks")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.GoodFirstIssues, "good-first-issues", "", "Filter on `number` of issues with the 'good first issue' label")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.HelpWantedIssues, "help-wanted-issues", "", "Filter on `number` of issues with the 'help wanted' label")
-	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.In, "match", "", nil, []string{"name", "description", "readme"}, "Restrict search to specific field of repository")
-	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.Is, "visibility", "", nil, []string{"public", "private", "internal"}, "Filter based on visibility")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Language, "language", "", "Filter based on the coding language")
-	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.License, "license", nil, "Filter based on license type")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Pushed, "updated", "", "Filter on last updated at `date`")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Size, "size", "", "Filter on a size range, in kilobytes")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Stars, "stars", "", "Filter on `number` of stars")
-	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.Topic, "topic", nil, "Filter on topic")
-	cmd.Flags().StringVar(&opts.Query.Qualifiers.Topics, "number-topics", "", "Filter on `number` of topics")
-	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.User, "owner", nil, "Filter on owner")
+	// 查询限定符(qualifier) flags
+	cmdutil.NilBoolFlag(cmd, &opts.Query.Qualifiers.Archived, "archived", "", "按仓库归档状态过滤 {true|false}")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Created, "created", "", "按创建的 `date` 过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Followers, "followers", "", "按关注者 `number` 过滤")
+	cmdutil.StringEnumFlag(cmd, &opts.Query.Qualifiers.Fork, "include-forks", "", "", []string{"false", "true", "only"}, "在获取的仓库中包含 fork 仓库")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Forks, "forks", "", "按 fork 的 `number` 过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.GoodFirstIssues, "good-first-issues", "", "按带有 'good first issue' 标签的 issue `number` 过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.HelpWantedIssues, "help-wanted-issues", "", "按带有 'help wanted' 标签的 issue `number` 过滤")
+	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.In, "match", "", nil, []string{"name", "description", "readme"}, "将搜索限制在仓库的特定字段")
+	cmdutil.StringSliceEnumFlag(cmd, &opts.Query.Qualifiers.Is, "visibility", "", nil, []string{"public", "private", "internal"}, "按可见性过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Language, "language", "", "按编程语言过滤")
+	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.License, "license", nil, "按许可证类型过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Pushed, "updated", "", "按最后更新的 `date` 过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Size, "size", "", "按大小范围过滤，单位为千字节(KB)")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Stars, "stars", "", "按 star 的 `number` 过滤")
+	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.Topic, "topic", nil, "按主题过滤")
+	cmd.Flags().StringVar(&opts.Query.Qualifiers.Topics, "number-topics", "", "按主题的 `number` 过滤")
+	cmd.Flags().StringSliceVar(&opts.Query.Qualifiers.User, "owner", nil, "按所有者过滤")
 
 	return cmd
 }
@@ -136,7 +135,7 @@ func reposRun(opts *ReposOptions) error {
 	if opts.WebMode {
 		url := opts.Searcher.URL(opts.Query)
 		if io.IsStdoutTTY() {
-			fmt.Fprintf(io.ErrOut, "Opening %s in your browser.\n", text.DisplayURL(url))
+			fmt.Fprintf(io.ErrOut, "正在浏览器中打开 %s\n", text.DisplayURL(url))
 		}
 		return opts.Browser.Browse(url)
 	}
@@ -147,12 +146,12 @@ func reposRun(opts *ReposOptions) error {
 		return err
 	}
 	if len(result.Items) == 0 && opts.Exporter == nil {
-		return cmdutil.NewNoResultsError("no repositories matched your search")
+		return cmdutil.NewNoResultsError("没有匹配您搜索的仓库")
 	}
 	if err := io.StartPager(); err == nil {
 		defer io.StopPager()
 	} else {
-		fmt.Fprintf(io.ErrOut, "failed to start pager: %v\n", err)
+		fmt.Fprintf(io.ErrOut, "启动分页器失败: %v\n", err)
 	}
 	if opts.Exporter != nil {
 		return opts.Exporter.Write(io, result.Items)
@@ -166,14 +165,14 @@ func displayResults(io *iostreams.IOStreams, now time.Time, results search.Repos
 		now = time.Now()
 	}
 	cs := io.ColorScheme()
-	tp := tableprinter.New(io, tableprinter.WithHeader("Name", "Description", "Visibility", "Updated"))
+	tp := tableprinter.New(io, tableprinter.WithHeader("名称", "描述", "可见性", "更新时间"))
 	for _, repo := range results.Items {
 		tags := []string{visibilityLabel(repo)}
 		if repo.IsFork {
 			tags = append(tags, "fork")
 		}
 		if repo.IsArchived {
-			tags = append(tags, "archived")
+			tags = append(tags, "已归档")
 		}
 		info := strings.Join(tags, ", ")
 		infoColor := cs.Muted
@@ -187,7 +186,7 @@ func displayResults(io *iostreams.IOStreams, now time.Time, results search.Repos
 		tp.EndRow()
 	}
 	if io.IsStdoutTTY() {
-		header := fmt.Sprintf("Showing %d of %d repositories\n\n", len(results.Items), results.Total)
+		header := fmt.Sprintf("显示 %d 条，共 %d 条仓库\n\n", len(results.Items), results.Total)
 		fmt.Fprintf(io.Out, "\n%s", header)
 	}
 	return tp.Render()

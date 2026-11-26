@@ -57,40 +57,40 @@ func NewCmdRun(f *cmdutil.Factory, runF func(*RunOptions) error) *cobra.Command 
 
 	cmd := &cobra.Command{
 		Use:   "run [<workflow-id> | <workflow-name>]",
-		Short: "Run a workflow by creating a workflow_dispatch event",
+		Short: "通过创建工作流调度事件来运行工作流",
 		Long: heredoc.Docf(`
-			Create a %[1]sworkflow_dispatch%[1]s event for a given workflow.
+			为给定的工作流创建一个 %[1]sworkflow_dispatch%[1]s 事件。
 
-			This command will trigger GitHub Actions to run a given workflow file. The given workflow file must
-			support an %[1]son.workflow_dispatch%[1]s trigger in order to be run in this way.
+			此命令将触发 GitHub Actions 运行指定的工作流文件。指定的工作流文件必须支持
+			%[1]son.workflow_dispatch%[1]s 触发器，才能以这种方式运行。
 
-			If the workflow file supports inputs, they can be specified in a few ways:
+			如果工作流文件支持输入，可以通过以下几种方式指定:
 
-			- Interactively
-			- Via %[1]s-f/--raw-field%[1]s or %[1]s-F/--field%[1]s flags
-			- As JSON, via standard input
+			- 人机交互方式
+			- 通过 %[1]s-f/--raw-field%[1]s 或 %[1]s-F/--field%[1]s 参数选项
+			- 作为 JSON，通过标准输入传入
 
-			The created workflow run URL will be returned if available.
+			如果可用，将返回所创建工作流运行的链接。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Have gh prompt you for what workflow you'd like to run and interactively collect inputs
+			# 让 gh 提示您选择想要运行的工作流，并交互式地收集输入
 			$ gh workflow run
 
-			# Run the workflow file 'triage.yml' at the remote's default branch
+			# 在远程仓库的默认分支上运行工作流文件 'triage.yml'
 			$ gh workflow run triage.yml
 
-			# Run the workflow file 'triage.yml' at a specified ref
+			# 在指定的分支上运行工作流文件 'triage.yml'
 			$ gh workflow run triage.yml --ref my-branch
 
-			# Run the workflow file 'triage.yml' with command line inputs
+			# 通过命令行输入运行工作流文件 'triage.yml'
 			$ gh workflow run triage.yml -f name=scully -f greeting=hello
 
-			# Run the workflow file 'triage.yml' with JSON via standard input
+			# 通过标准输入以 JSON 格式运行工作流文件 'triage.yml'
 			$ echo '{"name":"scully", "greeting":"hello"}' | gh workflow run triage.yml --json
 		`),
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(opts.MagicFields)+len(opts.RawFields) > 0 && len(args) == 0 {
-				return cmdutil.FlagErrorf("workflow argument required when passing -f or -F")
+				return cmdutil.FlagErrorf("在使用 -f 或 -F 参数时，需要指定工作流参数")
 			}
 			return nil
 		},
@@ -103,7 +103,7 @@ func NewCmdRun(f *cmdutil.Factory, runF func(*RunOptions) error) *cobra.Command 
 			if len(args) > 0 {
 				opts.Selector = args[0]
 			} else if !opts.IO.CanPrompt() {
-				return cmdutil.FlagErrorf("workflow ID, name, or filename required when not running interactively")
+				return cmdutil.FlagErrorf("在非交互式运行时，需要指定工作流 ID、名称或文件名")
 			} else {
 				opts.Prompt = true
 			}
@@ -111,20 +111,20 @@ func NewCmdRun(f *cmdutil.Factory, runF func(*RunOptions) error) *cobra.Command 
 			if opts.JSON && !opts.IO.IsStdinTTY() {
 				jsonIn, err := io.ReadAll(opts.IO.In)
 				if err != nil {
-					return errors.New("failed to read from STDIN")
+					return errors.New("无法从标准输入读取数据")
 				}
 				opts.JSONInput = string(jsonIn)
 			} else if opts.JSON {
-				return cmdutil.FlagErrorf("--json specified but nothing on STDIN")
+				return cmdutil.FlagErrorf("--json 已指定，但标准输入中没有内容")
 			}
 
 			if opts.Selector == "" {
 				if opts.JSONInput != "" {
-					return cmdutil.FlagErrorf("workflow argument required when passing JSON")
+					return cmdutil.FlagErrorf("传递 JSON 时需要工作流参数")
 				}
 			} else {
 				if opts.JSON && inputFieldsPassed {
-					return cmdutil.FlagErrorf("only one of STDIN or -f/-F can be passed")
+					return cmdutil.FlagErrorf("只能传递 STDIN 或 -f/-F 中的一个参数")
 				}
 			}
 
@@ -135,10 +135,10 @@ func NewCmdRun(f *cmdutil.Factory, runF func(*RunOptions) error) *cobra.Command 
 			return runRun(opts)
 		},
 	}
-	cmd.Flags().StringVarP(&opts.Ref, "ref", "r", "", "Branch or tag name which contains the version of the workflow file you'd like to run")
-	cmd.Flags().StringArrayVarP(&opts.MagicFields, "field", "F", nil, "Add a string parameter in `key=value` format, respecting @ syntax (see \"gh help api\").")
-	cmd.Flags().StringArrayVarP(&opts.RawFields, "raw-field", "f", nil, "Add a string parameter in `key=value` format")
-	cmd.Flags().BoolVar(&opts.JSON, "json", false, "Read workflow inputs as JSON via STDIN")
+	cmd.Flags().StringVarP(&opts.Ref, "ref", "r", "", "包含您希望运行的工作流文件版本的分支或标签名称")
+	cmd.Flags().StringArrayVarP(&opts.MagicFields, "field", "F", nil, "添加一个字符串参数，格式为 `key=value`，并遵循 @ 语法(参见 \"gh help api\")")
+	cmd.Flags().StringArrayVarP(&opts.RawFields, "raw-field", "f", nil, "添加一个格式为 `key=value` 的字符串参数")
+	cmd.Flags().BoolVar(&opts.JSON, "json", false, "通过标准输入读取工作流输入为 JSON 格式")
 
 	_ = cmdutil.RegisterBranchCompletionFlags(f.GitClient, cmd, "ref")
 
@@ -149,7 +149,7 @@ func NewCmdRun(f *cmdutil.Factory, runF func(*RunOptions) error) *cobra.Command 
 func parseField(f string) (string, string, error) {
 	idx := strings.IndexRune(f, '=')
 	if idx == -1 {
-		return f, "", fmt.Errorf("field %q requires a value separated by an '=' sign", f)
+		return f, "", fmt.Errorf("字段 %q 需要一个以 '=' 符号分隔的值", f)
 	}
 	return f[0:idx], f[idx+1:], nil
 }
@@ -184,7 +184,7 @@ func parseFields(opts RunOptions) (map[string]string, error) {
 		}
 		value, err := magicFieldValue(strValue, opts)
 		if err != nil {
-			return params, fmt.Errorf("error parsing %q value: %w", key, err)
+			return params, fmt.Errorf("解析 %q 值时出错: %w", key, err)
 		}
 		params[key] = value
 	}
@@ -207,7 +207,7 @@ func (ia *InputAnswer) WriteAnswer(name string, value any) error {
 		return nil
 	}
 
-	return fmt.Errorf("unexpected value type: %v", value)
+	return fmt.Errorf("意外的值类型: %v", value)
 }
 
 func collectInputs(p iprompter, yamlContent []byte) (map[string]string, error) {
@@ -258,7 +258,7 @@ func collectInputs(p iprompter, yamlContent []byte) (map[string]string, error) {
 func runRun(opts *RunOptions) error {
 	c, err := opts.HttpClient()
 	if err != nil {
-		return fmt.Errorf("could not build http client: %w", err)
+		return fmt.Errorf("无法构建 HTTP 客户端: %w", err)
 	}
 	client := api.NewClientFromHTTP(c)
 
@@ -277,7 +277,7 @@ func runRun(opts *RunOptions) error {
 	if ref == "" {
 		ref, err = api.RepoDefaultBranch(client, repo)
 		if err != nil {
-			return fmt.Errorf("unable to determine default branch for %s: %w", ghrepo.FullName(repo), err)
+			return fmt.Errorf("无法确定 %s 的默认分支: %w", ghrepo.FullName(repo), err)
 		}
 	}
 
@@ -286,7 +286,7 @@ func runRun(opts *RunOptions) error {
 		opts.IO, client, repo, opts.Prompt, opts.Selector, states)
 	if err != nil {
 		if _, ok := errors.AsType[shared.FilteredAllError](err); ok {
-			return errors.New("no workflows are enabled on this repository")
+			return errors.New("该仓库未启用任何工作流")
 		}
 		return err
 	}
@@ -301,12 +301,12 @@ func runRun(opts *RunOptions) error {
 	} else if opts.JSONInput != "" {
 		err := json.Unmarshal([]byte(opts.JSONInput), &providedInputs)
 		if err != nil {
-			return fmt.Errorf("could not parse provided JSON: %w", err)
+			return fmt.Errorf("无法解析提供的 JSON: %w", err)
 		}
 	} else if opts.Prompt {
 		yamlContent, err := shared.GetWorkflowContent(client, repo, *workflow, ref)
 		if err != nil {
-			return fmt.Errorf("unable to fetch workflow file content: %w", err)
+			return fmt.Errorf("无法获取工作流文件内容: %w", err)
 		}
 		providedInputs, err = collectInputs(opts.Prompter, yamlContent)
 		if err != nil {
@@ -339,7 +339,7 @@ func runRun(opts *RunOptions) error {
 
 	requestByte, err := json.Marshal(requestBody)
 	if err != nil {
-		return fmt.Errorf("failed to serialize workflow inputs: %w", err)
+		return fmt.Errorf("无法序列化工作流输入: %w", err)
 	}
 
 	body := bytes.NewReader(requestByte)
@@ -363,12 +363,12 @@ func runRun(opts *RunOptions) error {
 	// changes) will probably default to return 200 + run details.
 	err = client.REST(repo.RepoHost(), "POST", path.String(), body, &response)
 	if err != nil {
-		return fmt.Errorf("could not create workflow dispatch event: %w", err)
+		return fmt.Errorf("无法创建工作流调度事件: %w", err)
 	}
 
 	if opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
-		fmt.Fprintf(opts.IO.Out, "%s Created workflow_dispatch event for %s at %s\n",
+		fmt.Fprintf(opts.IO.Out, "%[1]s 在 %[3]s 中为 %[2]s 创建了 workflow_dispatch 事件\n",
 			cs.SuccessIcon(), cs.Cyan(workflow.Base()), cs.Bold(ref))
 
 		if response.HtmlURL != "" {
@@ -378,11 +378,11 @@ func runRun(opts *RunOptions) error {
 		fmt.Fprintln(opts.IO.Out)
 
 		if response.WorkflowRunID != 0 {
-			fmt.Fprintf(opts.IO.Out, "To see the created workflow run, try: %s\n",
+			fmt.Fprintf(opts.IO.Out, "要查看已创建的工作流运行情况，请尝试: %s\n",
 				cs.Boldf("gh run view %d", response.WorkflowRunID))
 		}
 
-		fmt.Fprintf(opts.IO.Out, "To see runs for this workflow, try: %s\n",
+		fmt.Fprintf(opts.IO.Out, "要查看此工作流的运行情况，请尝试: %s\n",
 			cs.Boldf("gh run list --workflow=%q", workflow.Base()))
 	} else {
 		if response.HtmlURL != "" {
@@ -406,11 +406,11 @@ func findInputs(yamlContent []byte) ([]WorkflowInput, error) {
 	var rootNode yaml.Node
 	err := yaml.Unmarshal(yamlContent, &rootNode)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse workflow YAML: %w", err)
+		return nil, fmt.Errorf("无法解析工作流 YAML: %w", err)
 	}
 
 	if len(rootNode.Content) != 1 {
-		return nil, errors.New("invalid YAML file")
+		return nil, errors.New("无效的 YAML 文件")
 	}
 
 	var onKeyNode *yaml.Node
@@ -460,11 +460,11 @@ func findInputs(yamlContent []byte) ([]WorkflowInput, error) {
 	}
 
 	if onKeyNode == nil {
-		return nil, errors.New("invalid workflow: no 'on' key")
+		return nil, errors.New("无效的工作流: 缺少 'on' 字段")
 	}
 
 	if dispatchKeyNode == nil {
-		return nil, errors.New("unable to manually run a workflow without a workflow_dispatch event")
+		return nil, errors.New("无法在没有 workflow_dispatch 事件的情况下手动运行工作流")
 	}
 
 	out := []WorkflowInput{}
@@ -477,12 +477,12 @@ func findInputs(yamlContent []byte) ([]WorkflowInput, error) {
 
 	err = inputsMapNode.Decode(&m)
 	if err != nil {
-		return nil, fmt.Errorf("could not decode workflow inputs: %w", err)
+		return nil, fmt.Errorf("无法解码工作流输入内容: %w", err)
 	}
 
 	for name, input := range m {
 		if input.Type == "choice" && len(input.Options) == 0 {
-			return nil, fmt.Errorf("workflow input %q is of type choice, but has no options", name)
+			return nil, fmt.Errorf("工作流输入 %q 的类型为选择，但没有选项", name)
 		}
 		out = append(out, WorkflowInput{
 			Name:        name,

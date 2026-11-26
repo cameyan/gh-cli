@@ -73,10 +73,10 @@ func NewCmdLogout(f *cmdutil.Factory, runF func(*LogoutOptions) error) *cobra.Co
 			This still prints a warning that the token was not revoked.
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Select what host and account to log out of via a prompt
+			# 通过提示选择要登出的主机和账户
 			$ gh auth logout
 
-			# Log out of a specific host and specific account
+			# 登出特定主机上的特定账户
 			$ gh auth logout --hostname enterprise.internal --user monalisa
 
 			# Remove local credentials without revoking the token
@@ -111,18 +111,18 @@ func logoutRun(opts *LogoutOptions) error {
 
 	knownHosts := authCfg.Hosts()
 	if len(knownHosts) == 0 {
-		return fmt.Errorf("not logged in to any hosts")
+		return fmt.Errorf("未登录任何主机")
 	}
 
 	if hostname != "" {
 		if !slices.Contains(knownHosts, hostname) {
-			return fmt.Errorf("not logged in to %s", hostname)
+			return fmt.Errorf("未登录 %s", hostname)
 		}
 
 		if username != "" {
 			knownUsers := cfg.Authentication().UsersForHost(hostname)
 			if !slices.Contains(knownUsers, username) {
-				return fmt.Errorf("not logged in to %s account %s", hostname, username)
+				return fmt.Errorf("未登录 %s 的账户 %s", hostname, username)
 			}
 		}
 	}
@@ -147,29 +147,29 @@ func logoutRun(opts *LogoutOptions) error {
 	}
 
 	if len(candidates) == 0 {
-		return errors.New("no accounts matched that criteria")
+		return errors.New("没有账户符合该条件")
 	} else if len(candidates) == 1 {
 		hostname = candidates[0].host
 		username = candidates[0].user
 	} else if !opts.IO.CanPrompt() {
-		return errors.New("unable to determine which account to log out of, please specify `--hostname` and `--user`")
+		return errors.New("无法确定要登出哪个账户，请指定 `--hostname` 和 `--user`")
 	} else {
 		prompts := make([]string, len(candidates))
 		for i, c := range candidates {
 			prompts[i] = fmt.Sprintf("%s (%s)", c.user, c.host)
 		}
 		selected, err := opts.Prompter.Select(
-			"What account do you want to log out of?", "", prompts)
+			"要登出哪个账户？", "", prompts)
 		if err != nil {
-			return fmt.Errorf("could not prompt: %w", err)
+			return fmt.Errorf("无法显示提示: %w", err)
 		}
 		hostname = candidates[selected].host
 		username = candidates[selected].user
 	}
 
 	if src, writeable := shared.AuthTokenWriteable(authCfg, hostname); !writeable {
-		fmt.Fprintf(opts.IO.ErrOut, "The value of the %s environment variable is being used for authentication.\n", src)
-		fmt.Fprint(opts.IO.ErrOut, "To erase credentials stored in GitHub CLI, first clear the value from the environment.\n")
+		fmt.Fprintf(opts.IO.ErrOut, "环境变量 %s 的值正在用于身份验证\n", src)
+		fmt.Fprint(opts.IO.ErrOut, "若要擦除 GitHub CLI 中存储的凭据，请先从环境中清除该值\n")
 		return cmdutil.SilentError
 	}
 
@@ -208,7 +208,7 @@ func logoutRun(opts *LogoutOptions) error {
 	}
 
 	if hasSwitchedToNewUser {
-		fmt.Fprintf(opts.IO.ErrOut, "%s Switched active account for %s to %s\n",
+		fmt.Fprintf(opts.IO.ErrOut, "%s 已将 %s 的活跃账户切换为 %s\n",
 			cs.SuccessIcon(), hostname, cs.Bold(postLogoutActiveUser))
 	}
 

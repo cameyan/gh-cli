@@ -92,7 +92,7 @@ func aggregateChecks(checkContexts []api.CheckContext, requiredChecks bool) (che
 	return
 }
 
-// eliminateDuplicates filters a set of checks to only the most recent ones if the set includes repeated runs
+// eliminateDuplicates 当检查集合中包含重复的运行时，仅保留最近的那次
 func eliminateDuplicates(checkContexts []api.CheckContext) []api.CheckContext {
 	sort.Slice(checkContexts, func(i, j int) bool { return checkContexts[i].StartedAt.After(checkContexts[j].StartedAt) })
 

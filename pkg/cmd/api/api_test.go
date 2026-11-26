@@ -41,7 +41,7 @@ func Test_NewCmdApi(t *testing.T) {
 		wantsErr bool
 	}{
 		{
-			name: "no flags",
+			name: "无标志",
 			cli:  "graphql",
 			wants: ApiOptions{
 				Hostname:            "",
@@ -63,7 +63,7 @@ func Test_NewCmdApi(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name: "override method",
+			name: "覆盖请求方法",
 			cli:  "repos/octocat/Spoon-Knife -XDELETE",
 			wants: ApiOptions{
 				Hostname:            "",
@@ -85,7 +85,7 @@ func Test_NewCmdApi(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name: "with fields",
+			name: "带字段",
 			cli:  "graphql -f query=QUERY -F body=@file.txt",
 			wants: ApiOptions{
 				Hostname:            "",
@@ -107,7 +107,7 @@ func Test_NewCmdApi(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name: "with headers",
+			name: "带请求头",
 			cli:  "user -H 'accept: text/plain' -i",
 			wants: ApiOptions{
 				Hostname:            "",
@@ -129,7 +129,7 @@ func Test_NewCmdApi(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name: "with pagination",
+			name: "带分页",
 			cli:  "repos/OWNER/REPO/issues --paginate",
 			wants: ApiOptions{
 				Hostname:            "",
@@ -151,7 +151,7 @@ func Test_NewCmdApi(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name: "with silenced output",
+			name: "带静默输出",
 			cli:  "repos/OWNER/REPO/issues --silent",
 			wants: ApiOptions{
 				Hostname:            "",
@@ -173,12 +173,12 @@ func Test_NewCmdApi(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name:     "POST pagination",
+			name:     "POST 分页",
 			cli:      "-XPOST repos/OWNER/REPO/issues --paginate",
 			wantsErr: true,
 		},
 		{
-			name: "GraphQL pagination",
+			name: "GraphQL 分页",
 			cli:  "-XPOST graphql --paginate",
 			wants: ApiOptions{
 				Hostname:            "",
@@ -200,12 +200,12 @@ func Test_NewCmdApi(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name:     "input pagination",
+			name:     "input 分页",
 			cli:      "--input repos/OWNER/REPO/issues --paginate",
 			wantsErr: true,
 		},
 		{
-			name: "with request body from file",
+			name: "带来自文件的请求体",
 			cli:  "user --input myfile",
 			wants: ApiOptions{
 				Hostname:            "",
@@ -227,12 +227,12 @@ func Test_NewCmdApi(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name:     "no arguments",
+			name:     "无参数",
 			cli:      "",
 			wantsErr: true,
 		},
 		{
-			name: "with hostname",
+			name: "带主机名",
 			cli:  "graphql --hostname tom.petty",
 			wants: ApiOptions{
 				Hostname:            "tom.petty",
@@ -254,7 +254,7 @@ func Test_NewCmdApi(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name: "with cache",
+			name: "带缓存",
 			cli:  "user --cache 5m",
 			wants: ApiOptions{
 				Hostname:            "",
@@ -276,7 +276,7 @@ func Test_NewCmdApi(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name: "with template",
+			name: "带模板",
 			cli:  "user -t 'hello {{.name}}'",
 			wants: ApiOptions{
 				Hostname:            "",
@@ -298,7 +298,7 @@ func Test_NewCmdApi(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name: "with jq filter",
+			name: "带 jq 过滤器",
 			cli:  "user -q .name",
 			wants: ApiOptions{
 				Hostname:            "",
@@ -320,37 +320,37 @@ func Test_NewCmdApi(t *testing.T) {
 			wantsErr: false,
 		},
 		{
-			name:     "--silent with --jq",
+			name:     "--silent 与 --jq 同用",
 			cli:      "user --silent -q .foo",
 			wantsErr: true,
 		},
 		{
-			name:     "--silent with --template",
+			name:     "--silent 与 --template 同用",
 			cli:      "user --silent -t '{{.foo}}'",
 			wantsErr: true,
 		},
 		{
-			name:     "--jq with --template",
+			name:     "--jq 与 --template 同用",
 			cli:      "user --jq .foo -t '{{.foo}}'",
 			wantsErr: true,
 		},
 		{
-			name:     "--slurp without --paginate",
+			name:     "--slurp 未与 --paginate 同用",
 			cli:      "user --slurp",
 			wantsErr: true,
 		},
 		{
-			name:     "slurp with --jq",
+			name:     "slurp 与 --jq 同用",
 			cli:      "user --paginate --slurp --jq .foo",
 			wantsErr: true,
 		},
 		{
-			name:     "slurp with --template",
+			name:     "slurp 与 --template 同用",
 			cli:      "user --paginate --slurp --template '{{.foo}}'",
 			wantsErr: true,
 		},
 		{
-			name: "with verbose",
+			name: "带 verbose",
 			cli:  "user --verbose",
 			wants: ApiOptions{
 				Hostname:            "",
@@ -697,7 +697,7 @@ func Test_apiRun(t *testing.T) {
 				Body:       io.NopCloser(bytes.NewBufferString("\x1b[31mred\x1b[m")),
 				Header:     http.Header{"Content-Type": []string{"text/plain"}},
 			},
-			errMsg: "the response contains terminal escape sequences; pass --allow-escape-sequences to output it anyway",
+			errMsg: "响应中包含终端转义序列; 请传入 --allow-escape-sequences 以强制输出",
 			stdout: ``,
 			stderr: ``,
 			isatty: true,
@@ -724,7 +724,7 @@ func Test_apiRun(t *testing.T) {
 				Body:       io.NopCloser(bytes.NewBufferString("\x1b[31mred\x1b[m")),
 				Header:     http.Header{"Content-Type": []string{"text/plain"}},
 			},
-			errMsg: "the response contains terminal escape sequences; pass --allow-escape-sequences to output it anyway",
+			errMsg: "响应中包含终端转义序列; 请传入 --allow-escape-sequences 以强制输出",
 			stdout: ``,
 			stderr: ``,
 			isatty: false,
@@ -760,7 +760,7 @@ func Test_apiRun(t *testing.T) {
 				Body:       io.NopCloser(bytes.NewReader(append([]byte("\x89PNG\r\n\x1a\n"), make([]byte, 16)...))),
 				Header:     http.Header{"Content-Type": []string{"application/octet-stream"}},
 			},
-			errMsg: "refusing to output binary content (image/png) to the terminal; redirect or pipe stdout to save it, or pass --allow-escape-sequences to output it anyway",
+			errMsg: "refusing to output binary content (image/png) to the terminal; 请将标准输出重定向或通过管道保存，或传入 --allow-escape-sequences 以强制输出",
 			stdout: ``,
 			stderr: ``,
 			isatty: true,
@@ -786,17 +786,17 @@ func Test_apiRun(t *testing.T) {
 			err := apiRun(&tt.options)
 			if tt.errMsg != "" {
 				if err == nil || err.Error() != tt.errMsg {
-					t.Errorf("expected error %q, got %v", tt.errMsg, err)
+					t.Errorf("期望错误 %q, 得到 %v", tt.errMsg, err)
 				}
 			} else if err != tt.err {
-				t.Errorf("expected error %v, got %v", tt.err, err)
+				t.Errorf("期望错误 %v, 得到 %v", tt.err, err)
 			}
 
 			if stdout.String() != tt.stdout {
-				t.Errorf("expected output %q, got %q", tt.stdout, stdout.String())
+				t.Errorf("期望输出 %q, 得到 %q", tt.stdout, stdout.String())
 			}
 			if stderr.String() != tt.stderr {
-				t.Errorf("expected error output %q, got %q", tt.stderr, stderr.String())
+				t.Errorf("期望错误输出 %q, 得到 %q", tt.stderr, stderr.String())
 			}
 		})
 	}
@@ -934,8 +934,8 @@ func Test_apiRun_paginationREST(t *testing.T) {
 	err := apiRun(&options)
 	assert.NoError(t, err)
 
-	assert.Equal(t, `{"page":1}{"page":2}{"page":3}`, stdout.String(), "stdout")
-	assert.Equal(t, "", stderr.String(), "stderr")
+	assert.Equal(t, `{"page":1}{"page":2}{"page":3}`, stdout.String(), "标准输出")
+	assert.Equal(t, "", stderr.String(), "标准错误")
 
 	assert.Equal(t, "https://api.github.com/issues?page=1&per_page=50", responses[0].Request.URL.String())
 	assert.Equal(t, "https://api.github.com/repositories/1227/issues?page=2", responses[1].Request.URL.String())
@@ -1006,8 +1006,8 @@ func Test_apiRun_arrayPaginationREST(t *testing.T) {
 	err := apiRun(&options)
 	assert.NoError(t, err)
 
-	assert.Equal(t, `[{"item":1},{"item":2},{"item":3},{"item":4},{"item":5} ]`, stdout.String(), "stdout")
-	assert.Equal(t, "", stderr.String(), "stderr")
+	assert.Equal(t, `[{"item":1},{"item":2},{"item":3},{"item":4},{"item":5} ]`, stdout.String(), "标准输出")
+	assert.Equal(t, "", stderr.String(), "标准错误")
 
 	assert.Equal(t, "https://api.github.com/issues?page=1&per_page=50", responses[0].Request.URL.String())
 	assert.Equal(t, "https://api.github.com/repositories/1227/issues?page=2", responses[1].Request.URL.String())
@@ -1079,8 +1079,8 @@ func Test_apiRun_arrayPaginationREST_with_headers(t *testing.T) {
 	err := apiRun(&options)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "HTTP/1.1 200 OK\nContent-Type: application/json\r\nLink: <https://api.github.com/repositories/1227/issues?page=2>; rel=\"next\", <https://api.github.com/repositories/1227/issues?page=3>; rel=\"last\"\r\nX-Github-Request-Id: 1\r\n\r\n[{\"page\":1}]\nHTTP/1.1 200 OK\nContent-Type: application/json\r\nLink: <https://api.github.com/repositories/1227/issues?page=3>; rel=\"next\", <https://api.github.com/repositories/1227/issues?page=3>; rel=\"last\"\r\nX-Github-Request-Id: 2\r\n\r\n[{\"page\":2}]\nHTTP/1.1 200 OK\nContent-Type: application/json\r\nX-Github-Request-Id: 3\r\n\r\n[{\"page\":3}]", stdout.String(), "stdout")
-	assert.Equal(t, "", stderr.String(), "stderr")
+	assert.Equal(t, "HTTP/1.1 200 OK\nContent-Type: application/json\r\nLink: <https://api.github.com/repositories/1227/issues?page=2>; rel=\"next\", <https://api.github.com/repositories/1227/issues?page=3>; rel=\"last\"\r\nX-Github-Request-Id: 1\r\n\r\n[{\"page\":1}]\nHTTP/1.1 200 OK\nContent-Type: application/json\r\nLink: <https://api.github.com/repositories/1227/issues?page=3>; rel=\"next\", <https://api.github.com/repositories/1227/issues?page=3>; rel=\"last\"\r\nX-Github-Request-Id: 2\r\n\r\n[{\"page\":2}]\nHTTP/1.1 200 OK\nContent-Type: application/json\r\nX-Github-Request-Id: 3\r\n\r\n[{\"page\":3}]", stdout.String(), "标准输出")
+	assert.Equal(t, "", stderr.String(), "标准错误")
 
 	assert.Equal(t, "https://api.github.com/issues?page=1&per_page=50", responses[0].Request.URL.String())
 	assert.Equal(t, "https://api.github.com/repositories/1227/issues?page=2", responses[1].Request.URL.String())
@@ -1164,7 +1164,7 @@ func Test_apiRun_paginationGraphQL(t *testing.T) {
 			}
 		}
 	}`), stdout.String())
-	assert.Equal(t, "", stderr.String(), "stderr")
+	assert.Equal(t, "", stderr.String(), "标准错误")
 
 	var requestData struct {
 		Variables map[string]any
@@ -1267,7 +1267,7 @@ func Test_apiRun_paginationGraphQL_slurp(t *testing.T) {
 			}
 		}
 	]`)
-	assert.Equal(t, "", stderr.String(), "stderr")
+	assert.Equal(t, "", stderr.String(), "标准错误")
 
 	var requestData struct {
 		Variables map[string]any
@@ -1352,7 +1352,7 @@ func Test_apiRun_paginated_template(t *testing.T) {
 		RequestPath:   "graphql",
 		RawFields:     []string{"foo=bar"},
 		Paginate:      true,
-		// test that templates executed per page properly render a table.
+		// 验证按页执行的模板能正确渲染表格。
 		Template: `{{range .data.nodes}}{{tablerow .page .caption}}{{end}}`,
 	}
 
@@ -1362,8 +1362,8 @@ func Test_apiRun_paginated_template(t *testing.T) {
 	assert.Equal(t, heredoc.Doc(`
 	1   page one
 	20  page twenty
-	`), stdout.String(), "stdout")
-	assert.Equal(t, "", stderr.String(), "stderr")
+	`), stdout.String(), "标准输出")
+	assert.Equal(t, "", stderr.String(), "标准错误")
 
 	var requestData struct {
 		Variables map[string]any
@@ -1407,11 +1407,11 @@ func Test_apiRun_DELETE(t *testing.T) {
 		RequestMethodPassed: true,
 	})
 	if err != nil {
-		t.Fatalf("got error %v", err)
+		t.Fatalf("得到错误 %v", err)
 	}
 
 	if gotRequest.Body != nil {
-		t.Errorf("expected nil request body, got %T", gotRequest.Body)
+		t.Errorf("期望请求体为 nil, 得到 %T", gotRequest.Body)
 	}
 }
 
@@ -1440,7 +1440,7 @@ func Test_apiRun_HEAD(t *testing.T) {
 		RequestMethodPassed: true,
 	})
 	if err != cmdutil.SilentError {
-		t.Fatalf("got error %v", err)
+		t.Fatalf("得到错误 %v", err)
 	}
 }
 
@@ -1512,7 +1512,7 @@ func Test_apiRun_inputFile(t *testing.T) {
 
 			err := apiRun(&options)
 			if err != nil {
-				t.Errorf("got error %v", err)
+				t.Errorf("得到错误 %v", err)
 			}
 
 			assert.Equal(t, "POST", resp.Request.Method)
@@ -1525,7 +1525,7 @@ func Test_apiRun_inputFile(t *testing.T) {
 }
 
 func Test_apiRun_cache(t *testing.T) {
-	// Given we have a test server that spies on the number of requests it receives
+	// 前置条件: 测试服务器会记录其收到的请求次数
 	requestCount := 0
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestCount++
@@ -1540,33 +1540,31 @@ func Test_apiRun_cache(t *testing.T) {
 			return &ghmock.ConfigMock{
 				AuthenticationFunc: func() gh.AuthConfig {
 					cfg := &config.AuthConfig{}
-					// Required because the http client tries to get the active token and otherwise
-					// this goes down to go-gh config and panics. Pretty bad solution, it would
-					// be better if this were black box.
+					// 必须设置, 因为 HTTP 客户端会尝试获取当前令牌, 否则会落入 go-gh 配置并触发 panic。这个方案不太理想, 若能做成黑盒会更好。
 					cfg.SetActiveToken("token", "stub")
 					return cfg
 				},
-				// Cached responses are stored in a tempdir that gets automatically cleaned up
+				// 缓存的响应存储在临时目录中, 该目录会被自动清理
 				CacheDirFunc: func() string {
 					return t.TempDir()
 				},
 			}, nil
 		},
-		// You might think that we want to set Host: s.URL here, but you'd be wrong.
-		// The host field is later used to evaluate an API URL e.g. https://api.host.com/graphql
-		// The RequestPath field is used exactly as is, for the request if it includes a host.
+		// 你可能认为这里应该将 Host 设置为 s.URL, 但那是不对的。
+		// host 字段随后会被用于构造 API URL, 例如 https://api.host.com/graphql。
+		// 若请求路径包含主机, RequestPath 字段会按原样用于请求。
 		RequestPath: s.URL,
 		CacheTTL:    time.Minute,
 	}
 
-	// When we run the API behaviour twice
+	// 操作: 将该 API 行为执行两次
 	require.NoError(t, apiRun(&options))
 	require.NoError(t, apiRun(&options))
 
-	// We only get one request to the http server because it uses the cached response
+	// 由于使用了缓存的响应, HTTP 服务器只会收到一次请求
 	assert.Equal(t, 1, requestCount)
-	assert.Equal(t, "", stdout.String(), "stdout")
-	assert.Equal(t, "", stderr.String(), "stderr")
+	assert.Equal(t, "", stdout.String(), "标准输出")
+	assert.Equal(t, "", stderr.String(), "标准错误")
 }
 
 func Test_apiRun_invokingAgent(t *testing.T) {

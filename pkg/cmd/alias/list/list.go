@@ -22,10 +22,10 @@ func NewCmdList(f *cmdutil.Factory, runF func(*ListOptions) error) *cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:     "list",
-		Short:   "List your aliases",
+		Short:   "列出你的别名",
 		Aliases: []string{"ls"},
 		Long: heredoc.Doc(`
-			This command prints out all of the aliases gh is configured to use.
+			该命令会打印出 gh 配置中所有可用的别名。
 		`),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -50,7 +50,7 @@ func listRun(opts *ListOptions) error {
 	aliasMap := aliasCfg.All()
 
 	if len(aliasMap) == 0 {
-		return cmdutil.NewNoResultsError("no aliases configured")
+		return cmdutil.NewNoResultsError("未配置别名")
 	}
 
 	enc := yaml.NewEncoder(opts.IO.Out)

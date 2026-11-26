@@ -133,12 +133,12 @@ func TestViewRun(t *testing.T) {
 				},
 			},
 			wantStdout: heredoc.Doc(`
-				Autolink in OWNER/REPO
+			    OWNER/REPO 中的自动链接
 
-				ID: 1
-				Key Prefix: TICKET-
-				URL Template: https://example.com/TICKET?query=<num>
-				Alphanumeric: true
+			    ID: 1
+			    键前缀: TICKET-
+			    URL 模板: https://example.com/TICKET?query=<num>
+			    字母数字: true
 			`),
 		},
 		{

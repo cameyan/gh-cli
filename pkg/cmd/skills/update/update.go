@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// UpdateOptions holds all dependencies and user-provided flags for the update command.
+// UpdateOptions 保存 update 命令的所有依赖项与用户提供的标志。
 type UpdateOptions struct {
 	IO         *iostreams.IOStreams
 	HttpClient func() (*http.Client, error)
@@ -40,7 +40,7 @@ type UpdateOptions struct {
 	Dir    string
 }
 
-// installedSkill represents a locally installed skill parsed from its SKILL.md frontmatter.
+// installedSkill 表示从 SKILL.md frontmatter 解析的本地已安装技能。
 type installedSkill struct {
 	name        string
 	repoHost    string
@@ -56,7 +56,7 @@ type installedSkill struct {
 	metadataErr error
 }
 
-// pendingUpdate describes a single skill that has an available update.
+// pendingUpdate 描述一个有可用更新的技能。
 type pendingUpdate struct {
 	local    installedSkill
 	repoID   int64  // current ID of the repository at the recorded owner/name
@@ -65,7 +65,7 @@ type pendingUpdate struct {
 	skill    discovery.Skill
 }
 
-// NewCmdUpdate creates the "skills update" command.
+// NewCmdUpdate 创建 "skills update" 命令。
 func NewCmdUpdate(f *cmdutil.Factory, runF func(*UpdateOptions) error) *cobra.Command {
 	opts := &UpdateOptions{
 		IO:         f.IOStreams,
@@ -77,20 +77,18 @@ func NewCmdUpdate(f *cmdutil.Factory, runF func(*UpdateOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "update [<skill>...] [flags]",
-		Short: "Update installed skills to their latest versions (preview)",
+		Short: "将已安装的技能更新到最新版本 (预览版)",
 		Long: heredoc.Docf(`
-			Checks installed skills for available updates by comparing the local
-			tree SHA (from %[1]sSKILL.md%[1]s frontmatter) against the remote repository.
+			通过比较本地 tree SHA (来自 %[1]sSKILL.md%[1]s frontmatter) 与远程仓库，
+			检查已安装的技能是否有可用更新。
 
-			Scans all known agent host directories (including Copilot, Claude, Cursor,
-			Gemini, Antigravity, Grok, and others) in both project and user scope automatically.
+			自动扫描项目作用域与用户作用域下所有已知的 agent 宿主目录
+			(包括 Copilot、Claude、Cursor、Gemini、Antigravity、Grok 等)。
 
-			Without arguments, checks all installed skills. With skill names,
-			checks only those specific skills.
+			不带参数时检查所有已安装的技能。提供技能名时只检查这些技能。
 
-			Pinned skills (installed with %[1]s--pin%[1]s) are skipped with a notice.
-			Use %[1]s--unpin%[1]s to clear the pinned version and include those skills
-			in the update.
+			固定的技能 (使用 %[1]s--pin%[1]s 安装) 会被跳过并给出提示。
+			使用 %[1]s--unpin%[1]s 清除固定版本，将这些技能纳入更新。
 
 			A skill is only updated from the repository it was installed from. If
 			its owner and name now belong to a different repository, for example
@@ -105,31 +103,30 @@ func NewCmdUpdate(f *cmdutil.Factory, runF func(*UpdateOptions) error) *cobra.Co
 			The update re-downloads the skill with metadata injected, so future
 			updates work automatically.
 
-			With %[1]s--force%[1]s, re-downloads skills even when the remote version matches
-			the local tree SHA. This overwrites locally modified skill files with
-			their original content, but does not remove extra files added locally.
+			使用 %[1]s--force%[1]s 时，即使远程版本与本地 tree SHA 一致也会重新下载。
+			这会用原始内容覆盖本地修改过的技能文件，但不会删除本地新增的额外文件。
 
-			In interactive mode, shows which skills have updates and asks for
-			confirmation before proceeding. With %[1]s--all%[1]s, updates without prompting.
-			With %[1]s--dry-run%[1]s, reports available updates without modifying any files.
+			交互模式下，会显示哪些技能有更新并在继续前请求确认。
+			使用 %[1]s--all%[1]s 无需提示直接更新。
+			使用 %[1]s--dry-run%[1]s 仅报告可用更新，不修改任何文件。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Check and update all skills interactively
+			# 交互式检查并更新所有技能
 			$ gh skill update
 
-			# Update specific skills
+			# 更新指定技能
 			$ gh skill update mcp-cli git-commit
 
-			# Update all without prompting
+			# 更新所有技能且不提示
 			$ gh skill update --all
 
-			# Re-download all skills (restore locally modified files)
+			# 重新下载所有技能 (恢复本地修改的文件)
 			$ gh skill update --force --all
 
-			# Check for updates without applying (read-only)
+			# 只检查更新不应用 (只读)
 			$ gh skill update --dry-run
 
-			# Unpin skills and update them to latest
+			# 解除固定并更新到最新
 			$ gh skill update --unpin
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -141,11 +138,11 @@ func NewCmdUpdate(f *cmdutil.Factory, runF func(*UpdateOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.All, "all", false, "Update all skills without prompting")
-	cmd.Flags().BoolVar(&opts.Force, "force", false, "Re-download even if already up to date")
-	cmd.Flags().BoolVar(&opts.DryRun, "dry-run", false, "Report available updates without modifying files")
-	cmd.Flags().BoolVar(&opts.Unpin, "unpin", false, "Clear pinned version and include pinned skills in update")
-	cmd.Flags().StringVar(&opts.Dir, "dir", "", "Scan a custom directory for installed skills")
+	cmd.Flags().BoolVar(&opts.All, "all", false, "更新所有技能且不提示")
+	cmd.Flags().BoolVar(&opts.Force, "force", false, "即使已是最新也重新下载")
+	cmd.Flags().BoolVar(&opts.DryRun, "dry-run", false, "报告可用更新但不修改文件")
+	cmd.Flags().BoolVar(&opts.Unpin, "unpin", false, "清除固定版本并将固定的技能纳入更新")
+	cmd.Flags().StringVar(&opts.Dir, "dir", "", "扫描自定义目录中的已安装技能")
 
 	return cmd
 }
@@ -168,7 +165,7 @@ func updateRun(opts *UpdateOptions) error {
 	if opts.Dir != "" {
 		skills, scanErr := scanInstalledSkills(opts.Dir, nil, "")
 		if scanErr != nil {
-			return fmt.Errorf("could not scan directory: %w", scanErr)
+			return fmt.Errorf("无法扫描目录: %w", scanErr)
 		}
 		installed = skills
 	} else {
@@ -176,7 +173,7 @@ func updateRun(opts *UpdateOptions) error {
 	}
 
 	if len(installed) == 0 {
-		fmt.Fprintf(opts.IO.ErrOut, "No installed skills found.\n")
+		fmt.Fprintf(opts.IO.ErrOut, "未找到已安装的技能。\n")
 		return nil
 	}
 
@@ -193,7 +190,7 @@ func updateRun(opts *UpdateOptions) error {
 			}
 		}
 		if len(filtered) == 0 {
-			return fmt.Errorf("none of the specified skills are installed")
+			return fmt.Errorf("指定的技能均未安装")
 		}
 		installed = filtered
 	}
@@ -204,7 +201,7 @@ func updateRun(opts *UpdateOptions) error {
 		var valid []installedSkill
 		for _, s := range installed {
 			if s.metadataErr != nil {
-				fmt.Fprintf(opts.IO.ErrOut, "%s Skipping %s: invalid repository metadata: %s\n", cs.WarningIcon(), s.name, s.metadataErr)
+				fmt.Fprintf(opts.IO.ErrOut, "%s 跳过 %s: 仓库元数据无效: %s\n", cs.WarningIcon(), s.name, s.metadataErr)
 				continue
 			}
 			valid = append(valid, s)
@@ -213,15 +210,18 @@ func updateRun(opts *UpdateOptions) error {
 	}
 
 	if len(installed) == 0 {
-		fmt.Fprintf(opts.IO.ErrOut, "No updatable skills found.\n")
+		fmt.Fprintf(opts.IO.ErrOut, "没有可更新的技能。\n")
 		return nil
 	}
 
 	// Prompt for metadata on skills missing it (before starting progress indicator)
+	// 为缺少元数据的技能提示补充 (在启动进度指示器之前)
 	var noMeta []string
 	// Track skills where the user provided a source repo interactively.
 	// Keyed by directory path to avoid collisions when the same skill name
 	// is installed across multiple hosts or scopes.
+	// 记录用户在交互中提供来源仓库的技能。
+	// 以目录路径为键，避免同一技能名安装在多个宿主或作用域时冲突。
 	type promptedEntry struct {
 		name   string
 		source string // "owner/repo"
@@ -236,7 +236,7 @@ func updateRun(opts *UpdateOptions) error {
 			noMeta = append(noMeta, s.name)
 			continue
 		}
-		fmt.Fprintf(opts.IO.ErrOut, "%s %s has no GitHub metadata\n", cs.WarningIcon(), s.name)
+		fmt.Fprintf(opts.IO.ErrOut, "%s %s 缺少 GitHub 元数据\n", cs.WarningIcon(), s.name)
 		owner, repo, reason, ok, promptErr := promptForSkillOrigin(opts.Prompter, s.name)
 		if promptErr != nil {
 			return promptErr
@@ -245,7 +245,7 @@ func updateRun(opts *UpdateOptions) error {
 			if reason != "" {
 				fmt.Fprintf(opts.IO.ErrOut, "  %s %s\n", cs.WarningIcon(), reason)
 			}
-			fmt.Fprintf(opts.IO.ErrOut, "  Skipping %s\n", s.name)
+			fmt.Fprintf(opts.IO.ErrOut, "  跳过 %s\n", s.name)
 			continue
 		}
 		s.owner = owner
@@ -369,15 +369,15 @@ func updateRun(opts *UpdateOptions) error {
 			}
 		}
 		if !found {
-			fmt.Fprintf(opts.IO.ErrOut, "%s Skill %s not found in %s\n", cs.WarningIcon(), entry.name, entry.source)
+			fmt.Fprintf(opts.IO.ErrOut, "%s 在 %s 中未找到技能 %s\n", cs.WarningIcon(), entry.source, entry.name)
 		}
 	}
 
 	for _, s := range pinned {
-		fmt.Fprintf(opts.IO.ErrOut, "%s %s is pinned to %s (skipped)\n", cs.Muted("⊘"), s.name, s.pinned)
+		fmt.Fprintf(opts.IO.ErrOut, "%s %s 已固定到 %s (跳过)\n", cs.Muted("⊘"), s.name, s.pinned)
 	}
 	for _, name := range noMeta {
-		fmt.Fprintf(opts.IO.ErrOut, "%s %s has no GitHub metadata. Run `gh skill update %s` interactively to add metadata, or reinstall to enable updates\n", cs.WarningIcon(), name, name)
+		fmt.Fprintf(opts.IO.ErrOut, "%s %s 缺少 GitHub 元数据。交互式运行 `gh skill update %s` 以补充元数据，或重新安装以启用更新\n", cs.WarningIcon(), name, name)
 	}
 
 	if len(updates) == 0 {
@@ -385,17 +385,17 @@ func updateRun(opts *UpdateOptions) error {
 			return cmdutil.SilentError
 		}
 		if opts.Force && opts.DryRun {
-			fmt.Fprintf(opts.IO.ErrOut, "All skills are up to date. Use --force without --dry-run to re-download anyway.\n")
+			fmt.Fprintf(opts.IO.ErrOut, "所有技能均已最新。去掉 --dry-run 并配合 --force 可强制重新下载。\n")
 		} else {
-			fmt.Fprintf(opts.IO.ErrOut, "All skills are up to date.\n")
+			fmt.Fprintf(opts.IO.ErrOut, "所有技能均已最新。\n")
 		}
 		return nil
 	}
 
-	fmt.Fprintf(opts.IO.ErrOut, "\n%d update(s) available:\n", len(updates))
+	fmt.Fprintf(opts.IO.ErrOut, "\n有 %d 个可用更新:\n", len(updates))
 	for _, u := range updates {
 		if u.local.treeSHA == u.newSHA {
-			fmt.Fprintf(opts.IO.Out, "  %s %s (%s/%s) %s (reinstall) [%s]\n",
+			fmt.Fprintf(opts.IO.Out, "  %s %s (%s/%s) %s (重新安装) [%s]\n",
 				cs.Cyan("•"), u.local.name, u.local.owner, u.local.repo,
 				git.ShortSHA(u.newSHA), discovery.ShortRef(u.resolved.Ref))
 		} else {
@@ -423,14 +423,14 @@ func updateRun(opts *UpdateOptions) error {
 
 	if !opts.All {
 		if !canPrompt {
-			return fmt.Errorf("updates available; re-run with --all to apply, or run interactively to confirm")
+			return fmt.Errorf("有可用更新；使用 --all 重新运行以应用，或交互运行以确认")
 		}
-		confirmed, confirmErr := opts.Prompter.Confirm(fmt.Sprintf("Update %d skill(s)?", len(updates)), true)
+		confirmed, confirmErr := opts.Prompter.Confirm(fmt.Sprintf("更新 %d 个技能？", len(updates)), true)
 		if confirmErr != nil {
 			return confirmErr
 		}
 		if !confirmed {
-			fmt.Fprintf(opts.IO.ErrOut, "Update cancelled.\n")
+			fmt.Fprintf(opts.IO.ErrOut, "更新已取消。\n")
 			return cmdutil.CancelError
 		}
 	}
@@ -438,14 +438,14 @@ func updateRun(opts *UpdateOptions) error {
 	var failed bool
 	for _, u := range updates {
 		if err := updateSkillInPlace(opts, u, apiClient, gitRoot, homeDir); err != nil {
-			fmt.Fprintf(opts.IO.ErrOut, "%s Failed to update %s: %v\n", cs.FailureIcon(), u.local.name, err)
+			fmt.Fprintf(opts.IO.ErrOut, "%s 更新 %s 失败: %v\n", cs.FailureIcon(), u.local.name, err)
 			failed = true
 			continue
 		}
 		if opts.IO.IsStdoutTTY() {
-			fmt.Fprintf(opts.IO.Out, "%s Updated %s\n", cs.SuccessIcon(), u.local.name)
+			fmt.Fprintf(opts.IO.Out, "%s 已更新 %s\n", cs.SuccessIcon(), u.local.name)
 		} else {
-			fmt.Fprintf(opts.IO.Out, "Updated %s\n", u.local.name)
+			fmt.Fprintf(opts.IO.Out, "已更新 %s\n", u.local.name)
 		}
 	}
 
@@ -456,32 +456,29 @@ func updateRun(opts *UpdateOptions) error {
 	return nil
 }
 
-// updateSkillInPlace installs the resolved update into a staging directory
-// alongside the existing skill directory and, on success, atomically swaps
-// the staged contents into place via same-filesystem renames. This
-// guarantees:
+// updateSkillInPlace 将解析出的更新安装到现有技能目录旁边的暂存目录中，
+// 成功后通过同文件系统重命名将暂存内容原子性地交换到位。这可以保证:
 //
-//   - The skill directory's own inode is preserved, so symlinks, mounts, and
-//     external references that point at it stay valid.
-//   - Stale files from the previous version are removed.
-//   - A failure at any point (install, read, rename) leaves the existing
-//     skill completely untouched: existing files are first moved aside into
-//     a backup directory and restored if any subsequent step fails.
+//   - 技能目录自身的 inode 保持不变，因此指向它的符号链接、挂载和
+//     外部引用仍然有效。
+//   - 上一版本的过期文件会被移除。
+//   - 任何一步失败 (安装、读取、重命名) 都不会影响现有技能:
+//     现有文件会先移入备份目录，后续步骤失败时再恢复。
 func updateSkillInPlace(opts *UpdateOptions, u pendingUpdate, apiClient *api.Client, gitRoot, homeDir string) error {
 	if u.local.dir == "" {
-		return fmt.Errorf("cannot update %s: no install location recorded", u.local.name)
+		return fmt.Errorf("无法更新 %s: 未记录安装位置", u.local.name)
 	}
 
 	parent := filepath.Dir(u.local.dir)
 	if err := os.MkdirAll(parent, 0o755); err != nil {
-		return fmt.Errorf("could not ensure parent directory %s: %w", parent, err)
+		return fmt.Errorf("无法确保父目录 %s 存在: %w", parent, err)
 	}
 
 	// Stage as a sibling of the existing skill directory so the swap stays
 	// on the same filesystem and every rename is atomic.
 	staging, err := os.MkdirTemp(parent, "."+u.skill.Name+".gh-skill-update-")
 	if err != nil {
-		return fmt.Errorf("could not create staging directory: %w", err)
+		return fmt.Errorf("无法创建暂存目录: %w", err)
 	}
 	defer os.RemoveAll(staging)
 
@@ -508,34 +505,33 @@ func updateSkillInPlace(opts *UpdateOptions, u pendingUpdate, apiClient *api.Cli
 	}
 
 	if err := os.MkdirAll(u.local.dir, 0o755); err != nil {
-		return fmt.Errorf("could not ensure skill directory %s: %w", u.local.dir, err)
+		return fmt.Errorf("无法确保技能目录 %s: %w", u.local.dir, err)
 	}
 
 	return swapDirectoryContents(u.local.dir, stagedSkillDir)
 }
 
-// swapDirectoryContents replaces the entries inside dest with the entries
-// inside src, preserving dest's inode. It first moves every existing entry
-// into a sibling backup directory, then moves the staged entries into dest.
-// If any step fails, the original contents are restored from the backup.
+// swapDirectoryContents 用 src 中的条目替换 dest 中的条目，保留 dest 的 inode。
+// 它先将所有现有条目移入同级备份目录，再将暂存条目移入 dest。
+// 任何一步失败时，会从备份恢复原始内容。
 //
-// src and dest must live on the same filesystem so renames are atomic.
+// src 与 dest 必须位于同一文件系统，以保证重命名是原子操作。
 func swapDirectoryContents(dest, src string) error {
 	backup, err := os.MkdirTemp(filepath.Dir(dest), "."+filepath.Base(dest)+".gh-skill-backup-")
 	if err != nil {
-		return fmt.Errorf("could not create backup directory: %w", err)
+		return fmt.Errorf("无法创建备份目录: %w", err)
 	}
 
 	existing, err := os.ReadDir(dest)
 	if err != nil {
 		_ = os.RemoveAll(backup)
-		return fmt.Errorf("could not read skill directory %s: %w", dest, err)
+		return fmt.Errorf("无法读取技能目录 %s: %w", dest, err)
 	}
 	var movedOut []string
 	for _, entry := range existing {
 		if err := os.Rename(filepath.Join(dest, entry.Name()), filepath.Join(backup, entry.Name())); err != nil {
 			restoreBackup(dest, backup, movedOut, nil)
-			return fmt.Errorf("could not move %s aside: %w", entry.Name(), err)
+			return fmt.Errorf("无法移开 %s: %w", entry.Name(), err)
 		}
 		movedOut = append(movedOut, entry.Name())
 	}
@@ -543,7 +539,7 @@ func swapDirectoryContents(dest, src string) error {
 	staged, err := os.ReadDir(src)
 	if err != nil {
 		restoreBackup(dest, backup, movedOut, nil)
-		return fmt.Errorf("could not read staged skill directory %s: %w", src, err)
+		return fmt.Errorf("无法读取暂存的技能目录 %s: %w", src, err)
 	}
 	var movedIn []string
 	for _, entry := range staged {
@@ -551,7 +547,7 @@ func swapDirectoryContents(dest, src string) error {
 		to := filepath.Join(dest, entry.Name())
 		if err := os.Rename(from, to); err != nil {
 			restoreBackup(dest, backup, movedOut, movedIn)
-			return fmt.Errorf("could not move %s into place: %w", entry.Name(), err)
+			return fmt.Errorf("无法将 %s 移入到位: %w", entry.Name(), err)
 		}
 		movedIn = append(movedIn, entry.Name())
 	}
@@ -560,8 +556,8 @@ func swapDirectoryContents(dest, src string) error {
 	return nil
 }
 
-// restoreBackup undoes a partial swap by removing any freshly installed
-// entries and moving the original entries back from backup into dest.
+// restoreBackup 撤销部分完成的交换: 删除新装入的条目，
+// 并将备份中的原始条目移回 dest。
 func restoreBackup(dest, backup string, movedOut, movedIn []string) {
 	for _, name := range movedIn {
 		_ = os.RemoveAll(filepath.Join(dest, name))
@@ -572,8 +568,8 @@ func restoreBackup(dest, backup string, movedOut, movedIn []string) {
 	_ = os.RemoveAll(backup)
 }
 
-// scanAllAgents walks every registered agent's skill directory (project + user scope) and
-// collects installed skills. Shared install roots are scanned only once.
+// scanAllAgents 遍历每个已注册 agent 的技能目录 (项目 + 用户作用域)，
+// 收集已安装的技能。共享的安装根目录只扫描一次。
 func scanAllAgents(gitRoot, homeDir string) []installedSkill {
 	scannedDirs := make(map[string]bool)
 	var all []installedSkill
@@ -600,17 +596,17 @@ func scanAllAgents(gitRoot, homeDir string) []installedSkill {
 	return all
 }
 
-// scanInstalledSkills reads all SKILL.md files in a skills directory and
-// extracts GitHub metadata from their frontmatter. It handles both flat
-// layouts ({dir}/{name}/SKILL.md) and namespaced layouts
-// ({dir}/{namespace}/{name}/SKILL.md).
+// scanInstalledSkills 读取技能目录中的所有 SKILL.md 文件，
+// 并从其 frontmatter 提取 GitHub 元数据。它同时处理扁平布局
+// ({dir}/{name}/SKILL.md) 和命名空间布局
+// ({dir}/{namespace}/{name}/SKILL.md)。
 func scanInstalledSkills(skillsDir string, host *registry.AgentHost, scope registry.Scope) ([]installedSkill, error) {
 	entries, err := os.ReadDir(skillsDir)
 	if os.IsNotExist(err) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("could not read skills directory: %w", err)
+		return nil, fmt.Errorf("无法读取技能目录: %w", err)
 	}
 
 	var skills []installedSkill
@@ -650,7 +646,7 @@ func scanInstalledSkills(skillsDir string, host *registry.AgentHost, scope regis
 	return skills, nil
 }
 
-// parseInstalledSkill parses a SKILL.md file and returns an installedSkill.
+// parseInstalledSkill 解析 SKILL.md 文件并返回 installedSkill。
 func parseInstalledSkill(data []byte, name, dir string, host *registry.AgentHost, scope registry.Scope) (installedSkill, bool) {
 	result, err := frontmatter.Parse(string(data))
 	if err != nil {
@@ -722,7 +718,7 @@ func parseRepoID(v any) (int64, error) {
 // that has no GitHub metadata.
 func promptForSkillOrigin(p prompter.Prompter, skillName string) (owner, repo, reason string, ok bool, err error) {
 	input, err := p.Input(
-		fmt.Sprintf("Repository for %s (owner/repo):", skillName), "")
+		fmt.Sprintf("%s 的来源仓库 (owner/repo):", skillName), "")
 	if err != nil {
 		return "", "", "", false, err
 	}
@@ -733,7 +729,7 @@ func promptForSkillOrigin(p prompter.Prompter, skillName string) (owner, repo, r
 	r, err := ghrepo.FromFullName(input)
 	if err != nil {
 		//nolint:nilerr // intentionally converting parse error into a user-facing validation message
-		return "", "", fmt.Sprintf("invalid repository %q: expected owner/repo", input), false, nil
+		return "", "", fmt.Sprintf("无效的仓库 %q: 应为 owner/repo", input), false, nil
 	}
 	return r.RepoOwner(), r.RepoName(), "", true, nil
 }

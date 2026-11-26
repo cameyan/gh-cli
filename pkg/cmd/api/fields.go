@@ -39,14 +39,14 @@ func parseFields(opts *ApiOptions) (map[string]any, error) {
 		}
 
 		if len(keystack) == 0 {
-			return fmt.Errorf("invalid key: %q", f)
+			return fmt.Errorf("无效的键: %q", f)
 		}
 
 		key := f
 		var value any = nil
 		if valueIndex == 0 {
 			if keystack[len(keystack)-1] != "" {
-				return fmt.Errorf("field %q requires a value separated by an '=' sign", key)
+				return fmt.Errorf("字段 %q 需要以 '=' 分隔的值", key)
 			}
 		} else {
 			key = f[0 : valueIndex-1]
@@ -57,7 +57,7 @@ func parseFields(opts *ApiOptions) (map[string]any, error) {
 			var err error
 			value, err = magicFieldValue(value.(string), opts)
 			if err != nil {
-				return fmt.Errorf("error parsing %q value: %w", key, err)
+				return fmt.Errorf("解析 %q 值时出错: %w", key, err)
 			}
 		}
 
@@ -92,7 +92,7 @@ func parseFields(opts *ApiOptions) (map[string]any, error) {
 					if existSlice, ok := v.([]any); ok {
 						destMap[subkey] = append(existSlice, value)
 					} else {
-						return fmt.Errorf("expected array type under %q, got %T", subkey, v)
+						return fmt.Errorf("%q 下应为数组类型, 实际为 %T", subkey, v)
 					}
 				} else {
 					destMap[subkey] = []any{value}
@@ -100,7 +100,7 @@ func parseFields(opts *ApiOptions) (map[string]any, error) {
 			}
 		} else {
 			if _, exists := destMap[subkey]; exists {
-				return fmt.Errorf("unexpected override existing field under %q", subkey)
+				return fmt.Errorf("意外覆盖了 %q 下已有的字段", subkey)
 			}
 			destMap[subkey] = value
 		}
@@ -124,7 +124,7 @@ func addParamsMap(m map[string]any, key string) (map[string]any, error) {
 		if existMap, ok := v.(map[string]any); ok {
 			return existMap, nil
 		} else {
-			return nil, fmt.Errorf("expected map type under %q, got %T", key, v)
+			return nil, fmt.Errorf("%q 下应为 map 类型, 实际为 %T", key, v)
 		}
 	}
 	newMap := make(map[string]any)
@@ -149,7 +149,7 @@ func addParamsSlice(m map[string]any, prevkey, newkey string) (map[string]any, e
 			m[prevkey] = append(existSlice, newMap)
 			return newMap, nil
 		} else {
-			return nil, fmt.Errorf("expected array type under %q, got %T", prevkey, v)
+			return nil, fmt.Errorf("%q 下应为数组类型, 实际为 %T", prevkey, v)
 		}
 	}
 	newMap := make(map[string]any)

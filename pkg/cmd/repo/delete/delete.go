@@ -41,15 +41,11 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "delete [<repository>]",
-		Short: "Delete a repository",
+		Short: "删除仓库",
 		Long: heredoc.Docf(`
-			Delete a GitHub repository.
+			删除一个 GitHub 仓库。
 
-			With no argument, deletes the current repository. Otherwise, deletes the specified repository.
-			
-			For safety, when no repository argument is provided, the %[1]s--yes%[1]s flag is ignored 
-			and you will be prompted for confirmation. To delete the current repository non-interactively, 
-			specify it explicitly (e.g., %[1]sgh repo delete owner/repo --yes%[1]s).
+			不带参数时，删除当前仓库。否则，删除指定的仓库。
 
 			Deleting a private repository that is not itself a fork also deletes its forks, including
 			forks you may not be able to see. If it has forks, you will be asked to confirm deleting
@@ -69,7 +65,7 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 			// Ignore confirmation flags when no argument provided to prevent accidental deletion
 			if len(args) == 0 && (opts.Confirmed || opts.AcceptCascadingDeletionOfPrivateForks) {
 				if !opts.IO.CanPrompt() {
-					return cmdutil.FlagErrorf("cannot non-interactively delete current repository. Please specify a repository or run interactively")
+					return cmdutil.FlagErrorf("无法以非交互方式删除当前仓库。请指定仓库名称或以交互方式运行")
 				}
 				if opts.Confirmed {
 					_, _ = fmt.Fprintln(opts.IO.ErrOut, "Warning: `--yes` is ignored since no repository was specified")
@@ -82,7 +78,7 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 			}
 
 			if !opts.IO.CanPrompt() && !opts.Confirmed {
-				return cmdutil.FlagErrorf("--yes required when not running interactively")
+				return cmdutil.FlagErrorf("非交互模式下运行时，需要 --yes")
 			}
 
 			if runF != nil {
@@ -126,7 +122,7 @@ func deleteRun(opts *DeleteOptions) error {
 		}
 		toDelete, err = ghrepo.FromFullName(repoSelector)
 		if err != nil {
-			return fmt.Errorf("argument error: %w", err)
+			return fmt.Errorf("参数错误: %w", err)
 		}
 	}
 	fullName := ghrepo.FullName(toDelete)
@@ -151,7 +147,7 @@ func deleteRun(opts *DeleteOptions) error {
 	if opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
 		fmt.Fprintf(opts.IO.Out,
-			"%s Deleted repository %s\n",
+			"%s 已删除仓库 %s\n",
 			cs.SuccessIcon(),
 			fullName)
 	}

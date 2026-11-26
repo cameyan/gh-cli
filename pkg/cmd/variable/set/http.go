@@ -59,7 +59,7 @@ func setVariable(client *api.Client, host string, opts setOptions) setResult {
 		var ids []int64
 		ids, err = api.GetRepoIDs(client, opts.Repository.RepoHost(), []ghrepo.Interface{opts.Repository})
 		if err != nil || len(ids) != 1 {
-			err = fmt.Errorf("failed to look up repository %s: %w", ghrepo.FullName(opts.Repository), err)
+			err = fmt.Errorf("查找仓库 %s 失败: %w", ghrepo.FullName(opts.Repository), err)
 			break
 		}
 		if err = postEnvVariable(client, opts.Repository.RepoHost(), ids[0], opts.Environment, opts.Key, opts.Value); err == nil {
@@ -79,7 +79,7 @@ func setVariable(client *api.Client, host string, opts setOptions) setResult {
 		}
 	}
 	if err != nil {
-		result.Err = fmt.Errorf("failed to set variable %q: %w", opts.Key, err)
+		result.Err = fmt.Errorf("设置变量 %q 失败: %w", opts.Key, err)
 	}
 	return result
 }
@@ -87,7 +87,7 @@ func setVariable(client *api.Client, host string, opts setOptions) setResult {
 func postVariable(client *api.Client, host string, path safeurl.SafeURL, payload any) error {
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("failed to serialize: %w", err)
+		return fmt.Errorf("序列化失败: %w", err)
 	}
 	requestBody := bytes.NewReader(payloadBytes)
 	return client.REST(host, "POST", path.String(), requestBody, nil)
@@ -134,7 +134,7 @@ func postRepoVariable(client *api.Client, repo ghrepo.Interface, variableName, v
 func patchVariable(client *api.Client, host string, path safeurl.SafeURL, payload any) error {
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("failed to serialize: %w", err)
+		return fmt.Errorf("序列化失败: %w", err)
 	}
 	requestBody := bytes.NewReader(payloadBytes)
 	return client.REST(host, "PATCH", path.String(), requestBody, nil)

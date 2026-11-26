@@ -15,51 +15,49 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewCmdAgentTask creates the base `agent-task` command.
+// NewCmdAgentTask 创建基础的 `agent-task` 命令。
 func NewCmdAgentTask(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "agent-task <command>",
 		Aliases: []string{"agent-tasks", "agent", "agents"},
-		Short:   "Work with agent tasks (preview)",
+		Short:   "操作 agent 任务(预览版)",
 		Long: heredoc.Doc(`
-			Working with agent tasks in the GitHub CLI is in preview and
-			subject to change without notice.
+			在 GitHub CLI 中操作 agent 任务目前处于预览阶段，可能会在不另行通知的情况下变更。
 		`),
 		Annotations: map[string]string{
 			"help:arguments": heredoc.Doc(`
-				A task can be identified as argument in any of the following formats:
-				- by pull request number, e.g. "123"; or
-				- by session ID, e.g. "12345abc-12345-12345-12345-12345abc"; or
-				- by URL, e.g. "https://github.com/OWNER/REPO/pull/123/agent-sessions/12345abc-12345-12345-12345-12345abc";
+				task 可以通过以下任意一种格式作为参数来标识:
+				- 通过 PR 编号，例如 "123"
+				- 通过 session ID，例如 "12345abc-12345-12345-12345-12345abc"
+				- 通过 URL，例如 "https://github.com/OWNER/REPO/pull/123/agent-sessions/12345abc-12345-12345-12345-12345abc"
 
-				Identifying tasks by pull request is not recommended for non-interactive use cases as
-				there may be multiple tasks for a given pull request that require disambiguation.
+				对于非交互式使用场景，不建议通过 PR 来标识任务，因为给定的 PR 可能存在多个需要区分的任务。
 			`),
 		},
 		Example: heredoc.Doc(`
-			# List your most recent agent tasks
+			# 列出你最近的 agent 任务
 			$ gh agent-task list
-			
-			# Create a new agent task on the current repository
-			$ gh agent-task create "Improve the performance of the data processing pipeline"
-			
-			# View details about agent tasks associated with a pull request
+
+			# 在当前仓库创建一个新的 agent 任务
+			$ gh agent-task create "提升数据处理管道的性能"
+
+			# 查看与某个 PR 关联的 agent 任务详情
 			$ gh agent-task view 123
 
-			# View details about a specific agent task
+			# 查看某个特定 agent 任务的详情
 			$ gh agent-task view 12345abc-12345-12345-12345-12345abc
 		`),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			return requireOAuthToken(f)
 		},
-		// This is required to run this root command. We want to
-		// run it to test PersistentPreRunE behavior.
+		// 这是运行此根命令所必需的。我们希望
+		// 运行它以测试 PersistentPreRunE 的行为。
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Help()
 		},
 	}
 
-	// register subcommands
+	// 注册子命令
 	cmd.AddCommand(cmdList.NewCmdList(f, nil))
 	cmd.AddCommand(cmdCreate.NewCmdCreate(f, nil))
 	cmd.AddCommand(cmdView.NewCmdView(f, nil))
@@ -67,8 +65,8 @@ func NewCmdAgentTask(f *cmdutil.Factory) *cobra.Command {
 	return cmd
 }
 
-// requireOAuthToken ensures an OAuth (device flow) token is present and valid.
-// agent-task subcommands inherit this check via PersistentPreRunE.
+// requireOAuthToken 确保存在有效的 OAuth (device flow) token。
+// agent-task 子命令通过 PersistentPreRunE 继承此检查。
 func requireOAuthToken(f *cmdutil.Factory) error {
 	cfg, err := f.Config()
 	if err != nil {
@@ -78,11 +76,11 @@ func requireOAuthToken(f *cmdutil.Factory) error {
 	authCfg := cfg.Authentication()
 	host, _ := authCfg.DefaultHost()
 	if host == "" {
-		return errors.New("no default host configured; run 'gh auth login'")
+		return errors.New("未配置默认主机，请运行 'gh auth login'")
 	}
 
 	if auth.IsEnterprise(host) {
-		return errors.New("agent tasks are not supported on this host")
+		return errors.New("此主机不支持 agent 任务")
 	}
 
 	cred := authCfg.ActiveToken(host)
@@ -100,9 +98,9 @@ func requireOAuthToken(f *cmdutil.Factory) error {
 	// gh.AuthConfig.ActiveTokenType instead.
 	tokenIsOAuth := strings.HasPrefix(cred.Token, "gho_")
 
-	// Reject if the token is not from a device flow source or is not an OAuth token
+	// 如果 token 不是来自 device flow 来源或不是 OAuth token，则拒绝
 	if !tokenSourceIsDeviceFlow || !tokenIsOAuth {
-		return fmt.Errorf("this command requires an OAuth token. Re-authenticate with: gh auth login")
+		return fmt.Errorf("此命令需要 OAuth token。请重新认证: gh auth login")
 	}
 	return nil
 }

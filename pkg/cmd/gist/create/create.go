@@ -49,32 +49,32 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "create [<filename>... | <pattern>... | -]",
-		Short: "Create a new gist",
+		Short: "创建新的 gist",
 		Long: heredoc.Docf(`
-			Create a new GitHub gist with given contents.
+			使用给定内容创建新的 GitHub gist。
 
-			Gists can be created from one or multiple files. Alternatively, pass %[1]s-%[1]s as
-			filename to read from standard input.
+			gist 可以由一个或多个文件创建。也可以传入 %[1]s-%[1]s 作为
+			文件名，以从标准输入读取。
 
-			By default, gists are secret; use %[1]s--public%[1]s to make publicly listed ones.
+			默认情况下，gist 为私密; 使用 %[1]s--public%[1]s 可创建公开列出的 gist。
 		`, "`"),
 		Example: heredoc.Doc(`
-			# Publish file 'hello.py' as a public gist
+			# 将文件 'hello.py' 发布为公开 gist
 			$ gh gist create --public hello.py
 
-			# Create a gist with a description
-			$ gh gist create hello.py -d "my Hello-World program in Python"
+			# 创建带描述的 gist
+			$ gh gist create hello.py -d "我在 Python 中的 Hello-World 程序"
 
-			# Create a gist containing several files
+			# 创建包含多个文件的 gist
 			$ gh gist create hello.py world.py cool.txt
 
-			# Create a gist containing several files using patterns
+			# 使用通配模式创建包含多个文件的 gist
 			$ gh gist create *.md *.txt artifact.*
 
-			# Read from standard input to create a gist
+			# 从标准输入读取以创建 gist
 			$ gh gist create -
 
-			# Create a gist from output piped from another command
+			# 从另一条命令通过管道传递的输出创建 gist
 			$ cat cool.txt | gh gist create
 		`),
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -82,7 +82,7 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 				return nil
 			}
 			if opts.IO.IsStdinTTY() {
-				return cmdutil.FlagErrorf("no filenames passed and nothing on STDIN")
+				return cmdutil.FlagErrorf("未传入文件名，且 STDIN 上没有任何内容")
 			}
 			return nil
 		},
@@ -97,10 +97,10 @@ func NewCmdCreate(f *cmdutil.Factory, runF func(*CreateOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Description, "desc", "d", "", "A description for this gist")
-	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "Open the web browser with created gist")
-	cmd.Flags().BoolVarP(&opts.Public, "public", "p", false, "List the gist publicly (default \"secret\")")
-	cmd.Flags().StringVarP(&opts.FilenameOverride, "filename", "f", "", "Provide a filename to be used when reading from standard input")
+	cmd.Flags().StringVarP(&opts.Description, "desc", "d", "", "此 gist 的描述")
+	cmd.Flags().BoolVarP(&opts.WebMode, "web", "w", false, "使用创建的 gist 打开网页浏览器")
+	cmd.Flags().BoolVarP(&opts.Public, "public", "p", false, "公开列出此 gist (默认为 \"secret\")")
+	cmd.Flags().StringVarP(&opts.FilenameOverride, "filename", "f", "", "提供从标准输入读取时要使用的文件名")
 	return cmd
 }
 
@@ -123,19 +123,19 @@ func createRun(opts *CreateOptions) error {
 
 	files, err := processFiles(opts.IO.In, opts.FilenameOverride, filenames)
 	if err != nil {
-		return fmt.Errorf("failed to collect files for posting: %w", err)
+		return fmt.Errorf("收集待提交的文件失败: %w", err)
 	}
 
 	errOut := opts.IO.ErrOut
 	cs := opts.IO.ColorScheme()
 	gistName := guessGistName(files)
 
-	processMessage := "Creating gist..."
+	processMessage := "正在创建 gist..."
 	if gistName != "" {
 		if len(files) > 1 {
-			processMessage = "Creating gist with multiple files"
+			processMessage = "正在创建包含多个文件的 gist"
 		} else {
-			processMessage = fmt.Sprintf("Creating gist %s", gistName)
+			processMessage = fmt.Sprintf("正在创建 gist %s", gistName)
 		}
 	}
 	fmt.Fprintf(errOut, "%s %s\n", cs.Muted("-"), processMessage)
@@ -159,17 +159,17 @@ func createRun(opts *CreateOptions) error {
 		if httpError, ok := errors.AsType[api.HTTPError](err); ok {
 			if httpError.StatusCode == http.StatusUnprocessableEntity {
 				if detectEmptyFiles(files) {
-					fmt.Fprintf(errOut, "%s Failed to create gist: %s\n", cs.FailureIcon(), "a gist file cannot be blank")
+					fmt.Fprintf(errOut, "%s 创建 gist 失败: %s\n", cs.FailureIcon(), "gist 文件不能为空")
 					return cmdutil.SilentError
 				}
 			}
 		}
-		return fmt.Errorf("%s Failed to create gist: %w", cs.Red("X"), err)
+		return fmt.Errorf("%s 创建 gist 失败: %w", cs.Red("X"), err)
 	}
 
-	completionMessage := fmt.Sprintf("Created %s gist", cs.Green("secret"))
+	completionMessage := fmt.Sprintf("已创建 %s gist", cs.Green("secret"))
 	if opts.Public {
-		completionMessage = fmt.Sprintf("Created %s gist", cs.Red("public"))
+		completionMessage = fmt.Sprintf("已创建 %s gist", cs.Red("public"))
 	}
 	if gistName != "" {
 		completionMessage += " " + gistName
@@ -177,7 +177,7 @@ func createRun(opts *CreateOptions) error {
 	fmt.Fprintf(errOut, "%s %s\n", cs.SuccessIconWithColor(cs.Green), completionMessage)
 
 	if opts.WebMode {
-		fmt.Fprintf(opts.IO.Out, "Opening %s in your browser.\n", text.DisplayURL(gist.HTMLURL))
+		fmt.Fprintf(opts.IO.Out, "正在浏览器中打开 %s。\n", text.DisplayURL(gist.HTMLURL))
 
 		return opts.Browser.Browse(gist.HTMLURL)
 	}
@@ -191,7 +191,7 @@ func processFiles(stdin io.ReadCloser, filenameOverride string, filenames []stri
 	fs := map[string]*shared.GistFile{}
 
 	if len(filenames) == 0 {
-		return nil, errors.New("no files passed")
+		return nil, errors.New("未传入文件")
 	}
 
 	for i, f := range filenames {
@@ -207,25 +207,25 @@ func processFiles(stdin io.ReadCloser, filenameOverride string, filenames []stri
 			}
 			content, err = io.ReadAll(stdin)
 			if err != nil {
-				return fs, fmt.Errorf("failed to read from stdin: %w", err)
+				return fs, fmt.Errorf("从 stdin 读取失败: %w", err)
 			}
 			stdin.Close()
 
 			if shared.IsBinaryContents(content) {
-				return nil, fmt.Errorf("binary file contents not supported")
+				return nil, fmt.Errorf("不支持二进制文件内容")
 			}
 		} else {
 			isBinary, err := shared.IsBinaryFile(f)
 			if err != nil {
-				return fs, fmt.Errorf("failed to read file %s: %w", f, err)
+				return fs, fmt.Errorf("读取文件 %s 失败: %w", f, err)
 			}
 			if isBinary {
-				return nil, fmt.Errorf("failed to upload %s: binary file not supported", f)
+				return nil, fmt.Errorf("上传 %s 失败: 不支持二进制文件", f)
 			}
 
 			content, err = os.ReadFile(f)
 			if err != nil {
-				return fs, fmt.Errorf("failed to read file %s: %w", f, err)
+				return fs, fmt.Errorf("读取文件 %s 失败: %w", f, err)
 			}
 
 			filename = filepath.Base(f)
@@ -277,8 +277,8 @@ func createGist(client *http.Client, hostname, description string, public bool, 
 	}
 
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api 客户端机械式推广的一部分。
+	// 后续可考虑是否将 api 客户端注入此调用点，而非在此构造
 	resp, err := api.NewClientFromHTTP(client).Request(hostname, http.MethodPost, path.String(), requestBody,
 		api.WithEndpointScopes("gist"))
 	if err != nil {

@@ -25,13 +25,13 @@ func TestNewCmdEdit(t *testing.T) {
 			name:    "no argument",
 			input:   "",
 			wantErr: true,
-			errMsg:  "cannot update label: name argument required",
+			errMsg:  "无法更新标签: 需要提供 name 参数",
 		},
 		{
 			name:    "name argument",
 			input:   "test",
 			wantErr: true,
-			errMsg:  "specify at least one of `--color`, `--description`, or `--name`",
+			errMsg:  "至少指定 `--color`、`--description` 或 `--name` 之一",
 		},
 		{
 			name:   "description flag",
@@ -107,7 +107,7 @@ func TestEditRun(t *testing.T) {
 					httpmock.StatusStringResponse(201, "{}"),
 				)
 			},
-			wantStdout: "✓ Label \"test\" updated in OWNER/REPO\n",
+			wantStdout: "✓ 已更新 test 中的标签 \"OWNER/REPO\"\n",
 		},
 		{
 			name: "updates label notty",

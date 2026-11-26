@@ -31,13 +31,13 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
-		Short: "Delete an SSH key from your GitHub account",
-		Args:  cmdutil.ExactArgs(1, "cannot delete: key id required"),
+		Short: "从您的 GitHub 账户中删除 SSH 密钥",
+		Args:  cmdutil.ExactArgs(1, "无法删除: 需要提供密钥 id"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.KeyID = args[0]
 
 			if !opts.IO.CanPrompt() && !opts.Confirmed {
-				return cmdutil.FlagErrorf("--yes required when not running interactively")
+				return cmdutil.FlagErrorf("非交互模式下必须提供 --yes")
 			}
 
 			if runF != nil {
@@ -48,9 +48,9 @@ func NewCmdDelete(f *cmdutil.Factory, runF func(*DeleteOptions) error) *cobra.Co
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.Confirmed, "confirm", false, "Skip the confirmation prompt")
-	_ = cmd.Flags().MarkDeprecated("confirm", "use `--yes` instead")
-	cmd.Flags().BoolVarP(&opts.Confirmed, "yes", "y", false, "Skip the confirmation prompt")
+	cmd.Flags().BoolVar(&opts.Confirmed, "confirm", false, "跳过确认提示")
+	_ = cmd.Flags().MarkDeprecated("confirm", "请改用 `--yes`")
+	cmd.Flags().BoolVarP(&opts.Confirmed, "yes", "y", false, "跳过确认提示")
 
 	return cmd
 }
@@ -85,7 +85,7 @@ func deleteRun(opts *DeleteOptions) error {
 
 	if opts.IO.IsStdoutTTY() {
 		cs := opts.IO.ColorScheme()
-		fmt.Fprintf(opts.IO.Out, "%s SSH key %q (%s) deleted from your account\n", cs.SuccessIcon(), key.Title, opts.KeyID)
+		fmt.Fprintf(opts.IO.Out, "%s 已从您的账户中删除 SSH 密钥 %q (%s)\n", cs.SuccessIcon(), key.Title, opts.KeyID)
 	}
 	return nil
 }

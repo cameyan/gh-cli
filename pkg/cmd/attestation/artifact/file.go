@@ -10,12 +10,12 @@ import (
 func digestLocalFileArtifact(filename, digestAlg string) (*DigestedArtifact, error) {
 	data, err := os.Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open local artifact: %v", err)
+		return nil, fmt.Errorf("打开本地制品失败: %v", err)
 	}
 	defer data.Close()
 	digest, err := digest.CalculateDigestWithAlgorithm(data, digestAlg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to calculate local artifact digest: %v", err)
+		return nil, fmt.Errorf("计算本地制品摘要失败: %v", err)
 	}
 	return &DigestedArtifact{
 		URL:       fmt.Sprintf("file://%s", filename),

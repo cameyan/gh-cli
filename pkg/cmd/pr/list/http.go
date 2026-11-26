@@ -31,9 +31,8 @@ func listPullRequests(httpClient *http.Client, detector fd.Detector, repo ghrepo
 
 func searchPullRequests(httpClient *http.Client, detector fd.Detector, repo ghrepo.Interface, filters prShared.FilterOptions, limit int) (*api.PullRequestAndTotalCount, error) {
 	// TODO advancedIssueSearchCleanup
-	// We won't need feature detection when GHES 3.17 support ends, since
-	// the advanced issue search is the only available search backend for
-	// issues.
+	// 当 GHES 3.17 支持结束后，我们将不再需要特性检测(feature detection)，
+	// 因为高级 issue 搜索将成为 issue 唯一可用的搜索后端。
 	features, err := detector.SearchFeatures()
 	if err != nil {
 		return nil, err

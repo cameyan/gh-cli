@@ -27,8 +27,8 @@ func editRelease(httpClient *http.Client, repo ghrepo.Interface, releaseID int64
 
 	var newRelease shared.Release
 	// TODO(api-client-rollout)
-	// This line of code is part of a mechanical roll out of the api client.
-	// As a follow up, consider whether the api client can be injected to this call site, rather than constructed
+	// 这行代码是 api client 机械化推广的一部分。
+	// 后续可以考虑将 api client 注入到该调用点，而不是在此构造
 	if err := api.NewClientFromHTTP(httpClient).REST(repo.RepoHost(), http.MethodPatch, path.String(), bytes.NewBuffer(bodyBytes), &newRelease); err != nil {
 		return nil, err
 	}
